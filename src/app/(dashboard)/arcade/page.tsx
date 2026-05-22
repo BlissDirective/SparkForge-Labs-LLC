@@ -6,7 +6,7 @@
 
 'use client';
 
-import { useState, useMemo, Suspense } from 'react';
+import { useState, useMemo, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'motion/react';
 import {
@@ -21,8 +21,10 @@ import {
   TrendingUp,
   Flame,
   ChevronRight,
+  Info,
 } from 'lucide-react';
 import { GAME_REGISTRY } from '@/config/gameRegistry';
+import type { GameRegistryEntry } from '@/config/gameRegistry';
 import { LAB_COLORS } from '@/config/labs';
 import { SFInput } from '@/components/ui/SFInput';
 import { SFBadge } from '@/components/ui/SFBadge';
@@ -32,6 +34,7 @@ import GradientText from '@/components/bits/GradientText';
 import TiltedCard from '@/components/bits/TiltedCard';
 import { useActiveChild } from '@/hooks/useChildren';
 import { useAllLabsProgress } from '@/hooks/useProgress';
+import { GameDetailModal } from '@/components/arcade';
 
 // ── Category filters ──
 const CATEGORIES = [
@@ -54,8 +57,13 @@ export default function ArcadePage() {
   const [sortBy, setSortBy] = useState('popular');
   const [showFilters, setShowFilters] = useState(false);
 
+  // Phase 5: Game detail modal state
+  const [detailGame, setDetailGame] = useState<GameRegistryEntry | null>(null);
+  const [detailOpen, setDetailOpen] = useState(false);
+
   const child = useActiveChild();
   const childId = child?.id ?? '';
+  const childAgeBand = child?.age_band ?? 'A';
   const { data: labsProgress } = useAllLabsProgress(childId);
 
   // Get completion status for games
@@ -115,6 +123,24 @@ export default function ArcadePage() {
     () => GAME_REGISTRY.find((g) => g.tier === 'flagship'),
     []
   );
+
+  // Phase 5: Open game detail modal
+  const openDetailModal = (game: GameRegistryEntry) => {
+    setDetailGame(game);
+    setDetailOpen(true);
+  };
+
+  // Listen for game swaps from within the modal (related games)
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const custom = e as CustomEvent<GameRegistryEntry>;
+      if (custom.detail) {
+        setDetailGame(custom.detail);
+      }
+    };
+    window.addEventListener('gameDetailOpen', handler);
+    return () => window.removeEventListener('gameDetailOpen', handler);
+  }, []);
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto pb-20 lg:pb-0">
@@ -326,7 +352,7 @@ export default function ArcadePage() {
                     exit={{ opacity: 0, scale: 0.9 }}
                     transition={{ delay: i * 0.03 }}
                   >
-                    <Link href={`/arcade/${game.slug}`}>
+                    <div onClick={() => openDetailModal(game)} role="button" tabIndex={0}>
                       <TiltedCard tiltAmount={6} className="h-full cursor-pointer">
                         <div
                           className="rounded-sf-lg overflow-hidden h-full"
@@ -359,10 +385,18 @@ export default function ArcadePage() {
                               </div>
                             )}
 
+                            {/* Info icon for modal */}
+                            <div
+                              className="absolute top-3 left-3 w-6 h-6 rounded-full flex items-center justify-center
+                                         bg-white/80 shadow-sm"
+                            >
+                              <Info className="w-3.5 h-3.5" style={{ color: labColor }} />
+                            </div>
+
                             <SFBadge
                               variant="primary"
                               size="sm"
-                              className="absolute bottom-3 left-3"
+                              className="absolute bottom-3 right-3"
                               style={{ backgroundColor: `${labColor}20`, color: labColor }}
                             >
                               {game.labName}
@@ -404,13 +438,13 @@ export default function ArcadePage() {
                               </div>
 
                               <span className="flex items-center gap-1 text-xs font-semibold" style={{ color: '#4F6EF7' }}>
-                                <Zap className="w-3 h-3" /> Play
+                                <Info className="w-3 h-3" /> Details
                               </span>
                             </div>
                           </div>
                         </div>
                       </TiltedCard>
-                    </Link>
+                    </div>
                   </motion.div>
                 );
               })}
@@ -418,6 +452,14 @@ export default function ArcadePage() {
           </div>
         )}
       </motion.div>
+
+      {/* ═══ Phase 5: Game Detail Modal ═══ */}
+      <GameDetailModal
+        game={detailGame}
+        isOpen={detailOpen}
+        onClose={() => setDetailOpen(false)}
+        childAgeBand={childAgeBand}
+      />
     </div>
   );
 }

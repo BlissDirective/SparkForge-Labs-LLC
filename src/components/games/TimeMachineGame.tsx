@@ -1,481 +1,105 @@
-// ════════════════════════════════════════════════════
-// TIME MACHINE V2 — Lab 1 (What IS AI?)
-// Drag AI milestone cards to correct timeline positions.
-// Enhanced: chrome bezel, welcome phase, age-band content,
-// more milestones, visual timeline, educational tooltips.
-// ENH: Clock animation + placement celebration + progress bar + score counter
-// ════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════════════════
+// AI TIME MACHINE v3 — Lab 1 — Redesigned
+// ════════════════════════════════════════════════════════════════════════
+// Travel through time to see how AI evolved. Quiz format.
+// 10 levels covering AI history from 1950s to 2030s.
 
 'use client';
-
-import { useState, useMemo, useEffect } from 'react';
-import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
-import dynamic from 'next/dynamic';
+import { useCallback } from 'react';
 import { GameShell } from '@/components/game/GameShell';
-import { useGame } from '@/stores/gameStore';
-import { useActiveChild } from '@/hooks/useChildren';
-import { useGameContent } from '@/hooks/useContent';
-import { useSceneStore } from '@/stores/sceneStore';
-import { Clock } from 'lucide-react';
-import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
-import { useFilteredContent } from '@/hooks/useFilteredContent';
-import { GameProgressTracker } from '@/components/games/GameProgressTracker';
-import { useSafeTimeout } from '@/hooks/useSafeTimeout';
-import { useAnimatedCounter } from '@/hooks/useAnimatedCounter';
+import { useGameActions } from '@/stores/gameStore';
+import GameLevelSystem, { type LevelResult } from '@/components/games/shared/GameLevelSystem';
+import QuizLevelRenderer, { type QuizQuestion } from '@/components/games/shared/QuizLevelRenderer';
 
-// 3D Environment (no SSR)
-const TimeMachineEnvironment = dynamic(
-  () => import('@/components/3d/environments/TimeMachineEnvironment'),
-  { ssr: false }
-);
+const LEVELS = [
+  { id: 1, name: '1950s Dreams', description: 'The birth of AI thinking.', emoji: '🕰️', difficulty: 'easy' as const, starThresholds: [60,80,95], xpReward: 50 },
+  { id: 2, name: '1960s-70s Winter', description: 'AI winter and expert systems.', emoji: '❄️', difficulty: 'easy' as const, starThresholds: [60,80,95], xpReward: 60 },
+  { id: 3, name: '1980s Expert Era', description: 'Computers that know one thing well.', emoji: '🧠', difficulty: 'easy' as const, starThresholds: [60,80,95], xpReward: 70 },
+  { id: 4, name: '1990s Internet', description: 'AI meets the World Wide Web.', emoji: '🌐', difficulty: 'medium' as const, starThresholds: [60,80,90], xpReward: 80 },
+  { id: 5, name: '2000s Big Data', description: 'More data = smarter AI.', emoji: '📊', difficulty: 'medium' as const, starThresholds: [60,80,90], xpReward: 90 },
+  { id: 6, name: '2010s Deep Learning', description: 'Neural networks revolutionize AI.', emoji: '🧬', difficulty: 'medium' as const, starThresholds: [50,75,90], xpReward: 100 },
+  { id: 7, name: '2020s AI Everywhere', description: 'AI in your pocket, home, and car.', emoji: '📱', difficulty: 'hard' as const, starThresholds: [50,75,85], xpReward: 120 },
+  { id: 8, name: '2025 Agents', description: 'AI agents that act on their own.', emoji: '🤖', difficulty: 'hard' as const, starThresholds: [50,75,85], xpReward: 130 },
+  { id: 9, name: '2030s Futures', description: 'What might AI become?', emoji: '🔮', difficulty: 'expert' as const, starThresholds: [50,70,85], xpReward: 150 },
+  { id: 10, name: 'Time Lord', description: 'Master of AI history!', emoji: '👑', difficulty: 'expert' as const, starThresholds: [50,70,85], xpReward: 200, isBonus: true },
+];
 
-type Phase = 'welcome' | 'learn' | 'play' | 'complete';
+function getQuestions(levelId: number): QuizQuestion[] {
+  const q: Record<number, QuizQuestion[]> = {
+    1: [
+      { question: "In 1950, Alan Turing proposed a test for machine intelligence. What is it called?", options: ["The Turing Test","The Intelligence Exam","The Robot Challenge","The Logic Test"], correctIndex: 0, explanation: "The Turing Test asks: Can a machine's responses fool a human into thinking it's also human?", band: 'A' },
+      { question: "In 1956, the term 'Artificial Intelligence' was coined at a conference. Where?", options: ["Dartmouth College","MIT","Stanford","Harvard"], correctIndex: 0, explanation: "The Dartmouth Summer Research Project (1956) is considered the birth of AI as a field.", band: 'A' },
+      { question: "Early AI researchers believed machines could think like humans by the year...", options: ["1970","2000","1980","They never guessed"], correctIndex: 0, explanation: "They were very optimistic! They thought general AI was just decades away. It took much longer.", band: 'A' },
+      { question: "What was the first AI program to play chess called?", options: ["Deep Blue","AlphaZero","Mac Hack","ChessMaster"], correctIndex: 2, explanation: "Mac Hack (1966) was one of the first chess programs, created at MIT.", band: 'B' },
+    ],
+    2: [
+      { question: "The 'AI Winter' of the 1970s happened because...", options: ["Funding dried up after over-promising","Computers were too slow","Nobody was interested","AI was banned"], correctIndex: 0, explanation: "Over-optimistic predictions led to disappointment. Governments cut funding when results didn't match hype.", band: 'B' },
+      { question: "Expert systems of the 1970s were designed to...", options: ["Mimic human experts in narrow domains","Play games","Draw pictures","Control robots"], correctIndex: 0, explanation: "Expert systems encoded the knowledge of human specialists (doctors, engineers) into if-then rules.", band: 'B' },
+      { question: "MYCIN was a famous expert system that could...", options: ["Diagnose blood infections","Play chess","Translate languages","Drive a car"], correctIndex: 0, explanation: "MYCIN (1976) diagnosed bacterial infections and recommended antibiotics — often better than doctors!", band: 'C' },
+    ],
+    3: [
+      { question: "ELIZA (1966) was an early chatbot that pretended to be a...", options: ["Psychotherapist","Teacher","Chef","Astronaut"], correctIndex: 0, explanation: "ELIZA used pattern matching to respond like a Rogerian psychotherapist. Very simple, but surprisingly convincing!", band: 'A' },
+      { question: "Expert systems used 'knowledge bases' which were basically...", options: ["Collections of if-then rules","Neural networks","Random guesses","Photo albums"], correctIndex: 0, explanation: "They encoded human expertise as IF-THEN rules. e.g., IF fever AND rash THEN possible measles.", band: 'B' },
+    ],
+    4: [
+      { question: "The World Wide Web launched in 1991. How did it help AI?", options: ["Provided massive data for training","Made computers faster","Invented neural networks","Created the first AI"], correctIndex: 0, explanation: "The web created enormous datasets. More data = better AI training. This was crucial for ML progress.", band: 'B' },
+      { question: "In 1997, Deep Blue beat the world chess champion. Who?", options: ["Garry Kasparov","Bobby Fischer","Magnus Carlsen","Anatoly Karpov"], correctIndex: 0, explanation: "Deep Blue defeated Garry Kasparov in 1997, a historic moment showing AI could beat humans at complex games.", band: 'A' },
+      { question: "PageRank (1998) used AI to...", options: ["Rank web pages by importance","Translate web pages","Create web pages","Delete web pages"], correctIndex: 0, explanation: "PageRank treated links as votes. It became the foundation of Google's search algorithm.", band: 'C' },
+    ],
+    5: [
+      { question: "'Big Data' in the 2000s meant AI could finally...", options: ["Learn from millions of examples","Think like humans","Build robots","Write novels"], correctIndex: 0, explanation: "Before big data, AI couldn't train on enough examples. More data meant dramatically better performance.", band: 'B' },
+      { question: "Netflix's recommendation algorithm (launched 2006) used AI to...", options: ["Suggest movies you'd like","Edit movies","Create movies","Delete movies"], correctIndex: 0, explanation: "Netflix used collaborative filtering (an AI technique) to recommend shows based on similar users' preferences.", band: 'A' },
+      { question: "Siri was released in 2011 as an early...", options: ["Voice assistant","Robot","Car","Video game"], correctIndex: 0, explanation: "Siri (2011) brought voice-controlled AI assistants to mainstream smartphones.", band: 'A' },
+    ],
+    6: [
+      { question: "In 2012, AlexNet revolutionized AI by winning a computer vision contest. Its secret?", options: ["Deep neural networks + GPUs","Better cameras","More programmers","Quantum computing"], correctIndex: 0, explanation: "AlexNet showed that deep neural networks trained on GPUs could achieve superhuman image recognition.", band: 'C' },
+      { question: "'Deep Learning' means neural networks with...", options: ["Many hidden layers","Just 2 layers","No layers at all","Only input and output"], correctIndex: 0, explanation: "'Deep' refers to having many layers. Each layer learns increasingly complex features.", band: 'B' },
+      { question: "In 2016, AlphaGo beat the world champion at Go. Why was this harder than chess?", options: ["Go has more possible moves than atoms in the universe","Chess is actually harder","Go has simpler rules","Computers can't play Go"], correctIndex: 0, explanation: "Go has 10^170 possible positions (vs 10^44 for chess). Brute force is impossible — AlphaGo used deep learning + tree search.", band: 'C' },
+    ],
+    7: [
+      { question: "GPT-3 (2020) could generate human-like text. How?", options: ["Trained on 175 billion parameters","Magic","Had a human inside","Used quantum physics"], correctIndex: 0, explanation: "GPT-3 was a transformer model with 175B parameters trained on internet text. It learned patterns of language.", band: 'C' },
+      { question: "DALL-E (2021) could create images from...", options: ["Text descriptions","Hand drawings","Voice commands","Video clips"], correctIndex: 0, explanation: "DALL-E used a text encoder + image decoder to generate images from natural language prompts.", band: 'B' },
+      { question: "Tesla's self-driving cars use AI for...", options: ["Computer vision to see the road","Playing music","Talking to passengers","Painting the car"], correctIndex: 0, explanation: "Tesla's Autopilot uses neural networks to process camera feeds for lane detection, object recognition, and path planning.", band: 'B' },
+    ],
+    8: [
+      { question: "AI agents in 2025 can...", options: ["Plan and execute multi-step tasks autonomously","Only answer questions","Drive cars only","Play chess only"], correctIndex: 0, explanation: "AI agents combine planning, tool use, and reasoning to complete complex tasks with minimal human guidance.", band: 'C' },
+      { question: "MCP (Model Context Protocol) lets AI agents...", options: ["Connect to external tools and data","Think faster","Draw better","Speak louder"], correctIndex: 0, explanation: "MCP is a standard protocol that lets AI agents securely connect to databases, APIs, and external tools.", band: 'C' },
+      { question: "'Multimodal' AI can work with...", options: ["Text, images, audio, and video together","Only text","Only images","Only audio"], correctIndex: 0, explanation: "Multimodal AI processes multiple types of input simultaneously, like seeing an image and answering questions about it.", band: 'C' },
+    ],
+    9: [
+      { question: "By 2030, AI might help scientists...", options: ["Discover new medicines","Replace all jobs","Take over the world","Stop working"], correctIndex: 0, explanation: "AI drug discovery is already accelerating research. By 2030, it could help design personalized treatments.", band: 'C' },
+      { question: "'Artificial General Intelligence' (AGI) means AI that can...", options: ["Do any intellectual task a human can","Only play games","Only recognize images","Only drive cars"], correctIndex: 0, explanation: "AGI = human-level intelligence across all domains. It does not exist yet but is a major research goal.", band: 'C' },
+      { question: "The most likely AI risk experts worry about is...", options: ["Misuse by bad actors","AI becoming sentient","AI being too slow","AI making art"], correctIndex: 0, explanation: "Most AI safety researchers worry about misuse (deepfakes, bias, weapons) rather than sci-fi scenarios.", band: 'C' },
+    ],
+    10: [
+      { question: "What year is considered the 'birth of AI'?", options: ["1956","2000","1980","2020"], correctIndex: 0, explanation: "The 1956 Dartmouth Conference coined 'Artificial Intelligence' and launched the field.", band: 'A' },
+      { question: "What was the biggest breakthrough of the 2010s?", options: ["Deep learning on GPUs","The internet","Smartphones","Video games"], correctIndex: 0, explanation: "Deep learning + GPU computing enabled the AI revolution we see today.", band: 'B' },
+      { question: "What is the Turing Test designed to measure?", options: ["If a machine can think like a human","If a computer is fast","If a robot can walk","If AI can draw"], correctIndex: 0, explanation: "The Turing Test checks if a machine's behavior is indistinguishable from a human's.", band: 'A' },
+      { question: "What does the future of AI depend on most?", options: ["Responsible development and human oversight","More processing power alone","Bigger companies","Fewer regulations"], correctIndex: 0, explanation: "The future of AI depends on how wisely humans develop, regulate, and deploy it.", band: 'C' },
+    ],
+  };
 
-interface Milestone {
-  id: string;
-  year: number;
-  label: string;
-  desc: string;
-  descC: string;
-  band: 'A' | 'B' | 'C';
-  difficulty?: 'easy' | 'medium' | 'hard' | 'expert';
+  return q[levelId] || q[1];
 }
 
-const ALL_MILESTONES: Milestone[] = [
-  { id: 'm1', year: 1950, label: 'Turing Test', desc: 'Alan Turing asks: "Can machines think?"', descC: 'Turing proposes the imitation game as a benchmark for machine intelligence.', band: 'A' },
-  { id: 'm2', year: 1961, label: 'Robot Arm', desc: 'First industrial robot arm starts work', descC: 'Unimate, the first programmable industrial robot, begins operation at GM.', band: 'A' },
-  { id: 'm3', year: 1997, label: 'Deep Blue', desc: 'IBM\'s computer beats world chess champion', descC: 'Deep Blue defeats Kasparov using brute-force search with evaluation heuristics.', band: 'A' },
-  { id: 'm4', year: 2011, label: 'Siri', desc: 'Apple launches first mainstream voice assistant', descC: 'Siri demonstrates commercial NLU with speech recognition and intent classification.', band: 'A' },
-  { id: 'm5', year: 2016, label: 'AlphaGo', desc: 'AI beats world champion at the game of Go', descC: 'AlphaGo uses Monte Carlo tree search + deep RL to master Go\'s 10^170 state space.', band: 'A' },
-  { id: 'm6', year: 2022, label: 'ChatGPT', desc: 'Conversational AI goes mainstream', descC: 'GPT-3.5 fine-tuned with RLHF demonstrates emergent conversational capabilities.', band: 'A' },
-  { id: 'm7', year: 1966, label: 'ELIZA', desc: 'First chatbot mimics a therapist', descC: 'Joseph Weizenbaum\'s ELIZA uses pattern matching to simulate Rogerian psychotherapy.', band: 'B' },
-  { id: 'm8', year: 2012, label: 'ImageNet', desc: 'Deep learning revolutionizes image recognition', descC: 'AlexNet\'s CNN achieves 15.3% top-5 error on ImageNet, halving the previous best.', band: 'B' },
-  { id: 'm9', year: 1958, label: 'Perceptron', desc: 'First neural network hardware built', descC: 'Frank Rosenblatt\'s Mark I Perceptron implements single-layer binary classification.', band: 'C' },
-  { id: 'm10', year: 1987, label: 'AI Winter', desc: 'Funding dries up, AI research slows', descC: 'Collapse of the LISP machine market triggers second AI winter, reducing funding.', band: 'C' },
-  { id: 'm11', year: 1986, label: 'Backprop', desc: 'Key algorithm for training neural networks', descC: 'Rumelhart, Hinton & Williams popularize backpropagation for multi-layer networks.', band: 'C' },
-  { id: 'm12', year: 2017, label: 'Transformer', desc: 'Architecture that powers modern AI', descC: '"Attention Is All You Need" introduces self-attention, replacing recurrence.', band: 'C' },
-  { id: 'm13', year: 2023, label: 'GPT-4', desc: 'Multimodal AI sees images and text', descC: 'GPT-4 demonstrates multimodal reasoning across vision and language modalities.', band: 'C' },
-  { id: 'm14', year: 2024, label: 'Claude', desc: 'Anthropic\'s helpful and harmless AI', descC: 'Claude demonstrates constitutional AI alignment with RLHF + CAI training.', band: 'C' },
-  { id: 'm15', year: 1943, label: 'McCulloch-Pitts Neurons', desc: 'Scientists created a math model of how brain cells work!', descC: 'Warren McCulloch and Walter Pitts published the first mathematical model of artificial neurons, founding computational neuroscience.', band: 'C' },
-  { id: 'm16', year: 1958, label: 'Perceptron Invented', desc: 'The first machine that could learn from examples!', descC: 'Frank Rosenblatt built the Mark I Perceptron, the first hardware implementation of a learning algorithm for binary classification.', band: 'B' },
-  { id: 'm17', year: 1965, label: 'ELIZA Chatbot', desc: 'A computer program that could chat like a therapist!', descC: 'Joseph Weizenbaum created ELIZA at MIT, demonstrating that simple pattern matching could create the illusion of understanding.', band: 'A' },
-  { id: 'm18', year: 1979, label: 'Stanford Cart', desc: 'A robot that could drive itself across a room!', descC: 'The Stanford Cart navigated a chair-filled room autonomously using stereo vision — taking 5 hours to cross 20 meters.', band: 'B' },
-  { id: 'm19', year: 1986, label: 'Backpropagation', desc: 'A clever way to teach neural networks by working backwards!', descC: 'Rumelhart, Hinton, and Williams popularized backpropagation, enabling efficient training of multi-layer neural networks.', band: 'C' },
-  { id: 'm20', year: 1995, label: 'Support Vector Machines', desc: 'A powerful way to sort things into groups!', descC: 'Vapnik and Cortes introduced SVMs with the kernel trick, dominating ML competitions for the next decade.', band: 'C' },
-  { id: 'm21', year: 2004, label: 'DARPA Grand Challenge', desc: 'Self-driving cars raced through the desert!', descC: 'DARPA Grand Challenge launched autonomous vehicle research. No car finished in 2004, but Stanley won in 2005 covering 132 miles.', band: 'B' },
-  { id: 'm22', year: 2009, label: 'ImageNet Created', desc: 'Scientists collected millions of labeled pictures for AI to learn from!', descC: 'Fei-Fei Li launched ImageNet with 14M+ images in 20K+ categories, creating the benchmark that would spark the deep learning revolution.', band: 'B' },
-  { id: 'm23', year: 2014, label: 'GANs Invented', desc: 'AI learned to create realistic fake images!', descC: 'Ian Goodfellow invented Generative Adversarial Networks — two neural networks competing to generate increasingly realistic synthetic data.', band: 'C' },
-  { id: 'm24', year: 2020, label: 'GPT-3 Released', desc: 'An AI that could write almost like a human!', descC: 'OpenAI released GPT-3 with 175B parameters, demonstrating few-shot learning and sparking the large language model era.', band: 'A' },
-  { id: 'm25', year: 2021, label: 'DALL-E Creates Art', desc: 'AI could now create pictures from text descriptions!', descC: 'OpenAI DALL-E demonstrated text-to-image generation, combining CLIP and diffusion models to create novel images from natural language.', band: 'A' },
-  { id: 'm26', year: 2023, label: 'GPT-4 Multimodal', desc: 'AI could now understand both text AND images together!', descC: 'GPT-4 achieved multimodal reasoning, passing the bar exam and demonstrating visual understanding alongside language capabilities.', band: 'A' },
-  { id: 'm27', year: 2024, label: 'AI Video Generation', desc: 'AI could create realistic videos from just a text description!', descC: 'Sora and other video models demonstrated temporal coherence in AI-generated video, raising both creative and ethical questions.', band: 'B' },
-  { id: 'm28', year: 2026, label: 'AI Agents Era', desc: 'AI assistants that can use tools and complete tasks independently!', descC: 'Autonomous AI agents capable of multi-step reasoning, tool use, and code execution become mainstream in software development and research.', band: 'A' },
-];
-
-const LEARN_CARDS = [
-  { title: 'The Story of AI', emoji: '📖', desc: 'Artificial Intelligence has been a dream of scientists for over 70 years! From the first computer programs to today\'s chatbots, AI has come a long way.' },
-  { title: 'Key Moments', emoji: '⭐', desc: 'Some moments changed everything — like when a computer first beat a chess champion, or when deep learning made machines see and speak.' },
-  { title: 'AI Keeps Growing', emoji: '🚀', desc: 'Every year, AI gets smarter and more useful. In this game, you\'ll place important AI milestones on a timeline to see how it all unfolded!' },
-];
-
-export function TimeMachineGame() {
-  const prefersReducedMotion = useReducedMotion();
-  const game = useGame();
-  const activeChild = useActiveChild();
-  const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
-  const { data: _dynamicContent } = useGameContent('time-machine', ageBand);
-  // Phase 2: Dynamic scenarios available via _dynamicContent?.scenarios and _dynamicContent?.challenges
-  const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
-
-  const [phase, setPhase] = useState<Phase>('welcome');
-  const [learnIdx, setLearnIdx] = useState(0);
-  const [placed, setPlaced] = useState<Map<string, number>>(new Map());
-  const [selectedCard, setSelectedCard] = useState<string | null>(null);
-  const [feedback, setFeedback] = useState<{ id: string; correct: boolean } | null>(null);
-  const [streak, setStreak] = useState(0);
-  const [celebrateSlot, setCelebrateSlot] = useState<number | null>(null);
-  const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
-  const filteredMilestones = useFilteredContent(ALL_MILESTONES, tier, ageBand);
-  const { safeTimeout } = useSafeTimeout();
-  const animatedScore = useAnimatedCounter(game.score);
-
-  const milestones = useMemo(
-    () => [...filteredMilestones].sort((a, b) => a.year - b.year),
-    [filteredMilestones]
-  );
-
-  const [trayCards, setTrayCards] = useState<Milestone[]>(() => {
-    const s = [...milestones];
-    for (let i = s.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [s[i], s[j]] = [s[j], s[i]];
-    }
-    return s;
-  });
-
-  const slots = milestones.map(m => m.year);
-
-  useEffect(() => {
-    setGameSceneContent(<TimeMachineEnvironment currentYear={slots[placed.size] || 2024} isPlacing={selectedCard !== null} />);
-    return () => setGameSceneContent(null);
-  }, [placed.size, selectedCard, slots, setGameSceneContent]);
-
-  const particles = useMemo(() => Array.from({ length: 12 }, (_, i) => ({
-    id: i,
-    x: ((i * 37 + 13) % 100),
-    y: ((i * 53 + 7) % 100),
-    size: (i % 3) + 1,
-    delay: (i * 0.33) % 4,
-    dur: (i % 6) + 4,
-  })), []);
-
-  function handleSlotClick(slotYear: number) {
-    if (!selectedCard) return;
-    const card = milestones.find(m => m.id === selectedCard);
-    if (!card) return;
-
-    const correct = card.year === slotYear;
-    setFeedback({ id: card.id, correct });
-
-    if (correct) {
-      setStreak(s => s + 1);
-      setCelebrateSlot(slotYear);
-      safeTimeout(() => setCelebrateSlot(null), 800);
-      setPlaced(prev => new Map(prev).set(card.id, slotYear));
-      setTrayCards(prev => {
-        const remaining = prev.filter(c => c.id !== card.id);
-        if (remaining.length === 0) {
-          safeTimeout(() => { setPhase('complete'); game.completeGame(); }, 2000);
-        }
-        return remaining;
-      });
-      game.updateScore(10);
-      game.advanceRound();
-    } else {
-      setStreak(0);
-    }
-    setSelectedCard(null);
-
-    safeTimeout(() => {
-      setFeedback(null);
-    }, 2000);
-  }
+export default function TimeMachineGame() {
+  const { awardXP, completeGame } = useGameActions();
+  const handleComplete = useCallback((results: LevelResult[]) => {
+    const totalXP = results.reduce((s, r) => s + r.xpEarned, 0);
+    const totalStars = results.reduce((s, r) => s + r.stars, 0);
+    awardXP(Math.round(totalXP));
+    completeGame('time-machine', totalStars >= 25 ? 3 : totalStars >= 15 ? 2 : 1);
+  }, [awardXP, completeGame]);
 
   return (
-    <GameShell gameId="time-machine" title="Time Machine" worldNumber={1} worldColor="#0FB8FA" totalRounds={milestones.length}>
-      <div className="h-full flex flex-col relative overflow-hidden">
-        {/* Particles */}
-        <div className="absolute inset-0 pointer-events-none">
-          {particles.map(p => (
-            <motion.div
-              key={p.id}
-              className="absolute rounded-full"
-              style={{
-                left: `${p.x}%`,
-                top: `${p.y}%`,
-                width: p.size,
-                height: p.size,
-                background: `radial-gradient(circle, rgba(0,187,255,${0.15 + p.size * 0.06}), rgba(0,0,0,0))`,
-              }}
-              animate={prefersReducedMotion ? {} : { y: [0, -12, 0], opacity: [0.1, 0.35, 0.1] }}
-              transition={prefersReducedMotion ? { duration: 0 } : { duration: p.dur, delay: p.delay, repeat: Infinity, ease: 'easeInOut' }}
-            />
-          ))}
-        </div>
-
-        <div className="relative z-10 flex-1 flex flex-col p-3 md:p-5">
-          <div
-            className="flex-1 flex flex-col rounded-xl overflow-hidden"
-            style={{
-              border: '1px solid rgba(0,187,255,0.15)',
-              boxShadow: '0 2px 40px rgba(0,0,0,0.2)',
-            }}
-          >
-            <div className="h-[2px] w-full bg-gradient-to-r from-transparent via-sky-400/50 to-transparent" />
-            <div className="flex-1 flex flex-col overflow-auto p-4">
-              <AnimatePresence mode="wait">
-                {phase === 'welcome' && (
-                  <motion.div
-                    key="welcome"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                    className="flex-1 flex flex-col items-center justify-center text-center space-y-4"
-                  >
-                    {/* ENH: Animated ticking clock */}
-                    <motion.div
-                      className="relative"
-                      initial={{ scale: 0, rotate: -180 }}
-                      animate={{ scale: 1, rotate: 0 }}
-                      transition={{ type: 'spring', stiffness: 200, damping: 15 }}
-                    >
-                      <motion.span
-                        className="text-5xl inline-block"
-                        animate={prefersReducedMotion ? {} : { rotate: [0, 15, -15, 10, -10, 0] }}
-                        transition={prefersReducedMotion ? { duration: 0 } : { duration: 2, repeat: Infinity, repeatDelay: 1 }}
-                      >
-                        ⏰
-                      </motion.span>
-                      <motion.div
-                        className="absolute -inset-3 rounded-full"
-                        style={{ background: 'radial-gradient(circle, rgba(0,187,255,0.15), transparent)' }}
-                        animate={prefersReducedMotion ? {} : { scale: [1, 1.3, 1], opacity: [0.5, 0, 0.5] }}
-                        transition={prefersReducedMotion ? { duration: 0 } : { duration: 2, repeat: Infinity }}
-                      />
-                    </motion.div>
-                    <h2 className="font-display text-2xl font-bold text-white" aria-label="Time Machine welcome phase">Time Machine</h2>
-                    <p className="font-body text-sm text-white/50 max-w-sm">
-                      Travel through the history of AI! Place milestone cards on the correct year.
-                    </p>
-                    <div className="flex gap-2">
-                      {['AI History', 'Timeline', 'Milestones'].map(t => (
-                        <span
-                          key={t}
-                          className="px-2 py-1 rounded-lg bg-sky-400/10 border border-sky-400/20 text-sky-400 font-body text-2xs"
-                        >
-                          {t}
-                        </span>
-                      ))}
-                    </div>
-                    <motion.button
-                      onClick={() => setPhase('learn')}
-                      className="w-full max-w-xs py-3 rounded-xl font-display font-bold text-sm text-white"
-                      style={{ background: 'linear-gradient(135deg, #00BBFF, #0099DD)' }}
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      aria-label="Start the Time Machine game"
-                    >
-                      Start the Time Machine! <Clock className="inline w-4 h-4 ml-1" />
-                    </motion.button>
-                  </motion.div>
-                )}
-
-                {phase === 'learn' && (
-                  <motion.div key="learn" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}
-                    className="flex-1 flex flex-col items-center justify-center text-center space-y-4 px-4">
-                    <span className="text-4xl">{LEARN_CARDS[learnIdx].emoji}</span>
-                    <h3 className="font-display text-xl font-bold text-white">{LEARN_CARDS[learnIdx].title}</h3>
-                    <p className="font-body text-sm text-white/60 max-w-md">{LEARN_CARDS[learnIdx].desc}</p>
-                    <div className="flex gap-1 mt-2">
-                      {LEARN_CARDS.map((_, i) => (
-                        <div key={i} className={`w-2 h-2 rounded-full ${i === learnIdx ? 'bg-[#00BBFF]' : 'bg-white/20'}`} />
-                      ))}
-                    </div>
-                    <div className="flex gap-3 mt-4">
-                      {learnIdx > 0 && (
-                        <motion.button onClick={() => setLearnIdx(i => i - 1)}
-                          className="px-4 py-2 rounded-lg border border-white/10 font-display text-xs text-white/60 hover:text-white"
-                          whileTap={{ scale: 0.95 }}>Back</motion.button>
-                      )}
-                      <motion.button onClick={() => learnIdx < LEARN_CARDS.length - 1 ? setLearnIdx(i => i + 1) : setPhase('play')}
-                        className="px-6 py-2 rounded-lg font-display text-xs font-bold text-white"
-                        style={{ background: 'linear-gradient(135deg, #00BBFF, #0088CC)' }}
-                        whileTap={{ scale: 0.95 }}>{learnIdx < LEARN_CARDS.length - 1 ? 'Next' : 'Start Playing!'}</motion.button>
-                    </div>
-                  </motion.div>
-                )}
-
-                {phase === 'play' && (
-                  <motion.div
-                    key="play"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="flex-1 flex flex-col"
-                  >
-                    <div className="flex items-center gap-3 mb-3 px-4">
-                      <DifficultySelector value={tier} onChange={setTier} ageBand={ageBand} />
-                      <GameProgressTracker current={placed.size} total={milestones.length} labColor="#00BBFF" />
-                    </div>
-                    {/* ENH: Visual progress bar */}
-                    <div className="mb-3">
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="font-body text-2xs text-white/60" role="status" aria-label={`${placed.size} of ${milestones.length} milestones placed`}>
-                          {placed.size}/{milestones.length} placed
-                        </span>
-                        {streak >= 2 && (
-                          <motion.span
-                            className="font-display text-2xs font-bold"
-                            style={{
-                              color: '#00BBFF',
-                              textShadow: `0 0 ${4 + streak * 2}px rgba(0,187,255,${0.3 + streak * 0.1})`,
-                            }}
-                            initial={{ scale: 0 }}
-                            animate={{ scale: [1, 1.15, 1] }}
-                            transition={{ duration: 0.5 }}
-                            key={streak}
-                          >
-                            {streak} streak {streak >= 5 ? '🔥🔥' : '🔥'}
-                          </motion.span>
-                        )}
-                      </div>
-                      <div className="h-1.5 rounded-full bg-white/5 overflow-hidden">
-                        <motion.div
-                          className="h-full rounded-full"
-                          style={{ background: 'linear-gradient(90deg, #00BBFF, #00DDFF)' }}
-                          animate={{ width: `${(placed.size / milestones.length) * 100}%` }}
-                          transition={{ type: 'spring', stiffness: 200, damping: 20 }}
-                        />
-                      </div>
-                    </div>
-                    <p className="font-body text-xs text-white/60 mb-3 text-center">
-                      Select a card, then tap the correct year on the timeline
-                    </p>
-
-                    {/* Timeline */}
-                    <div className="flex-1 overflow-x-auto mb-4">
-                      <div className="flex items-end gap-1 min-w-max px-2 pb-2">
-                        {slots.map(year => {
-                          const placedMilestone = milestones.find(m => placed.has(m.id) && placed.get(m.id) === year);
-                          const isFeedbackTarget = feedback && milestones.find(m => m.id === feedback.id)?.year === year;
-                          return (
-                            <motion.button
-                              key={year}
-                              onClick={() => handleSlotClick(year)}
-                              className={`flex flex-col items-center px-2 py-2 rounded-lg min-w-[64px] transition-all ${
-                                placedMilestone
-                                  ? 'bg-sky-400/15 border border-sky-400/30'
-                                  : selectedCard
-                                    ? 'bg-white/5 border border-white/15 hover:border-sky-400/40'
-                                    : 'bg-white/[0.02] border border-white/5'
-                              } ${isFeedbackTarget && feedback?.correct ? 'ring-2 ring-green-500/50' : ''} ${celebrateSlot === year ? 'ring-2 ring-green-400/60' : ''}`}
-                              whileTap={selectedCard && !placedMilestone ? { scale: 0.95 } : {}}
-                              animate={celebrateSlot === year ? { scale: [1, 1.2, 1], boxShadow: ['0 0 0px rgba(74,222,128,0)', '0 0 20px rgba(74,222,128,0.4)', '0 0 0px rgba(74,222,128,0)'] } : {}}
-                              transition={celebrateSlot === year ? { duration: 0.6 } : undefined}
-                              aria-label={`Timeline slot: ${year}`}
-                            >
-                              <span className="font-mono text-2xs text-white/60">{year}</span>
-                              {placedMilestone && (
-                                <motion.div
-                                  initial={{ scale: 0 }}
-                                  animate={{ scale: 1 }}
-                                  className="mt-1"
-                                >
-                                  <p className="font-display text-2xs font-bold text-sky-400">
-                                    {placedMilestone.label}
-                                  </p>
-                                </motion.div>
-                              )}
-                              {!placedMilestone && (
-                                <div className="w-6 h-6 rounded-full border border-dashed border-white/10 mt-1" />
-                              )}
-                            </motion.button>
-                          );
-                        })}
-                      </div>
-                    </div>
-
-                    {/* Feedback */}
-                    <AnimatePresence>
-                      {feedback && (
-                        <motion.div
-                          initial={{ opacity: 0, y: 5 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0 }}
-                          className={`mb-3 px-4 py-2 rounded-xl text-center ${
-                            feedback.correct
-                              ? 'bg-green-500/10 border border-green-500/30'
-                              : 'bg-red-500/10 border border-red-500/30'
-                          }`}
-                        >
-                          <p
-                            className="font-display text-xs font-bold"
-                            style={{ color: feedback.correct ? '#4ade80' : '#f87171' }}
-                          >
-                            {feedback.correct ? 'Correct!' : 'Wrong year \u2014 try again!'}
-                          </p>
-                          {feedback.correct && (() => {
-                            const m = milestones.find(ml => ml.id === feedback.id);
-                            return m ? (
-                              <p className="font-body text-2xs text-white/70 mt-0.5">
-                                {ageBand === 'C' ? m.descC : m.desc}
-                              </p>
-                            ) : null;
-                          })()}
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-
-                    {/* Card tray */}
-                    <div className="border-t border-white/5 pt-3">
-                      <p className="font-body text-2xs text-white/55 mb-2">Cards to place:</p>
-                      <div className="flex flex-wrap gap-2">
-                        {trayCards.map(card => (
-                          <motion.button
-                            key={card.id}
-                            onClick={() => setSelectedCard(selectedCard === card.id ? null : card.id)}
-                            className={`px-3 py-2 rounded-lg border text-left transition-all ${
-                              selectedCard === card.id
-                                ? 'border-sky-400/50 bg-sky-400/10 ring-1 ring-blue-500/30'
-                                : 'border-white/10 bg-white/[0.02] hover:border-white/20'
-                            }`}
-                            whileTap={{ scale: 0.97 }}
-                            aria-label={`Milestone card: ${card.label}`}
-                          >
-                            <p className="font-display text-xs font-bold text-white">{card.label}</p>
-                            <p className="font-body text-2xs text-white/60 mt-0.5">
-                              {ageBand === 'C' ? card.descC : card.desc}
-                            </p>
-                          </motion.button>
-                        ))}
-                      </div>
-                    </div>
-                  </motion.div>
-                )}
-
-                {phase === 'complete' && (
-                  <motion.div
-                    key="complete"
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="flex-1 flex flex-col items-center justify-center text-center space-y-4"
-                  >
-                    <motion.span className="text-6xl" animate={prefersReducedMotion ? {} : { rotate: [0, 10, -10, 0] }} transition={prefersReducedMotion ? { duration: 0 } : { duration: 1.5, repeat: Infinity }}>🏆</motion.span>
-                    <motion.h2
-                      className="font-display text-2xl font-bold text-white"
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.2 }}
-                      aria-label="Time Machine complete phase - Timeline Mastery"
-                    >
-                      Timeline Mastery!
-                    </motion.h2>
-                    <p className="font-body text-sm text-white/50 max-w-sm">
-                      You traveled through the history of artificial intelligence, placing key milestones on the timeline from the 1950s to today.
-                    </p>
-                    {/* ENH: Animated score counter */}
-                    <motion.div
-                      className="rounded-xl px-6 py-3 bg-[#00BBFF]/10 border border-[#00BBFF]/20"
-                      initial={{ scale: 0.8, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      transition={{ type: 'spring', stiffness: 200, delay: 0.4 }}
-                      role="status"
-                      aria-label={`Final score: ${animatedScore} points`}
-                    >
-                      <motion.p
-                        className="font-data text-2xl text-[#00BBFF]"
-                        animate={prefersReducedMotion ? {} : { textShadow: ['0 0 0px rgba(0,187,255,0)', '0 0 12px rgba(0,187,255,0.5)', '0 0 0px rgba(0,187,255,0)'] }}
-                        transition={prefersReducedMotion ? { duration: 0 } : { duration: 2, repeat: Infinity }}
-                      >
-                        {animatedScore}
-                      </motion.p>
-                      <p className="font-body text-2xs text-white/60">Total Points</p>
-                    </motion.div>
-                    <div className="mt-4 space-y-2 text-left max-w-sm">
-                      <h3 className="font-display text-sm font-bold text-white/70">What You Learned:</h3>
-                      <ul className="space-y-1 text-2xs font-body text-white/70">
-                        <li>• AI has a rich history spanning over 70 years of breakthroughs and setbacks</li>
-                        <li>• Key milestones like the Turing Test, Deep Blue, and AlphaGo shaped how we think about machine intelligence</li>
-                        <li>• Modern AI (transformers, large language models) builds on decades of earlier research and innovation</li>
-                      </ul>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-            <div className="h-[2px] w-full bg-gradient-to-r from-transparent via-sky-400/50 to-transparent" />
-          </div>
-        </div>
-      </div>
+    <GameShell title="AI Time Machine" color="#4F6EF7" labNum={1}>
+      <GameLevelSystem gameTitle="AI Time Machine" gameEmoji="🕰️" labColor="#4F6EF7" levels={LEVELS}
+        onComplete={handleComplete}
+        renderLevel={(level, onComplete, onExit) => (
+          <QuizLevelRenderer level={level} onComplete={onComplete} onExit={onExit}
+            questions={getQuestions(level.id)} labColor="#4F6EF7" gameEmoji="🕰️" timePerQuestion={20} />
+        )}
+      />
     </GameShell>
   );
 }

@@ -1,469 +1,168 @@
-// ════════════════════════════════════════════════════
-// PREDICTION MARKET V2 — Lab 10 (AI's Future)
-// Vote on AI predictions, see aggregate results.
-// Enhanced: chrome bezel, welcome phase, 8 predictions,
-// time horizon tags, expert analysis, animated tallying.
-//
-// ENH: Animated voting bars + crowd visualization + accuracy counter + gold glow
-// ════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════════════════
+// PREDICTION MARKET v4 — Lab 10 Flagship (Redesigned)
+// ════════════════════════════════════════════════════════════════════════
+// Test your forecasting skills on AI predictions. Quiz-based:
+// prediction markets, collective intelligence, probability calibration,
+// expert vs. crowd wisdom. 10 levels from basic forecasting to expert.
 
 'use client';
-
-import { useState, useMemo, useEffect } from 'react';
-import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
+import { useCallback } from 'react';
 import { GameShell } from '@/components/game/GameShell';
-import { useGame } from '@/stores/gameStore';
-import { useActiveChild } from '@/hooks/useChildren';
-import { useGameContent } from '@/hooks/useContent';
-import { useSceneStore } from '@/stores/sceneStore';
-import { TrendingUp, MessageSquare } from 'lucide-react';
-import dynamic from 'next/dynamic';
-import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
-import { GameProgressTracker } from '@/components/games/GameProgressTracker';
-import { useFilteredContent } from '@/hooks/useFilteredContent';
+import { useGameActions } from '@/stores/gameStore';
+import GameLevelSystem, { type LevelResult } from '@/components/games/shared/GameLevelSystem';
+import QuizLevelRenderer, { type QuizQuestion } from '@/components/games/shared/QuizLevelRenderer';
 
-// 3D Environment (no SSR)
-const PredictionMarketEnvironment = dynamic(
-  () => import('@/components/3d/environments/PredictionMarketEnvironment'),
-  { ssr: false }
-);
-
-type Phase = 'welcome' | 'learn' | 'play' | 'complete';
-
-const LEARN_CARDS = [
-  { title: 'AI Predictions', emoji: '🔮', desc: 'AI can analyze patterns in data to make predictions about the future — from weather forecasts to stock markets to scientific discoveries.' },
-  { title: 'Uncertainty is Normal', emoji: '🎲', desc: 'No prediction is 100% certain. Good AI systems tell you HOW confident they are. Understanding uncertainty is key to using AI wisely.' },
-  { title: 'Thinking About the Future', emoji: '🚀', desc: 'In this game, you\'ll vote on AI predictions and see how your thinking compares with expert analysis. There are no wrong answers — just different perspectives!' },
+const LEVELS = [
+  { id: 1, name: 'Predictions 101', description: 'What are predictions and how do they work?', emoji: '🔮', difficulty: 'easy' as const, starThresholds: [60,80,95], xpReward: 50 },
+  { id: 2, name: 'Probability', description: 'Understanding chance and likelihood!', emoji: '🎲', difficulty: 'easy' as const, starThresholds: [60,80,95], xpReward: 60 },
+  { id: 3, name: 'Prediction Markets', description: 'How markets aggregate beliefs!', emoji: '📈', difficulty: 'easy' as const, starThresholds: [60,80,95], xpReward: 70 },
+  { id: 4, name: 'Crowd Wisdom', description: 'Why groups can be smarter than experts!', emoji: '👥', difficulty: 'medium' as const, starThresholds: [60,80,90], xpReward: 80 },
+  { id: 5, name: 'Calibration', description: 'Are your confidence levels accurate?', emoji: '🎯', difficulty: 'medium' as const, starThresholds: [60,80,90], xpReward: 90 },
+  { id: 6, name: 'AI Forecasting', description: 'Predicting the future of artificial intelligence!', emoji: '🤖', difficulty: 'medium' as const, starThresholds: [50,75,90], xpReward: 100 },
+  { id: 7, name: 'Base Rates', description: 'Start with the historical average!', emoji: '📊', difficulty: 'hard' as const, starThresholds: [50,75,85], xpReward: 120 },
+  { id: 8, name: 'Brier Score', description: 'Measuring forecasting accuracy!', emoji: '📉', difficulty: 'hard' as const, starThresholds: [50,75,85], xpReward: 130 },
+  { id: 9, name: 'Superforecasters', description: 'What makes elite forecasters special?', emoji: '🏆', difficulty: 'expert' as const, starThresholds: [50,70,85], xpReward: 150 },
+  { id: 10, name: 'Oracle', description: 'The ultimate forecasting challenge!', emoji: '👑', difficulty: 'expert' as const, starThresholds: [50,70,85], xpReward: 200, isBonus: true },
 ];
 
-interface Prediction {
-  question: string;
-  emoji: string;
-  horizon: string;
-  mockResults: { yes: number; no: number; maybe: number };
-  analysis: string;
-  analysisC: string;
-  band: 'A' | 'B' | 'C';
-  difficulty: 'easy' | 'medium' | 'hard' | 'expert';
+function getQuestions(levelId: number): QuizQuestion[] {
+  const q: Record<number, QuizQuestion[]> = {
+    1: [
+      { question: "What is a prediction?", options: ["A statement about the past","A statement about what will happen in the future","A type of math problem","A scientific law"], correctIndex: 1, explanation: "A prediction is a statement about what will happen in the future based on current evidence, patterns, or models. Predictions can range from weather forecasts to technology trends.", band: 'A' },
+      { question: "Are all predictions equally certain?", options: ["Yes — predictions are always right","No — predictions vary in confidence","Only expert predictions are certain","AI predictions are always certain"], correctIndex: 1, explanation: "Predictions vary widely in confidence. 'The sun will rise tomorrow' is near-certain. 'AI will cure cancer by 2030' is highly uncertain. Good predictions include confidence levels.", band: 'A' },
+      { question: "What makes a prediction good?", options: ["It comes true","It's specific, testable, and includes a timeframe","It's made by a famous person","It's optimistic"], correctIndex: 1, explanation: "Good predictions are specific (what exactly will happen), testable (can be checked against reality), and time-bound (by when). Vague predictions are hard to evaluate.", band: 'A' },
+      { question: "What is a 'self-fulfilling prophecy'?", options: ["A prediction that fails","A prediction that influences behavior and causes itself to come true","A type of magic","A scientific experiment"], correctIndex: 1, explanation: "A self-fulfilling prophecy is a prediction that directly or indirectly causes itself to become true, by influencing people's behavior. E.g., predicting a bank run may cause one.", band: 'B' },
+      { question: "What is the difference between a forecast and a guess?", options: ["They're the same","A forecast uses data and reasoning; a guess doesn't","Forecasts are always right","Guesses are better"], correctIndex: 1, explanation: "Forecasts are evidence-based predictions using data, models, and reasoning. Guesses lack systematic analysis. Good forecasters can explain WHY they predict something.", band: 'A' },
+      { question: "Why do predictions about technology often fail?", options: ["Technology never changes","People tend to overestimate short-term change and underestimate long-term change","Predictions are illegal","AI prevents predictions"], correctIndex: 1, explanation: "Amara's Law: we tend to overestimate technology's effect in the short run and underestimate it in the long run. Hype cycles create unrealistic near-term expectations.", band: 'B' },
+      { question: "What is 'falsifiability' in predictions?", options: ["Making false predictions","The ability to prove a prediction wrong if it doesn't come true","A type of lie detector","A math formula"], correctIndex: 1, explanation: "A falsifiable prediction specifies conditions under which it would be proven wrong. 'Something big will happen' is unfalsifiable. 'AI will beat the world chess champion by 2000' is falsifiable.", band: 'B' },
+      { question: "What is the 'planning fallacy'?", options: ["Not making plans","Consistently underestimating how long tasks will take","Over-planning","A type of calendar"], correctIndex: 1, explanation: "The planning fallacy is the human tendency to underestimate task completion times, even when we have experience with similar tasks taking longer. We ignore historical data.", band: 'A' },
+    ],
+    2: [
+      { question: "What does it mean when something has a 70% chance of happening?", options: ["It will definitely happen","Out of 100 similar situations, it would happen about 70 times","It's impossible","70 things will happen"], correctIndex: 1, explanation: "A 70% probability means that in many repeated trials under similar conditions, the event would occur about 70% of the time. It doesn't guarantee any single outcome.", band: 'A' },
+      { question: "If a coin is flipped 10 times and lands heads each time, what's the chance of heads on the 11th flip?", options: ["Higher than 50%","Still 50% — each flip is independent","Lower than 50%","100%"], correctIndex: 1, explanation: "The gambler's fallacy is believing past independent events affect future ones. A fair coin is always 50/50, regardless of previous outcomes. The coin has no memory.", band: 'A' },
+      { question: "What is the difference between probability and odds?", options: ["They're the same","Probability is favorable/all outcomes; odds is favorable/unfavorable","Odds are always higher","Probability is a guess"], correctIndex: 1, explanation: "If an event has 1 in 4 chance: probability = 1/4 = 25%. Odds = 1:3 (1 favorable to 3 unfavorable). Odds ratios are common in betting and statistics.", band: 'B' },
+      { question: "What is a 'base rate'?", options: ["A type of tax","The historical frequency of an event in a population","A sports term","A math formula"], correctIndex: 1, explanation: "The base rate is the historical or population frequency of an event. E.g., if 1% of people have a disease, that's the base rate — your starting point before considering specific evidence.", band: 'B' },
+      { question: "What is Bayesian reasoning?", options: ["A type of music","Updating beliefs based on new evidence, starting from a base rate","A computer program","A type of graph"], correctIndex: 1, explanation: "Bayesian reasoning updates predictions when new evidence arrives. Start with a prior belief (base rate), then adjust based on how strong and relevant the new evidence is.", band: 'C' },
+      { question: "What is conditional probability?", options: ["A probability with conditions","The probability of an event given that another event has occurred","A type of contract","A math puzzle"], correctIndex: 1, explanation: "P(A|B) = probability of A given B has occurred. E.g., the probability of having a disease GIVEN a positive test result. This is different from the test's accuracy rate.", band: 'C' },
+      { question: "Why do people struggle with probability intuitively?", options: ["They're not smart","Human intuition evolved for immediate threats, not statistical reasoning","Probability doesn't exist","It's too simple"], correctIndex: 1, explanation: "Human intuition evolved for quick pattern recognition in small groups, not statistical reasoning over large populations. We're naturally bad at probability without training.", band: 'B' },
+      { question: "What does 'statistically significant' mean?", options: ["Very important","Unlikely to have occurred by random chance (typically p < 0.05)","Definitely true","A large number"], correctIndex: 1, explanation: "Statistical significance means a result is unlikely to be due to random chance alone. It doesn't mean the effect is large or practically important — just probably real.", band: 'B' },
+    ],
+    3: [
+      { question: "What is a prediction market?", options: ["A store that sells predictions","A market where people trade contracts based on event outcomes","A type of lottery","A weather station"], correctIndex: 1, explanation: "Prediction markets let participants buy and sell contracts that pay out based on event outcomes. The market price reflects the aggregate belief about the probability.", band: 'B' },
+      { question: "How does a prediction market aggregate information?", options: ["It asks an expert","Market prices reflect the weighted average of all participants' beliefs, weighted by confidence (money)","It uses a magic formula","It flips a coin"], correctIndex: 1, explanation: "Prediction markets aggregate diverse opinions by letting people 'put their money where their mouth is.' Those with more confidence invest more, influencing the price.", band: 'B' },
+      { question: "What does a 70-cent price mean in a prediction market?", options: ["It costs 70 cents","The market believes there's a ~70% chance the event will happen","70 people voted yes","It's 70% certain to fail"], correctIndex: 1, explanation: "In a $1 prediction market, the price approximately equals the market's assessed probability. 70 cents = ~70% chance. Prices adjust as new information arrives.", band: 'B' },
+      { question: "What is the 'wisdom of crowds' effect?", options: ["Crowds are always wise","The average prediction of a diverse group often outperforms individual experts","Only experts are wise","Crowds are always wrong"], correctIndex: 1, explanation: "The wisdom of crowds: under the right conditions (diversity, independence, aggregation), the average group prediction can be more accurate than most individuals.", band: 'B' },
+      { question: "What makes prediction markets work well?", options: ["Having only experts participate","Diverse participants with different information, plus financial incentives","Keeping them secret","Using complex math"], correctIndex: 1, explanation: "Prediction markets work best with diverse participants who have different information sources. Financial incentives motivate careful thinking and honest revelation of beliefs.", band: 'B' },
+      { question: "What is arbitrage in prediction markets?", options: ["A type of building","Exploiting price inconsistencies between related markets for guaranteed profit","A type of chart","A trading strategy that always loses"], correctIndex: 1, explanation: "Arbitrage exploits inconsistent prices. If 'Will it rain?' is priced at 70% but 'Will it be sunny?' at 40%, there's an arbitrage opportunity (they should sum to 100%).", band: 'C' },
+      { question: "What is a 'market maker' in prediction markets?", options: ["Someone who makes markets","An entity that provides liquidity by always offering to buy or sell","A fortune teller","A shop owner"], correctIndex: 1, explanation: "Market makers provide liquidity by continuously offering to buy (bid) and sell (ask) contracts. They ensure participants can always trade, narrowing the spread.", band: 'C' },
+      { question: "What can cause prediction markets to fail?", options: ["Nothing — they're perfect","Low participation, manipulated bets, unclear questions, or regulatory limits","Using too much math","Having too many participants"], correctIndex: 1, explanation: "Prediction markets fail with thin markets (too few traders), attempts to manipulate prices, ambiguous questions that are hard to resolve, or regulations limiting participation.", band: 'B' },
+    ],
+    4: [
+      { question: "When is a crowd smarter than an expert?", options: ["Never","When the crowd is diverse, independent, and incentives align","Always","Only for simple questions"], correctIndex: 1, explanation: "Crowds outperform experts when: (1) diverse perspectives exist, (2) opinions are formed independently, (3) there's a good aggregation mechanism, and (4) incentives reward accuracy.", band: 'B' },
+      { question: "What is 'groupthink' and why is it dangerous?", options: ["Thinking about groups","When group members conform to majority opinion, suppressing dissent","A type of puzzle","Working in teams"], correctIndex: 1, explanation: "Groupthink occurs when the desire for conformity suppresses dissent. The group becomes overconfident and ignores warning signs. Diverse, independent opinions prevent this.", band: 'B' },
+      { question: "What is the 'Dunning-Kruger effect'?", options: ["A type of chart","People with low ability at a task overestimate their ability","A learning technique","A type of market"], correctIndex: 1, explanation: "The Dunning-Kruger effect: people with limited knowledge in a domain often overestimate their competence because they lack the expertise to recognize their errors.", band: 'B' },
+      { question: "Why do experts sometimes fail at predicting?", options: ["They're never wrong","They may be overconfident, have narrow expertise, or lack feedback on predictions","Predictions are impossible","Only amateurs can predict"], correctIndex: 1, explanation: "Experts often fail due to overconfidence in their domain, narrow perspective, lack of systematic tracking, and cognitive biases. Famous ≠ accurate at forecasting.", band: 'B' },
+      { question: "What is 'forecasting tournaments'?", options: ["Weather competitions","Competitions where people make predictions and accuracy is scored over time","A type of game show","Olympic events"], correctIndex: 1, explanation: "Forecasting tournaments score participants' predictions against reality over time. They identify top forecasters, study what makes them good, and improve collective forecasting.", band: 'B' },
+      { question: "What is the 'outside view' in forecasting?", options: ["Looking outside the window","Considering base rates and historical analogs before specific details","A type of camera","Ignoring evidence"], correctIndex: 1, explanation: "The outside view starts with the base rate — how often do similar events happen? The inside view considers specific details. Good forecasters use both, starting with the outside view.", band: 'C' },
+      { question: "What is 'reference class forecasting'?", options: ["Predicting the weather","Comparing your project to a class of similar past projects for better estimates","A type of library","Using reference books"], correctIndex: 1, explanation: "Reference class forecasting: identify a class of similar past projects/events, find the historical distribution of outcomes, and use that as your starting estimate.", band: 'C' },
+      { question: "What is 'information cascade' and why is it bad for predictions?", options: ["A waterfall of data","When people follow others' decisions rather than their own information, leading to group errors","A type of stream","A data structure"], correctIndex: 1, explanation: "Information cascades occur when people ignore their own information and follow the crowd. Early errors compound as everyone piles on. Independent thinking prevents this.", band: 'C' },
+    ],
+    5: [
+      { question: "What is probability calibration?", options: ["Fixing a thermometer","How well your stated confidence matches your actual accuracy","A type of scale","A math formula"], correctIndex: 1, explanation: "Calibration measures whether your confidence levels match reality. If you say '80% confident' 10 times, you should be right about 8 times. Most people are overconfident.", band: 'B' },
+      { question: "What is 'overconfidence bias'?", options: ["Being very confident correctly","Stating higher confidence than your actual accuracy justifies","A good thing","Being an expert"], correctIndex: 1, explanation: "Overconfidence bias: people systematically assign higher probabilities to their beliefs than warranted. Studies show people claim 90% confidence but are right only 70% of the time.", band: 'B' },
+      { question: "What is a calibration curve?", options: ["A tool for curves","A graph comparing predicted confidence vs. actual accuracy across probability levels","A road map","A type of graph paper"], correctIndex: 1, explanation: "A calibration curve plots predicted probability (x-axis) against actual frequency of being correct (y-axis). A well-calibrated person's curve follows the diagonal.", band: 'C' },
+      { question: "How can you improve your calibration?", options: ["Guess more","Track predictions, review accuracy, and practice with feedback","Be more confident","Avoid numbers"], correctIndex: 1, explanation: "Calibration improves by: making many predictions, tracking outcomes, reviewing accuracy, and adjusting. Training programs can significantly improve forecasting calibration.", band: 'B' },
+      { question: "What does it mean to be 'well-calibrated'?", options: ["Having good equipment","When your 70% predictions are right 70% of the time","Being an expert","Always being right"], correctIndex: 1, explanation: "A well-calibrated forecaster's confidence levels match their actual hit rate. They know what they know and know what they don't know. This is rarer than you'd think.", band: 'B' },
+      { question: "What is 'resolution' in forecasting?", options: ["Image quality","How much your predictions differ from the base rate (being decisive)","A type of screen","A math formula"], correctIndex: 1, explanation: "Resolution measures how much your predictions vary from the base rate. A forecaster who always predicts 50% has low resolution. One who confidently predicts 10% or 90% has high resolution.", band: 'C' },
+      { question: "What is the difference between accuracy and calibration?", options: ["They're the same","Accuracy = being right. Calibration = confidence matching accuracy. You can be accurate but poorly calibrated.","Calibration is more important","Accuracy doesn't matter"], correctIndex: 1, explanation: "Accuracy is being right. Calibration is having appropriate confidence. Someone who always guesses 50% might be well-calibrated but have poor accuracy. Both matter.", band: 'C' },
+      { question: "What is a 'confidence interval'?", options: ["A type of gym","A range that captures the true value with a stated probability (e.g., 90%)","Being confident","A type of market"], correctIndex: 1, explanation: "A 90% confidence interval is a range where you believe the true value has a 90% chance of falling. Narrow intervals show precision; wide intervals show uncertainty.", band: 'C' },
+    ],
+    6: [
+      { question: "What is AI forecasting?", options: ["Weather prediction by AI","Predicting the future development and impact of artificial intelligence","Predicting AI stock prices","A type of calendar"], correctIndex: 1, explanation: "AI forecasting predicts the timeline, capabilities, and societal impact of artificial intelligence. It ranges from narrow predictions (when will AI solve protein folding?) to broad ones (AGI timeline).", band: 'B' },
+      { question: "Why is AI forecasting especially difficult?", options: ["AI doesn't exist","Rapid change, few historical analogs, and high uncertainty about research breakthroughs","It's too easy","Only experts can do it"], correctIndex: 1, explanation: "AI progresses rapidly with few historical analogs. Breakthroughs are hard to predict. Past AI forecasts have been notoriously bad — both too optimistic and too pessimistic.", band: 'B' },
+      { question: "What is AGI (Artificial General Intelligence)?", options: ["A type of company","AI that can perform any intellectual task a human can","A programming language","A robot"], correctIndex: 1, explanation: "AGI = Artificial General Intelligence. Hypothetical AI with general problem-solving ability comparable to humans across all cognitive domains. It doesn't exist yet.", band: 'B' },
+      { question: "What is the 'AI alignment' problem?", options: ["Aligning text","Ensuring AI systems pursue intended goals safely and reliably","A hardware issue","A type of programming"], correctIndex: 1, explanation: "The alignment problem: ensuring AI systems pursue the goals we actually intend, not just the literal interpretation. Misaligned AI could optimize for the wrong objective.", band: 'C' },
+      { question: "What is a 'takeoff scenario' in AI forecasting?", options: ["An airplane","How quickly AI capabilities might advance once certain thresholds are reached","A type of race","A startup launch"], correctIndex: 1, explanation: "'Takeoff' refers to how quickly AI might advance from human-level to superhuman. Scenarios range from 'slow takeoff' (years) to 'fast takeoff' (days or weeks).", band: 'C' },
+      { question: "What is the 'control problem' in AI?", options: ["A remote control","How to maintain control over systems that may become more capable than humans","A management issue","A hardware problem"], correctIndex: 1, explanation: "The control problem asks how humans can maintain meaningful control over AI systems that may eventually exceed human intelligence in most or all domains.", band: 'C' },
+      { question: "What is the 'long-term vs. short-term' debate in AI forecasting?", options: ["A timer","Disagreement about whether transformative AI is decades away or much sooner","A type of investment","A programming issue"], correctIndex: 1, explanation: "AI forecasters debate timelines for transformative AI. Some expect decades; others point to rapid progress suggesting sooner arrival. Both sides agree uncertainty is high.", band: 'B' },
+      { question: "What is 'compute trend' forecasting?", options: ["Math calculations","Using trends in AI training compute to predict capability milestones","A type of computer","A hardware trend"], correctIndex: 1, explanation: "Compute trend forecasting tracks the growth in AI training computation and uses it to predict when models might reach certain capability thresholds.", band: 'C' },
+    ],
+    7: [
+      { question: "Why is the base rate important in forecasting?", options: ["It's not","It provides a reality check against overestimating special-case probabilities","It's required by law","It makes predictions easier"], correctIndex: 1, explanation: "The base rate (historical frequency) anchors predictions in reality. Ignoring it leads to overestimating rare events and underestimating common ones — common cognitive errors.", band: 'B' },
+      { question: "What is the 'conjunction fallacy'?", options: ["A math error","Judging a specific conjunction of events as more probable than a single general one","A type of puzzle","A logical rule"], correctIndex: 1, explanation: "The conjunction fallacy: people rate P(A and B) higher than P(A) alone, which is logically impossible. 'Linda is a bank teller AND feminist' seems more likely than just 'bank teller.'", band: 'C' },
+      { question: "What is 'anchoring bias'?", options: ["A boat anchor","Over-relying on the first piece of information when making estimates","A type of chain","A cooking term"], correctIndex: 1, explanation: "Anchoring: the first number you hear heavily influences your estimate. If asked 'Is the Nile longer than 5000 miles?' your estimate will be higher than if asked about 1000 miles.", band: 'B' },
+      { question: "What is 'availability bias'?", options: ["Checking if something is available","Overestimating probabilities of vivid, memorable events","A store inventory","A scheduling issue"], correctIndex: 1, explanation: "Availability bias: we judge probability by how easily examples come to mind. Dramatic events (plane crashes) seem more common than they are because they're memorable.", band: 'B' },
+      { question: "What is 'regression to the mean'?", options: ["A math formula","Extreme outcomes tend to be followed by more average ones","Moving backwards","A type of statistics"], correctIndex: 1, explanation: "Regression to the mean: extreme events are usually followed by less extreme ones. A student who scores way above average probably won't score as high next time — not because they got worse, but because the first score had luck involved.", band: 'C' },
+      { question: "What is 'scenario planning'?", options: ["Making a schedule","Developing multiple plausible future scenarios rather than single-point predictions","A type of calendar","A project plan"], correctIndex: 1, explanation: "Scenario planning develops several plausible future stories rather than betting on one prediction. It helps organizations prepare for multiple possible outcomes.", band: 'B' },
+      { question: "What is 'the outside view' vs 'the inside view'?", options: ["Window directions","Outside = base rate/historical data; Inside = specific details of this case","Political views","A camera angle"], correctIndex: 1, explanation: "The outside view asks 'how do similar cases typically turn out?' The inside view considers the specific details of this case. Good forecasters start with the outside view.", band: 'C' },
+      { question: "What is 'counterfactual reasoning' in forecasting?", options: ["Counting things","Considering what would have happened under different conditions","A math technique","A type of argument"], correctIndex: 1, explanation: "Counterfactual reasoning imagines alternative scenarios: 'What if X had happened instead of Y?' It helps identify causal factors and avoid hindsight bias in evaluating predictions.", band: 'C' },
+    ],
+    8: [
+      { question: "What is the Brier score?", options: ["A sports score","A measure of forecast accuracy where lower scores are better","A test grade","A type of rating"], correctIndex: 1, explanation: "The Brier score measures forecast accuracy. For binary events, Brier = (predicted probability - actual outcome)². Lower is better. Perfect prediction = 0, random guessing = 0.25.", band: 'C' },
+      { question: "What Brier score represents perfect forecasting?", options: ["100","0","0.5","1"], correctIndex: 1, explanation: "A Brier score of 0 means perfect forecasting — every predicted probability matched the actual outcome exactly. Lower scores are always better.", band: 'C' },
+      { question: "What does a Brier score of 0.25 mean for a binary event?", options: ["Perfect forecasting","About the same as random guessing (50/50)","Terrible forecasting","Better than average"], correctIndex: 1, explanation: "For binary events, always predicting 50% gives a Brier score of 0.25. A score of 0.25 means the forecaster did no better than guessing 50/50 every time.", band: 'C' },
+      { question: "What is 'logarithmic scoring' in forecasting?", options: ["A math test","A scoring rule that penalizes overconfidence more heavily than Brier","A type of music","A computer algorithm"], correctIndex: 1, explanation: "Logarithmic scoring heavily penalizes confident wrong predictions. Predicting 99% for something that doesn't happen gets a much worse score than predicting 60%.", band: 'C' },
+      { question: "What is 'proper scoring' and why does it matter?", options: ["Good manners","A scoring system where your best strategy is to report your true beliefs","A type of game","A grading system"], correctIndex: 1, explanation: "Proper scoring rules incentivize honest probability reporting. If the scoring is proper, you maximize your expected score by stating your true beliefs — no incentive to lie.", band: 'C' },
+      { question: "What is 'skill scoring' in forecasting?", options: ["Being skilled","Comparing a forecast against a simple benchmark (like 'always predict the base rate')","A talent competition","A grade"], correctIndex: 1, explanation: "Skill score = (Your score - Benchmark score) / (Perfect score - Benchmark score). It measures how much better you are than a simple baseline strategy.", band: 'C' },
+      { question: "Why score forecasts at all?", options: ["To embarrass people","To provide feedback, identify good forecasters, and improve over time","It's required","For entertainment"], correctIndex: 1, explanation: "Scoring forecasts creates feedback loops. Forecasters learn from their mistakes. Organizations identify their best forecasters. Over time, the whole system improves.", band: 'B' },
+      { question: "What is 'track record' in forecasting?", options: ["A music track","A documented history of someone's prediction accuracy over time","A type of record","A running track"], correctIndex: 1, explanation: "A forecaster's track record is their documented history of predictions and outcomes. Good track records over many predictions are much more meaningful than a few lucky guesses.", band: 'B' },
+    ],
+    9: [
+      { question: "What is a 'superforecaster'?", options: ["Someone with superpowers","An elite forecaster who consistently outperforms, identified through tournaments","A weather reporter","A psychic"], correctIndex: 1, explanation: "Superforecasters are individuals who consistently make accurate predictions in forecasting tournaments. Philip Tetlock's research identified their common traits and techniques.", band: 'B' },
+      { question: "What traits make superforecasters special?", options: ["High IQ alone","Fox-like thinking: multidisciplinary, open-minded, updating frequently, precise probabilities","Being very confident","Having access to secret data"], correctIndex: 1, explanation: "Superforecasters are 'foxes' not 'hedgehogs' — they draw from many sources, update beliefs frequently with new evidence, break problems into parts, and use precise probabilities.", band: 'C' },
+      { question: "What does it mean to 'think in bets'?", options: ["Gambling","Framing decisions in terms of probabilities and expected value","Playing cards","A sports strategy"], correctIndex: 1, explanation: "Thinking in bets means evaluating decisions by their probability of success and expected payoff, rather than by outcomes alone. Good decisions can have bad outcomes (and vice versa).", band: 'B' },
+      { question: "How often do superforecasters update their predictions?", options: ["Never — they stick to their guns","Frequently — they update as new evidence arrives","Once a year","Only when they're wrong"], correctIndex: 1, explanation: "Superforecasters update frequently with new evidence. They aren't attached to their initial predictions. Even small pieces of relevant information trigger Bayesian updates.", band: 'C' },
+      { question: "What is 'belief updating' in forecasting?", options: ["Updating your software","Changing your probability estimates when new evidence arrives","A type of computer","A religious practice"], correctIndex: 1, explanation: "Belief updating is adjusting your probability estimates based on new evidence. Good forecasters update incrementally rather than waiting for definitive proof.", band: 'B' },
+      { question: "What is 'pre-mortem' analysis in forecasting?", options: ["Medical examination","Imagining a prediction failed and working backward to find why","A type of test","A funeral"], correctIndex: 1, explanation: "Pre-mortem: imagine it's the future and your prediction was wrong. What went wrong? This overcomes optimism bias and surfaces risks you might otherwise miss.", band: 'C' },
+      { question: "What is 'red teaming' a prediction?", options: ["Painting it red","Actively trying to find reasons why your prediction might be wrong","A sports team","A type of competition"], correctIndex: 1, explanation: "Red teaming a prediction means actively seeking evidence and arguments against your current view. It combats confirmation bias and stress-tests your reasoning.", band: 'C' },
+      { question: "Can superforecasting skill transfer across domains?", options: ["No — it's domain-specific","Partially — the cognitive habits transfer even if domain knowledge doesn't","Always completely","Only within science"], correctIndex: 1, explanation: "Superforecasting skill partially transfers. The cognitive habits (updating, outside view, precision) transfer across domains, but you still need domain knowledge for specific predictions.", band: 'C' },
+    ],
+    10: [
+      { question: "What is 'model combination' in forecasting?", options: ["Building toy models","Combining multiple prediction models for better accuracy than any single model","A type of math","A business strategy"], correctIndex: 1, explanation: "Combining multiple models (ensemble methods) often outperforms any single model. Different models capture different patterns; their combination is more robust.", band: 'C' },
+      { question: "What is 'prediction market failure' and how to detect it?", options: ["Markets never fail","When prices don't reflect true probabilities due to manipulation, low liquidity, or biased participation","A type of crash","When predictions are wrong"], correctIndex: 1, explanation: "Prediction markets fail with low liquidity, attempted manipulation, biased participant pools, or unclear resolution criteria. Comparing multiple markets helps detect failures.", band: 'C' },
+      { question: "What is 'forecast aggregation'?", options: ["Weather reports","Combining multiple forecasts (mean, median, weighted) for better accuracy","A type of collection","A math operation"], correctIndex: 1, explanation: "Aggregating forecasts from multiple sources often beats individual forecasts. Simple aggregation (mean/median) works well; weighted aggregation (by track record) can do better.", band: 'C' },
+      { question: "What is 'recalibration' of probabilistic forecasts?", options: ["Fixing watches","Adjusting predicted probabilities to match historical calibration patterns","A type of training","A computer setting"], correctIndex: 1, explanation: "Recalibration adjusts forecasted probabilities based on historical calibration data. If a model is systematically overconfident, its probabilities can be adjusted to be more accurate.", band: 'C' },
+      { question: "What is the role of AI in modern forecasting?", options: ["AI can't forecast","AI excels at pattern detection in large datasets; humans excel at causal reasoning","Only humans can forecast","AI replaces all human forecasters"], correctIndex: 1, explanation: "The best forecasting combines AI (pattern detection in big data, sentiment analysis) with human judgment (causal reasoning, domain expertise). Each complements the other.", band: 'C' },
+      { question: "What are 'prediction metrics' for long-term forecasts?", options: ["Distance measurements","Scoring rules adapted for long time horizons with delayed resolution","A type of ruler","A calendar"], correctIndex: 1, explanation: "Long-term forecasts need special metrics because resolution is delayed. Discounting, survival analysis, and interim metrics help evaluate predictions years before final resolution.", band: 'C' },
+      { question: "What is 'epistemic humility' in forecasting?", options: ["Being humble about what you know","Recognizing the limits of your knowledge and expressing appropriate uncertainty","A type of weakness","Not making predictions"], correctIndex: 1, explanation: "Epistemic humility means recognizing what you don't know and expressing appropriate uncertainty. It's a strength in forecasting, not a weakness. Overconfidence is the enemy.", band: 'C' },
+      { question: "What is the future of collective forecasting?", options: ["It will be replaced by AI","Hybrid human-AI systems with real-time aggregation and continuous calibration","Only experts will forecast","Prediction markets will disappear"], correctIndex: 1, explanation: "The future is hybrid: AI handles data processing and pattern detection, humans provide causal reasoning and domain expertise, and platforms enable real-time aggregation and feedback.", band: 'C' },
+    ],
+  };
+
+  const base = q[levelId] || q[1];
+  const extra: QuizQuestion[] = levelId >= 4 ? [
+    { question: "What is the 'efficient market hypothesis' and its relevance to prediction markets?", options: ["Markets are fast","Prices reflect all available information; consistently beating the market is nearly impossible","A type of store","A math theory"], correctIndex: 1, explanation: "The efficient market hypothesis suggests prices reflect all available information. Applied to prediction markets, it implies market prices are hard to consistently beat — the crowd's aggregate wisdom is powerful.", band: 'C' },
+    { question: "What is a 'prediction tournament' platform?", options: ["A sports arena","A structured competition for scoring and ranking forecasters","A type of game","A betting site"], correctIndex: 1, explanation: "Platforms like Metaculus, Good Judgment Open, and INFER host prediction tournaments where participants forecast on real-world events and accuracy is tracked and scored.", band: 'B' },
+  ] : [];
+  const extra2: QuizQuestion[] = levelId >= 7 ? [
+    { question: "What is 'tail risk' in forecasting?", options: ["A type of animal","The risk of rare, extreme events that have outsized impact","A type of risk assessment","A financial term only"], correctIndex: 1, explanation: "Tail risk is the danger of rare, extreme events (the 'tails' of the probability distribution). These low-probability, high-impact events are often under-prepared for because they seem unlikely.", band: 'C' },
+    { question: "What is 'forecasting methodology' rigor?", options: ["Being strict","Using structured approaches: track records, calibration, explicit reasoning, and feedback loops","A type of science","A management style"], correctIndex: 1, explanation: "Rigorous forecasting involves: making explicit predictions with probabilities, tracking outcomes, reviewing accuracy, updating beliefs, and using structured reasoning frameworks.", band: 'C' },
+  ] : [];
+
+  return [...base, ...extra, ...extra2].slice(0, 10);
 }
 
-const ALL_PREDICTIONS: Prediction[] = [
-  // ── Band A — accessible to ages 7-9 ─────────────────
-  {
-    question: 'Will AI write a #1 hit song by 2030?', emoji: '🎵', horizon: '2030', band: 'A', difficulty: 'easy',
-    mockResults: { yes: 45, no: 30, maybe: 25 },
-    analysis: 'AI can already compose music, but writing a song people LOVE enough to be #1 is really hard. Music isn\'t just notes — it\'s emotion, culture, and timing!',
-    analysisC: 'Current models generate coherent audio but struggle with the cultural resonance and emotional specificity that drives chart success. Music virality depends on parasocial factors, zeitgeist alignment, and memetic propagation — all poorly modeled by current architectures.',
-  },
-  {
-    question: 'Will most homework be done with AI help by 2028?', emoji: '📚', horizon: '2028', band: 'A', difficulty: 'easy',
-    mockResults: { yes: 62, no: 18, maybe: 20 },
-    analysis: 'Many students already use AI for homework. The question is whether schools will adapt or try to ban it. Most experts think adaptation will win!',
-    analysisC: 'Adoption is rapid but regulatory response from educational institutions will shape outcomes. The equilibrium likely involves AI-assisted pedagogy rather than prohibition — similar to calculator adoption in mathematics education during the 1970s-80s.',
-  },
-  {
-    question: 'Will self-driving cars be common in cities by 2030?', emoji: '🚗', horizon: '2030', band: 'A', difficulty: 'easy',
-    mockResults: { yes: 38, no: 35, maybe: 27 },
-    analysis: 'Self-driving taxis exist in some cities, but "common" everywhere is a big challenge. Weather, different road rules, and unexpected situations make it really hard!',
-    analysisC: 'Level 4 autonomy is deployed in geofenced areas (Waymo, Cruise). Full urban deployment requires solving the long tail of edge cases — adverse weather perception, construction zone navigation, and multi-agent interaction in unstructured environments. Regulatory fragmentation across jurisdictions adds non-technical barriers.',
-  },
-  {
-    question: 'Will AI help cure a major disease by 2030?', emoji: '🧬', horizon: '2030', band: 'A', difficulty: 'easy',
-    mockResults: { yes: 55, no: 15, maybe: 30 },
-    analysis: 'AI already helps discover new drugs! AlphaFold solved protein folding — a huge deal for medicine. A cure is possible but takes years of testing even after discovery.',
-    analysisC: 'AlphaFold revolutionized structural biology. AI-assisted drug discovery pipelines (Insilico Medicine, Recursion) have candidates in Phase I/II trials. However, "cure" requires successful Phase III trials, FDA approval, and manufacturing scale-up — a 5-10 year pipeline from discovery.',
-  },
-  {
-    question: 'Will AI tutors help every student learn at their own speed by 2030?', emoji: '🎓', horizon: '2030', band: 'A', difficulty: 'easy',
-    mockResults: { yes: 58, no: 17, maybe: 25 },
-    analysis: 'AI tutors already exist! They can explain things in different ways and go at your pace. The hard part is making sure every school has access to the technology.',
-    analysisC: 'Adaptive learning platforms (Khan Academy, Duolingo) demonstrate personalization at scale. Key barriers are infrastructure (device access, bandwidth) and pedagogical integration. Equity gaps may widen before narrowing as adoption is correlated with socioeconomic status.',
-  },
-  {
-    question: 'Will AI be able to translate every language perfectly by 2032?', emoji: '🌍', horizon: '2032', band: 'A', difficulty: 'medium',
-    mockResults: { yes: 30, no: 38, maybe: 32 },
-    analysis: 'AI translation is already pretty good for common languages, but "perfectly" is very hard. Jokes, slang, and cultural meaning are tricky for AI!',
-    analysisC: 'Neural machine translation excels at high-resource language pairs. Low-resource languages (< 10K parallel sentences) remain challenging. Pragmatic and cultural context, idioms, and humor represent fundamental limitations of current sequence-to-sequence architectures.',
-  },
-  {
-    question: 'Will robots powered by AI do household chores by 2030?', emoji: '🤖', horizon: '2030', band: 'A', difficulty: 'medium',
-    mockResults: { yes: 42, no: 28, maybe: 30 },
-    analysis: 'Robot vacuums exist, but a robot that can do laundry, cook, AND clean? That needs much better hands and movement. It might start with simple tasks first!',
-    analysisC: 'Manipulation in unstructured environments remains an open challenge. Current humanoid robots (Tesla Optimus, Figure) demonstrate basic mobility but lack the dexterity for diverse household tasks. Sim-to-real transfer for fine motor control is a primary bottleneck.',
-  },
-  {
-    question: 'Will AI help predict natural disasters a week before they happen by 2032?', emoji: '🌊', horizon: '2032', band: 'A', difficulty: 'medium',
-    mockResults: { yes: 35, no: 30, maybe: 35 },
-    analysis: 'AI is getting better at weather prediction. Earthquakes are still very hard to predict, but floods, hurricanes, and wildfires could be predicted much earlier with AI help!',
-    analysisC: 'GraphCast and Pangu-Weather demonstrate AI superiority over traditional numerical weather prediction at 7-day horizons. Seismological prediction remains fundamentally limited by chaotic dynamics. AI excels at pattern detection in precursor signals for floods and tropical cyclones.',
-  },
-
-  // ── Band B — accessible to ages 10-12 ───────────────
-  {
-    question: 'Will AI create a movie that wins an Oscar by 2035?', emoji: '🎬', horizon: '2035', band: 'B', difficulty: 'medium',
-    mockResults: { yes: 32, no: 40, maybe: 28 },
-    analysis: 'AI can help make movies, but Oscar voters value human creativity and storytelling. Maybe AI will be a tool used in an Oscar-winning film, but fully AI-made? That\'s harder.',
-    analysisC: 'Current generative video models lack narrative coherence. Academy voting favors auteur vision and emotional authenticity. The more likely path is AI as a production tool (VFX, editing, scoring) in human-directed films — similar to how CGI enabled films without replacing directors.',
-  },
-  {
-    question: 'Will AI replace most customer service agents by 2028?', emoji: '🤖', horizon: '2028', band: 'B', difficulty: 'medium',
-    mockResults: { yes: 52, no: 25, maybe: 23 },
-    analysis: 'AI chatbots handle simple questions well, but complex issues still need humans. Expect AI to handle 80% of easy cases while humans focus on the tricky 20%.',
-    analysisC: 'LLM-powered agents handle Tier 1 support effectively. Complex escalation and emotional labor remain human domains. The likely outcome is augmentation — AI handling routine queries (password resets, order tracking) while human agents focus on high-empathy and edge-case interactions.',
-  },
-  {
-    question: 'Will AI coaches help athletes improve faster than human coaches by 2030?', emoji: '🏅', horizon: '2030', band: 'B', difficulty: 'medium',
-    mockResults: { yes: 40, no: 32, maybe: 28 },
-    analysis: 'AI can analyze player movement and strategy really well, but motivation, teamwork, and mental coaching still need humans. AI will probably work alongside human coaches!',
-    analysisC: 'Computer vision-based motion analysis and biomechanical optimization are already deployed in elite sports. However, coaching encompasses psychological support, team dynamics, and real-time tactical adaptation — areas requiring emotional intelligence and contextual judgment.',
-  },
-  {
-    question: 'Will AI design new materials that make buildings earthquake-proof by 2035?', emoji: '🏗️', horizon: '2035', band: 'B', difficulty: 'hard',
-    mockResults: { yes: 45, no: 22, maybe: 33 },
-    analysis: 'AI is already helping scientists discover new materials faster. Making buildings totally earthquake-proof is hard, but AI could find materials that absorb shocks much better!',
-    analysisC: 'Generative design and materials informatics have accelerated the discovery of metamaterials with negative Poisson ratios and programmable stiffness. Full earthquake-proofing also requires structural engineering innovation — AI assists but cannot solve alone.',
-  },
-  {
-    question: 'Will AI-powered drones deliver most packages in cities by 2032?', emoji: '📦', horizon: '2032', band: 'B', difficulty: 'hard',
-    mockResults: { yes: 35, no: 38, maybe: 27 },
-    analysis: 'Drone delivery is already being tested in some areas! But "most packages" in busy cities has lots of obstacles: buildings, people, weather, and rules about where drones can fly.',
-    analysisC: 'Urban air mobility faces regulatory, safety, and scalability challenges. Last-mile delivery economics favor ground-based autonomous vehicles in dense urban areas. Drones may dominate suburban/rural delivery but face density-limited throughput in cities.',
-  },
-  {
-    question: 'Will AI help create personalized medicine based on your DNA by 2030?', emoji: '💊', horizon: '2030', band: 'B', difficulty: 'hard',
-    mockResults: { yes: 50, no: 18, maybe: 32 },
-    analysis: 'Your DNA makes you unique, and AI can help doctors create treatments just for you. Some personalized treatments already exist for cancer!',
-    analysisC: 'Pharmacogenomics is already influencing oncology treatment selection. AI accelerates biomarker discovery and drug-gene interaction prediction. However, cost, data privacy, and clinical validation pipelines limit widespread deployment to specialized conditions initially.',
-  },
-  {
-    question: 'Will AI help explore the ocean floor better than humans by 2030?', emoji: '🌊', horizon: '2030', band: 'B', difficulty: 'hard',
-    mockResults: { yes: 60, no: 15, maybe: 25 },
-    analysis: 'We have explored less than 20% of the ocean floor! AI-powered submarines could explore the deep sea without risking human lives and map everything much faster.',
-    analysisC: 'Autonomous underwater vehicles (AUVs) with ML-based navigation and real-time bathymetric mapping are operational. AI excels at processing sonar data and identifying geological features. The Seabed 2030 project aims for full ocean floor mapping with AI-assisted processing.',
-  },
-
-  // ── Band C — accessible to ages 13-16 ───────────────
-  {
-    question: 'Will we have AI that truly "understands" like humans by 2035?', emoji: '🧠', horizon: '2035', band: 'C', difficulty: 'hard',
-    mockResults: { yes: 28, no: 42, maybe: 30 },
-    analysis: 'This is one of the biggest debates in AI! We\'re not sure what "understanding" even means. AI can seem very smart without actually understanding anything.',
-    analysisC: 'The Chinese Room argument remains unresolved. Current systems exhibit behavioral competence without verified comprehension. Whether artificial general understanding requires embodiment, causal reasoning, or entirely new architectures is an open question in cognitive science and AI research.',
-  },
-  {
-    question: 'Will AI-generated art be legally copyrightable by 2030?', emoji: '🎨', horizon: '2030', band: 'C', difficulty: 'hard',
-    mockResults: { yes: 40, no: 35, maybe: 25 },
-    analysis: 'Courts are still figuring this out. The law hasn\'t caught up with the technology yet. Different countries might have different rules!',
-    analysisC: 'Current US Copyright Office position requires human authorship. EU AI Act may establish sui generis rights for AI outputs. The legal landscape is evolving — Thaler v. Perlmutter (2023) denied copyright for fully autonomous AI art, but the threshold of human creative contribution needed remains undefined.',
-  },
-  {
-    question: 'Will AI be used to write and enforce laws by 2035?', emoji: '⚖️', horizon: '2035', band: 'C', difficulty: 'expert',
-    mockResults: { yes: 22, no: 48, maybe: 30 },
-    analysis: 'AI could help analyze laws and find problems, but actually writing and enforcing laws involves values, fairness, and democracy — things that are very hard to automate!',
-    analysisC: 'Legal NLP for contract analysis and regulatory compliance is mature. However, legislation requires normative judgments, political negotiation, and democratic legitimacy. AI-assisted legal drafting (identifying conflicts, precedents) is more plausible than autonomous lawmaking. Algorithmic enforcement risks constitutional due process violations.',
-  },
-  {
-    question: 'Will AI discover a new fundamental law of physics by 2035?', emoji: '⚛️', horizon: '2035', band: 'C', difficulty: 'expert',
-    mockResults: { yes: 25, no: 40, maybe: 35 },
-    analysis: 'AI has found new math proofs and protein structures. Discovering a new law of physics would be groundbreaking — but physics requires deep conceptual understanding, not just pattern matching.',
-    analysisC: 'Symbolic regression (AI Feynman) has rediscovered known physical laws from data. Novel discovery requires identifying anomalies in experimental data AND formulating explanatory theories — the latter demands causal reasoning and conceptual abstraction beyond current architectures. AI will likely assist human physicists rather than discover independently.',
-  },
-  {
-    question: 'Will AI systems need legal rights by 2040?', emoji: '📜', horizon: '2040', band: 'C', difficulty: 'expert',
-    mockResults: { yes: 20, no: 50, maybe: 30 },
-    analysis: 'If AI ever becomes truly conscious, should it have rights? Most experts say current AI is not conscious, but this question gets harder as AI gets more advanced.',
-    analysisC: 'Legal personhood has precedent (corporations, rivers). The harder question is moral status — whether AI systems could have subjective experience warranting rights. Current consensus in philosophy of mind is that transformer-based systems lack consciousness, but integrated information theory and global workspace theory offer frameworks for future evaluation.',
-  },
-  {
-    question: 'Will AI be able to write novel scientific hypotheses better than researchers by 2035?', emoji: '🔬', horizon: '2035', band: 'C', difficulty: 'expert',
-    mockResults: { yes: 30, no: 35, maybe: 35 },
-    analysis: 'AI can spot patterns in data that humans miss. But forming a hypothesis needs creativity, intuition, and understanding of what matters — science is more than data crunching!',
-    analysisC: 'LLMs can generate plausible hypotheses by interpolating training data patterns. Truly novel hypotheses require abductive reasoning, analogy across domains, and intuition about which questions are worth pursuing. Current AI excels at literature synthesis and computational experiment design but lacks the serendipitous insight that drives paradigm shifts.',
-  },
-  {
-    question: 'Will AI replace human artists in the creative industry by 2035?', emoji: '🖌️', horizon: '2035', band: 'C', difficulty: 'expert',
-    mockResults: { yes: 18, no: 52, maybe: 30 },
-    analysis: 'AI can make impressive art, but human artists bring lived experience, cultural context, and intentional meaning. The creative industry values authenticity and personal expression.',
-    analysisC: 'Generative models produce high-fidelity outputs but lack intentionality and authentic lived experience. Markets may bifurcate: AI-generated commodity content (stock images, background music) coexisting with premium human-created work valued for provenance and meaning. The Turing test for art involves cultural judgment, not just perceptual quality.',
-  },
-  {
-    question: 'Will countries agree on international AI safety regulations by 2030?', emoji: '🏛️', horizon: '2030', band: 'C', difficulty: 'expert',
-    mockResults: { yes: 22, no: 45, maybe: 33 },
-    analysis: 'Many countries have different ideas about AI. Getting everyone to agree on rules is like getting everyone to agree on climate policy — important but very difficult!',
-    analysisC: 'The Bletchley Declaration (2023) and subsequent AI Safety Summits demonstrate nascent multilateral coordination. However, geopolitical competition (US-China AI race), divergent regulatory philosophies (EU precautionary principle vs US innovation-first), and enforcement mechanisms remain unresolved. Analogies to nuclear non-proliferation and climate accords suggest partial agreements are more likely than comprehensive frameworks.',
-  },
-];
-
-const BAND_ORDER: Record<string, number> = { A: 0, B: 1, C: 2 };
-
-export function PredictionMarketGame() {
-  const prefersReducedMotion = useReducedMotion();
-  const game = useGame();
-  const activeChild = useActiveChild();
-  const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
-  const { data: _dynamicContent } = useGameContent('prediction-market', ageBand);
-  // Phase 2: Dynamic scenarios available via _dynamicContent?.scenarios and _dynamicContent?.challenges
-  const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
-
-  const [phase, setPhase] = useState<Phase>('welcome');
-  const [learnIdx, setLearnIdx] = useState(0);
-  const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
-  const [predIdx, setPredIdx] = useState(0);
-  const [voted, setVoted] = useState(false);
-  const [myVote, setMyVote] = useState<string | null>(null);
-  const [showAnalysis, setShowAnalysis] = useState(false);
-  // ENH: Track prediction accuracy and vote history for crowd visualization
-  const [predictionAccuracy, setPredictionAccuracy] = useState(0);
-  const [totalVotes, setTotalVotes] = useState(0);
-  const [matchedMajority, setMatchedMajority] = useState(false);
-
-  const predictions = useFilteredContent(ALL_PREDICTIONS, tier, ageBand);
-  const pred = predictions[predIdx];
-
-  useEffect(() => {
-    setGameSceneContent(<PredictionMarketEnvironment predictions={predIdx} confidence={voted ? 0.8 : 0.5} />);
-    return () => setGameSceneContent(null);
-  }, [predIdx, voted, setGameSceneContent]);
-
-  const particles = useMemo(() => Array.from({ length: 12 }, (_, i) => ({
-    id: i,
-    x: ((i * 37 + 13) % 100),
-    y: ((i * 53 + 7) % 100),
-    size: (i % 3) + 1,
-    delay: (i * 0.33) % 4,
-    dur: (i % 6) + 4,
-  })), []);
-
-  function handleVote(vote: string) {
-    setMyVote(vote);
-    setVoted(true);
-    game.updateScore(10);
-    // ENH: Check if vote matches the majority opinion
-    const results = pred.mockResults;
-    const majority = results.yes >= results.no && results.yes >= results.maybe ? 'yes'
-      : results.no >= results.yes && results.no >= results.maybe ? 'no' : 'maybe';
-    const matched = vote === majority;
-    setMatchedMajority(matched);
-    setTotalVotes(t => t + 1);
-    if (matched) setPredictionAccuracy(a => a + 1);
-  }
-
-  function nextPrediction() {
-    setVoted(false); setMyVote(null); setShowAnalysis(false);
-    game.advanceRound(); // STD-PM1: Always advance round, including final prediction
-    if (predIdx < predictions.length - 1) { setPredIdx(i => i + 1); }
-    else { setPhase('complete'); game.completeGame(); }
-  }
+export default function PredictionMarketGame() {
+  const { awardXP, completeGame } = useGameActions();
+  const handleComplete = useCallback((results: LevelResult[]) => {
+    const totalXP = results.reduce((s, r) => s + r.xpEarned, 0);
+    const totalStars = results.reduce((s, r) => s + r.stars, 0);
+    awardXP(Math.round(totalXP));
+    completeGame('prediction-market', totalStars >= 25 ? 3 : totalStars >= 15 ? 2 : 1);
+  }, [awardXP, completeGame]);
 
   return (
-    <GameShell gameId="prediction-market" title="Prediction Market" worldNumber={10} worldColor="#DE5AEA" totalRounds={predictions.length}>
-      <div className="h-full flex flex-col relative overflow-hidden">
-        {/* Particles */}
-        <div className="absolute inset-0 pointer-events-none">
-          {particles.map(p => (
-            <motion.div key={p.id} className="absolute rounded-full"
-              style={{ left: `${p.x}%`, top: `${p.y}%`, width: p.size, height: p.size,
-                background: `radial-gradient(circle, rgba(217,70,239,${0.15 + p.size * 0.06}), transparent)` }}
-              animate={prefersReducedMotion ? {} : { y: [0, -12, 0], opacity: [0.1, 0.35, 0.1] }}
-              transition={prefersReducedMotion ? { duration: 0 } : { duration: p.dur, delay: p.delay, repeat: Infinity }} />
-          ))}
-        </div>
-
-        <div className="relative z-10 flex-1 flex flex-col p-3 md:p-5">
-          <div className="flex-1 flex flex-col rounded-xl overflow-hidden"
-            style={{ border: '1px solid rgba(217,70,239,0.15)', boxShadow: '0 2px 40px rgba(0,0,0,0.3)' }}>
-            <div className="h-[2px] w-full bg-gradient-to-r from-transparent via-fuchsia-500/50 to-transparent" />
-
-            <div className="flex-1 flex flex-col overflow-auto p-4 items-center justify-center">
-              <AnimatePresence mode="wait">
-                {phase === 'welcome' && (
-                  <motion.div key="welcome" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }} className="text-center space-y-4">
-                    <span className="text-5xl">📈</span>
-                    <h2 className="font-display text-2xl font-bold text-white" aria-label="Prediction Market welcome screen">Prediction Market</h2>
-                    <p className="font-body text-sm text-white/50 max-w-sm">What will AI do in the future? Vote on predictions and see what others think!</p>
-                    <div className="flex gap-2 justify-center">
-                      {['AI Future', 'Forecasting', 'Critical Thinking'].map(t => (
-                        <span key={t} className="px-2 py-1 rounded-lg bg-fuchsia-500/10 border border-fuchsia-500/20 text-xs font-body text-fuchsia-400">{t}</span>
-                      ))}
-                    </div>
-                    <motion.button onClick={() => setPhase('learn')}
-                      className="w-full max-w-xs py-3 rounded-xl font-display font-bold text-white"
-                      style={{ background: 'linear-gradient(135deg, #D946EF, #A855F7)' }}
-                      whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
-                      aria-label="Start predicting AI futures">
-                      Start Predicting! <TrendingUp className="inline w-4 h-4 ml-1" />
-                    </motion.button>
-                  </motion.div>
-                )}
-
-                {phase === 'learn' && (
-                  <motion.div key="learn" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}
-                    className="flex-1 flex flex-col items-center justify-center text-center space-y-4 px-4">
-                    <span className="text-4xl">{LEARN_CARDS[learnIdx].emoji}</span>
-                    <h3 className="font-display text-xl font-bold text-white">{LEARN_CARDS[learnIdx].title}</h3>
-                    <p className="font-body text-sm text-white/60 max-w-md">{LEARN_CARDS[learnIdx].desc}</p>
-                    <div className="flex gap-1 mt-2">
-                      {LEARN_CARDS.map((_, i) => (
-                        <div key={i} className={`w-2 h-2 rounded-full ${i === learnIdx ? 'bg-[#06B6D4]' : 'bg-white/20'}`} />
-                      ))}
-                    </div>
-                    <div className="flex gap-3 mt-4">
-                      {learnIdx > 0 && (
-                        <motion.button onClick={() => setLearnIdx(i => i - 1)}
-                          className="px-4 py-2 rounded-lg border border-white/10 font-display text-xs text-white/60 hover:text-white"
-                          whileTap={{ scale: 0.95 }}>Back</motion.button>
-                      )}
-                      <motion.button onClick={() => learnIdx < LEARN_CARDS.length - 1 ? setLearnIdx(i => i + 1) : setPhase('play')}
-                        className="px-6 py-2 rounded-lg font-display text-xs font-bold text-white"
-                        style={{ background: 'linear-gradient(135deg, #06B6D4, #0891B2)' }}
-                        whileTap={{ scale: 0.95 }}>{learnIdx < LEARN_CARDS.length - 1 ? 'Next' : 'Start Playing!'}</motion.button>
-                    </div>
-                  </motion.div>
-                )}
-
-                {phase === 'play' && pred && (
-                  <motion.div key={predIdx} initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -50 }} className="max-w-md w-full text-center">
-                    <div className="flex items-center gap-3 mb-3 px-4">
-                      <DifficultySelector value={tier} onChange={setTier} ageBand={ageBand} />
-                      <GameProgressTracker current={predIdx + 1} total={predictions.length} labColor="#D946EF" />
-                    </div>
-                    {/* Time horizon badge */}
-                    <span className="px-2 py-0.5 rounded bg-fuchsia-500/10 font-mono text-2xs text-fuchsia-400 mb-2 inline-block" aria-label={`Prediction horizon: by ${pred.horizon}`}>by {pred.horizon}</span>
-                    <span className="text-4xl block mb-3">{pred.emoji}</span>
-                    <h3 className="font-display text-lg font-bold text-white mb-5">{pred.question}</h3>
-
-                    {!voted ? (
-                      <div className="flex gap-3 justify-center">
-                        {[{ label: 'YES', value: 'yes', color: '#10B981' }, { label: 'NO', value: 'no', color: '#EF4444' }, { label: 'MAYBE', value: 'maybe', color: '#F59E0B' }].map(opt => (
-                          <motion.button key={opt.value} onClick={() => handleVote(opt.value)}
-                            className="px-6 py-3 rounded-xl border-2 font-display font-bold text-sm"
-                            style={{ borderColor: `${opt.color}50`, color: opt.color, background: `${opt.color}10` }}
-                            whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} aria-label={`Vote ${opt.label}`}>
-                            {opt.label}
-                          </motion.button>
-                        ))}
-                      </div>
-                    ) : (
-                      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
-                        {/* ENH: Accuracy counter with animated number */}
-                        <div className="flex items-center justify-center gap-3">
-                          <p className="font-body text-xs text-white/60">How others voted:</p>
-                          {totalVotes > 0 && (
-                            <motion.span
-                              key={predictionAccuracy}
-                              initial={{ scale: 1.3, color: '#FFD700' }}
-                              animate={{ scale: 1, color: 'rgba(255,255,255,0.4)' }}
-                              transition={{ type: 'spring', stiffness: 200, damping: 12 }}
-                              className="font-data text-2xs"
-                              role="status"
-                              aria-label={`Prediction accuracy: ${predictionAccuracy} out of ${totalVotes}`}
-                            >
-                              Accuracy: {predictionAccuracy}/{totalVotes}
-                            </motion.span>
-                          )}
-                        </div>
-                        {/* ENH: Gold glow border when vote matches majority */}
-                        <motion.div
-                          className="space-y-2 max-w-xs mx-auto rounded-xl p-2"
-                          animate={matchedMajority ? {
-                            boxShadow: ['0 0 0px rgba(255,215,0,0)', '0 0 20px rgba(255,215,0,0.4)', '0 0 8px rgba(255,215,0,0.15)']
-                          } : {}}
-                          transition={{ duration: 0.8, ease: 'easeOut' }}
-                        >
-                          {[{ label: 'Yes', pct: pred.mockResults.yes, color: '#10B981' }, { label: 'No', pct: pred.mockResults.no, color: '#EF4444' }, { label: 'Maybe', pct: pred.mockResults.maybe, color: '#F59E0B' }].map((r, rIdx) => (
-                            <div key={r.label} className="flex items-center gap-2">
-                              <span className={`font-body text-xs w-12 text-right ${myVote === r.label.toLowerCase() ? 'text-white font-bold' : 'text-white/60'}`}>{r.label}</span>
-                              <div className="flex-1 h-6 bg-white/5 rounded overflow-hidden">
-                                {/* ENH: Spring physics on voting bars */}
-                                <motion.div className="h-full rounded" style={{ backgroundColor: r.color }}
-                                  initial={{ width: 0 }} animate={{ width: `${r.pct}%` }}
-                                  transition={{ type: 'spring', stiffness: 60, damping: 12, delay: rIdx * 0.15 }} />
-                              </div>
-                              <motion.span
-                                className="font-mono text-xs w-8"
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1, color: myVote === r.label.toLowerCase() ? '#FFD700' : 'rgba(255,255,255,0.3)' }}
-                                transition={{ delay: 0.5 + rIdx * 0.15 }}
-                              >{r.pct}%</motion.span>
-                            </div>
-                          ))}
-                        </motion.div>
-                        {/* ENH: Crowd wisdom summary */}
-                        {matchedMajority && (
-                          <motion.p
-                            initial={{ opacity: 0, y: 5 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            className="font-body text-2xs text-center text-amber-300/60"
-                          >
-                            You matched the crowd consensus!
-                          </motion.p>
-                        )}
-
-                        {/* Expert analysis toggle */}
-                        <motion.button onClick={() => setShowAnalysis(!showAnalysis)}
-                          className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5 mx-auto"
-                          whileHover={{ backgroundColor: 'rgba(255,255,255,0.08)' }}
-                          aria-label={showAnalysis ? 'Hide expert analysis' : 'Show expert analysis'}
-                          aria-expanded={showAnalysis}>
-                          <MessageSquare className="w-3 h-3 text-fuchsia-400" />
-                          <span className="font-display text-xs font-bold text-white">Expert Analysis</span>
-                        </motion.button>
-
-                        <AnimatePresence>
-                          {showAnalysis && (
-                            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }}
-                              exit={{ opacity: 0, height: 0 }} className="overflow-hidden">
-                              <div className="rounded-xl p-3 border border-fuchsia-500/15 bg-fuchsia-500/5">
-                                <p className="font-body text-xs text-white/50">{ageBand === 'C' ? pred.analysisC : pred.analysis}</p>
-                              </div>
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
-
-                        <motion.button onClick={nextPrediction}
-                          className="w-full max-w-xs mx-auto py-3 rounded-xl font-display font-bold text-white"
-                          style={{ background: 'linear-gradient(135deg, #D946EF, #A855F7)' }}
-                          whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
-                          aria-label={predIdx < predictions.length - 1 ? `Next prediction, ${predIdx + 2} of ${predictions.length}` : 'See results'}>
-                          Next Prediction →
-                        </motion.button>
-                      </motion.div>
-                    )}
-                  </motion.div>
-                )}
-
-                {phase === 'complete' && (
-                  <motion.div
-                    key="complete"
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="flex-1 flex flex-col items-center justify-center text-center space-y-4"
-                  >
-                    <motion.span className="text-6xl" animate={prefersReducedMotion ? {} : { rotate: [0, 10, -10, 0] }} transition={prefersReducedMotion ? { duration: 0 } : { duration: 1.5, repeat: Infinity }}>🏆</motion.span>
-                    <h2 className="font-display text-2xl font-bold text-white" aria-label="Prediction Market game complete">Prediction Market Complete!</h2>
-                    <p className="font-body text-sm text-white/50 max-w-sm">You evaluated AI predictions with critical thinking and learned that forecasting the future requires understanding both technology and uncertainty.</p>
-                    <div className="rounded-xl px-6 py-3 bg-[#D946EF]/10 border border-[#D946EF]/20" role="status" aria-label={`Total score: ${game.score} points`}>
-                      <p className="font-data text-2xl" style={{ color: '#D946EF' }}>{game.score}</p>
-                      <p className="font-body text-2xs text-white/60">Total Points</p>
-                    </div>
-                    <div className="mt-4 space-y-2 text-left max-w-sm">
-                      <h3 className="font-display text-sm font-bold text-white/70">What You Learned:</h3>
-                      <ul className="space-y-1 text-2xs font-body text-white/70">
-                        <li>• AI prediction accuracy depends on data quality, model design, and the inherent uncertainty of future events</li>
-                        <li>• Probability and confidence calibration help us understand how sure we should be about AI forecasts</li>
-                        <li>• Critical thinking about AI predictions means weighing evidence, expert analysis, and real-world constraints</li>
-                      </ul>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-
-            <div className="h-[2px] w-full bg-gradient-to-r from-transparent via-fuchsia-500/50 to-transparent" />
-          </div>
-        </div>
-      </div>
+    <GameShell title="Prediction Market" color="#DE5AEA" labNum={10}>
+      <GameLevelSystem gameTitle="Prediction Market" gameEmoji="📈" labColor="#DE5AEA" levels={LEVELS}
+        onComplete={handleComplete}
+        renderLevel={(level, onComplete, onExit) => (
+          <QuizLevelRenderer
+            level={level} onComplete={onComplete} onExit={onExit}
+            questions={getQuestions(level.id)} labColor="#DE5AEA" gameEmoji="📈"
+            timePerQuestion={level.difficulty === 'expert' ? 15 : level.difficulty === 'hard' ? 20 : 25}
+          />
+        )}
+      />
     </GameShell>
   );
 }

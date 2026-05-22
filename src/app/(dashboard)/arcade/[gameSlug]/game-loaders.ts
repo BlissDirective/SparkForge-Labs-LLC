@@ -97,6 +97,15 @@ export const GAME_LOADERS: Record<string, GameLoaderFn> = {
     import('@/components/games/MyFirstAiAppGame').then((m) => def(m, 'MyFirstAiAppGame')),
   'ai-or-not': () =>
     import('@/components/games/AiOrNotGame').then((m) => def(m, 'AiOrNotGame')),
+
+  // ── Stage 11: Lab 11 Agentic AI Games (7) ──
+  'agent-atelier': () => import('@/components/games/AgentAtelierGame').then((m) => def(m)),
+  'mcp-lab': () => import('@/components/games/McpLabGame').then((m) => def(m)),
+  'glass-box': () => import('@/components/games/GlassBoxGame').then((m) => def(m)),
+  'harness-forge': () => import('@/components/games/HarnessForgeGame').then((m) => def(m)),
+  'pocket-brain': () => import('@/components/games/PocketBrainGame').then((m) => def(m)),
+  'context-architect': () => import('@/components/games/ContextArchitectGame').then((m) => def(m)),
+  'pixel-witness': () => import('@/components/games/PixelWitnessGame').then((m) => def(m)),
 };
 
 /** Return the lazy loader for a slug, or undefined if unknown. */

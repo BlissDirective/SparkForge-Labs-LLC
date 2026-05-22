@@ -96,13 +96,10 @@ const nextConfig: NextConfig = {
 // config webhook needs to see the final Next.js config object.
 const withIntl = withNextIntl(nextConfig);
 
-// Sentry wraps the Next.js config for source maps + error tracking
-export default withSentryConfig(withIntl, {
-  // Sentry build options
-  org: process.env.SENTRY_ORG,
-  project: process.env.SENTRY_PROJECT,
-  silent: !process.env.CI, // Suppress logs in local dev
-  widenClientFileUpload: true,
-  tunnelRoute: '/monitoring', // Proxy Sentry requests to avoid ad-blockers
-  disableLogger: true,
-});
+// Sentry wraps the Next.js config for source maps + error tracking.
+// DEPLOY-CRITICAL: Only wrap with Sentry when SENTRY_ORG is set.
+// If org/project are missing, the source-map upload phase fails the
+// build. Gracefully degrade to plain Next.js when Sentry is not
+// configured (e.g. first deploy, staging, or personal forks).
+const sentryOrg = process.env.SENTRY_ORG;
+const sentryProject = pro

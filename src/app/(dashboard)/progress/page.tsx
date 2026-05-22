@@ -15,19 +15,26 @@ import {
 } from 'lucide-react';
 import { useActiveChild } from '@/hooks/useChildren';
 import { useAllLabsProgress } from '@/hooks/useProgress';
+import { useParentDashboard } from '@/hooks/useParentDashboard';
 import { GAME_REGISTRY } from '@/config/gameRegistry';
-import { LAB_COLORS, LAB_NAMES } from '@/config/labs';
+import { LAB_COLORS, LAB_NAMES, LAB_ICONS } from '@/config/labs';
 import { SFCard } from '@/components/ui/SFCard';
 import { SFProgressBar } from '@/components/ui/SFProgressBar';
 import { SFCircularProgress } from '@/components/ui/SFCircularProgress';
 import SpotlightCard from '@/components/bits/SpotlightCard';
 import GradientText from '@/components/bits/GradientText';
 import CountUp from '@/components/bits/CountUp';
+import { ProgressCharts } from '@/components/progress';
 
 export default function ProgressPage() {
   const child = useActiveChild();
   const childId = child?.id ?? '';
   const { data: labsProgress, isLoading } = useAllLabsProgress(childId);
+  const { children: dashboardChildren } = useParentDashboard();
+
+  // Get actual total time from parent dashboard data (CRITICAL-003 fix)
+  const matchedChild = dashboardChildren.find((c) => c.id === childId);
+  const totalTimeMinutes = matchedChild?.total_time_minutes ?? 0;
 
   const overallProgress = useMemo(() => {
     if (!labsProgress || !Array.isArray(labsProgress)) return 0;
@@ -59,9 +66,10 @@ export default function ProgressPage() {
       gamesPlayed: completed,
       gamesCompleted: completed,
       totalXP: child?.xp ?? 0,
-      hoursPlayed: Math.round((child?.xp ?? 0) / 60),
+      // CRITICAL-003: Use actual tracked time instead of XP/60
+      hoursPlayed: Math.round(totalTimeMinutes / 60),
     };
-  }, [labsProgress, child]);
+  }, [labsProgress, child, totalTimeMinutes]);
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto pb-20 lg:pb-0">
@@ -104,6 +112,16 @@ export default function ProgressPage() {
           </motion.div>
         ))}
       </div>
+
+      {/* ═══ Phase 5: Progress Charts (Donut + Sparkline + Bar) ═══ */}
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}>
+        <ProgressCharts
+          labData={labBreakdown}
+          overallPercent={overallProgress}
+          totalGamesPlayed={stats.gamesPlayed}
+          totalTimeMinutes={totalTimeMinutes}
+        />
+      </motion.div>
 
       {/* Overall + Streak */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

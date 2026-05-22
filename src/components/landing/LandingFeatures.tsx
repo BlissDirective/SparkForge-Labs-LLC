@@ -3,6 +3,7 @@
 import { motion } from 'motion/react';
 import { Gamepad2, FlaskConical, Trophy, Shield, Zap, Brain } from 'lucide-react';
 import SpotlightCard from '@/components/bits/SpotlightCard';
+import StarBorder from '@/components/bits/StarBorder';
 import GradientText from '@/components/bits/GradientText';
 
 const FEATURES = [
@@ -81,24 +82,30 @@ export function LandingFeatures() {
                 spotlightColor={`${feature.color}10`}
                 className="h-full transition-all hover:-translate-y-1"
               >
-                <div className="p-5">
-                  <div
-                    className="w-12 h-12 rounded-xl flex items-center justify-center mb-4"
-                    style={{
-                      background: `linear-gradient(135deg, ${feature.color}20, ${feature.color}08)`,
-                      boxShadow: `0 4px 12px ${feature.color}15`,
-                    }}
-                  >
-                    <feature.icon className="w-6 h-6" style={{ color: feature.color }} />
-                  </div>
+                <StarBorder
+                  color={feature.color}
+                  speed={6 + (i % 3) * 2}
+                  className="h-full"
+                >
+                  <div className="p-5 h-full" style={{ backgroundColor: '#FFFFFF', borderRadius: 'inherit' }}>
+                    <div
+                      className="w-12 h-12 rounded-xl flex items-center justify-center mb-4"
+                      style={{
+                        background: `linear-gradient(135deg, ${feature.color}20, ${feature.color}08)`,
+                        boxShadow: `0 4px 12px ${feature.color}15`,
+                      }}
+                    >
+                      <feature.icon className="w-6 h-6" style={{ color: feature.color }} />
+                    </div>
 
-                  <h3 className="text-base font-bold mb-2" style={{ color: '#1A1D2B' }}>
-                    {feature.title}
-                  </h3>
-                  <p className="text-sm leading-relaxed" style={{ color: '#8C94AC' }}>
-                    {feature.description}
-                  </p>
-                </div>
+                    <h3 className="text-base font-bold mb-2" style={{ color: '#1A1D2B' }}>
+                      {feature.title}
+                    </h3>
+                    <p className="text-sm leading-relaxed" style={{ color: '#8C94AC' }}>
+                      {feature.description}
+                    </p>
+                  </div>
+                </StarBorder>
               </SpotlightCard>
             </motion.div>
           ))}

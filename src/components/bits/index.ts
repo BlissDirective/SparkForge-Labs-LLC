@@ -4,17 +4,21 @@
 
 // Backgrounds
 export { default as FloatingLines } from './FloatingLines';
+export { default as AmbientParticles } from './AmbientParticles';
+export { default as GalaxyBackground } from './GalaxyBackground';
 
 // Text Animations
 export { default as ShinyText } from './ShinyText';
 export { default as GradientText } from './GradientText';
 export { default as CountUp } from './CountUp';
+export { default as MetallicPaint } from './MetallicPaint';
 
 // Components
 export { default as SpotlightCard } from './SpotlightCard';
 export { default as StarBorder } from './StarBorder';
 export { default as TiltedCard } from './TiltedCard';
 export { default as ClickSpark } from './ClickSpark';
+export { default as OrbitalRing } from './OrbitalRing';
 
 // Composite Components
 export { SFGameCard } from './SFGameCard';

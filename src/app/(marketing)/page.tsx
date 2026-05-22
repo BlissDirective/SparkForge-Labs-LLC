@@ -1,48 +1,32 @@
 // ════════════════════════════════════════════════════════════════
-// LANDING PAGE — SparkForge Marketing Site (Phase 5)
+// LANDING PAGE — SparkForge Marketing Site
 // ════════════════════════════════════════════════════════════════
-// Enhanced with AI Tutor feature showcase and highlighted quotes
-// using React Bits text effects.
+// Full landing experience: Hero, AI Tutor, Features, How It Works,
+// CTA. Enhanced with React Bits throughout for visual depth.
 
 import { HeroSection } from '@/components/landing/HeroSection';
 import { LandingFeatures } from '@/components/landing/LandingFeatures';
 import { LandingAITutor } from '@/components/landing/LandingAITutor';
 import { LandingCTA } from '@/components/landing/LandingCTA';
+import { LandingHowItWorks } from '@/components/landing/LandingHowItWorks';
 
 export default function LandingPage() {
   return (
     <>
-      {/* Hero with FloatingLines */}
+      {/* Hero with FloatingLines interactive background */}
       <HeroSection />
 
       {/* AI Tutor Feature Showcase */}
       <LandingAITutor />
 
-      {/* Feature Grid */}
+      {/* Feature Grid with StarBorder cards */}
       <LandingFeatures />
+
+      {/* How It Works — steps, stats, facts, skills cloud */}
+      <LandingHowItWorks />
 
       {/* Login CTA Banner */}
       <LandingCTA />
-
-      {/* How It Works placeholder — Phase 6 */}
-      <section
-        id="how-it-works"
-        className="py-24 px-4"
-        style={{ backgroundColor: '#FFFFFF' }}
-      >
-        <div className="max-w-5xl mx-auto text-center">
-          <h2
-            className="text-3xl sm:text-4xl font-bold mb-6"
-            style={{ fontFamily: 'var(--font-display)', color: '#1A1D2B' }}
-          >
-            How It Works
-          </h2>
-          <p className="text-lg max-w-2xl mx-auto" style={{ color: '#8C94AC' }}>
-            Coming in Phase 6 — Interactive game preview, parent testimonials,
-            pricing plans, and more.
-          </p>
-        </div>
-      </section>
     </>
   );
 }
