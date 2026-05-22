@@ -13,7 +13,45 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // ═══ Frost-Prismatic Neon Accents — OKLCH L=0.75 (DES-03) ═══
+        // ═══ SparkForge v3 — Kid-Friendly Design System ═══
+        sf: {
+          primary: {
+            DEFAULT: '#4F6EF7',
+            light: '#8B9FFF',
+            dark: '#2F4BC0',
+          },
+          secondary: {
+            DEFAULT: '#FF6B35',
+            light: '#FF9D6E',
+          },
+          accent: {
+            green: '#2ECC71',
+            purple: '#9B59B6',
+            pink: '#E945F5',
+            yellow: '#FFD93D',
+            cyan: '#00D2FF',
+            red: '#FF5252',
+          },
+          surface: {
+            DEFAULT: '#FFFFFF',
+            alt: '#F8FAFF',
+            elevated: '#FFFFFF',
+            muted: '#EEF2FA',
+            inverse: '#0F1123',
+          },
+          text: {
+            primary: '#1A1D2B',
+            secondary: '#52586E',
+            muted: '#8C94AC',
+            inverse: '#F8FAFF',
+          },
+          border: {
+            DEFAULT: '#DAE0F0',
+            focus: '#4F6EF7',
+            subtle: '#E8EEF8',
+          },
+        },
+        // ═══ Legacy Frost-Prismatic (backward compat during migration) ═══
         neon: {
           blue: { DEFAULT: 'oklch(0.75 0.17 225)', dim: 'oklch(0.75 0.17 225 / 0.25)', glow: 'oklch(0.75 0.17 225 / 0.15)' },
           green: { DEFAULT: 'oklch(0.75 0.19 155)', dim: 'oklch(0.75 0.19 155 / 0.25)', glow: 'oklch(0.75 0.19 155 / 0.15)' },
@@ -21,7 +59,6 @@ const config: Config = {
           orange: { DEFAULT: 'oklch(0.75 0.20 25)', dim: 'oklch(0.75 0.20 25 / 0.25)', glow: 'oklch(0.75 0.20 25 / 0.15)' },
           amber: { DEFAULT: 'oklch(0.75 0.17 75)', dim: 'oklch(0.75 0.17 75 / 0.25)', glow: 'oklch(0.75 0.17 75 / 0.15)' },
         },
-        // ═══ spark-* ALIASES — OKLCH (backward compatibility) ═══
         spark: {
           blue: 'oklch(0.75 0.17 225)',
           purple: 'oklch(0.75 0.19 295)',
@@ -30,7 +67,6 @@ const config: Config = {
           coral: 'oklch(0.75 0.20 25)',
           amber: 'oklch(0.75 0.17 75)',
         },
-        // ═══ Surface Colors — OKLCH (dark mode) ═══
         surface: {
           base: 'oklch(0.13 0.02 260)',
           deep: 'oklch(0.13 0.02 260)',
@@ -38,10 +74,6 @@ const config: Config = {
           elevated: 'oklch(0.19 0.02 290)',
           border: 'oklch(1.0 0 0 / 0.06)',
         },
-        // ═══ Lab Accent Colors (1-10) — OKLCH L=0.75 ═══
-        // Phase 5 P.3-MAX: Generated from src/config/labColors.ts — the
-        // single canonical lab color table. Both tailwind utilities AND
-        // runtime JS/3D materials read from that file now.
         lab: buildTailwindLabColors(),
       },
       fontSize: {
@@ -75,6 +107,24 @@ const config: Config = {
         'inner-glow': 'inset 0 1px 0 rgba(255,255,255,0.06)',
         'chrome': '0 1px 0 rgba(255,255,255,0.06), inset 0 1px 0 rgba(255,255,255,0.12)',
         'interactive': '0 4px 20px rgba(0,0,0,0.3), 0 0 15px var(--lab-glow, rgba(0,187,255,0.15))',
+        // ═══ SparkForge v3 Shadows ═══
+        'sf-sm': '0 1px 2px rgba(0,0,0,0.04)',
+        'sf-md': '0 4px 12px rgba(0,0,0,0.06)',
+        'sf-lg': '0 8px 24px rgba(0,0,0,0.08)',
+        'sf-xl': '0 16px 48px rgba(0,0,0,0.10)',
+        'sf-glow-primary': '0 4px 20px rgba(79,110,247,0.25)',
+        'sf-glow-green': '0 4px 20px rgba(46,204,113,0.25)',
+        'sf-glow-pink': '0 4px 20px rgba(233,69,245,0.25)',
+        'sf-glow-orange': '0 4px 20px rgba(255,107,53,0.25)',
+        'sf-card': '0 4px 12px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.04)',
+        'sf-card-hover': '0 12px 32px rgba(0,0,0,0.12), 0 4px 12px rgba(0,0,0,0.06)',
+      },
+      borderRadius: {
+        'sf-sm': '8px',
+        'sf-md': '12px',
+        'sf-lg': '16px',
+        'sf-xl': '24px',
+        'sf-full': '9999px',
       },
       backgroundImage: {
         'frost-gradient': 'linear-gradient(135deg, rgba(0,187,255,0.08), rgba(170,102,255,0.05))',

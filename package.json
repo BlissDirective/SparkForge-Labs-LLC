@@ -90,6 +90,7 @@
     "three": "^0.183.2",
     "three-bvh-csg": "^0.0.18",
     "three-mesh-bvh": "^0.9.9",
+    "canvas-confetti": "^1.9.3",
     "tone": "^15.1.22",
     "troika-three-text": "^0.52.4",
     "xstate": "^5.30.0",

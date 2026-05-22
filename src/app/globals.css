@@ -1,5 +1,8 @@
 /* DES-06: Fonts self-hosted via next/font/google in layout.tsx */
 
+/* ═══ SparkForge v3 Design Tokens ═══ */
+@import "../styles/design-tokens.css";
+
 /* AUDIT-G7: Tailwind CSS v4 migration — use @import instead of @tailwind directives */
 @import "tailwindcss";
 
