@@ -45,10 +45,22 @@ const FEATURES = [
   },
 ];
 
+// Unified dark background for the entire landing page
+const BG_DARK = '#0A0F1E';
+const CARD_BG = 'rgba(15, 20, 40, 0.7)';
+const TEXT_HEADING = '#F0F2F8';
+const TEXT_MUTED = 'rgba(200, 210, 235, 0.55)';
+
 export function LandingFeatures() {
   return (
-    <section className="py-20 sm:py-28 px-4" style={{ backgroundColor: '#FFFFFF' }}>
-      <div className="max-w-6xl mx-auto">
+    <section className="relative py-20 sm:py-28 px-4 overflow-hidden" style={{ backgroundColor: BG_DARK }}>
+      {/* Ambient violet glow */}
+      <div
+        className="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[500px] rounded-full opacity-20 blur-3xl pointer-events-none"
+        style={{ background: 'radial-gradient(ellipse, #4F6EF715, #E945F510, transparent 70%)' }}
+      />
+
+      <div className="max-w-6xl mx-auto relative">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -58,12 +70,12 @@ export function LandingFeatures() {
         >
           <h2
             className="text-3xl sm:text-4xl font-extrabold mb-4"
-            style={{ fontFamily: 'var(--font-display)', color: '#1A1D2B' }}
+            style={{ fontFamily: 'var(--font-display)', color: TEXT_HEADING }}
           >
             Everything you need to{' '}
             <GradientText from="#4F6EF7" to="#E945F5">master AI</GradientText>
           </h2>
-          <p className="text-base sm:text-lg max-w-2xl mx-auto" style={{ color: '#8C94AC' }}>
+          <p className="text-base sm:text-lg max-w-2xl mx-auto" style={{ color: TEXT_MUTED }}>
             A complete learning platform designed specifically for young minds
           </p>
         </motion.div>
@@ -87,21 +99,28 @@ export function LandingFeatures() {
                   speed={6 + (i % 3) * 2}
                   className="h-full"
                 >
-                  <div className="p-5 h-full" style={{ backgroundColor: '#FFFFFF', borderRadius: 'inherit' }}>
+                  <div
+                    className="p-5 h-full"
+                    style={{
+                      background: `linear-gradient(160deg, ${CARD_BG}, rgba(12, 18, 38, 0.9))`,
+                      borderRadius: 'inherit',
+                      border: '1px solid rgba(255,255,255,0.04)',
+                    }}
+                  >
                     <div
                       className="w-12 h-12 rounded-xl flex items-center justify-center mb-4"
                       style={{
-                        background: `linear-gradient(135deg, ${feature.color}20, ${feature.color}08)`,
-                        boxShadow: `0 4px 12px ${feature.color}15`,
+                        background: `linear-gradient(135deg, ${feature.color}15, ${feature.color}05)`,
+                        boxShadow: `0 4px 12px ${feature.color}10`,
                       }}
                     >
                       <feature.icon className="w-6 h-6" style={{ color: feature.color }} />
                     </div>
 
-                    <h3 className="text-base font-bold mb-2" style={{ color: '#1A1D2B' }}>
+                    <h3 className="text-base font-bold mb-2" style={{ color: TEXT_HEADING }}>
                       {feature.title}
                     </h3>
-                    <p className="text-sm leading-relaxed" style={{ color: '#8C94AC' }}>
+                    <p className="text-sm leading-relaxed" style={{ color: TEXT_MUTED }}>
                       {feature.description}
                     </p>
                   </div>

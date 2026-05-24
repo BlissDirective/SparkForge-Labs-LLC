@@ -107,7 +107,7 @@ const SKILLS = [
 
 export function LandingHowItWorks() {
   return (
-    <section className="relative py-20 sm:py-28 px-4 overflow-hidden" style={{ backgroundColor: '#0F1123' }}>
+    <section className="relative py-20 sm:py-28 px-4 overflow-hidden" style={{ backgroundColor: '#0A0F1E' }}>
       {/* Ambient glows */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] rounded-full opacity-20 blur-3xl pointer-events-none"
            style={{ background: 'radial-gradient(ellipse, #E945F520, transparent 70%)' }} />
@@ -176,7 +176,7 @@ export function LandingHowItWorks() {
               {/* Connector arrow (desktop only) */}
               {i < STEPS.length - 1 && (
                 <div className="hidden lg:flex absolute -right-3 top-1/2 -translate-y-1/2 z-10 items-center justify-center w-6 h-6 rounded-full"
-                     style={{ backgroundColor: '#F0F1F8' }}>
+                     style={{ backgroundColor: 'rgba(255,255,255,0.06)' }}>
                   <ChevronRight className="w-3.5 h-3.5" style={{ color: '#8C94AC' }} />
                 </div>
               )}

@@ -24,7 +24,7 @@ export function HeroSection() {
   return (
     <section
       className="relative w-full min-h-[100dvh] flex items-center justify-center overflow-hidden"
-      style={{ backgroundColor: '#0a0a1a' }}
+      style={{ backgroundColor: '#0A0F1E' }}
     >
       {/* Background Layer */}
       <div className="absolute inset-0 z-0">

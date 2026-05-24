@@ -13,7 +13,7 @@ import ShinyText from '@/components/bits/ShinyText';
 
 export function LandingAITutor() {
   return (
-    <section className="relative py-20 sm:py-28 px-4 overflow-hidden" style={{ backgroundColor: '#0F1123' }}>
+    <section className="relative py-20 sm:py-28 px-4 overflow-hidden" style={{ backgroundColor: '#0A0F1E' }}>
       {/* Background ambient glow */}
       <div
         className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] rounded-full opacity-20 blur-3xl pointer-events-none"

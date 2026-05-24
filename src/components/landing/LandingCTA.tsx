@@ -4,6 +4,11 @@ import { motion } from 'motion/react';
 import { LogIn, Sparkles, ArrowRight } from 'lucide-react';
 import GradientText from '@/components/bits/GradientText';
 
+// Unified dark background for the entire landing page
+const BG_DARK = '#0A0F1E';
+const TEXT_HEADING = '#F0F2F8';
+const TEXT_MUTED = 'rgba(200, 210, 235, 0.55)';
+
 // DecryptedText component (inline for self-containment)
 function DecryptedText({ text, className = '' }: { text: string; className?: string }) {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%&*';
@@ -35,15 +40,20 @@ function DecryptedText({ text, className = '' }: { text: string; className?: str
 
 export function LandingCTA() {
   return (
-    <section className="relative py-20 sm:py-24 px-4 overflow-hidden" style={{ backgroundColor: '#F8FAFF' }}>
-      {/* Subtle gradient blobs */}
+    <section className="relative py-20 sm:py-24 px-4 overflow-hidden" style={{ backgroundColor: BG_DARK }}>
+      {/* Subtle violet gradient blobs */}
       <div
-        className="absolute top-0 left-0 w-[500px] h-[300px] rounded-full opacity-30 blur-3xl pointer-events-none"
-        style={{ background: 'radial-gradient(ellipse, #E945F520, transparent 70%)' }}
+        className="absolute top-0 left-0 w-[500px] h-[300px] rounded-full opacity-20 blur-3xl pointer-events-none"
+        style={{ background: 'radial-gradient(ellipse, #E945F525, transparent 70%)' }}
       />
       <div
-        className="absolute bottom-0 right-0 w-[400px] h-[250px] rounded-full opacity-25 blur-3xl pointer-events-none"
+        className="absolute bottom-0 right-0 w-[400px] h-[250px] rounded-full opacity-15 blur-3xl pointer-events-none"
         style={{ background: 'radial-gradient(ellipse, #4F6EF720, transparent 70%)' }}
+      />
+      {/* Bottom gradient fade into footer area */}
+      <div
+        className="absolute bottom-0 left-0 right-0 h-32 pointer-events-none"
+        style={{ background: 'linear-gradient(180deg, transparent, rgba(10, 15, 30, 0.5))' }}
       />
 
       <motion.div
@@ -71,7 +81,7 @@ export function LandingCTA() {
           className="text-3xl sm:text-4xl lg:text-5xl font-extrabold mb-5 leading-tight"
           style={{ fontFamily: 'var(--font-display)' }}
         >
-          <span className="block mb-2" style={{ color: '#1A1D2B' }}>
+          <span className="block mb-2" style={{ color: TEXT_HEADING }}>
             <DecryptedText
               text="Login to see the all New"
               className="decrypted-text"
@@ -85,7 +95,7 @@ export function LandingCTA() {
           </GradientText>
         </h2>
 
-        <p className="text-base sm:text-lg mb-8 max-w-xl mx-auto" style={{ color: '#8C94AC' }}>
+        <p className="text-base sm:text-lg mb-8 max-w-xl mx-auto" style={{ color: TEXT_MUTED }}>
           Sign in to unlock the full SparkForge experience — including your personal AI tutor,
           30+ games, learning labs, progress tracking, and rewards.
         </p>
@@ -107,15 +117,15 @@ export function LandingCTA() {
 
           <a
             href="/signup"
-            className="inline-flex items-center gap-2 px-8 py-4 rounded-full font-semibold text-base transition-all hover:bg-sf-surface-muted"
-            style={{ color: '#4F6EF7', border: '2px solid #4F6EF7' }}
+            className="inline-flex items-center gap-2 px-8 py-4 rounded-full font-semibold text-base transition-all hover:bg-white/5"
+            style={{ color: '#A0B0FF', border: '2px solid rgba(160, 176, 255, 0.3)' }}
           >
             Create Free Account
           </a>
         </div>
 
         {/* Trust line */}
-        <p className="text-xs mt-6" style={{ color: '#8C94AC' }}>
+        <p className="text-xs mt-6" style={{ color: TEXT_MUTED }}>
           No credit card required &middot; COPPA compliant &middot; Free to start
         </p>
       </motion.div>
