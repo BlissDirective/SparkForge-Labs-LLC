@@ -10,6 +10,7 @@ import { motion } from 'motion/react';
 import { Sparkles, MessageCircle, Shield, Brain, Zap, Star } from 'lucide-react';
 import GradientText from '@/components/bits/GradientText';
 import ShinyText from '@/components/bits/ShinyText';
+import { SparkyStatic } from '@/components/sparky/SparkyStatic';
 
 export function LandingAITutor() {
   return (
@@ -104,81 +105,13 @@ export function LandingAITutor() {
               style={{ background: 'radial-gradient(circle, #00D2FF40, transparent 70%)' }}
             />
 
-            {/* 3D Orb Preview (larger version) */}
+            {/* Sparky — Canonical AI Tutor Avatar */}
             <motion.div
               animate={{ y: [0, -10, 0] }}
               transition={{ repeat: Infinity, duration: 3, ease: 'easeInOut' }}
               className="relative"
             >
-              <div
-                className="w-48 h-48 sm:w-56 sm:h-56 rounded-full relative"
-                style={{
-                  background: `
-                    radial-gradient(circle at 35% 25%, rgba(255,255,255,0.8) 0%, rgba(200,210,230,0.3) 20%, rgba(120,130,160,0.3) 50%, rgba(60,70,100,0.6) 80%, rgba(20,25,40,0.95) 100%),
-                    linear-gradient(135deg, #C0C8DC 0%, #5A6480 100%)
-                  `,
-                  boxShadow: '0 0 60px rgba(0,210,255,0.25), 0 0 120px rgba(0,210,255,0.1), inset 0 -8px 24px rgba(0,0,0,0.4), inset 0 4px 16px rgba(255,255,255,0.2)',
-                }}
-              >
-                {/* Highlight */}
-                <div
-                  className="absolute top-[15%] left-[20%] w-[30%] h-[20%] rounded-full"
-                  style={{
-                    background: 'radial-gradient(ellipse, rgba(255,255,255,0.6), transparent 70%)',
-                    filter: 'blur(2px)',
-                  }}
-                />
-
-                {/* Eyes */}
-                <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
-                  <div className="flex items-center gap-5">
-                    <div
-                      className="w-7 h-7 rounded-full relative"
-                      style={{
-                        background: 'radial-gradient(circle, #00D2FF, #00D2FF90)',
-                        boxShadow: '0 0 16px #00D2FF, 0 0 32px #00D2FF50',
-                      }}
-                    >
-                      <div className="absolute top-1.5 left-1.5 w-2 h-2 rounded-full bg-white opacity-70" />
-                    </div>
-                    <div
-                      className="w-7 h-7 rounded-full relative"
-                      style={{
-                        background: 'radial-gradient(circle, #00D2FF, #00D2FF90)',
-                        boxShadow: '0 0 16px #00D2FF, 0 0 32px #00D2FF50',
-                      }}
-                    >
-                      <div className="absolute top-1.5 left-1.5 w-2 h-2 rounded-full bg-white opacity-70" />
-                    </div>
-                  </div>
-                  {/* Smile */}
-                  <div
-                    className="w-8 h-3 rounded-b-full"
-                    style={{
-                      background: 'linear-gradient(180deg, transparent, #00D2FF50)',
-                      boxShadow: '0 0 8px #00D2FF60',
-                      borderBottom: '2px solid #00D2FF80',
-                    }}
-                  />
-                </div>
-
-                {/* Panel lines */}
-                <div className="absolute inset-0 rounded-full overflow-hidden pointer-events-none">
-                  <div className="absolute top-[45%] left-0 right-0 h-[1px]" style={{ background: 'linear-gradient(90deg, transparent, #00D2FF20, transparent)' }} />
-                </div>
-              </div>
-
-              {/* Antenna */}
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                <div className="w-1.5 h-4 rounded-full mx-auto" style={{ background: 'linear-gradient(180deg, #8A94B0, #5A6480)' }} />
-                <div className="w-3 h-3 rounded-full mx-auto -mt-1" style={{ background: '#00D2FF', boxShadow: '0 0 8px #00D2FF' }} />
-              </div>
-
-              {/* Shadow */}
-              <div
-                className="absolute -bottom-4 left-1/2 -translate-x-1/2 w-24 h-4 rounded-full"
-                style={{ background: 'radial-gradient(ellipse, rgba(0,0,0,0.3), transparent 70%)', filter: 'blur(4px)' }}
-              />
+              <SparkyStatic expression="happy" size="xl" showAura />
             </motion.div>
 
             {/* Chat bubble preview */}
