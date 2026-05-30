@@ -34,6 +34,7 @@ import { useCompleteAndReward } from '@/hooks/useGamification';
 import { useGameSounds } from '@/hooks/useGameSounds';
 import { XPPopupProvider } from '@/components/game/XPPopup';
 import { GameErrorBoundary } from '@/components/game/GameErrorBoundary';
+import { JuiceProvider } from '@/components/juice/JuiceProvider';
 import { getCompletionTier } from '@/lib/3d/gameParticles';
 import { GameHUD3D } from '@/components/3d/game-ui/GameHUD3D';
 
@@ -230,6 +231,8 @@ export function GameShell({
 
   return (
     <XPPopupProvider>
+      {/* Phase 5: Game Juice System — combos, floating text, Sparky reactions, screen shake */}
+      <JuiceProvider>
       {/* Phase 1 audit fix (Section 8.7): GameErrorBoundary wraps all 35 games */}
       <GameErrorBoundary gameId={gameId} gameTitle={title} worldColor={worldColor}>
         {/* Phase 5 O.6-MIN (§8.6): Focus trap contains Tab navigation within
@@ -264,6 +267,7 @@ export function GameShell({
           </div>
         </FocusTrap>
       </GameErrorBoundary>
+      </JuiceProvider>
     </XPPopupProvider>
   );
 }
