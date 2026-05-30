@@ -27,6 +27,7 @@ import { useBadges } from '@/hooks/useGamification';
 import { useStreak } from '@/hooks/useStreak';
 import { useCurrency } from '@/hooks/useCurrency';
 import { useLeaderboard } from '@/hooks/useLeaderboard';
+import { usePet } from '@/hooks/usePet';
 import { GAME_REGISTRY } from '@/config/gameRegistry';
 import { LAB_COLORS } from '@/config/labs';
 import { SFCard } from '@/components/ui/SFCard';
@@ -36,6 +37,7 @@ import { DailyMissionCard } from '@/components/mission/DailyMissionCard';
 import { QuickStatsBar } from '@/components/home/QuickStatsBar';
 import { ActivityFeed } from '@/components/home/ActivityFeed';
 import { LeaderboardPanel } from '@/components/leaderboard/LeaderboardPanel';
+import { PetWidget } from '@/components/pet/PetWidget';
 import SpotlightCard from '@/components/bits/SpotlightCard';
 import ShinyText from '@/components/bits/ShinyText';
 import GradientText from '@/components/bits/GradientText';
@@ -55,7 +57,6 @@ export default function HomePage() {
     streakCount,
     longestStreak,
     freezesEquipped,
-    recordActivity,
   } = useStreak(childId);
 
   const {
@@ -72,8 +73,15 @@ export default function HomePage() {
     timeUntilReset,
     isInPromotionZone,
     isInDemotionZone,
-    refresh: refreshLeaderboard,
   } = useLeaderboard(childId);
+
+  // ─── Pet Trainer (Phase 4) ───
+  const {
+    pet,
+    care: petCare,
+    evolve: petEvolve,
+    sleep: petSleep,
+  } = usePet(childId);
 
   // ─── Computed State ───
   const earnedBadges = useMemo(() => {
@@ -414,6 +422,23 @@ export default function HomePage() {
               onViewFull={() => {}}
             />
           </motion.section>
+
+          {/* Pet Trainer (Phase 4) */}
+          {pet && (
+            <motion.section
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.35 }}
+            >
+              <PetWidget
+                pet={pet}
+                childName={childName}
+                onCare={petCare}
+                onSleep={petSleep}
+                onEvolve={petEvolve}
+              />
+            </motion.section>
+          )}
 
           {/* Activity Feed */}
           <motion.section
