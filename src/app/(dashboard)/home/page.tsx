@@ -28,6 +28,8 @@ import { useStreak } from '@/hooks/useStreak';
 import { useCurrency } from '@/hooks/useCurrency';
 import { useLeaderboard } from '@/hooks/useLeaderboard';
 import { usePet } from '@/hooks/usePet';
+import { useQuests } from '@/hooks/useQuests';
+import { QuestPanel } from '@/components/quests/QuestPanel';
 import { GAME_REGISTRY } from '@/config/gameRegistry';
 import { LAB_COLORS } from '@/config/labs';
 import { SFCard } from '@/components/ui/SFCard';
@@ -82,6 +84,15 @@ export default function HomePage() {
     evolve: petEvolve,
     sleep: petSleep,
   } = usePet(childId);
+
+  // ─── Quest System (Phase 7) ───
+  const {
+    quests,
+    weeklyChain,
+    streakDays: questStreakDays,
+    claimQuest,
+    trackProgress,
+  } = useQuests(childId);
 
   // ─── Computed State ───
   const earnedBadges = useMemo(() => {
@@ -404,7 +415,7 @@ export default function HomePage() {
           </motion.section>
         </div>
 
-        {/* Right Column: Leaderboard + Activity */}
+        {/* Right Column: Leaderboard + Quests + Activity */}
         <div className="space-y-5">
           {/* Leaderboard (Phase 2 Integration) */}
           <motion.section
@@ -420,6 +431,21 @@ export default function HomePage() {
               isInPromotionZone={isInPromotionZone}
               isInDemotionZone={isInDemotionZone}
               onViewFull={() => {}}
+            />
+          </motion.section>
+
+          {/* Quest Panel (Phase 7) */}
+          <motion.section
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.32 }}
+          >
+            <QuestPanel
+              quests={quests}
+              weeklyChain={weeklyChain}
+              streakDays={questStreakDays}
+              onClaim={claimQuest}
+              childName={childName}
             />
           </motion.section>
 
