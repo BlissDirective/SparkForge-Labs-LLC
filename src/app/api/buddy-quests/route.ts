@@ -4,7 +4,7 @@
 // ════════════════════════════════════════════════════
 
 import { NextRequest } from 'next/server';
-import { createServerSupabase } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/server';
 import { apiSuccess, apiError, requireAuth, verifyChildOwnership } from '@/lib/api-helpers';
 import { z } from 'zod';
 import { BUDDY_QUEST_TEMPLATES, type BuddyQuest } from '@/lib/social/SocialEngine';
@@ -31,7 +31,7 @@ export async function GET(req: NextRequest) {
     return apiError('Child not found', 404);
   }
 
-  const supabase = await createServerSupabase();
+  const supabase = createAdminClient();
   const week = getWeekMonday(new Date().toISOString().split('T')[0]);
 
   try {
@@ -90,7 +90,7 @@ export async function POST(req: NextRequest) {
     return apiError('Child not found', 404);
   }
 
-  const supabase = await createServerSupabase();
+  const supabase = createAdminClient();
   const week = getWeekMonday(new Date().toISOString().split('T')[0]);
   const pk = pairKey(childId, buddyId);
 

@@ -122,27 +122,26 @@ ALTER TABLE buddy_badges_earned ENABLE ROW LEVEL SECURITY;
 
 -- Helper predicate inlined: child_id belongs to the authenticated parent.
 CREATE POLICY friend_conn_select_owner ON friend_connections
-  FOR SELECT USING (child_id IN (SELECT id FROM children WHERE user_id = auth.uid()));
+  FOR SELECT USING (child_id IN (SELECT id FROM children WHERE parent_id = auth.uid()));
 CREATE POLICY invite_codes_select_owner ON friend_invite_codes
-  FOR SELECT USING (child_id IN (SELECT id FROM children WHERE user_id = auth.uid()));
+  FOR SELECT USING (child_id IN (SELECT id FROM children WHERE parent_id = auth.uid()));
 CREATE POLICY parent_approvals_select_owner ON parent_approvals
-  FOR SELECT USING (child_id IN (SELECT id FROM children WHERE user_id = auth.uid()));
+  FOR SELECT USING (child_id IN (SELECT id FROM children WHERE parent_id = auth.uid()));
 CREATE POLICY buddy_quests_select_owner ON buddy_quests
-  FOR SELECT USING (child_id IN (SELECT id FROM children WHERE user_id = auth.uid()));
+  FOR SELECT USING (child_id IN (SELECT id FROM children WHERE parent_id = auth.uid()));
 -- Safe messages: a parent may read messages sent to OR from their child
 -- (full communication history visibility is a COPPA requirement).
 CREATE POLICY safe_messages_select_owner ON safe_messages
   FOR SELECT USING (
-    from_child_id IN (SELECT id FROM children WHERE user_id = auth.uid())
-    OR to_child_id IN (SELECT id FROM children WHERE user_id = auth.uid())
+    from_child_id IN (SELECT id FROM children WHERE parent_id = auth.uid())
+    OR to_child_id IN (SELECT id FROM children WHERE parent_id = auth.uid())
   );
 CREATE POLICY buddy_badges_select_owner ON buddy_badges_earned
-  FOR SELECT USING (child_id IN (SELECT id FROM children WHERE user_id = auth.uid()));
+  FOR SELECT USING (child_id IN (SELECT id FROM children WHERE parent_id = auth.uid()));
 
--- Service role manages all social tables (API routes use service client).
-CREATE POLICY friend_conn_service ON friend_connections FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY invite_codes_service ON friend_invite_codes FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY parent_approvals_service ON parent_approvals FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY buddy_quests_service ON buddy_quests FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY safe_messages_service ON safe_messages FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY buddy_badges_service ON buddy_badges_earned FOR ALL USING (true) WITH CHECK (true);
+-- NOTE: no INSERT/UPDATE/DELETE policies are defined. All writes happen
+-- server-side through the admin (service-role) client in the API routes,
+-- which bypasses RLS. Direct writes from the anon/authenticated client are
+-- therefore denied by default — closing the cross-child write surface while
+-- the API enforces ownership (requireAuth + verifyChildOwnership) and COPPA
+-- rules (parent approval, preset-only messages).

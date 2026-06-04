@@ -7,7 +7,7 @@
 // the delivered text is looked up server-side from the catalog.
 
 import { NextRequest } from 'next/server';
-import { createServerSupabase } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/server';
 import { apiSuccess, apiError, requireAuth, verifyChildOwnership } from '@/lib/api-helpers';
 import { z } from 'zod';
 import { getMessageTemplate, isMessageAllowed } from '@/lib/social/SocialEngine';
@@ -25,7 +25,7 @@ export async function GET(req: NextRequest) {
     return apiError('Child not found', 404);
   }
 
-  const supabase = await createServerSupabase();
+  const supabase = createAdminClient();
 
   try {
     let query = supabase
@@ -98,7 +98,7 @@ export async function POST(req: NextRequest) {
   }
   const template = getMessageTemplate(templateId)!;
 
-  const supabase = await createServerSupabase();
+  const supabase = createAdminClient();
 
   try {
     // Only allow sending to an ACTIVE (mutually parent-approved) buddy.

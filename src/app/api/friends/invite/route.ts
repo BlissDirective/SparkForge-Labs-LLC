@@ -4,7 +4,7 @@
 // COPPA: connections are made via codes, never by searching names.
 
 import { NextRequest } from 'next/server';
-import { createServerSupabase } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/server';
 import { apiSuccess, apiError, requireAuth, verifyChildOwnership } from '@/lib/api-helpers';
 import { z } from 'zod';
 import { generateInviteCode, inviteExpiry, isValidInviteCodeShape } from '@/lib/social/SocialEngine';
@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
     return apiError('Child not found', 404);
   }
 
-  const supabase = await createServerSupabase();
+  const supabase = createAdminClient();
 
   try {
     // Reuse an existing un-redeemed, un-expired code if present.
