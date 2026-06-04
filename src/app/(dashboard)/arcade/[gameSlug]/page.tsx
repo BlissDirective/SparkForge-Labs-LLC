@@ -247,7 +247,7 @@ export default function GamePlayPage() {
                       backgroundColor: selectedDifficulty === d.id ? `${d.color}08` : '#FFFFFF',
                       borderColor: selectedDifficulty === d.id ? d.color : '#EEF2FA',
                       boxShadow: selectedDifficulty === d.id ? `0 4px 20px ${d.color}20` : 'var(--shadow-sm)',
-                      ringColor: d.color,
+                      ['--tw-ring-color' as string]: d.color,
                     }}
                   >
                     {/* Star indicators */}

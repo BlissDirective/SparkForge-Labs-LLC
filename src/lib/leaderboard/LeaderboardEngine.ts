@@ -24,6 +24,7 @@ export interface League {
 export interface LeagueParticipant {
   id: string;
   leagueId: string;
+  tier: LeagueTier;
   childId: string;
   displayName: string; // COPPA-safe pseudonym, NOT real name
   avatarEmoji: string; // Emoji avatar, not photo
@@ -414,6 +415,7 @@ export function seedBotParticipants(
     bots.push({
       id: botSeed,
       leagueId,
+      tier,
       childId: botSeed,
       displayName: generateDisplayName(botSeed),
       avatarEmoji: selectEmojiAvatar(botSeed),

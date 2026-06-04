@@ -171,7 +171,7 @@ export default function DragDropLevelRenderer({
                       background: `${labColor}10`,
                       border: `1px solid ${labColor}20`,
                       color: '#1A1D2B',
-                      focusVisibleRingColor: labColor,
+                      ['--tw-ring-color' as string]: labColor,
                     }}
                     whileHover={{ y: -2 }}
                     whileTap={{ scale: 0.95 }}

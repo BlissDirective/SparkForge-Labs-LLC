@@ -392,7 +392,7 @@ describe('getPetSize', () => {
   });
 
   it('returns largest size for adult', () => {
-    const sizes = ['egg', 'baby', 'child', 'teen', 'adult'].map(getPetSize);
+    const sizes = (['egg', 'baby', 'child', 'teen', 'adult'] as const).map(getPetSize);
     expect(sizes[4]).toBe(Math.max(...sizes));
   });
 });

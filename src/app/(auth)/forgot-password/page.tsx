@@ -85,7 +85,7 @@ export default function ForgotPasswordPage() {
                 style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.1)' }} />
             </div>
           </div>
-          <SFButton variant="primary" size="lg" fullWidth onClick={handleSubmit} isLoading={isLoading}
+          <SFButton variant="primary" size="lg" fullWidth onClick={handleSubmit} loading={isLoading}
             style={{ background: 'linear-gradient(135deg, #4F6EF7, #E945F5)' }}>
             Send Reset Link <ArrowRight className="w-4 h-4" />
           </SFButton>

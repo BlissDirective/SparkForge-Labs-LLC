@@ -9,7 +9,7 @@ import { useState, useCallback, useEffect, useMemo } from 'react';
 import type { ActiveQuest, WeeklyQuestChain, QuestReward } from '@/lib/quests/QuestEngine';
 import { selectDailyQuests, updateQuestProgress, claimQuestReward, allQuestsClaimed } from '@/lib/quests/QuestEngine';
 import { QUEST_TEMPLATES } from '@/lib/quests/QuestEngine';
-import { apiFetch } from '@/lib/api';
+import { apiFetchResponse } from '@/lib/api';
 
 export interface UseQuestsReturn {
   // State
@@ -50,7 +50,7 @@ export function useQuests(childId: string | null): UseQuestsReturn {
       setIsLoading(true);
       setError(null);
 
-      const res = await apiFetch(`/api/quests?childId=${childId}`);
+      const res = await apiFetchResponse(`/api/quests?childId=${childId}`);
       const data = await res.json();
 
       if (data.success) {
@@ -109,7 +109,7 @@ export function useQuests(childId: string | null): UseQuestsReturn {
       try {
         setClaimInProgress(questId);
 
-        const res = await apiFetch('/api/quests/claim', {
+        const res = await apiFetchResponse('/api/quests/claim', {
           method: 'POST',
           body: JSON.stringify({ childId, questId }),
         });
@@ -168,7 +168,7 @@ export function useQuests(childId: string | null): UseQuestsReturn {
 
       // Sync to server
       try {
-        await apiFetch('/api/quests/progress', {
+        await apiFetchResponse('/api/quests/progress', {
           method: 'POST',
           body: JSON.stringify({ childId, type, amount }),
         });

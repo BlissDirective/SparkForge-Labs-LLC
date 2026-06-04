@@ -1302,3 +1302,5 @@ export function EthicsCourtroomGame() {
     </GameShell>
   );
 }
+
+export default EthicsCourtroomGame;

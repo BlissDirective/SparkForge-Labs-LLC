@@ -8,7 +8,6 @@
 // 'three'. It is lazy-loaded on the landing page only. See
 // DESIGN.md for the exception policy.
 //
-// eslint-disable-next-line @react-bits/no-threejs
 
 'use client';
 

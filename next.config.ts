@@ -102,4 +102,16 @@ const withIntl = withNextIntl(nextConfig);
 // build. Gracefully degrade to plain Next.js when Sentry is not
 // configured (e.g. first deploy, staging, or personal forks).
 const sentryOrg = process.env.SENTRY_ORG;
-const sentryProject = pro
+const sentryProject = process.env.SENTRY_PROJECT;
+
+export default sentryOrg && sentryProject
+  ? withSentryConfig(withIntl, {
+      // Sentry build options
+      org: sentryOrg,
+      project: sentryProject,
+      silent: !process.env.CI, // Suppress logs in local dev
+      widenClientFileUpload: true,
+      tunnelRoute: '/monitoring', // Proxy Sentry requests to avoid ad-blockers
+      disableLogger: true,
+    })
+  : withIntl;

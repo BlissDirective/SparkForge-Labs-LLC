@@ -49,7 +49,14 @@ export async function GET(req: NextRequest) {
 
   if (participant && participant.league) {
     leagueId = participant.league_id;
-    tier = (participant.league as { tier: LeagueTier }).tier;
+    // Supabase can return the joined relation as an object or a single-element
+    // array depending on FK cardinality inference — handle both shapes.
+    const leagueRel = participant.league as unknown as
+      | { tier: LeagueTier }
+      | { tier: LeagueTier }[]
+      | null;
+    const rel = Array.isArray(leagueRel) ? leagueRel[0] : leagueRel;
+    tier = rel?.tier ?? 'bronze';
   } else {
     // Assign to Bronze league for current week
     const { data: bronzeLeague } = await supabase

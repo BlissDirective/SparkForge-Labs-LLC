@@ -185,7 +185,7 @@ export default function ScreenTimeCard({
             style={{
               background: localLimit === preset ? '#4F6EF7' : '#F0F1F8',
               color: localLimit === preset ? '#FFFFFF' : '#5A6078',
-              focusVisibleRingColor: '#4F6EF7',
+              ['--tw-ring-color' as string]: '#4F6EF7',
             }}
           >
             {preset === null ? 'Unlimited' : `${preset}m`}

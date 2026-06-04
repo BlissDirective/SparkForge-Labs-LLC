@@ -14,7 +14,7 @@ import {
   toggleSleep,
   createPet,
 } from '@/lib/pet/PetEngine';
-import { apiFetch } from '@/lib/api';
+import { apiFetchResponse } from '@/lib/api';
 
 export interface UsePetReturn {
   pet: PetState | null;
@@ -47,7 +47,7 @@ export function usePet(childId: string | null): UsePetReturn {
       setIsLoading(true);
       setError(null);
 
-      const res = await apiFetch(`/api/pet?childId=${childId}`);
+      const res = await apiFetchResponse(`/api/pet?childId=${childId}`);
       const data = await res.json();
 
       if (data.success && data.pet) {
@@ -82,7 +82,7 @@ export function usePet(childId: string | null): UsePetReturn {
     setPet(result.state);
 
     try {
-      await apiFetch('/api/pet/care', {
+      await apiFetchResponse('/api/pet/care', {
         method: 'POST',
         body: JSON.stringify({ childId, action }),
       });
@@ -100,7 +100,7 @@ export function usePet(childId: string | null): UsePetReturn {
     setPet(result.state);
 
     try {
-      await apiFetch('/api/pet/evolve', {
+      await apiFetchResponse('/api/pet/evolve', {
         method: 'POST',
         body: JSON.stringify({ childId }),
       });
@@ -118,7 +118,7 @@ export function usePet(childId: string | null): UsePetReturn {
     setPet(result.state);
 
     try {
-      await apiFetch('/api/pet/cp', {
+      await apiFetchResponse('/api/pet/cp', {
         method: 'POST',
         body: JSON.stringify({ childId, points, activity }),
       });
@@ -136,7 +136,7 @@ export function usePet(childId: string | null): UsePetReturn {
     setPet(newState);
 
     try {
-      await apiFetch('/api/pet/sleep', {
+      await apiFetchResponse('/api/pet/sleep', {
         method: 'POST',
         body: JSON.stringify({ childId }),
       });
@@ -151,7 +151,7 @@ export function usePet(childId: string | null): UsePetReturn {
     if (!childId) return false;
 
     try {
-      const res = await apiFetch('/api/pet', {
+      const res = await apiFetchResponse('/api/pet', {
         method: 'POST',
         body: JSON.stringify({ childId, name, species }),
       });

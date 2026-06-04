@@ -152,7 +152,7 @@ export default function AnalyticsCard({
               <stat.icon className="w-5 h-5 mx-auto mb-1" style={{ color: stat.color }} />
               <p className="text-lg font-extrabold" style={{ color: '#1A1D2B', fontFamily: 'var(--font-display)' }}>
                 {stat.useCountUp && typeof stat.value === 'number' ? (
-                  <CountUp end={stat.value} duration={1.5} />
+                  <CountUp to={stat.value} duration={1500} />
                 ) : (
                   stat.value
                 )}

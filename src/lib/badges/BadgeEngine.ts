@@ -4,6 +4,7 @@
 // ════════════════════════════════════════════════════
 
 import type { Rarity } from '@/lib/gamification';
+export type { Rarity } from '@/lib/gamification';
 
 // ═══ TYPES ═══
 

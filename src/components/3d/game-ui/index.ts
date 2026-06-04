@@ -13,6 +13,5 @@ export { GameWelcomePanel3D, GameCompletePanel3D } from './GamePhaseOverlay3D';
 export { ChoiceButton3D, type ChoiceFeedback, type ChoiceButton3DProps } from './ChoiceButton3D';
 export { QuizGameTemplate, type QuizChoice, type QuizGameTemplateProps } from './QuizGameTemplate';
 export { BuilderGameTemplate, type BuilderGameTemplateProps } from './BuilderGameTemplate';
-export { ExplorerGameTemplate, type InfoCard, type ExplorerGameTemplateProps } from './ExplorerGameTemplate';
 export { LabGameTemplate, type MetricDisplay, type LabGameTemplateProps } from './LabGameTemplate';
 export { GameLearnCards3D, type LearnCard, type GameLearnCards3DProps } from './GameLearnCards3D';

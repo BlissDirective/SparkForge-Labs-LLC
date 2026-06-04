@@ -57,7 +57,7 @@ export interface GameProps {
 }
 
 /** Extended props for the game shell wrapper */
-export interface GameShellProps extends GameProps {
+export interface GameShellProps extends Omit<GameProps, 'difficulty'> {
   /** Game display title */
   title: string;
   /** Game category for theming */

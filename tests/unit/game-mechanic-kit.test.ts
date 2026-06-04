@@ -231,6 +231,7 @@ describe('DEMO_DRAG_ITEMS', () => {
     const itemCats = new Set(DEMO_DRAG_ITEMS.map(i => i.category));
     const zoneCats = new Set(DEMO_DROP_ZONES.flatMap(z => z.acceptedCategories || []));
     for (const cat of itemCats) {
+      if (cat === undefined) continue;
       expect(zoneCats.has(cat)).toBe(true);
     }
   });

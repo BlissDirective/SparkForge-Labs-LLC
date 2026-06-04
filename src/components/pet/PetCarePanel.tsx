@@ -185,7 +185,7 @@ export function PetCarePanel({ pet, onCare, onSleep }: PetCarePanelProps) {
                   ? {
                       background: `linear-gradient(135deg, ${color}15, ${color}08)`,
                       border: `1px solid ${color}30`,
-                      ...(isRecommended ? { ringColor: color } : {}),
+                      ...(isRecommended ? { ['--tw-ring-color' as string]: color } : {}),
                     }
                   : {}
               }

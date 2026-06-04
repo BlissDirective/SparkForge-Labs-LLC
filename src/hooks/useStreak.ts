@@ -26,7 +26,7 @@ import {
   getTodayUTC,
   STREAK_MILESTONES,
 } from '@/lib/streak/StreakEngine';
-import { apiFetch } from '@/lib/api';
+import { apiFetchResponse } from '@/lib/api';
 
 export interface UseStreakReturn {
   // State
@@ -76,7 +76,7 @@ export function useStreak(childId: string | null): UseStreakReturn {
       setIsLoading(true);
       setError(null);
 
-      const res = await apiFetch(`/api/gamification/streak?childId=${childId}`);
+      const res = await apiFetchResponse(`/api/gamification/streak?childId=${childId}`);
       const data = await res.json();
 
       if (data.success) {
@@ -122,7 +122,7 @@ export function useStreak(childId: string | null): UseStreakReturn {
       const result = processDailyActivity(streakState, today);
 
       // Sync with server
-      const res = await apiFetch('/api/gamification/streak', {
+      const res = await apiFetchResponse('/api/gamification/streak', {
         method: 'POST',
         body: JSON.stringify({ childId }),
       });
@@ -147,7 +147,7 @@ export function useStreak(childId: string | null): UseStreakReturn {
     if (!childId) return false;
 
     try {
-      const res = await apiFetch('/api/gamification/streak/freeze', {
+      const res = await apiFetchResponse('/api/gamification/streak/freeze', {
         method: 'POST',
         body: JSON.stringify({ childId, action: 'equip' }),
       });
@@ -168,7 +168,7 @@ export function useStreak(childId: string | null): UseStreakReturn {
     if (!childId) return false;
 
     try {
-      const res = await apiFetch('/api/gamification/streak/freeze', {
+      const res = await apiFetchResponse('/api/gamification/streak/freeze', {
         method: 'POST',
         body: JSON.stringify({ childId, action: 'unequip' }),
       });
@@ -189,7 +189,7 @@ export function useStreak(childId: string | null): UseStreakReturn {
     if (!childId) return false;
 
     try {
-      const res = await apiFetch('/api/gamification/streak/wager', {
+      const res = await apiFetchResponse('/api/gamification/streak/wager', {
         method: 'POST',
         body: JSON.stringify({ childId, wagerType: type }),
       });

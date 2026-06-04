@@ -145,7 +145,7 @@ export default function ContentFilterCard({
                            focus-visible:ring-2 focus-visible:ring-offset-2`}
                 style={{
                   background: isEnabled ? filter.color : '#D1D5DB',
-                  focusVisibleRingColor: filter.color,
+                  ['--tw-ring-color' as string]: filter.color,
                 }}
                 role="switch"
                 aria-checked={isEnabled}

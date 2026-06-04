@@ -9,7 +9,7 @@
 
 import { SparkyCore, type SparkyExpression } from './SparkyCore';
 
-interface SparkyStaticProps {
+export interface SparkyStaticProps {
   expression?: SparkyExpression;
   size?: 'sm' | 'md' | 'lg' | 'xl';
   showAura?: boolean;

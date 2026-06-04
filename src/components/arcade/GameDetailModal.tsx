@@ -107,7 +107,7 @@ export default function GameDetailModal({
                 className="absolute top-4 right-4 p-2 rounded-full bg-white/80 hover:bg-white 
                            shadow-md transition-colors focus-visible:outline-none 
                            focus-visible:ring-2 focus-visible:ring-offset-2"
-                style={{ focusVisibleRingColor: labColor }}
+                style={{ ['--tw-ring-color' as string]: labColor }}
                 aria-label="Close"
               >
                 <X className="w-5 h-5" style={{ color: '#1A1D2B' }} />
@@ -239,7 +239,7 @@ export default function GameDetailModal({
                         className="w-full flex items-center gap-3 p-3 rounded-xl text-left
                                    transition-colors hover:bg-gray-50 focus-visible:outline-none
                                    focus-visible:ring-2 focus-visible:ring-offset-1"
-                        style={{ focusVisibleRingColor: LAB_COLORS[rg.lab] || '#4F6EF7' }}
+                        style={{ ['--tw-ring-color' as string]: LAB_COLORS[rg.lab] || '#4F6EF7' }}
                       >
                         <div
                           className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0"

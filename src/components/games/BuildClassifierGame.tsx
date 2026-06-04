@@ -832,3 +832,5 @@ export function BuildClassifierGame() {
     </GameShell>
   );
 }
+
+export default BuildClassifierGame;

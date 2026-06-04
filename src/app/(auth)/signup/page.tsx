@@ -135,7 +135,7 @@ export default function SignupPage() {
                 <SFInput label="Password" type="password" value={password} onChange={(e) => setPassword(e.target.value)}
                   placeholder="Min 8 chars, uppercase, number, symbol" leftIcon={<Lock className="w-4 h-4" style={{ color: '#8C94AC' }} />} required />
                 <SFButton variant="primary" size="lg" className="w-full"
-                  isLoading={isLoading} disabled={!email || !password}
+                  loading={isLoading} disabled={!email || !password}
                   onClick={() => { setError(''); setStep(1); }}>
                   Continue <ArrowRight className="w-4 h-4 ml-2" />
                 </SFButton>
@@ -172,7 +172,7 @@ export default function SignupPage() {
                     <ArrowLeft className="w-4 h-4 mr-2" /> Back
                   </SFButton>
                   <SFButton variant="primary" size="lg" className="flex-1"
-                    isLoading={isLoading} disabled={!childName || !childAge}
+                    loading={isLoading} disabled={!childName || !childAge}
                     onClick={() => { setError(''); setStep(2); }}>
                     Continue <ArrowRight className="w-4 h-4 ml-2" />
                   </SFButton>
@@ -215,7 +215,7 @@ export default function SignupPage() {
                     <ArrowLeft className="w-4 h-4 mr-2" /> Back
                   </SFButton>
                   <SFButton variant="primary" size="lg" className="flex-1"
-                    isLoading={isLoading} onClick={handleSignup}>
+                    loading={isLoading} onClick={handleSignup}>
                     Create Account <Sparkles className="w-4 h-4 ml-2" />
                   </SFButton>
                 </div>

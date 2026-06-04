@@ -291,7 +291,7 @@ export function ToyItem({
         background: `linear-gradient(135deg, ${toy.color}20, ${toy.color}08)`,
         border: `2px solid ${toy.color}${glowing ? '80' : '30'}`,
         boxShadow: glowing ? `0 0 20px ${toy.shadow}, inset 0 0 10px ${toy.color}10` : `0 2px 8px ${toy.shadow}`,
-        focusVisibleRingColor: toy.color,
+        ['--tw-ring-color' as string]: toy.color,
       }}
       whileHover={{ scale: 1.1, y: -4 }}
       whileTap={{ scale: 0.95 }}

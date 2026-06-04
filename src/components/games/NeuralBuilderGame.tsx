@@ -25,7 +25,7 @@ import { SFBadge } from '@/components/ui/SFBadge';
 import GameLevelSystem, { type LevelConfig, type LevelResult } from '@/components/games/shared/GameLevelSystem';
 import {
   AnimatedNeuralNet, ScoreDisplay,
-  GlowingTitle, FeedbackPopup, ComboCounter, TimerDisplay,
+  GlowingTitle, FeedbackPopup, ComboCounter, TimerDisplay, LevelBadge,
 } from '@/components/games/shared/GameVisualKit';
 
 // ════════════════════════════════════════════════════════════════════════

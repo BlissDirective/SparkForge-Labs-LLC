@@ -192,7 +192,7 @@ function ExpandedLabView({
         onClick={onClose}
         className="absolute -top-4 left-0 sm:left-4 flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold
                    transition-all hover:scale-105 focus-visible:outline-none focus-visible:ring-2 z-40"
-        style={{ background: `${lab.color}15`, color: lab.color, focusVisibleRingColor: lab.color }}
+        style={{ background: `${lab.color}15`, color: lab.color, ['--tw-ring-color' as string]: lab.color }}
         initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 }}
       >
         <ArrowLeft className="w-4 h-4" /> All Labs
@@ -453,7 +453,7 @@ export default function LabsPage() {
           <GradientText from="#E945F5" to="#4F6EF7">Learning Labs</GradientText>
         </h1>
         <p className="text-sm" style={{ color: '#8C94AC' }}>
-          <CountUp end={11} /> labs, <CountUp end={totalGames} /> games — explore and master AI topic by topic
+          <CountUp to={11} /> labs, <CountUp to={totalGames} /> games — explore and master AI topic by topic
         </p>
       </motion.div>
 
@@ -534,4 +534,3 @@ export default function LabsPage() {
     </div>
   );
 }
-                                               

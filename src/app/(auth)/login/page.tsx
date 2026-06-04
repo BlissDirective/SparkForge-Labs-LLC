@@ -203,7 +203,7 @@ export default function LoginPage() {
                   variant="primary"
                   size="lg"
                   className="w-full"
-                  isLoading={isLoading}
+                  loading={isLoading}
                 >
                   Sign In
                   <ArrowRight className="w-4 h-4 ml-2" />
@@ -259,7 +259,7 @@ export default function LoginPage() {
                 variant="outline"
                 size="md"
                 className="w-full"
-                isLoading={isDemoLoading}
+                loading={isDemoLoading}
                 onClick={handleTryDemo}
               >
                 <Play className="w-4 h-4 mr-2" style={{ color: '#E945F5' }} />

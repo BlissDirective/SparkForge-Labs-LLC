@@ -17,7 +17,7 @@ import {
   formatTimeUntilReset,
   LEAGUE_ORDER,
 } from '@/lib/leaderboard/LeaderboardEngine';
-import { apiFetch } from '@/lib/api';
+import { apiFetchResponse } from '@/lib/api';
 
 export interface UseLeaderboardReturn {
   // Data
@@ -85,7 +85,7 @@ export function useLeaderboard(childId: string | null): UseLeaderboardReturn {
       setIsLoading(true);
       setError(null);
 
-      const res = await apiFetch(`/api/leaderboard?childId=${childId}`);
+      const res = await apiFetchResponse(`/api/leaderboard?childId=${childId}`);
       const data = await res.json();
 
       if (data.success) {

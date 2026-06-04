@@ -278,7 +278,7 @@ function LevelRenderer({
                   background: activeGroup === i ? `${labColor}20` : '#F0F1F8',
                   color: activeGroup === i ? labColor : '#8C94AC',
                   border: `2px solid ${activeGroup === i ? labColor : 'transparent'}`,
-                  focusVisibleRingColor: labColor,
+                  ['--tw-ring-color' as string]: labColor,
                 }}
               >
                 Group {i + 1}
@@ -355,21 +355,20 @@ function LevelRenderer({
           {/* AI reveal steps */}
           <SFCard variant="elevated" className="p-4">
             <div className="space-y-3">
-              {(['extracting', 'calculating', 'clustering', 'done'] as RevealStep[]).map((step) => (
+              {(() => {
+                const REVEAL_ORDER: RevealStep[] = ['extracting', 'calculating', 'clustering', 'done'];
+                const curIdx = REVEAL_ORDER.indexOf(revealStep);
+                return REVEAL_ORDER.map((step) => {
+                  const stepDone = REVEAL_ORDER.indexOf(step) < curIdx;
+                  return (
                 <div key={step} className="flex items-center gap-3">
                   <div
                     className="w-6 h-6 rounded-full flex items-center justify-center"
                     style={{
-                      background: revealStep === step ? labColor : revealStep === 'done' || 
-                        (step === 'extracting' && revealStep !== 'extracting') ||
-                        (step === 'calculating' && (revealStep === 'clustering' || revealStep === 'done')) ||
-                        (step === 'clustering' && revealStep === 'done') ? '#2ECC71' : '#EEF0F8',
+                      background: revealStep === step ? labColor : stepDone ? '#2ECC71' : '#EEF0F8',
                     }}
                   >
-                    {revealStep === 'done' || 
-                     (step === 'extracting' && revealStep !== 'extracting') ||
-                     (step === 'calculating' && (revealStep === 'clustering' || revealStep === 'done')) ||
-                     (step === 'clustering' && revealStep === 'done') ? (
+                    {stepDone ? (
                       <motion.svg viewBox="0 0 24 24" className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" strokeWidth="3" initial={{ scale: 0 }} animate={{ scale: 1 }}>
                         <polyline points="20 6 9 17 4 12" />
                       </motion.svg>
@@ -384,7 +383,9 @@ function LevelRenderer({
                     {step === 'done' ? 'Complete!' : `${step} features...`}
                   </span>
                 </div>
-              ))}
+                  );
+                });
+              })()}
             </div>
           </SFCard>
 

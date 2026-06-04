@@ -43,13 +43,21 @@ export function demoSessionFromUser(user: {
   id: string;
   is_anonymous?: boolean;
   created_at?: string;
+  user_metadata?: { demo_started_at?: string } | null;
 } | null): DemoSession | null {
   if (!user || !user.is_anonymous) return null;
 
+  // Prefer the explicit demo start stamp recorded in user metadata; fall
+  // back to account creation time, then to now. The demo timer should be
+  // anchored to when the demo actually started, not when the anon account
+  // happened to be created.
+  const metaStart = user.user_metadata?.demo_started_at;
   const startedAt =
-    user.created_at && !Number.isNaN(Date.parse(user.created_at))
-      ? Date.parse(user.created_at)
-      : Date.now();
+    metaStart && !Number.isNaN(Date.parse(metaStart))
+      ? Date.parse(metaStart)
+      : user.created_at && !Number.isNaN(Date.parse(user.created_at))
+        ? Date.parse(user.created_at)
+        : Date.now();
 
   return {
     id: user.id,

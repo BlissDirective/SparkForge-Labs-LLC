@@ -20,7 +20,7 @@ export function SFGameCard({ game, onClick, featured = false }: SFGameCardProps)
     <CardWrapper
       spotlightColor={featured ? `${game.color}25` : undefined}
       className={`cursor-pointer ${featured ? 'ring-2' : ''}`}
-      style={featured ? { ringColor: game.color } : undefined}
+      style={featured ? { ['--tw-ring-color' as string]: game.color } : undefined}
       onClick={onClick}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}

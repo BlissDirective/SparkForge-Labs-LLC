@@ -48,6 +48,10 @@ interface GameState {
   totalRounds: number;
   score: number;
   maxScore: number;
+  /** Redesign (HTML-first games): XP accumulated via awardXP() this session. */
+  xpAwarded: number;
+  /** Redesign (HTML-first games): stars (0-3) reported at completeGame(). */
+  lastStars: number;
   isComplete: boolean;
   isPaused: boolean;
   hintsRemaining: number;
@@ -59,6 +63,13 @@ interface GameState {
   setPhase: (phase: GamePhase) => void;
   updateScore: (points: number) => void;
   setMaxScore: (points: number) => void;
+  /**
+   * Redesign (HTML-first games): credit XP earned this session. The
+   * server reward pipeline is authoritative for the actual amount
+   * (see useCompleteAndReward); this just tracks the client-side total
+   * so GameShell can forward it and the HUD can display it.
+   */
+  awardXP: (points: number) => void;
   advanceRound: () => void;
   useHint: () => void;
   /** UX-MED-001 (A): update the auto-save indicator. */
@@ -69,7 +80,12 @@ interface GameState {
    *  this over pauseGame/resumeGame when the caller doesn't know
    *  the current state (Escape handler, PauseButton3D click). */
   togglePause: () => void;
-  completeGame: () => void;
+  /**
+   * Mark the active game complete. Redesign (HTML-first) games call this
+   * with `(gameId, stars)`; legacy 3D games call it with no arguments
+   * after `startGame()` has already set `currentGame`.
+   */
+  completeGame: (gameId?: string, stars?: number) => void;
   resetGame: () => void;
   setGameData: (key: string, value: unknown) => void;
   tick: () => void;
@@ -84,6 +100,8 @@ function createGameStore(): StoreApi<GameState> {
     totalRounds: 0,
     score: 0,
     maxScore: 0,
+    xpAwarded: 0,
+    lastStars: 0,
     isComplete: false,
     isPaused: false,
     hintsRemaining: 3,
@@ -98,6 +116,8 @@ function createGameStore(): StoreApi<GameState> {
         totalRounds,
         score: 0,
         maxScore: 0,
+        xpAwarded: 0,
+        lastStars: 0,
         isComplete: false,
         isPaused: false,
         hintsRemaining: hints,
@@ -109,6 +129,7 @@ function createGameStore(): StoreApi<GameState> {
     setPhase: (phase) => set({ phase }),
     updateScore: (points) => set((s) => ({ score: s.score + points })),
     setMaxScore: (points) => set({ maxScore: points }),
+    awardXP: (points) => set((s) => ({ xpAwarded: s.xpAwarded + Math.max(0, points) })),
     advanceRound: () => {
       const s = get();
       const nextRound = s.currentRound + 1;
@@ -122,11 +143,17 @@ function createGameStore(): StoreApi<GameState> {
     pauseGame: () => set({ isPaused: true }),
     resumeGame: () => set({ isPaused: false }),
     togglePause: () => set((s) => ({ isPaused: !s.isPaused })),
-    completeGame: () => {
+    completeGame: (gameId, stars) => {
       const s = get();
-      // Guard: only complete if a game is active and not already complete
-      if (!s.currentGame || s.isComplete) return;
-      set({ isComplete: true, phase: 'complete' });
+      // Guard: don't re-complete. Redesign games may supply their own
+      // gameId here (legacy games set it earlier via startGame).
+      if (s.isComplete) return;
+      set({
+        currentGame: gameId ?? s.currentGame,
+        isComplete: true,
+        phase: 'complete',
+        ...(typeof stars === 'number' ? { lastStars: stars } : {}),
+      });
     },
     resetGame: () =>
       set({
@@ -136,6 +163,8 @@ function createGameStore(): StoreApi<GameState> {
         totalRounds: 0,
         score: 0,
         maxScore: 0,
+        xpAwarded: 0,
+        lastStars: 0,
         isComplete: false,
         isPaused: false,
         hintsRemaining: 3,
@@ -256,6 +285,7 @@ export function useGameActions() {
       setPhase: s.setPhase,
       updateScore: s.updateScore,
       setMaxScore: s.setMaxScore,
+      awardXP: s.awardXP,
       advanceRound: s.advanceRound,
       useHint: s.useHint,
       pauseGame: s.pauseGame,
@@ -272,6 +302,7 @@ export function useGameActions() {
     | 'setPhase'
     | 'updateScore'
     | 'setMaxScore'
+    | 'awardXP'
     | 'advanceRound'
     | 'useHint'
     | 'pauseGame'

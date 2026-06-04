@@ -30,7 +30,7 @@ export default function MetallicPaint({
 
     // Force a reflow to ensure animation starts properly
     el.style.animation = 'none';
-    el.offsetHeight; // trigger reflow
+    void el.offsetHeight; // trigger reflow
     el.style.animation = `metallicSweep ${speed}s ease-in-out infinite`;
   }, [speed, children]);
 
@@ -45,7 +45,6 @@ export default function MetallicPaint({
           WebkitBackgroundClip: 'text',
           WebkitTextFillColor: 'transparent',
           backgroundClip: 'text',
-          textFillColor: 'transparent',
           filter: `drop-shadow(0 0 8px ${shimmerColor}40) drop-shadow(0 0 24px ${shimmerColor}20)`,
         }}
       >

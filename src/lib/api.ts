@@ -65,6 +65,26 @@ export class ApiError extends Error {
   }
 }
 
+/**
+ * Like `apiFetch`, but returns the raw `Response` without unwrapping the
+ * `{ success, data }` envelope. Used by hooks that need to read the full
+ * envelope themselves (retention hooks: streak / currency / quests / pet /
+ * leaderboard). Attaches the CSRF header on mutating requests, same as
+ * `apiFetch`.
+ */
+export async function apiFetchResponse(
+  path: string,
+  options: RequestInit = {}
+): Promise<Response> {
+  const method = (options.method || 'GET').toUpperCase();
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...(options.headers as Record<string, string> | undefined),
+    ...(MUTATING_METHODS.has(method) ? csrfHeader() : {}),
+  };
+  return fetch(`${BASE}${path}`, { ...options, headers });
+}
+
 export async function apiFetch<T>(
   path: string,
   options: RequestInit = {}

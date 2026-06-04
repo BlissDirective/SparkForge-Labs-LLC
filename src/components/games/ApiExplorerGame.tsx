@@ -976,3 +976,5 @@ export function ApiExplorerGame() {
     </GameShell>
   );
 }
+
+export default ApiExplorerGame;

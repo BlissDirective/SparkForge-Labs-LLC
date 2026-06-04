@@ -1,6 +1,7 @@
 'use client';
 
 import { forwardRef } from 'react';
+import Image from 'next/image';
 
 type AvatarSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
 type AvatarType = 'image' | 'initials' | 'icon';
@@ -26,10 +27,10 @@ export const SFAvatar = forwardRef<HTMLDivElement, SFAvatarProps>(
     return (
       <div ref={ref} className={`relative inline-flex shrink-0 ${className}`} style={style} {...props}>
         <div
-          className={`rounded-sf-full flex items-center justify-center font-bold text-white overflow-hidden ${fontMap[size]} ${border ? 'ring-2 ring-white' : ''}`}
+          className={`relative rounded-sf-full flex items-center justify-center font-bold text-white overflow-hidden ${fontMap[size]} ${border ? 'ring-2 ring-white' : ''}`}
           style={{ width: s, height: s, background: gradient }}
         >
-          {src ? <img src={src} alt={alt || ''} className="w-full h-full object-cover" /> :
+          {src ? <Image src={src} alt={alt || ''} fill sizes={`${s}px`} unoptimized className="object-cover" /> :
            initials ? initials.slice(0, 2).toUpperCase() :
            icon || <span className="opacity-60">&#9786;</span>}
         </div>

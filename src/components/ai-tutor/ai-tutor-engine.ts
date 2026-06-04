@@ -22,7 +22,7 @@ interface FilterResult {
   message: string;
 }
 
-interface TutorResponse {
+export interface TutorResponse {
   text: string;
   context: 'game_help' | 'ai_learning' | 'general' | 'safety';
   expression: TutorExpression;

@@ -1352,3 +1352,5 @@ export function AgentArchitectGame() {
     </GameShell>
   );
 }
+
+export default AgentArchitectGame;

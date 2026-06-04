@@ -21,7 +21,7 @@ export interface LevelConfig {
   description: string;
   emoji: string;
   difficulty: 'easy' | 'medium' | 'hard' | 'expert';
-  starThresholds: [number, number, number]; // 1-star, 2-star, 3-star score thresholds
+  starThresholds: number[]; // [1-star, 2-star, 3-star] score thresholds
   xpReward: number;
   isBonus?: boolean;
 }
@@ -66,7 +66,7 @@ function LevelNode({
           ? `linear-gradient(135deg, ${level.isBonus ? '#FFD93D15' : '#FFFFFF'}, ${level.isBonus ? '#FFD93D08' : '#F8FAFF'})`
           : '#F0F1F8',
         border: `2px solid ${isUnlocked ? (level.isBonus ? '#FFD93D' : difColors[level.difficulty]) + '30' : '#EEF0F8'}`,
-        focusVisibleRingColor: difColors[level.difficulty],
+        ['--tw-ring-color' as string]: difColors[level.difficulty],
       }}
       initial={{ opacity: 0, y: 20, scale: 0.9 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -232,7 +232,7 @@ function GameCompleteOverlay({
         <p className="text-sm mb-4" style={{ color: '#5A6078' }}>
           <strong style={{ color: '#1A1D2B' }}>{totalStars}</strong> of <strong>{maxStars}</strong> stars collected
           <br />
-          <strong style={{ color: '#FF6B35' }}><CountUp end={totalXP} /> XP</strong> total earned
+          <strong style={{ color: '#FF6B35' }}><CountUp to={totalXP} /> XP</strong> total earned
         </p>
 
         <SFButton variant="primary" onClick={onReplay}>
@@ -346,7 +346,7 @@ export default function GameLevelSystem({
             index={i}
             isUnlocked={isUnlocked(level.id, i)}
             bestStars={levelResults[level.id]?.stars || savedProgress[level.id]?.stars || 0}
-            bestScore={levelResults[level.id]?.bestScore || savedProgress[level.id]?.bestScore || 0}
+            bestScore={levelResults[level.id]?.score || savedProgress[level.id]?.bestScore || 0}
             onClick={() => setActiveLevel(level.id)}
           />
         ))}

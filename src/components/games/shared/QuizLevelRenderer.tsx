@@ -207,7 +207,7 @@ export default function QuizLevelRenderer({
                     border: `2px solid ${borderColor}`,
                     color: textColor,
                     opacity: answered && !isCorrect && optIdx !== currentQ.correctIndex ? 0.5 : 1,
-                    focusVisibleRingColor: labColor,
+                    ['--tw-ring-color' as string]: labColor,
                   }}
                   whileHover={!answered ? { scale: 1.02, x: 4 } : {}}
                   whileTap={!answered ? { scale: 0.98 } : {}}

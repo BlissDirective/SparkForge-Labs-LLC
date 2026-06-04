@@ -13,7 +13,7 @@ import {
   getNextDailyRewardDay,
   getDailyReward,
 } from '@/lib/currency/CurrencyEngine';
-import { apiFetch } from '@/lib/api';
+import { apiFetchResponse } from '@/lib/api';
 
 export interface UseCurrencyReturn {
   wallet: CurrencyWallet | null;
@@ -49,7 +49,7 @@ export function useCurrency(childId: string | null): UseCurrencyReturn {
       setIsLoading(true);
       setError(null);
 
-      const res = await apiFetch(`/api/currency/wallet?childId=${childId}`);
+      const res = await apiFetchResponse(`/api/currency/wallet?childId=${childId}`);
       const data = await res.json();
 
       if (data.success) {
@@ -81,7 +81,7 @@ export function useCurrency(childId: string | null): UseCurrencyReturn {
     if (!childId || !wallet) return false;
 
     try {
-      const res = await apiFetch('/api/currency/daily-reward', {
+      const res = await apiFetchResponse('/api/currency/daily-reward', {
         method: 'POST',
         body: JSON.stringify({ childId }),
       });
@@ -101,7 +101,7 @@ export function useCurrency(childId: string | null): UseCurrencyReturn {
     if (!childId) return false;
 
     try {
-      const res = await apiFetch('/api/currency/award', {
+      const res = await apiFetchResponse('/api/currency/award', {
         method: 'POST',
         body: JSON.stringify({ childId, amount, reason }),
       });
@@ -121,7 +121,7 @@ export function useCurrency(childId: string | null): UseCurrencyReturn {
     if (!childId) return false;
 
     try {
-      const res = await apiFetch('/api/currency/spend', {
+      const res = await apiFetchResponse('/api/currency/spend', {
         method: 'POST',
         body: JSON.stringify({ childId, amount, reason }),
       });

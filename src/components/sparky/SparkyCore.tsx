@@ -31,7 +31,7 @@ export type SparkyExpression =
 
 export type SparkySize = 'sm' | 'md' | 'lg' | 'xl';
 
-interface SparkyCoreProps {
+export interface SparkyCoreProps {
   expression?: SparkyExpression;
   size?: SparkySize;
   isAnimated?: boolean;

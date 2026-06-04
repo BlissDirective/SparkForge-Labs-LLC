@@ -9,7 +9,7 @@
 
 import { forwardRef } from 'react';
 
-type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger';
+type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger' | 'accent';
 type ButtonSize = 'sm' | 'md' | 'lg' | 'xl';
 type ButtonShape = 'default' | 'pill' | 'square';
 
@@ -47,6 +47,11 @@ const variantStyles: Record<ButtonVariant, React.CSSProperties> = {
     backgroundColor: '#FF5252',
     color: '#FFFFFF',
     boxShadow: '0 4px 12px rgba(255,82,82,0.25)',
+  },
+  accent: {
+    background: 'linear-gradient(135deg, #E945F5, #4F6EF7)',
+    color: '#FFFFFF',
+    boxShadow: '0 4px 12px rgba(233,69,245,0.3)',
   },
 };
 

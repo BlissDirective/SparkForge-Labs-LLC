@@ -42,8 +42,8 @@ export function DragDropZone({ zones: initialZones, poolItems, onComplete, onSco
 
     // Find item in pool or other zones
     let item: MechanicItem | undefined;
-    let newPool = [...pool];
-    let newZones = zones.map(z => ({ ...z, items: [...z.items] }));
+    const newPool = [...pool];
+    const newZones = zones.map(z => ({ ...z, items: [...z.items] }));
 
     // Check pool first
     const poolIdx = newPool.findIndex(i => i.id === itemId);

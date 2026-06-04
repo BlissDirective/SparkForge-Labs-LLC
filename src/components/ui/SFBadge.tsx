@@ -2,7 +2,7 @@
 
 import { forwardRef } from 'react';
 
-type BadgeVariant = 'default' | 'primary' | 'secondary' | 'success' | 'warning' | 'info' | 'premium';
+type BadgeVariant = 'default' | 'primary' | 'secondary' | 'success' | 'warning' | 'info' | 'premium' | 'custom';
 type BadgeSize = 'sm' | 'md';
 
 interface SFBadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
@@ -19,6 +19,8 @@ const variantStyles: Record<BadgeVariant, React.CSSProperties> = {
   warning: { backgroundColor: 'rgba(255,217,61,0.2)', color: '#B8860B' },
   info: { backgroundColor: 'rgba(0,210,255,0.12)', color: '#00A8CC' },
   premium: { background: 'linear-gradient(135deg, #E945F5, #4F6EF7)', color: '#FFFFFF' },
+  // Fully driven by the caller's `style` prop (color passed inline).
+  custom: {},
 };
 
 export const SFBadge = forwardRef<HTMLSpanElement, SFBadgeProps>(

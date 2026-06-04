@@ -2,7 +2,7 @@
 
 import { forwardRef } from 'react';
 
-type CardVariant = 'default' | 'elevated' | 'outlined' | 'interactive';
+type CardVariant = 'default' | 'elevated' | 'outlined' | 'interactive' | 'ghost' | 'gradient';
 type CardPadding = 'sm' | 'md' | 'lg';
 
 interface SFCardProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -37,6 +37,8 @@ export const SFCard = forwardRef<HTMLDivElement, SFCardProps>(
       elevated: 'bg-white shadow-sf-md border border-sf-border/30',
       outlined: 'bg-transparent border-2 border-sf-border',
       interactive: 'bg-white shadow-sf-card border border-sf-border/50 cursor-pointer hover:shadow-sf-card-hover hover:-translate-y-1',
+      ghost: 'bg-transparent border border-transparent',
+      gradient: 'bg-gradient-to-br from-white to-sf-surface-alt shadow-sf-card border border-sf-border/40',
     };
 
     return (

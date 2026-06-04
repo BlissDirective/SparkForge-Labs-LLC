@@ -8,7 +8,7 @@
 import { FEATURE_FLAGS } from '@/config/feature-flags';
 import type { GameProps } from '@/types/game';
 
-interface GameAdapterProps extends GameProps {
+interface GameAdapterProps extends Omit<GameProps, 'difficulty'> {
   /** The game React component to render */
   gameComponent: React.ComponentType<GameProps>;
   /** Game display title */

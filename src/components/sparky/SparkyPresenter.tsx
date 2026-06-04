@@ -12,7 +12,7 @@
 
 import { motion } from 'motion/react';
 import { Sparkles, ArrowRight } from 'lucide-react';
-import { SparkyCore, type SparkyExpression } from './SparkyCore';
+import { SparkyCore, type SparkyExpression, type SparkySize } from './SparkyCore';
 
 export interface SparkyPresenterProps {
   expression?: SparkyExpression;
@@ -22,6 +22,10 @@ export interface SparkyPresenterProps {
   onAction?: () => void;
   onDismiss?: () => void;
   className?: string;
+  /** Sparky avatar size. Defaults to 'lg'. */
+  size?: SparkySize;
+  /** Optional child name (currently informational; reserved for greetings). */
+  childName?: string;
 }
 
 const MISSION_TYPE_CONFIG = {
@@ -40,6 +44,9 @@ export function SparkyPresenter({
   onAction,
   onDismiss,
   className = '',
+  size = 'lg',
+  // childName is accepted for API compatibility; not rendered here yet.
+  childName: _childName,
 }: SparkyPresenterProps) {
   const typeCfg = MISSION_TYPE_CONFIG[missionType];
 
@@ -122,7 +129,7 @@ export function SparkyPresenter({
         animate={{ opacity: 1, scale: 1 }}
         transition={{ type: 'spring', stiffness: 300, damping: 20, delay: 0.1 }}
       >
-        <SparkyCore expression={expression} size="lg" />
+        <SparkyCore expression={expression} size={size} />
       </motion.div>
     </div>
   );

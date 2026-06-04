@@ -10,7 +10,7 @@ import { useState, useCallback } from 'react';
 import { Pause, Play, RotateCcw, Home, X } from 'lucide-react';
 import type { GameProps, GameResult } from '@/types/game';
 
-interface HtmlGameShellProps extends GameProps {
+interface HtmlGameShellProps extends Omit<GameProps, 'difficulty'> {
   children: React.ReactNode;
   title: string;
   category: string;

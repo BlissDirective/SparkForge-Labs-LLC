@@ -315,7 +315,7 @@ export function performCareAction(
   let oldValue = 0;
   let newValue = 0;
 
-  for (const [need, delta] of Object.entries(effects)) {
+  for (const [need, delta] of Object.entries(effects) as [string, number][]) {
     if (need === 'cpCost' || need === 'xpReward') continue;
     const key = need as keyof PetNeeds;
     oldValue = newNeeds[key];

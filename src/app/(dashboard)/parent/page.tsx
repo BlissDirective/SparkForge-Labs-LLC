@@ -100,7 +100,7 @@ export default function ParentPage() {
                 <stat.icon className="w-5 h-5" style={{ color: stat.color }} />
               </div>
               <p className="text-2xl font-extrabold" style={{ fontFamily: 'var(--font-display)', color: '#1A1D2B' }}>
-                <CountUp end={stat.value} suffix={stat.suffix || ''} />
+                <CountUp to={stat.value} suffix={stat.suffix || ''} />
               </p>
               <p className="text-xs" style={{ color: '#8C94AC' }}>{stat.label}</p>
             </SFCard>
