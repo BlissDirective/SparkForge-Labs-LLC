@@ -12,12 +12,14 @@ import {
   CircleHelp,
   Sparkles,
   Trophy,
+  Users,
 } from 'lucide-react';
 
 const NAV_ITEMS = [
   { href: '/home', label: 'Home', icon: Home },
   { href: '/arcade', label: 'Arcade', icon: Gamepad2 },
   { href: '/labs', label: 'Labs', icon: FlaskConical },
+  { href: '/buddies', label: 'Buddies', icon: Users },
   { href: '/progress', label: 'Progress', icon: TrendingUp },
   { href: '/achievements', label: 'Rewards', icon: Trophy },
   { href: '/parent', label: 'Parent', icon: Shield },
