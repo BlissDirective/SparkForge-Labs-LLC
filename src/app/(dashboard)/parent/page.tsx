@@ -29,6 +29,7 @@ import { ContentFilterCard } from '@/components/parent';
 import { AnalyticsCard } from '@/components/parent';
 import { ParentApprovalsSection } from '@/components/social';
 import { AdaptiveCurveCard } from '@/components/adaptive';
+import { ContentModerationSection } from '@/components/ugc';
 
 export default function ParentPage() {
   const { data: childrenList } = useChildren();
@@ -118,6 +119,15 @@ export default function ParentPage() {
           transition={{ delay: 0.15 }}
         >
           <ParentApprovalsSection
+            children={childrenList.map((c) => ({ id: c.id, display_name: c.display_name }))}
+          />
+        </motion.section>
+      )}
+
+      {/* ═══════ PHASE 10: Quiz Moderation ═══════ */}
+      {childrenList && childrenList.length > 0 && (
+        <motion.section initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.16 }}>
+          <ContentModerationSection
             children={childrenList.map((c) => ({ id: c.id, display_name: c.display_name }))}
           />
         </motion.section>

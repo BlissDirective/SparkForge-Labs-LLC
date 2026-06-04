@@ -15,6 +15,7 @@ import {
   Users,
   CalendarDays,
   GraduationCap,
+  Wand2,
 } from 'lucide-react';
 
 const NAV_ITEMS = [
@@ -24,6 +25,7 @@ const NAV_ITEMS = [
   { href: '/buddies', label: 'Buddies', icon: Users },
   { href: '/seasons', label: 'Seasons', icon: CalendarDays },
   { href: '/mastery', label: 'Mastery', icon: GraduationCap },
+  { href: '/create', label: 'Create', icon: Wand2 },
   { href: '/progress', label: 'Progress', icon: TrendingUp },
   { href: '/achievements', label: 'Rewards', icon: Trophy },
   { href: '/parent', label: 'Parent', icon: Shield },
