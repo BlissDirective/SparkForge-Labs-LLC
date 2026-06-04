@@ -27,6 +27,7 @@ import CountUp from '@/components/bits/CountUp';
 import { ScreenTimeCard } from '@/components/parent';
 import { ContentFilterCard } from '@/components/parent';
 import { AnalyticsCard } from '@/components/parent';
+import { ParentApprovalsSection } from '@/components/social';
 
 export default function ParentPage() {
   const { data: childrenList } = useChildren();
@@ -107,6 +108,19 @@ export default function ParentPage() {
           </motion.div>
         ))}
       </div>
+
+      {/* ═══════ PHASE 8: Study Buddy Approvals ═══════ */}
+      {childrenList && childrenList.length > 0 && (
+        <motion.section
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15 }}
+        >
+          <ParentApprovalsSection
+            children={childrenList.map((c) => ({ id: c.id, display_name: c.display_name }))}
+          />
+        </motion.section>
+      )}
 
       {/* ═══════ PHASE 5: Deep Analytics ═══════ */}
       {selectedChild && (

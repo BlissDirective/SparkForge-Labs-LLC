@@ -6,3 +6,4 @@ export { BuddyQuestCard } from './BuddyQuestCard';
 export { BuddyBadges } from './BuddyBadges';
 export { SafeMessageComposer } from './SafeMessageComposer';
 export { ParentApprovalCard } from './ParentApprovalCard';
+export { ParentApprovalsSection } from './ParentApprovalsSection';
