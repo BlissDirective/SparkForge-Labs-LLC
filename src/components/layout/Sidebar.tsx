@@ -13,6 +13,7 @@ import {
   Sparkles,
   Trophy,
   Users,
+  CalendarDays,
 } from 'lucide-react';
 
 const NAV_ITEMS = [
@@ -20,6 +21,7 @@ const NAV_ITEMS = [
   { href: '/arcade', label: 'Arcade', icon: Gamepad2 },
   { href: '/labs', label: 'Labs', icon: FlaskConical },
   { href: '/buddies', label: 'Buddies', icon: Users },
+  { href: '/seasons', label: 'Seasons', icon: CalendarDays },
   { href: '/progress', label: 'Progress', icon: TrendingUp },
   { href: '/achievements', label: 'Rewards', icon: Trophy },
   { href: '/parent', label: 'Parent', icon: Shield },
