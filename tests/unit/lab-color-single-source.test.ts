@@ -57,12 +57,12 @@ describe('P2 §7.2 — lab colors single source', () => {
     ).toEqual([]);
   });
 
-  it('canonical table has exactly 10 labs', () => {
-    expect(LAB_COLORS_TABLE.length).toBe(10);
+  it('canonical table has exactly 11 labs', () => {
+    expect(LAB_COLORS_TABLE.length).toBe(11);
   });
 
   it('every lab has a unique hex', () => {
     const hexes = LAB_COLORS_TABLE.map((l) => l.hex.toLowerCase());
-    expect(new Set(hexes).size).toBe(10);
+    expect(new Set(hexes).size).toBe(11);
   });
 });
