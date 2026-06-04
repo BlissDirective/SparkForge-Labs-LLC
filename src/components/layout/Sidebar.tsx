@@ -16,12 +16,14 @@ import {
   CalendarDays,
   GraduationCap,
   Wand2,
+  BookOpen,
 } from 'lucide-react';
 
 const NAV_ITEMS = [
   { href: '/home', label: 'Home', icon: Home },
   { href: '/arcade', label: 'Arcade', icon: Gamepad2 },
   { href: '/labs', label: 'Labs', icon: FlaskConical },
+  { href: '/story', label: 'Story', icon: BookOpen },
   { href: '/buddies', label: 'Buddies', icon: Users },
   { href: '/seasons', label: 'Seasons', icon: CalendarDays },
   { href: '/mastery', label: 'Mastery', icon: GraduationCap },
