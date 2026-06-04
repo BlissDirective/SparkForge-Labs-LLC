@@ -30,6 +30,7 @@ import { AnalyticsCard } from '@/components/parent';
 import { ParentApprovalsSection } from '@/components/social';
 import { AdaptiveCurveCard } from '@/components/adaptive';
 import { ContentModerationSection } from '@/components/ugc';
+import { AdvancedAnalyticsCard } from '@/components/analytics';
 
 export default function ParentPage() {
   const { data: childrenList } = useChildren();
@@ -130,6 +131,13 @@ export default function ParentPage() {
           <ContentModerationSection
             children={childrenList.map((c) => ({ id: c.id, display_name: c.display_name }))}
           />
+        </motion.section>
+      )}
+
+      {/* ═══════ PHASE 10: Advanced Analytics ═══════ */}
+      {childId && (
+        <motion.section initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.17 }}>
+          <AdvancedAnalyticsCard childId={childId} />
         </motion.section>
       )}
 
