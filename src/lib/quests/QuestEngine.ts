@@ -285,8 +285,16 @@ export function updateQuestProgress(
   amount: number,
 ): ActiveQuest {
   const newProgress = Math.min(quest.requirementCount, quest.progress + amount);
-  const isComplete = newProgress >= quest.requirementCount;
 
+  // Terminal statuses are immutable: a 'claimed' quest must never revert to
+  // 'completed' (which would allow its reward to be collected again), and an
+  // 'expired' quest can't be revived by further progress. Progress may still
+  // tick up for display, but the status is locked.
+  if (quest.status === 'claimed' || quest.status === 'expired') {
+    return { ...quest, progress: newProgress };
+  }
+
+  const isComplete = newProgress >= quest.requirementCount;
   return {
     ...quest,
     progress: newProgress,

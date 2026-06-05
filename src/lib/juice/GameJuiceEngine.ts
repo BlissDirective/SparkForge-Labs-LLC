@@ -293,8 +293,9 @@ export function recordHintUsed(state: JuiceState, round: number, score: number):
   };
 }
 
-/** Get current combo tier */
+/** Get current combo tier. A "combo" requires at least 2 in a row. */
 export function getComboTier(combo: number): ComboTier | null {
+  if (combo < 2) return null;
   let tier: ComboTier | null = null;
   for (const t of COMBO_TIERS) {
     if (combo >= t.threshold) tier = t;
@@ -303,10 +304,10 @@ export function getComboTier(combo: number): ComboTier | null {
   return tier;
 }
 
-/** Get combo tier label for display */
+/** Combo label for display — includes the streak count, no emoji. */
 export function getComboLabel(combo: number): string {
   const tier = getComboTier(combo);
-  return tier ? `${tier.emoji} ${tier.label}` : '';
+  return tier ? `${combo}x ${tier.label}` : '';
 }
 
 /** Check if a combo count is a milestone number */

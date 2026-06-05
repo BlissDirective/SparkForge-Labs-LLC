@@ -185,13 +185,34 @@ export function averageNeeds(needs: PetNeeds): number {
   return (needs.hunger + needs.happiness + needs.energy + needs.cleanliness) / 4;
 }
 
-/** Determine mood from need levels */
+/** A single need below this drags the whole mood down. */
+export const CRITICAL_NEED = 20;
+
+// Mood severity order (worst -> best) for clamping.
+const MOOD_ORDER: PetMood[] = ['distressed', 'sad', 'neutral', 'content', 'happy', 'ecstatic'];
+
+/**
+ * Determine mood from need levels. Mood normally follows the average-based
+ * MOOD_THRESHOLDS, but a critically low single need CAPS the mood at 'sad'
+ * (one badly-neglected need keeps the pet unhappy even if its average looks
+ * fine). A low average can still be 'distressed' — the cap never makes a
+ * worse mood better.
+ */
 export function calculateMood(needs: PetNeeds): PetMood {
   const avg = averageNeeds(needs);
-  for (const { threshold, mood } of MOOD_THRESHOLDS) {
-    if (avg >= threshold) return mood;
+  let mood: PetMood = 'distressed';
+  for (const { threshold, mood: m } of MOOD_THRESHOLDS) {
+    if (avg >= threshold) {
+      mood = m;
+      break;
+    }
   }
-  return 'distressed';
+
+  const minNeed = Math.min(needs.hunger, needs.happiness, needs.energy, needs.cleanliness);
+  if (minNeed < CRITICAL_NEED && MOOD_ORDER.indexOf(mood) > MOOD_ORDER.indexOf('sad')) {
+    return 'sad';
+  }
+  return mood;
 }
 
 /** Check if any need is critically low */
