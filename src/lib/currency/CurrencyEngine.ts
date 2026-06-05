@@ -69,16 +69,6 @@ export const DAILY_REWARDS: DailyReward[] = [
   { day: 7, gems: 50, bonusFreeze: true,  description: 'Day 7 — Weekly bonus! +1 Freeze!' },
 ];
 
-/** Gem rewards for level ups */
-export const LEVEL_UP_GEMS: Record<number, number> = {
-  0: 10,  // Levels 1-5
-  5: 20,  // Levels 6-10
-  10: 30, // Levels 11-15
-  15: 40, // Levels 16-20
-  20: 50, // Levels 21-30
-  30: 75, // Levels 31-40
-  40: 100, // Levels 41-50
-};
 
 /** Gem cost for items */
 export const GEM_COSTS = {
@@ -109,13 +99,13 @@ export function getDailyReward(dayInCycle: number): DailyReward {
   return DAILY_REWARDS[index];
 }
 
-/** Get gems rewarded for leveling up */
+/**
+ * Gems rewarded for leveling up. Continuous 5-level bands of +10 gems,
+ * unbounded: levels 1-5 = 10, 6-10 = 20, …, 46-50 = 100, 51-55 = 110,
+ * 56-60 = 120, and so on (10 gems per band, forever).
+ */
 export function getLevelUpGems(newLevel: number): number {
-  const thresholds = Object.keys(LEVEL_UP_GEMS).map(Number).sort((a, b) => b - a);
-  for (const threshold of thresholds) {
-    if (newLevel >= threshold) return LEVEL_UP_GEMS[threshold];
-  }
-  return 10;
+  return Math.ceil(Math.max(1, newLevel) / 5) * 10;
 }
 
 /** Get gems for completing a game */

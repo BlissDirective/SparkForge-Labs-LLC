@@ -14,7 +14,6 @@ import {
   spendGems,
   purchaseFreeze,
   DAILY_REWARDS,
-  LEVEL_UP_GEMS,
   GEM_COSTS,
   GAME_COMPLETION_GEMS,
 } from '@/lib/currency/CurrencyEngine';
@@ -86,13 +85,21 @@ describe('getLevelUpGems', () => {
     expect(getLevelUpGems(10)).toBe(20);
   });
 
-  it('returns 100 for levels 41-50', () => {
-    expect(getLevelUpGems(41)).toBe(100);
+  it('follows uniform +10 per 5-level bands through 50', () => {
+    expect(getLevelUpGems(21)).toBe(50);  // 21-25
+    expect(getLevelUpGems(30)).toBe(60);  // 26-30
+    expect(getLevelUpGems(40)).toBe(80);  // 36-40
+    expect(getLevelUpGems(41)).toBe(90);  // 41-45
+    expect(getLevelUpGems(46)).toBe(100); // 46-50
     expect(getLevelUpGems(50)).toBe(100);
   });
 
-  it('returns 10 for unknown high levels', () => {
-    expect(getLevelUpGems(51)).toBe(10);
+  it('continues +10 per 5-level band past level 50 (unbounded)', () => {
+    expect(getLevelUpGems(50)).toBe(100); // top of the 46-50 band
+    expect(getLevelUpGems(51)).toBe(110); // 51-55 band
+    expect(getLevelUpGems(55)).toBe(110);
+    expect(getLevelUpGems(56)).toBe(120); // 56-60 band
+    expect(getLevelUpGems(100)).toBe(200);
   });
 });
 
