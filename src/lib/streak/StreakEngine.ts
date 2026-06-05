@@ -123,12 +123,14 @@ export function getSocietyBenefits(streakCount: number): {
   dailyGemReward: number;
   title: string;
 } {
-  if (streakCount >= 365) return { xpBonusPercent: 50, gemBonusPercent: 50, dailyGemReward: 10, title: 'Eternal Flame' };
-  if (streakCount >= 100) return { xpBonusPercent: 40, gemBonusPercent: 40, dailyGemReward: 7, title: 'Diamond Member' };
+  // Streak Society ladder — day thresholds 5/15/30/60/100/365.
+  // dailyGemReward is the daily bonus-gem grant for the tier.
+  if (streakCount >= 365) return { xpBonusPercent: 50, gemBonusPercent: 50, dailyGemReward: 15, title: 'Eternal Flame' };
+  if (streakCount >= 100) return { xpBonusPercent: 40, gemBonusPercent: 40, dailyGemReward: 10, title: 'Diamond Member' };
   if (streakCount >= 60) return { xpBonusPercent: 30, gemBonusPercent: 30, dailyGemReward: 5, title: 'Platinum Member' };
   if (streakCount >= 30) return { xpBonusPercent: 20, gemBonusPercent: 20, dailyGemReward: 3, title: 'Gold Member' };
-  if (streakCount >= 14) return { xpBonusPercent: 10, gemBonusPercent: 10, dailyGemReward: 2, title: 'Silver Member' };
-  if (streakCount >= 7) return { xpBonusPercent: 5, gemBonusPercent: 5, dailyGemReward: 1, title: 'Bronze Member' };
+  if (streakCount >= 15) return { xpBonusPercent: 10, gemBonusPercent: 10, dailyGemReward: 2, title: 'Silver Member' };
+  if (streakCount >= 5) return { xpBonusPercent: 5, gemBonusPercent: 5, dailyGemReward: 1, title: 'Bronze Member' };
   return { xpBonusPercent: 0, gemBonusPercent: 0, dailyGemReward: 0, title: '' };
 }
 

@@ -149,8 +149,8 @@ describe('activateQuest', () => {
     const a2 = activateQuest(template, 'child-1', '2026-06-05');
 
     expect(a1.id).not.toBe(a2.id);
-    expect(a1.id).toContain('qt-play-1');
-    expect(a1.id).toContain('child-1');
+    expect(a1.id).toContain('test-1'); // template id (from makeTemplate)
+    expect(a1.id).toContain('child-1'); // child-scoped instance id
   });
 });
 

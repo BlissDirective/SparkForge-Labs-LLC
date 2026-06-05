@@ -257,7 +257,9 @@ export function activateQuest(
   date: string,
 ): ActiveQuest {
   return {
-    id: `${template.id}-${date}`,
+    // Client-side instance id: scoped per template + child + day so two
+    // children (or two days) never collide. (The DB row uses its own UUID.)
+    id: `${template.id}-${childId}-${date}`,
     templateId: template.id,
     childId,
     status: 'active',

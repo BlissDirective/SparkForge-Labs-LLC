@@ -82,31 +82,53 @@ describe('getStreakMultiplier', () => {
 // ─── Society Benefits Tests ───
 
 describe('getSocietyBenefits', () => {
-  it('returns no benefits for streak < 7', () => {
-    const benefits = getSocietyBenefits(6);
+  it('returns no benefits for streak < 5', () => {
+    const benefits = getSocietyBenefits(4);
     expect(benefits.xpBonusPercent).toBe(0);
     expect(benefits.dailyGemReward).toBe(0);
+    expect(benefits.title).toBe('');
   });
 
-  it('returns Bronze benefits at 7 days', () => {
-    const benefits = getSocietyBenefits(7);
+  it('returns Bronze benefits at 5 days', () => {
+    const benefits = getSocietyBenefits(5);
     expect(benefits.title).toBe('Bronze Member');
     expect(benefits.xpBonusPercent).toBe(5);
     expect(benefits.dailyGemReward).toBe(1);
   });
 
-  it('returns Diamond benefits at 60 days', () => {
+  it('returns Silver benefits at 15 days', () => {
+    const benefits = getSocietyBenefits(15);
+    expect(benefits.title).toBe('Silver Member');
+    expect(benefits.xpBonusPercent).toBe(10);
+    expect(benefits.dailyGemReward).toBe(2);
+  });
+
+  it('returns Gold benefits at 30 days', () => {
+    const benefits = getSocietyBenefits(30);
+    expect(benefits.title).toBe('Gold Member');
+    expect(benefits.xpBonusPercent).toBe(20);
+    expect(benefits.dailyGemReward).toBe(3);
+  });
+
+  it('returns Platinum benefits at 60 days', () => {
     const benefits = getSocietyBenefits(60);
-    expect(benefits.title).toBe('Diamond Member');
+    expect(benefits.title).toBe('Platinum Member');
     expect(benefits.xpBonusPercent).toBe(30);
     expect(benefits.dailyGemReward).toBe(5);
+  });
+
+  it('returns Diamond benefits at 100 days', () => {
+    const benefits = getSocietyBenefits(100);
+    expect(benefits.title).toBe('Diamond Member');
+    expect(benefits.xpBonusPercent).toBe(40);
+    expect(benefits.dailyGemReward).toBe(10);
   });
 
   it('returns Eternal Flame at 365 days', () => {
     const benefits = getSocietyBenefits(365);
     expect(benefits.title).toBe('Eternal Flame');
     expect(benefits.xpBonusPercent).toBe(50);
-    expect(benefits.dailyGemReward).toBe(10);
+    expect(benefits.dailyGemReward).toBe(15);
   });
 });
 
