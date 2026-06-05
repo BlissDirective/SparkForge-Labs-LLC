@@ -32,7 +32,7 @@ export interface DailyChallenge {
 }
 
 // 18 challenge templates — deterministically selected by date
-const CHALLENGE_TEMPLATES: Omit<DailyChallenge, 'id'>[] = [
+export const CHALLENGE_TEMPLATES: Omit<DailyChallenge, 'id'>[] = [
   // Play-game challenges (6)
   {
     title: 'Game Explorer',
@@ -195,7 +195,7 @@ function dateSeed(dateStr: string): number {
 }
 
 // Get today's date string in UTC (YYYY-MM-DD)
-function getTodayUTC(): string {
+export function getTodayUTC(): string {
   const now = new Date();
   return now.toISOString().split('T')[0];
 }

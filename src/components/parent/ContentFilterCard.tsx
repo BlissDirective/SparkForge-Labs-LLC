@@ -159,7 +159,7 @@ export default function ContentFilterCard({
                 {isEnabled ? (
                   <Eye className="absolute left-1.5 top-1.5 w-4 h-4 text-white/60" />
                 ) : (
-                  <EyeOff className="absolute right-1.5 top-1.5 w-4 h-4 text-white/40" />
+                  <EyeOff className="absolute right-1.5 top-1.5 w-4 h-4 text-white/60" />
                 )}
               </button>
             </motion.div>

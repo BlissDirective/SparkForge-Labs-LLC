@@ -330,7 +330,7 @@ export function BrandingDevClient() {
           )}
         </div>
 
-        <footer className="mt-8 space-y-2 text-xs text-white/40">
+        <footer className="mt-8 space-y-2 text-xs text-white/60">
           <p>
             WebGPU required for live render. Devices without WebGPU receive
             the IMG_4607 poster fallback (Phase 4 ships the MP4 loop).

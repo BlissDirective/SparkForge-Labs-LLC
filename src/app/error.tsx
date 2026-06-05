@@ -34,26 +34,26 @@ export default function GlobalError({
             see what's throwing on production from a regular device (no USB
             Safari Web Inspector needed). Remove after the root cause is fixed. */}
         <details className="mb-6 text-left text-xs">
-          <summary className="cursor-pointer text-white/40 hover:text-white/60">
+          <summary className="cursor-pointer text-white/60 hover:text-white/60">
             Technical details (tap to expand)
           </summary>
           <div className="mt-2 rounded-lg bg-black/40 p-3 font-mono text-[10px] text-amber-200/90 break-all">
             <div>
-              <span className="text-white/40">message:</span> {error.message || '(no message)'}
+              <span className="text-white/60">message:</span> {error.message || '(no message)'}
             </div>
             {error.digest && (
               <div className="mt-1">
-                <span className="text-white/40">digest:</span> {error.digest}
+                <span className="text-white/60">digest:</span> {error.digest}
               </div>
             )}
             {error.name && (
               <div className="mt-1">
-                <span className="text-white/40">name:</span> {error.name}
+                <span className="text-white/60">name:</span> {error.name}
               </div>
             )}
             {error.stack && (
               <div className="mt-1">
-                <span className="text-white/40">stack:</span>
+                <span className="text-white/60">stack:</span>
                 <pre className="mt-1 whitespace-pre-wrap break-all">
                   {error.stack.split('\n').slice(0, 5).join('\n')}
                 </pre>

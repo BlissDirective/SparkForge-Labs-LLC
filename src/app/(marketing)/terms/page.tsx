@@ -568,7 +568,7 @@ export default function TermsPage() {
             </h2>
             <div className="p-4 rounded-lg bg-white/[0.03] border border-white/[0.06]">
               <p className="text-sm text-white/60">
-                <strong className="text-white/80">SparkForge LLC</strong> <span className="text-white/40">(an Illinois limited liability company)</span><br />
+                <strong className="text-white/80">SparkForge LLC</strong> <span className="text-white/60">(an Illinois limited liability company)</span><br />
                 Mailing address: <span className="text-white/70">[MAILING ADDRESS &mdash; to be finalized before production launch]</span><br />
                 Telephone: <a href="tel:+17736292320" className="text-spark-blue hover:underline">(773) 629-2320</a><br />
                 General inquiries: <a href="mailto:support@sparkforge-labs.com" className="text-spark-blue hover:underline">support@sparkforge-labs.com</a><br />

@@ -1,90 +1,51 @@
 // ════════════════════════════════════════════════════════════════
-// P2 §8.5 — Sidebar keyboard navigation contract
+// Sidebar navigation contract (post v2 HTML redesign)
 // ════════════════════════════════════════════════════════════════
-// Locks in the arrow-key cycling, Escape-blur, and nav-focus
-// broadcast behaviors so future refactors can't silently regress
-// WCAG 2.1.1 (Keyboard) / 2.4.3 (Focus Order) coverage.
+// The v2 UI/UX redesign replaced the 3D-cockpit sidebar (custom
+// arrow-key cycling + nav-focus broadcast to the cockpit + data-nav-item
+// attributes) with a standard, accessible HTML <nav> of real links that
+// uses native Tab focus order. This test locks in the new contract:
+// a nav of real, keyboard-reachable links with an active-route marker.
 
-import { render, screen, fireEvent, act } from '@testing-library/react';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { render, screen } from '@testing-library/react';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Sidebar } from '@/components/layout/Sidebar';
 
-// Stubs: next/navigation usePathname, authStore, cockpitBroadcastStore
-const mockBroadcast = vi.fn();
 vi.mock('next/navigation', () => ({
   usePathname: () => '/home',
 }));
-vi.mock('@/stores/authStore', () => ({
-  useAuthStore: (selector: (s: { parent: { is_admin: boolean } | null }) => unknown) =>
-    selector({ parent: { is_admin: false } }),
-}));
-vi.mock('@/stores/cockpitBroadcastStore', () => ({
-  useCockpitBroadcast: (selector: (s: { broadcast: typeof mockBroadcast }) => unknown) =>
-    selector({ broadcast: mockBroadcast }),
-}));
-
-beforeEach(() => {
-  mockBroadcast.mockClear();
-});
 
 afterEach(() => {
   document.body.innerHTML = '';
 });
 
-describe('P2 §8.5 — Sidebar keyboard navigation', () => {
-  it('renders all 11 base nav items as real links', () => {
+describe('Sidebar navigation (HTML-first)', () => {
+  it('renders the primary nav items as real links', () => {
     render(<Sidebar />);
     const links = screen.getAllByRole('link');
-    expect(links.length).toBeGreaterThanOrEqual(11);
-    expect(screen.getByText('Home')).toBeTruthy();
-    expect(screen.getByText('Labs')).toBeTruthy();
-    expect(screen.getByText('Arcade')).toBeTruthy();
-    expect(screen.getByText('Profile')).toBeTruthy();
-    expect(screen.getByText('Settings')).toBeTruthy();
+    // Standard dashboard nav (Home, Arcade, Labs, Story, Buddies, Seasons,
+    // Mastery, Create, Progress, Rewards, Parent, Settings, Help) + logo.
+    expect(links.length).toBeGreaterThanOrEqual(10);
+
+    for (const label of ['Home', 'Arcade', 'Labs', 'Progress', 'Settings']) {
+      expect(screen.getByText(label)).toBeTruthy();
+    }
   });
 
-  it('each primary nav link carries data-nav-item for keyboard cycling', () => {
+  it('every nav item is an anchor with an href (keyboard-reachable)', () => {
     render(<Sidebar />);
-    const items = document.querySelectorAll('[data-nav-item]');
-    // 11 base nav items (no admin).
-    expect(items.length).toBe(11);
-    items.forEach((el) => {
-      expect(el.tagName).toBe('A');
-    });
+    const links = screen.getAllByRole('link');
+    for (const link of links) {
+      expect(link.tagName).toBe('A');
+      expect(link.getAttribute('href')).toBeTruthy();
+    }
   });
 
-  it('fires ArrowDown keydown without crashing (behavior verified in e2e)', () => {
+  it('marks the active route via aria-current', () => {
     render(<Sidebar />);
-    const homeLink = screen.getByText('Home').closest('a')!;
-    act(() => {
-      homeLink.focus();
-      fireEvent.keyDown(homeLink, { key: 'ArrowDown' });
-    });
-    // Keyboard cycling is verified end-to-end by the Playwright a11y
-    // test (tests/e2e/a11y-dashboard.spec.ts). Here we just confirm
-    // the handler doesn't throw — deep keyboard cycling via jsdom is
-    // unreliable because FocusTrap's re-mount swaps element identity.
-    expect(document.querySelectorAll('[data-nav-item]').length).toBe(11);
-  });
-
-  it('Escape blurs the current nav link', () => {
-    render(<Sidebar />);
-    const homeLink = screen.getByText('Home').closest('a')!;
-    act(() => {
-      homeLink.focus();
-      fireEvent.keyDown(homeLink, { key: 'Escape' });
-    });
-    // After blur, activeElement should not be the original Home link.
-    expect(document.activeElement).not.toBe(homeLink);
-  });
-
-  it('focus on a primary nav item broadcasts nav-focus to the 3D cockpit', () => {
-    render(<Sidebar />);
-    const labs = screen.getByText('Labs').closest('a')!;
-    labs.focus();
-    expect(mockBroadcast).toHaveBeenCalled();
-    const call = mockBroadcast.mock.calls.find((c) => c[0]?.source === 'nav-labs');
-    expect(call).toBeDefined();
-    expect(call?.[0]?.type).toBe('nav-focus');
+    // usePathname is mocked to '/home', so the Home nav link is current.
+    const home = screen.getByText('Home').closest('a');
+    expect(home).toBeTruthy();
+    expect(home?.getAttribute('aria-current')).toBe('page');
   });
 });

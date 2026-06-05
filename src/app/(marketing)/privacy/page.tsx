@@ -45,13 +45,13 @@ export default function PrivacyPage() {
             </p>
             <div className="mt-4 p-4 rounded-lg bg-white/[0.03] border border-white/[0.06]">
               <p className="text-sm text-white/50">
-                <strong className="text-white/70">SparkForge LLC</strong> <span className="text-white/40">(an Illinois limited liability company)</span><br />
+                <strong className="text-white/70">SparkForge LLC</strong> <span className="text-white/60">(an Illinois limited liability company)</span><br />
                 Mailing address: <span className="text-white/70">[MAILING ADDRESS — to be finalized before production launch]</span><br />
                 Telephone: <a href="tel:+17736292320" className="text-spark-blue hover:underline">(773) 629-2320</a><br />
                 Privacy email: <a href="mailto:privacy@sparkforge-labs.com" className="text-spark-blue hover:underline">privacy@sparkforge-labs.com</a><br />
                 For privacy inquiries, parental rights requests, or COPPA-related questions, contact us using any method above.
               </p>
-              <p className="mt-3 text-xs text-white/40">
+              <p className="mt-3 text-xs text-white/60">
                 Disclosure pursuant to 16 CFR &sect; 312.4(d)(1) (COPPA operator identification).
               </p>
             </div>

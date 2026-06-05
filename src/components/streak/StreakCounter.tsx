@@ -177,7 +177,7 @@ export function StreakCounter({
 
         {/* Longest streak badge */}
         {longestStreak > streakCount && (
-          <p className="mt-3 text-xs text-white/40 flex items-center gap-1">
+          <p className="mt-3 text-xs text-white/60 flex items-center gap-1">
             <Zap className="w-3 h-3" />
             Best: {longestStreak} days
           </p>

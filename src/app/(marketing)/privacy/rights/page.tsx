@@ -139,7 +139,7 @@ export default function ParentalRightsPage() {
                           <h3 className="font-display text-lg font-semibold text-white">
                             {r.title}
                           </h3>
-                          <span className="text-[11px] font-data uppercase tracking-wider text-white/40">
+                          <span className="text-[11px] font-data uppercase tracking-wider text-white/60">
                             {r.statute}
                           </span>
                         </div>
@@ -276,7 +276,7 @@ export default function ParentalRightsPage() {
             </div>
             <div className="p-4 rounded-lg bg-white/[0.03] border border-white/[0.06]">
               <p className="text-sm text-white/70">
-                <strong className="text-white">SparkForge LLC &mdash; Privacy Team</strong> <span className="text-white/40">(an Illinois limited liability company)</span><br />
+                <strong className="text-white">SparkForge LLC &mdash; Privacy Team</strong> <span className="text-white/60">(an Illinois limited liability company)</span><br />
                 Mailing address: <span className="text-white/70">[MAILING ADDRESS &mdash; to be finalized before production launch]</span><br />
                 Telephone: <a href="tel:+17736292320" className="text-spark-blue hover:underline">(773) 629-2320</a><br />
                 Email: <a href="mailto:privacy@sparkforge-labs.com" className="text-spark-blue hover:underline">privacy@sparkforge-labs.com</a><br />

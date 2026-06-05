@@ -4,12 +4,21 @@
 // ════════════════════════════════════════════════════
 
 import { describe, it, expect, vi } from 'vitest';
+// Note: imported as ESM — Vitest's `@/` path alias only resolves for
+// `import`, not runtime `require()` (which is what previously failed here).
+import {
+  getTodaysChallenge,
+  getSecondsUntilReset,
+  formatTimeRemaining,
+  isChallengeComplete,
+  getTodayUTC,
+  CHALLENGE_TEMPLATES,
+} from '@/lib/dailyChallenge';
 
 // ─── DailyMissionCard Logic Tests ───
 
 describe('DailyMissionCard Logic', () => {
   it('generates deterministic daily challenge', () => {
-    const { getTodaysChallenge } = require('@/lib/dailyChallenge');
     const c1 = getTodaysChallenge();
     const c2 = getTodaysChallenge();
 
@@ -21,7 +30,6 @@ describe('DailyMissionCard Logic', () => {
   });
 
   it('has all required challenge fields', () => {
-    const { getTodaysChallenge } = require('@/lib/dailyChallenge');
     const challenge = getTodaysChallenge();
 
     expect(challenge).toHaveProperty('id');
@@ -34,14 +42,12 @@ describe('DailyMissionCard Logic', () => {
   });
 
   it('calculates time until reset correctly', () => {
-    const { getSecondsUntilReset } = require('@/lib/dailyChallenge');
     const seconds = getSecondsUntilReset();
     expect(seconds).toBeGreaterThanOrEqual(0);
     expect(seconds).toBeLessThanOrEqual(86400); // Max 24 hours
   });
 
   it('formats time remaining correctly', () => {
-    const { formatTimeRemaining } = require('@/lib/dailyChallenge');
 
     expect(formatTimeRemaining(3661)).toMatch(/1h 1m/);
     expect(formatTimeRemaining(900)).toBe('15m');
@@ -49,7 +55,6 @@ describe('DailyMissionCard Logic', () => {
   });
 
   it('checks challenge completion correctly', () => {
-    const { isChallengeComplete, getTodayUTC } = require('@/lib/dailyChallenge');
     const today = getTodayUTC();
 
     expect(isChallengeComplete(today)).toBe(true);
@@ -163,27 +168,23 @@ describe('QuickStatsBar Logic', () => {
 
 describe('Phase 3 Integration', () => {
   it('daily challenge has positive XP reward', () => {
-    const { getTodaysChallenge } = require('@/lib/dailyChallenge');
     const challenge = getTodaysChallenge();
     expect(challenge.xpReward).toBeGreaterThan(0);
     expect(challenge.xpReward).toBeGreaterThanOrEqual(25);
   });
 
   it('daily challenge has valid type', () => {
-    const { getTodaysChallenge } = require('@/lib/dailyChallenge');
     const challenge = getTodaysChallenge();
     const validTypes = ['play-game', 'complete-quiz', 'read-lesson', 'explore-lab', 'earn-xp', 'play-any'];
     expect(validTypes).toContain(challenge.type);
   });
 
   it('daily challenge requirement count is positive', () => {
-    const { getTodaysChallenge } = require('@/lib/dailyChallenge');
     const challenge = getTodaysChallenge();
     expect(challenge.requirementCount).toBeGreaterThan(0);
   });
 
   it('challenge templates are diverse', () => {
-    const { CHALLENGE_TEMPLATES } = require('@/lib/dailyChallenge');
     const types = new Set(CHALLENGE_TEMPLATES.map((t: any) => t.type));
     expect(types.size).toBeGreaterThan(1);
   });

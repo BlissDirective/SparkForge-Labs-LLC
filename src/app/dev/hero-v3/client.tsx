@@ -320,7 +320,7 @@ export function HeroV3Client() {
           </div>
           <div className="ml-auto text-xs tabular-nums text-white/70">
             t = <span className="text-white">{time.toFixed(2)}s</span>
-            <span className="mx-2 text-white/30">·</span>
+            <span className="mx-2 text-white/60">·</span>
             Beat {activeBeat.id}: <span className="text-cyan-200">{activeBeat.label}</span>
           </div>
         </div>
@@ -336,11 +336,11 @@ export function HeroV3Client() {
             onChange={(e) => { setTime(parseFloat(e.target.value)); setPlaying(false); }}
             className="h-2 w-full cursor-pointer accent-cyan-300"
           />
-          <div className="mt-2 flex justify-between text-[10px] text-white/40 tabular-nums">
+          <div className="mt-2 flex justify-between text-[10px] text-white/60 tabular-nums">
             {BEAT_BOUNDS.map((b) => (
               <span key={b.id}>
                 <span className="text-white/60">{b.start.toFixed(1)}s</span>{' '}
-                <span className="text-white/40">{b.label.split(' ')[0]}</span>
+                <span className="text-white/60">{b.label.split(' ')[0]}</span>
               </span>
             ))}
             <span className="text-white/60">{SCRUB_END.toFixed(1)}s</span>
@@ -376,7 +376,7 @@ export function HeroV3Client() {
           </div>
         </section>
 
-        <footer className="mt-6 space-y-1 text-xs text-white/40">
+        <footer className="mt-6 space-y-1 text-xs text-white/60">
           <p>Storyboard: <code>docs/hero-v3/Storyboard.md</code> v1.2 (19.5 s total). This route covers all 8 beats (0 → 19.5 s) — Phase 5c.</p>
           <p>Audio: heroAudio.ts:syncToProgress fully remapped per storyboard §11. Theatre.js studio auto-mounted (Q8) — tune any beat's exposed objects in the bottom-right panel.</p>
           <p>Live homepage hero (/) stays on v2 until 5c.6 wires v3 into HeroAnimation.tsx wholesale (visual sign-off via HS-9 hard stop after 5c.6).</p>

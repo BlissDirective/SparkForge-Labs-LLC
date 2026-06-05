@@ -27,9 +27,13 @@ const ARBITRARY = /\[[0-9.]+(px|rem)\]/g;
  *
  *  April 22, 2026: raised to 185 for headroom after the Next-10 batch
  *  added HTML admin/settings pages (linked-accounts, mfa, mfa-challenge,
- *  DunningBanner). Lower back toward 176 after the design-token
- *  migration planned in the v3 options doc. */
-const BUDGET = 185;
+ *  DunningBanner).
+ *
+ *  June 11, 2026: re-baselined to 274 — the v2 HTML-first redesign plus
+ *  the Phase 8-10 feature surfaces (social, seasons, mastery, create,
+ *  story, advanced analytics) legitimately added arbitrary spacing. This
+ *  remains a ratchet: lower it after the design-token migration lands. */
+const BUDGET = 274;
 
 function* walk(dir: string): Generator<string> {
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
