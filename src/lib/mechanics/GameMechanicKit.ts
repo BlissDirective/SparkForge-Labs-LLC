@@ -208,11 +208,19 @@ export function validateSorting(items: SortableItem[]): {
   const inversions: [SortableItem, SortableItem][] = [];
   let correctPositions = 0;
 
-  for (let i = 0; i < items.length; i++) {
-    if (items[i].correctPosition === i) correctPositions++;
-    for (let j = i + 1; j < items.length; j++) {
-      if (items[i].correctPosition > items[j].correctPosition) {
-        inversions.push([items[i], items[j]]);
+  // An item is in the right place when its CURRENT position matches its
+  // CORRECT position (each item carries both; we never assume array order).
+  for (const item of items) {
+    if (item.currentPosition === item.correctPosition) correctPositions++;
+  }
+
+  // Inversions: pairs out of order in the current arrangement — an
+  // earlier-placed item that should actually come later.
+  const byCurrent = [...items].sort((a, b) => a.currentPosition - b.currentPosition);
+  for (let i = 0; i < byCurrent.length; i++) {
+    for (let j = i + 1; j < byCurrent.length; j++) {
+      if (byCurrent[i].correctPosition > byCurrent[j].correctPosition) {
+        inversions.push([byCurrent[i], byCurrent[j]]);
       }
     }
   }
@@ -237,7 +245,10 @@ export function calculateMechanicScore(
   const attemptPenalty = Math.max(0, (attempts - 1) * 0.1);
   const timeBonus = timeSeconds < 60 ? 0.2 : timeSeconds < 120 ? 0.1 : 0;
 
-  const rawScore = Math.round((accuracy - attemptPenalty + timeBonus) * 100);
+  // Accuracy contributes up to 80 points; a speed bonus of up to +20
+  // differentiates fast vs slow runs even at perfect accuracy (so a fast
+  // perfect run scores 100 while a slow perfect run scores 80).
+  const rawScore = Math.round((accuracy * 0.8 + timeBonus - attemptPenalty) * 100);
   const score = Math.max(0, Math.min(100, rawScore));
 
   const stars = score >= 90 ? 3 : score >= 60 ? 2 : score >= 30 ? 1 : 0;
