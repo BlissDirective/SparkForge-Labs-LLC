@@ -119,7 +119,16 @@ export function UgcHub({ childId }: { childId: string }) {
                   <BookOpen className="w-4 h-4 shrink-0" style={{ color: '#4F6EF7' }} />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-bold truncate" style={{ color: '#1A1D2B' }}>{q.title}</p>
-                    <p className="text-[11px]" style={{ color: '#8C94AC' }}>{q.questionIds.length} questions{q.ratingCount > 0 && ` · ⭐ ${q.averageRating}`}</p>
+                    <p className="text-[11px] inline-flex items-center gap-1" style={{ color: '#8C94AC' }}>
+                      <span>{q.questionIds.length} questions</span>
+                      {q.ratingCount > 0 && (
+                        <>
+                          <span>·</span>
+                          <Star className="w-3 h-3" style={{ color: '#FFD93D' }} aria-hidden />
+                          <span>{q.averageRating}</span>
+                        </>
+                      )}
+                    </p>
                   </div>
                   <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0" style={{ background: `${s.color}1A`, color: s.color }}>
                     <s.Icon className="w-3 h-3" /> {s.label}
@@ -158,7 +167,11 @@ function CommunityRow({ quiz, mine, index, onRate }: { quiz: QuizView; mine: boo
       className="flex items-center gap-3 p-3 rounded-xl" style={{ background: '#F7F8FC' }}>
       <div className="flex-1 min-w-0">
         <p className="text-sm font-bold truncate" style={{ color: '#1A1D2B' }}>{quiz.title}</p>
-        <p className="text-[11px]" style={{ color: '#8C94AC' }}>{quiz.questionIds.length} questions · ⭐ {quiz.averageRating} ({quiz.ratingCount})</p>
+        <p className="text-[11px] inline-flex items-center gap-1" style={{ color: '#8C94AC' }}>
+          <span>{quiz.questionIds.length} questions ·</span>
+          <Star className="w-3 h-3" style={{ color: '#FFD93D' }} aria-hidden />
+          <span>{quiz.averageRating} ({quiz.ratingCount})</span>
+        </p>
       </div>
       {mine ? (
         <span className="text-[10px]" style={{ color: '#8C94AC' }}>Your quiz</span>

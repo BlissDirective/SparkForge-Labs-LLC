@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Users, Sparkles } from 'lucide-react';
+import { Users, Sparkles, Handshake } from 'lucide-react';
 import { SFCard } from '@/components/ui/SFCard';
 import { SFSkeleton } from '@/components/ui/SFSkeleton';
 import { SparkyPresenter } from '@/components/sparky/SparkyPresenter';
@@ -97,7 +97,7 @@ export function StudyBuddiesPanel({ childId, childName }: StudyBuddiesPanelProps
         <div className="space-y-5">
           <SFCard variant="elevated" className="p-5">
             <div className="flex items-center gap-2 mb-4">
-              <span className="text-xl">🤝</span>
+              <Handshake className="w-5 h-5" style={{ color: '#E945F5' }} aria-hidden />
               <h3 className="text-base font-bold" style={{ color: '#1A1D2B' }}>
                 Buddy Quests
               </h3>

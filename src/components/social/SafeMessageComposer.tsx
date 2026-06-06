@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, Send } from 'lucide-react';
+import { X, Send, Lock, Hand, ThumbsUp, PartyPopper, BookOpen, Heart, Smile, type LucideIcon } from 'lucide-react';
 import { SFButton } from '@/components/ui/SFButton';
 import {
   MESSAGE_TEMPLATES,
@@ -16,13 +16,13 @@ interface SafeMessageComposerProps {
   onClose: () => void;
 }
 
-const CATEGORIES: { id: MessageCategory; label: string; emoji: string }[] = [
-  { id: 'greeting', label: 'Hi', emoji: '👋' },
-  { id: 'encouragement', label: 'Cheer', emoji: '💪' },
-  { id: 'celebration', label: 'Yay', emoji: '🎉' },
-  { id: 'study', label: 'Study', emoji: '📚' },
-  { id: 'gratitude', label: 'Thanks', emoji: '💖' },
-  { id: 'fun', label: 'Fun', emoji: '🤖' },
+const CATEGORIES: { id: MessageCategory; label: string; icon: LucideIcon }[] = [
+  { id: 'greeting', label: 'Hi', icon: Hand },
+  { id: 'encouragement', label: 'Cheer', icon: ThumbsUp },
+  { id: 'celebration', label: 'Yay', icon: PartyPopper },
+  { id: 'study', label: 'Study', icon: BookOpen },
+  { id: 'gratitude', label: 'Thanks', icon: Heart },
+  { id: 'fun', label: 'Fun', icon: Smile },
 ];
 
 export function SafeMessageComposer({ buddyName, onSend, onClose }: SafeMessageComposerProps) {
@@ -69,20 +69,23 @@ export function SafeMessageComposer({ buddyName, onSend, onClose }: SafeMessageC
 
         {/* Category tabs */}
         <div className="flex gap-1.5 mb-4 overflow-x-auto pb-1">
-          {CATEGORIES.map((c) => (
-            <button
-              key={c.id}
-              onClick={() => setCategory(c.id)}
-              className="px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all"
-              style={{
-                backgroundColor: category === c.id ? '#4F6EF7' : 'rgba(79,110,247,0.08)',
-                color: category === c.id ? '#FFFFFF' : '#4F6EF7',
-              }}
-              aria-pressed={category === c.id}
-            >
-              {c.emoji} {c.label}
-            </button>
-          ))}
+          {CATEGORIES.map((c) => {
+            const CatIcon = c.icon;
+            return (
+              <button
+                key={c.id}
+                onClick={() => setCategory(c.id)}
+                className="px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all inline-flex items-center gap-1"
+                style={{
+                  backgroundColor: category === c.id ? '#4F6EF7' : 'rgba(79,110,247,0.08)',
+                  color: category === c.id ? '#FFFFFF' : '#4F6EF7',
+                }}
+                aria-pressed={category === c.id}
+              >
+                <CatIcon className="w-3.5 h-3.5" aria-hidden /> {c.label}
+              </button>
+            );
+          })}
         </div>
 
         {/* Preset messages */}
@@ -112,8 +115,9 @@ export function SafeMessageComposer({ buddyName, onSend, onClose }: SafeMessageC
           </motion.div>
         </AnimatePresence>
 
-        <p className="text-[10px] mt-4 text-center" style={{ color: '#A8AEC2' }}>
-          🔒 Only these friendly messages can be sent. A grown-up can see all messages.
+        <p className="text-[10px] mt-4 text-center inline-flex items-center justify-center gap-1 w-full" style={{ color: '#A8AEC2' }}>
+          <Lock className="w-3 h-3 shrink-0" aria-hidden />
+          Only these friendly messages can be sent. A grown-up can see all messages.
         </p>
       </motion.div>
     </motion.div>

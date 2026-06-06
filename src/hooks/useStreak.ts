@@ -91,7 +91,7 @@ export function useStreak(childId: string | null): UseStreakReturn {
           totalFreezesEarned: data.data.total_freezes_earned ?? 0,
           activeWager: data.data.active_wager,
           wagerHistory: data.data.wager_history ?? [],
-          isStreakSocietyMember: (data.data.streak_count ?? 0) >= 7,
+          isStreakSocietyMember: (data.data.streak_count ?? 0) >= 5,
           societyJoinedAt: data.data.society_joined_at,
           last30Days: data.data.last_30_days ?? [],
           nextMilestone: null, // Computed

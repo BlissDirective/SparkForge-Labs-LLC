@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { motion } from 'motion/react';
-import { Copy, Check, UserPlus, Ticket } from 'lucide-react';
+import { Copy, Check, UserPlus, Ticket, Lock } from 'lucide-react';
 import { SFCard } from '@/components/ui/SFCard';
 import { SFButton } from '@/components/ui/SFButton';
 import { SFInput } from '@/components/ui/SFInput';
@@ -125,8 +125,9 @@ export function InviteCodeCard({ onGenerate, onRedeem, canAddMore }: InviteCodeC
         )}
       </div>
 
-      <p className="text-[10px] mt-4 leading-relaxed" style={{ color: '#A8AEC2' }}>
-        🔒 A grown-up approves every new buddy. No real names or photos are ever shared.
+      <p className="text-[10px] mt-4 leading-relaxed inline-flex items-start gap-1" style={{ color: '#A8AEC2' }}>
+        <Lock className="w-3 h-3 mt-0.5 shrink-0" aria-hidden />
+        <span>A grown-up approves every new buddy. No real names or photos are ever shared.</span>
       </p>
     </SFCard>
   );

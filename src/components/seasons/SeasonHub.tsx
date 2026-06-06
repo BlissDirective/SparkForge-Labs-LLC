@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { motion } from 'motion/react';
-import { Sparkles, Gift, Lock, Check, ShoppingBag } from 'lucide-react';
+import { Sparkles, Gift, Lock, Check, ShoppingBag, CalendarDays } from 'lucide-react';
 import { SFCard } from '@/components/ui/SFCard';
 import { SFButton } from '@/components/ui/SFButton';
 import { SFProgressBar } from '@/components/ui/SFProgressBar';
@@ -32,7 +32,7 @@ export function SeasonHub({ childId }: SeasonHubProps) {
   if (!active || !season || !progress) {
     return (
       <SFCard variant="elevated" className="p-8 text-center">
-        <div className="text-5xl mb-3">🗓️</div>
+        <CalendarDays className="w-12 h-12 mx-auto mb-3" style={{ color: '#DAE0F0' }} aria-hidden />
         <h3 className="text-lg font-bold mb-1" style={{ color: '#1A1D2B' }}>No event running</h3>
         <p className="text-sm" style={{ color: '#8C94AC' }}>{getSeasonGreeting(null, 0)}</p>
       </SFCard>
