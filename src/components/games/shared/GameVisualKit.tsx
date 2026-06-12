@@ -7,9 +7,9 @@
 
 'use client';
 
-import { useMemo, useEffect, useState, useCallback } from 'react';
+import { useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Sparkles, Zap, Star, Trophy, Flame, Brain } from 'lucide-react';
+import { Zap, Flame, Brain } from 'lucide-react';
 
 // ════════════════════════════════════════════════════════════════════════
 // ANIMATED NEURAL NETWORK (SVG-based, replaces Three.js)
@@ -120,6 +120,8 @@ export function ComboCounter({ combo }: { combo: number }) {
     <AnimatePresence>
       <motion.div
         key={combo}
+        role="status"
+        aria-label={`${combo} answer combo`}
         className="flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold"
         style={{
           background: combo >= 5 ? '#E945F520' : '#FF6B3515',
@@ -155,7 +157,15 @@ export function ScoreDisplay({
             {score} / {maxScore}
           </span>
         </div>
-        <div className="h-2.5 rounded-full overflow-hidden" style={{ background: '#F0F1F8' }}>
+        <div
+          className="h-2.5 rounded-full overflow-hidden"
+          style={{ background: '#F0F1F8' }}
+          role="progressbar"
+          aria-label={label}
+          aria-valuenow={score}
+          aria-valuemin={0}
+          aria-valuemax={maxScore}
+        >
           <motion.div
             className="h-full rounded-full"
             style={{ background: 'linear-gradient(90deg, #4F6EF7, #E945F5)' }}
@@ -214,6 +224,7 @@ export function FeedbackPopup({
 
   return (
     <motion.div
+      role="status"
       className="rounded-2xl p-4 flex items-start gap-3"
       style={{ background: c.bg, border: `1px solid ${c.border}` }}
       initial={{ opacity: 0, y: 10, scale: 0.95 }}
@@ -285,6 +296,7 @@ export function ToyItem({
   return (
     <motion.button
       onClick={onClick}
+      aria-label={toy.label}
       className={`${sizeMap[size]} rounded-2xl flex flex-col items-center justify-center gap-0.5
         transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2`}
       style={{
@@ -304,7 +316,7 @@ export function ToyItem({
       } : undefined}
       transition={glowing ? { repeat: Infinity, duration: 1.5 } : undefined}
     >
-      <span>{toy.emoji}</span>
+      <span aria-hidden="true">{toy.emoji}</span>
     </motion.button>
   );
 }
@@ -333,6 +345,8 @@ export function TimerDisplay({ seconds, warning = 10 }: { seconds: number; warni
 
   return (
     <motion.div
+      role="timer"
+      aria-label={`${seconds} seconds left`}
       className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-bold"
       style={{
         background: isWarning ? '#EF444415' : '#F0F1F8',

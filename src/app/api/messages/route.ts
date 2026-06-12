@@ -8,19 +8,38 @@
 
 import { NextRequest } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/server';
-import { apiSuccess, apiError, requireAuth, verifyChildOwnership } from '@/lib/api-helpers';
+import {
+  apiSuccess, apiError, requireAuth, verifyChildOwnership,
+  applyRateLimit, checkDuplicate,
+} from '@/lib/api-helpers';
+import { RATE_LIMITS } from '@/lib/rate-limit';
 import { z } from 'zod';
 import { getMessageTemplate, isMessageAllowed } from '@/lib/social/SocialEngine';
 
+// Both ids are interpolated into PostgREST `.or()` filter strings on an
+// ADMIN client (RLS bypassed), so they MUST be strict UUIDs — anything
+// else is a filter-injection vector. (childId is additionally ownership
+// checked; buddyId is only safe because of this schema.)
+const HistoryQuerySchema = z.object({
+  childId: z.string().uuid(),
+  buddyId: z.string().uuid().optional(),
+});
+
 // ─── GET: history between a child and a buddy (or all for the child) ───
 export async function GET(req: NextRequest) {
+  const limited = await applyRateLimit(req, 'messages-get', undefined, RATE_LIMITS.general);
+  if (limited) return limited;
+
   const auth = await requireAuth(req);
   if (!auth.success) return auth.response;
 
   const url = new URL(req.url);
-  const childId = url.searchParams.get('childId');
-  const buddyId = url.searchParams.get('buddyId');
-  if (!childId) return apiError('childId required', 400);
+  const parsedQuery = HistoryQuerySchema.safeParse({
+    childId: url.searchParams.get('childId') ?? undefined,
+    buddyId: url.searchParams.get('buddyId') ?? undefined,
+  });
+  if (!parsedQuery.success) return apiError('valid childId (and optional buddyId) required', 400);
+  const { childId, buddyId } = parsedQuery.data;
   if (!(await verifyChildOwnership(auth.user.id, childId))) {
     return apiError('Child not found', 404);
   }
@@ -75,8 +94,14 @@ const SendSchema = z.object({
 });
 
 export async function POST(req: NextRequest) {
+  const limited = await applyRateLimit(req, 'messages-send', undefined, RATE_LIMITS.social);
+  if (limited) return limited;
+
   const auth = await requireAuth(req);
   if (!auth.success) return auth.response;
+
+  const dup = await checkDuplicate(req, auth.user.id);
+  if (dup) return dup;
 
   let body: unknown;
   try {

@@ -61,6 +61,13 @@ export const RATE_LIMITS = {
   // of published content are legitimate (marketing crawl, lab
   // preview), but anything past 100/min per IP is scraping behaviour.
   contentRead: { maxRequests: 100, windowMs: 60 * 1000 },     // 100/min
+  // Kid-facing social mutations (preset messages, invite redemptions,
+  // buddy-quest assigns, quiz ratings). Legitimate play never needs
+  // more than this; past it is spam — a safety issue on a kids'
+  // platform, not just a cost issue.
+  social: { maxRequests: 10, windowMs: 60 * 1000 },           // 10/min
+  // UGC quiz creation is deliberate, slow work — cap submissions hard.
+  ugcWrite: { maxRequests: 10, windowMs: 60 * 60 * 1000 },    // 10/hr
 } as const;
 
 export interface RateLimitResult {

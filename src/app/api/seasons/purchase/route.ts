@@ -5,7 +5,11 @@
 
 import { NextRequest } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/server';
-import { apiSuccess, apiError, requireAuth, verifyChildOwnership } from '@/lib/api-helpers';
+import {
+  apiSuccess, apiError, requireAuth, verifyChildOwnership,
+  applyRateLimit, checkDuplicate,
+} from '@/lib/api-helpers';
+import { RATE_LIMITS } from '@/lib/rate-limit';
 import { z } from 'zod';
 import {
   getActiveSeason,
@@ -20,8 +24,14 @@ import {
 const Schema = z.object({ childId: z.string().uuid(), itemId: z.string().max(64) });
 
 export async function POST(req: NextRequest) {
+  const limited = await applyRateLimit(req, 'seasons-purchase', undefined, RATE_LIMITS.social);
+  if (limited) return limited;
+
   const auth = await requireAuth(req);
   if (!auth.success) return auth.response;
+
+  const dup = await checkDuplicate(req, auth.user.id);
+  if (dup) return dup;
 
   let body: unknown;
   try { body = await req.json(); } catch { body = {}; }

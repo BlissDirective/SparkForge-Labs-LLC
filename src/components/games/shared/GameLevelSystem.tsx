@@ -10,7 +10,6 @@
 import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Star, Lock, ChevronRight, Trophy, RotateCcw, Sparkles } from 'lucide-react';
-import { SFCard } from '@/components/ui/SFCard';
 import { SFButton } from '@/components/ui/SFButton';
 import CountUp from '@/components/bits/CountUp';
 
@@ -58,6 +57,12 @@ function LevelNode({
   return (
     <motion.button
       onClick={isUnlocked ? onClick : undefined}
+      aria-disabled={!isUnlocked}
+      aria-label={
+        isUnlocked
+          ? `Level ${level.id}: ${level.name}, ${level.difficulty}${bestStars > 0 ? `, best ${bestStars} of 3 stars` : ''}${bestScore > 0 ? `, best score ${bestScore}` : ''}`
+          : `Level ${level.id}: ${level.name}, locked — earn a star on the previous level to unlock`
+      }
       className={`relative flex flex-col items-center gap-1 p-3 rounded-2xl transition-all
         ${isUnlocked ? 'cursor-pointer hover:scale-105' : 'cursor-not-allowed opacity-50'}
         focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2`}
@@ -133,6 +138,9 @@ function LevelCompleteOverlay({
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
     >
       <motion.div
+        role="dialog"
+        aria-modal="true"
+        aria-label={`Level ${level.id} complete: ${result.stars} of 3 stars, score ${result.score} of ${result.maxScore}`}
         className="w-full max-w-sm rounded-3xl p-6 text-center"
         style={{ background: '#FFFFFF', boxShadow: '0 25px 50px rgba(0,0,0,0.25)' }}
         initial={{ scale: 0.5, y: 50 }} animate={{ scale: 1, y: 0 }}
@@ -143,7 +151,11 @@ function LevelCompleteOverlay({
         </h3>
 
         {/* Stars */}
-        <div className="flex justify-center gap-2 my-4">
+        <div
+          className="flex justify-center gap-2 my-4"
+          role="img"
+          aria-label={`${result.stars} of 3 stars earned`}
+        >
           {[1, 2, 3].map((s) => (
             <motion.div
               key={s}
@@ -201,6 +213,9 @@ function GameCompleteOverlay({
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
     >
       <motion.div
+        role="dialog"
+        aria-modal="true"
+        aria-label={`All levels complete: ${totalStars} of ${maxStars} stars, ${totalXP} XP earned`}
         className="w-full max-w-sm rounded-3xl p-6 text-center"
         style={{ background: 'linear-gradient(135deg, #FFFFFF, #F8F7FF)' }}
         initial={{ scale: 0.5 }} animate={{ scale: 1 }}
@@ -338,7 +353,11 @@ export default function GameLevelSystem({
       </div>
 
       {/* Level grid */}
-      <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
+      <div
+        className="grid grid-cols-3 sm:grid-cols-4 gap-3"
+        role="group"
+        aria-label={`${gameTitle} level map: ${totalStars} of ${maxStars} stars earned`}
+      >
         {levels.map((level, i) => (
           <LevelNode
             key={level.id}

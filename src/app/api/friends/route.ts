@@ -5,7 +5,11 @@
 
 import { NextRequest } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/server';
-import { apiSuccess, apiError, requireAuth, verifyChildOwnership } from '@/lib/api-helpers';
+import {
+  apiSuccess, apiError, requireAuth, verifyChildOwnership,
+  applyRateLimit, checkDuplicate,
+} from '@/lib/api-helpers';
+import { RATE_LIMITS } from '@/lib/rate-limit';
 import { z } from 'zod';
 import {
   FRIEND_LIMIT,
@@ -113,8 +117,14 @@ const RedeemSchema = z.object({
 });
 
 export async function POST(req: NextRequest) {
+  const limited = await applyRateLimit(req, 'friends-redeem', undefined, RATE_LIMITS.social);
+  if (limited) return limited;
+
   const auth = await requireAuth(req);
   if (!auth.success) return auth.response;
+
+  const dup = await checkDuplicate(req, auth.user.id);
+  if (dup) return dup;
 
   let body: unknown;
   try {
@@ -167,13 +177,35 @@ export async function POST(req: NextRequest) {
     const pk = pairKey(childId, buddyId);
     const now = new Date().toISOString();
 
+    // Atomically claim the code (single-use). The `redeemed = false`
+    // predicate means only ONE concurrent request can flip it — the
+    // loser gets 0 rows back and a 409, closing the TOCTOU window of
+    // the earlier check-then-update flow.
+    const { data: claimedRows, error: claimErr } = await supabase
+      .from('friend_invite_codes')
+      .update({ redeemed: true, redeemed_by: childId })
+      .eq('code', code)
+      .eq('redeemed', false)
+      .select('code');
+    if (claimErr || !claimedRows || claimedRows.length === 0) {
+      return apiError('Code already used', 409);
+    }
+
     // Create both direction rows (pending parent approval on each side).
+    // UNIQUE (child_id, buddy_id) backstops the alreadyConnected() check
+    // against concurrent redemptions of different codes for the same pair.
     const { error: connErr } = await supabase.from('friend_connections').insert([
       { child_id: childId, buddy_id: buddyId, pair_key: pk, status: 'pending_parent', parent_approved: false, created_at: now, updated_at: now },
       { child_id: buddyId, buddy_id: childId, pair_key: pk, status: 'pending_parent', parent_approved: false, created_at: now, updated_at: now },
     ]);
     if (connErr) {
       console.error('[friends:redeem:conn]', connErr);
+      // Best-effort rollback so a failed insert doesn't burn the code.
+      await supabase
+        .from('friend_invite_codes')
+        .update({ redeemed: false, redeemed_by: null })
+        .eq('code', code)
+        .eq('redeemed_by', childId);
       return apiError('Failed to create connection', 500);
     }
 
@@ -201,12 +233,6 @@ export async function POST(req: NextRequest) {
         })),
       );
     }
-
-    // Mark the invite redeemed (single-use).
-    await supabase
-      .from('friend_invite_codes')
-      .update({ redeemed: true, redeemed_by: childId })
-      .eq('code', code);
 
     return apiSuccess({ status: 'pending_parent', message: 'Connection created — awaiting parent approval' });
   } catch (err) {

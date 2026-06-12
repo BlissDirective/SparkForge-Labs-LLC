@@ -7,9 +7,9 @@
 
 'use client';
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { ChevronRight, Zap, GraduationCap, Target } from 'lucide-react';
+import { ChevronRight, Target } from 'lucide-react';
 import { SFCard } from '@/components/ui/SFCard';
 import { SFButton } from '@/components/ui/SFButton';
 import type { LevelConfig, LevelResult } from './GameLevelSystem';
@@ -49,42 +49,26 @@ export default function QuizLevelRenderer({
   const [feedback, setFeedback] = useState<{ type: 'correct' | 'wrong'; message: string; explanation: string } | null>(null);
   const [timeLeft, setTimeLeft] = useState(timePerQuestion);
   const [answered, setAnswered] = useState(false);
-  const [shuffledOptions, setShuffledOptions] = useState<number[]>([]);
 
   const currentQ = questions[qIndex];
   const maxScore = questions.length * 10 + 10;
 
-  // Shuffle options for each question
-  useMemo(() => {
-    if (currentQ) {
-      const indices = currentQ.options.map((_, i) => i);
-      for (let i = indices.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [indices[i], indices[j]] = [indices[j], indices[i]];
-      }
-      setShuffledOptions(indices);
-      setAnswered(false);
-      setTimeLeft(timePerQuestion);
+  // Shuffle options for each question (pure — no render-phase setState).
+  const shuffledOptions = useMemo(() => {
+    if (!currentQ) return [];
+    const indices = currentQ.options.map((_, i) => i);
+    for (let i = indices.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [indices[i], indices[j]] = [indices[j], indices[i]];
     }
-  }, [qIndex, currentQ, timePerQuestion]);
+    return indices;
+  }, [currentQ]);
 
-  // Timer
-  useState(() => {
-    if (phase === 'play' && !answered) {
-      const interval = setInterval(() => {
-        setTimeLeft((t) => {
-          if (t <= 1) {
-            clearInterval(interval);
-            // Time's up
-            handleAnswer(-1);
-            return 0;
-          }
-          return t - 1;
-        });
-      }, 1000);
-      return () => clearInterval(interval);
-    }
-  });
+  // Reset per-question state when the question changes.
+  useEffect(() => {
+    setAnswered(false);
+    setTimeLeft(timePerQuestion);
+  }, [qIndex, timePerQuestion]);
 
   const handleAnswer = useCallback((optionIdx: number) => {
     if (answered) return;
@@ -132,6 +116,19 @@ export default function QuizLevelRenderer({
     }, 1800);
   }, [answered, currentQ, combo, score, qIndex, questions.length, level, maxScore, timeLeft, timePerQuestion, onComplete]);
 
+  // Countdown. (Was previously a `useState(() => …)` no-op, so the timer
+  // never ticked — questions could be pondered forever. Now it counts
+  // down and auto-submits a miss at 0, as TimerDisplay always implied.)
+  useEffect(() => {
+    if (phase !== 'play' || answered) return;
+    if (timeLeft <= 0) {
+      handleAnswer(-1);
+      return;
+    }
+    const id = setTimeout(() => setTimeLeft((t) => t - 1), 1000);
+    return () => clearTimeout(id);
+  }, [phase, answered, timeLeft, handleAnswer]);
+
   // Welcome
   if (phase === 'welcome') {
     return (
@@ -162,7 +159,11 @@ export default function QuizLevelRenderer({
         {/* Header */}
         <div className="flex items-center justify-between">
           <LevelBadge level={level.id} color={labColor} />
-          <span className="text-xs" style={{ color: '#8C94AC' }}>
+          <span
+            className="text-xs"
+            style={{ color: '#8C94AC' }}
+            aria-label={`Question ${qIndex + 1} of ${questions.length}`}
+          >
             {qIndex + 1} / {questions.length}
           </span>
           <TimerDisplay seconds={timeLeft} warning={5} />
@@ -174,14 +175,14 @@ export default function QuizLevelRenderer({
         {/* Question */}
         <SFCard variant="elevated" className="p-5">
           {currentQ.emoji && (
-            <div className="text-4xl mb-3 text-center">{currentQ.emoji}</div>
+            <div className="text-4xl mb-3 text-center" aria-hidden="true">{currentQ.emoji}</div>
           )}
-          <h3 className="text-base font-bold mb-4" style={{ color: '#1A1D2B' }}>
+          <h3 id="quiz-question" className="text-base font-bold mb-4" style={{ color: '#1A1D2B' }}>
             {currentQ.question}
           </h3>
 
           {/* Options */}
-          <div className="space-y-2">
+          <div className="space-y-2" role="group" aria-labelledby="quiz-question">
             {shuffledOptions.map((optIdx) => {
               const isSelected = answered;
               const isCorrect = optIdx === currentQ.correctIndex;
@@ -200,7 +201,7 @@ export default function QuizLevelRenderer({
                   key={optIdx}
                   onClick={() => handleAnswer(optIdx)}
                   disabled={answered}
-                  className="w-full p-3 rounded-xl text-sm font-semibold text-left transition-all
+                  className="w-full min-h-12 p-3 rounded-xl text-sm font-semibold text-left transition-all
                     focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-1"
                   style={{
                     background: bgColor,
@@ -219,10 +220,13 @@ export default function QuizLevelRenderer({
           </div>
         </SFCard>
 
-        {/* Feedback */}
-        <AnimatePresence>
-          {feedback && <FeedbackPopup {...feedback} />}
-        </AnimatePresence>
+        {/* Feedback — aria-live on the always-mounted wrapper so screen
+            readers announce each popup as it appears. */}
+        <div aria-live="polite">
+          <AnimatePresence>
+            {feedback && <FeedbackPopup {...feedback} />}
+          </AnimatePresence>
+        </div>
       </div>
     </div>
   );
