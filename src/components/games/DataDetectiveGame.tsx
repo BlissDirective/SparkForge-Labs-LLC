@@ -10,7 +10,20 @@ import { useCallback } from 'react';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameActions } from '@/stores/gameStore';
 import GameLevelSystem, { type LevelResult } from '@/components/games/shared/GameLevelSystem';
-import QuizLevelRenderer, { type QuizQuestion } from '@/components/games/shared/QuizLevelRenderer';
+import QuizLevelRenderer, { type QuizQuestion, type QuizBonusRound } from '@/components/games/shared/QuizLevelRenderer';
+
+// Bonus drag-to-order round: the machine-learning data pipeline.
+const BONUS_ROUND: QuizBonusRound = {
+  title: 'The data pipeline',
+  prompt: 'Drag the stages into the order data flows through to build an AI model.',
+  items: [
+    { id: 'collect', label: 'Collect the data', correctPosition: 0, currentPosition: 0, color: '#3B82F6' },
+    { id: 'clean', label: 'Clean out the errors', correctPosition: 1, currentPosition: 1, color: '#8B5CF6' },
+    { id: 'label', label: 'Label the examples', correctPosition: 2, currentPosition: 2, color: '#F59E0B' },
+    { id: 'train', label: 'Train the model', correctPosition: 3, currentPosition: 3, color: '#10B981' },
+    { id: 'eval', label: 'Check (evaluate) the results', correctPosition: 4, currentPosition: 4, color: '#EF4444' },
+  ],
+};
 
 const LEVELS = [
   { id: 1, name: 'Data Types', description: 'Numbers, text, images — what kind of data?', emoji: '📊', difficulty: 'easy' as const, starThresholds: [60,80,95], xpReward: 50 },
@@ -66,7 +79,8 @@ export default function DataDetectiveGame() {
         onComplete={handleComplete}
         renderLevel={(level, onComplete, onExit) => (
           <QuizLevelRenderer level={level} onComplete={onComplete} onExit={onExit}
-            questions={getQuestions(level.id)} labColor="#4F6EF7" gameEmoji="🔍" timePerQuestion={20} />
+            questions={getQuestions(level.id)} labColor="#4F6EF7" gameEmoji="🔍" timePerQuestion={20}
+            bonusRound={level.id === 1 ? BONUS_ROUND : undefined} />
         )}
       />
     </GameShell>

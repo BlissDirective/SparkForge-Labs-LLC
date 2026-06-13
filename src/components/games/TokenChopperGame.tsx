@@ -9,7 +9,19 @@ import { useCallback } from 'react';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameActions } from '@/stores/gameStore';
 import GameLevelSystem, { type LevelResult } from '@/components/games/shared/GameLevelSystem';
-import QuizLevelRenderer, { type QuizQuestion } from '@/components/games/shared/QuizLevelRenderer';
+import QuizLevelRenderer, { type QuizQuestion, type QuizBonusRound } from '@/components/games/shared/QuizLevelRenderer';
+
+// Bonus drag-to-order round: how a language model turns text into tokens.
+const BONUS_ROUND: QuizBonusRound = {
+  title: 'How text becomes tokens',
+  prompt: 'Drag the steps into the order a language model uses to read your sentence.',
+  items: [
+    { id: 'read', label: 'Read the raw text', correctPosition: 0, currentPosition: 0, color: '#FF6B35' },
+    { id: 'split', label: 'Split it into tokens', correctPosition: 1, currentPosition: 1, color: '#F59E0B' },
+    { id: 'ids', label: 'Convert tokens to number IDs', correctPosition: 2, currentPosition: 2, color: '#8B5CF6' },
+    { id: 'feed', label: 'Feed the IDs to the model', correctPosition: 3, currentPosition: 3, color: '#10B981' },
+  ],
+};
 
 const LEVELS = [
   { id: 1, name: 'Word Basics', description: 'Chop sentences into words!', emoji: '✂️', difficulty: 'easy' as const, starThresholds: [60,80,95], xpReward: 50 },
@@ -69,7 +81,8 @@ export default function TokenChopperGame() {
         onComplete={handleComplete}
         renderLevel={(level, onComplete, onExit) => (
           <QuizLevelRenderer level={level} onComplete={onComplete} onExit={onExit}
-            questions={getQuestions(level.id)} labColor="#FF6B35" gameEmoji="✂️" timePerQuestion={20} />
+            questions={getQuestions(level.id)} labColor="#FF6B35" gameEmoji="✂️" timePerQuestion={20}
+            bonusRound={level.id === 1 ? BONUS_ROUND : undefined} />
         )}
       />
     </GameShell>

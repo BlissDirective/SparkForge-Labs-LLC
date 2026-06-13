@@ -12,6 +12,9 @@ import { motion, AnimatePresence } from 'motion/react';
 import { ChevronRight, Target } from 'lucide-react';
 import { SFCard } from '@/components/ui/SFCard';
 import { SFButton } from '@/components/ui/SFButton';
+import { useJuice } from '@/components/juice/JuiceProvider';
+import { SortingTray } from '@/components/mechanics/SortingTray';
+import type { SortableItem } from '@/lib/mechanics/GameMechanicKit';
 import type { LevelConfig, LevelResult } from './GameLevelSystem';
 import {
   ScoreDisplay, GlowingTitle, FeedbackPopup,
@@ -27,6 +30,19 @@ export interface QuizQuestion {
   band: 'A' | 'B' | 'C';
 }
 
+/**
+ * Optional non-quiz "bonus round" appended after the questions. Lets any
+ * quiz game add a drag-to-order mechanic (Fable Phase A item 1) by passing
+ * one prop — the round is rendered + scored + juiced by this shared renderer.
+ */
+export interface QuizBonusRound {
+  title?: string;
+  prompt: string;
+  items: SortableItem[];
+  /** Max bonus points (default 20). */
+  maxPoints?: number;
+}
+
 interface QuizLevelRendererProps {
   level: LevelConfig;
   onComplete: (result: LevelResult) => void;
@@ -35,12 +51,14 @@ interface QuizLevelRendererProps {
   labColor: string;
   gameEmoji: string;
   timePerQuestion?: number;
+  bonusRound?: QuizBonusRound;
 }
 
 export default function QuizLevelRenderer({
-  level, onComplete, onExit, questions, labColor, gameEmoji, timePerQuestion = 20,
+  level, onComplete, onExit, questions, labColor, gameEmoji, timePerQuestion = 20, bonusRound,
 }: QuizLevelRendererProps) {
-  const [phase, setPhase] = useState<'welcome' | 'play' | 'done'>('welcome');
+  const juice = useJuice();
+  const [phase, setPhase] = useState<'welcome' | 'play' | 'bonus' | 'done'>('welcome');
   const [qIndex, setQIndex] = useState(0);
   const [score, setScore] = useState(0);
   const [combo, setCombo] = useState(0);
@@ -49,9 +67,24 @@ export default function QuizLevelRenderer({
   const [feedback, setFeedback] = useState<{ type: 'correct' | 'wrong'; message: string; explanation: string } | null>(null);
   const [timeLeft, setTimeLeft] = useState(timePerQuestion);
   const [answered, setAnswered] = useState(false);
+  const [runScore, setRunScore] = useState(0);
 
   const currentQ = questions[qIndex];
-  const maxScore = questions.length * 10 + 10;
+  const bonusMax = bonusRound ? (bonusRound.maxPoints ?? 20) : 0;
+  const maxScore = questions.length * 10 + 10 + bonusMax;
+
+  // Compute stars + hand the result up. Shared by the quiz-only and
+  // quiz+bonus completion paths so scoring stays in one place.
+  const completeWith = useCallback((total: number) => {
+    const stars = total >= level.starThresholds[2] ? 3 : total >= level.starThresholds[1] ? 2 : total >= level.starThresholds[0] ? 1 : 0;
+    onComplete({
+      score: total,
+      maxScore,
+      stars: stars as 0 | 1 | 2 | 3,
+      xpEarned: level.xpReward * (stars / 3),
+      timeMs: questions.length * timePerQuestion * 1000,
+    });
+  }, [level, maxScore, onComplete, questions.length, timePerQuestion]);
 
   // Shuffle options for each question (pure — no render-phase setState).
   const shuffledOptions = useMemo(() => {
@@ -75,9 +108,11 @@ export default function QuizLevelRenderer({
     setAnswered(true);
 
     const isCorrect = optionIdx === currentQ.correctIndex;
+    const round = qIndex + 1;
     if (isCorrect) {
       const comboBonus = Math.min(combo, 5);
-      setScore((s) => s + 10 + comboBonus);
+      const newScore = score + 10 + comboBonus;
+      setScore(newScore);
       setCombo((c) => c + 1);
       setMaxCombo((m) => Math.max(m, combo + 1));
       setCorrectCount((c) => c + 1);
@@ -86,35 +121,39 @@ export default function QuizLevelRenderer({
         message: combo > 2 ? `Correct! ${combo + 1}x streak! +${10 + comboBonus}` : 'Correct! +10 pts',
         explanation: currentQ.explanation,
       });
+      // Drive the shared GameJuiceEngine — combo flames, floating text,
+      // Sparky reactions, milestone popups + screen shake. This single
+      // call is what gives all 20 quiz games their juice (Phase A item 1).
+      juice.onCorrect(round, newScore);
     } else {
       setCombo(0);
-      setScore((s) => s + 2); // Participation point
+      const newScore = score + 2; // Participation point
+      setScore(newScore);
       setFeedback({
         type: 'wrong',
         message: optionIdx === -1 ? "Time's up!" : 'Not quite!',
         explanation: currentQ.explanation,
       });
+      juice.onWrong(round, newScore);
     }
 
     setTimeout(() => {
       setFeedback(null);
       if (qIndex + 1 >= questions.length) {
-        // Done
+        // End of questions: tally the quiz score (incl. time bonus).
         const timeBonus = Math.round((timeLeft / timePerQuestion) * 5);
-        const finalScore = score + (isCorrect ? 10 + Math.min(combo, 5) : 2) + timeBonus;
-        const stars = finalScore >= level.starThresholds[2] ? 3 : finalScore >= level.starThresholds[1] ? 2 : finalScore >= level.starThresholds[0] ? 1 : 0;
-        onComplete({
-          score: finalScore,
-          maxScore,
-          stars: stars as 0 | 1 | 2 | 3,
-          xpEarned: level.xpReward * (stars / 3),
-          timeMs: questions.length * timePerQuestion * 1000,
-        });
+        const quizScore = score + (isCorrect ? 10 + Math.min(combo, 5) : 2) + timeBonus;
+        if (bonusRound) {
+          setRunScore(quizScore);
+          setPhase('bonus');
+        } else {
+          completeWith(quizScore);
+        }
       } else {
         setQIndex((i) => i + 1);
       }
     }, 1800);
-  }, [answered, currentQ, combo, score, qIndex, questions.length, level, maxScore, timeLeft, timePerQuestion, onComplete]);
+  }, [answered, currentQ, combo, score, qIndex, questions.length, timeLeft, timePerQuestion, juice, bonusRound, completeWith]);
 
   // Countdown. (Was previously a `useState(() => …)` no-op, so the timer
   // never ticked — questions could be pondered forever. Now it counts
@@ -141,12 +180,40 @@ export default function QuizLevelRenderer({
             <div className="mt-3 flex items-center gap-2 text-xs" style={{ color: '#8C94AC' }}>
               <Target className="w-3.5 h-3.5" />
               {questions.length} questions &middot; {timePerQuestion}s each
+              {bonusRound && <span>&middot; + bonus order round</span>}
             </div>
           </SFCard>
 
           <SFButton variant="primary" size="lg" className="w-full" onClick={() => setPhase('play')}>
             Start Quiz <ChevronRight className="w-5 h-5 ml-2" />
           </SFButton>
+        </div>
+      </div>
+    );
+  }
+
+  // Bonus round — drag-to-order mechanic (GameMechanicKit / SortingTray).
+  if (phase === 'bonus' && bonusRound) {
+    return (
+      <div className="relative space-y-4">
+        <div className="relative z-10 space-y-4">
+          <GlowingTitle emoji={gameEmoji} color={labColor}>Bonus Round</GlowingTitle>
+          <SFCard variant="elevated" className="p-5">
+            <p className="text-sm font-semibold mb-1" style={{ color: '#1A1D2B' }}>
+              {bonusRound.title ?? 'Put these in the right order'}
+            </p>
+            <p className="text-sm mb-4" style={{ color: '#5A6078' }}>{bonusRound.prompt}</p>
+            <SortingTray
+              items={bonusRound.items}
+              onComplete={({ allCorrect, score: pct }) => {
+                const pts = allCorrect ? bonusMax : Math.round((pct / 100) * (bonusMax * 0.75));
+                const total = runScore + pts;
+                if (allCorrect) juice.onCorrect(questions.length + 1, total);
+                else juice.onWrong(questions.length + 1, total);
+                setTimeout(() => completeWith(total), 1400);
+              }}
+            />
+          </SFCard>
         </div>
       </div>
     );

@@ -10,7 +10,19 @@ import { useCallback } from 'react';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameActions } from '@/stores/gameStore';
 import GameLevelSystem, { type LevelResult } from '@/components/games/shared/GameLevelSystem';
-import QuizLevelRenderer, { type QuizQuestion } from '@/components/games/shared/QuizLevelRenderer';
+import QuizLevelRenderer, { type QuizQuestion, type QuizBonusRound } from '@/components/games/shared/QuizLevelRenderer';
+
+// Bonus drag-to-order round: how a well-built prompt is layered.
+const BONUS_ROUND: QuizBonusRound = {
+  title: 'Build a strong prompt',
+  prompt: 'Drag the parts of a prompt into the order that gives the AI the clearest context.',
+  items: [
+    { id: 'role', label: 'Set the role (who the AI should act as)', correctPosition: 0, currentPosition: 0, color: '#8F96FA' },
+    { id: 'context', label: 'Give the background context', correctPosition: 1, currentPosition: 1, color: '#3B82F6' },
+    { id: 'task', label: 'State the task / question', correctPosition: 2, currentPosition: 2, color: '#F59E0B' },
+    { id: 'format', label: 'Describe the answer format', correctPosition: 3, currentPosition: 3, color: '#10B981' },
+  ],
+};
 
 const LEVELS = [
   { id: 1, name: 'Context Basics', description: 'What lives in the context window?', emoji: '🪟', difficulty: 'easy' as const, starThresholds: [60,80,95], xpReward: 50 },
@@ -161,6 +173,7 @@ export default function ContextArchitectGame() {
             level={level} onComplete={onComplete} onExit={onExit}
             questions={getQuestions(level.id)} labColor="#8F96FA" gameEmoji="🪟"
             timePerQuestion={level.difficulty === 'expert' ? 15 : level.difficulty === 'hard' ? 20 : 25}
+            bonusRound={level.id === 1 ? BONUS_ROUND : undefined}
           />
         )}
       />

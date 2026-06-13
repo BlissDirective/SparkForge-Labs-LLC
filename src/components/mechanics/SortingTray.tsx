@@ -34,14 +34,18 @@ export function SortingTray({ items: initialItems, onComplete, onScore, title }:
   }, [submitted]);
 
   const handleSubmit = useCallback(() => {
-    const result = validateSorting(items);
+    // Reorder only changes array order, not each item's `currentPosition`
+    // field — so snapshot the live order into `currentPosition` before
+    // validating, otherwise scoring reads the original (shuffled) layout.
+    const ordered = items.map((it, i) => ({ ...it, currentPosition: i }));
+    const result = validateSorting(ordered);
     setValidation(result);
     setSubmitted(true);
-    const score = items.length > 0
-      ? Math.round((result.correctPositions / items.length) * 100)
+    const score = ordered.length > 0
+      ? Math.round((result.correctPositions / ordered.length) * 100)
       : 0;
     onComplete?.({ allCorrect: result.allCorrect, score });
-    onScore?.(result.allCorrect ? 20 : Math.round((result.correctPositions / items.length) * 15));
+    onScore?.(result.allCorrect ? 20 : Math.round((result.correctPositions / ordered.length) * 15));
   }, [items, onComplete, onScore]);
 
   const handleReset = useCallback(() => {
