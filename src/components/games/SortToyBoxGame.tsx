@@ -13,7 +13,8 @@
 'use client';
 
 import { useState, useCallback, useMemo } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import dynamic from 'next/dynamic';
+import { motion, useReducedMotion } from 'motion/react';
 import {
   Brain, ChevronRight, Sparkles, Timer, Trophy,
   RotateCcw, Target, GraduationCap, Lightbulb,
@@ -21,6 +22,7 @@ import {
 import { GameShell } from '@/components/game/GameShell';
 import { useGameActions } from '@/stores/gameStore';
 import { useActiveChild } from '@/hooks/useChildren';
+import { useJuice } from '@/components/juice/JuiceProvider';
 import { SFCard } from '@/components/ui/SFCard';
 import { SFButton } from '@/components/ui/SFButton';
 import { SFBadge } from '@/components/ui/SFBadge';
@@ -29,6 +31,15 @@ import {
   ToyItem, TOY_STYLES, ScoreDisplay,
   GlowingTitle, FeedbackPopup, ComboCounter, TimerDisplay,
 } from '@/components/games/shared/GameVisualKit';
+import type { SortToy } from '@/components/games/pixi/PixiSortStage';
+
+// Pixi is client-only (WebGL/WebGPU) — never SSR it.
+const PixiSortStage = dynamic(() => import('@/components/games/pixi/PixiSortStage'), {
+  ssr: false,
+  loading: () => (
+    <div className="h-[420px] w-full animate-pulse rounded-2xl" style={{ background: '#0E1428' }} />
+  ),
+});
 
 // ════════════════════════════════════════════════════════════════════════
 // TYPES
@@ -118,10 +129,11 @@ function LevelRenderer({
   level: LevelConfig; onComplete: (r: LevelResult) => void; onExit: () => void;
 }) {
   const data = LEVEL_DATA[level.id];
+  const juice = useJuice();
+  const prefersReducedMotion = useReducedMotion();
   const [phase, setPhase] = useState<Phase>('welcome');
   const [toys] = useState(() => generateToys(level.id));
   const [groups, setGroups] = useState<Record<string, number>>({});
-  const [activeGroup, setActiveGroup] = useState(0);
   const [score, setScore] = useState(0);
   const [combo, setCombo] = useState(0);
   const [feedback, setFeedback] = useState<{ type: 'correct' | 'wrong' | 'info'; message: string; explanation?: string } | null>(null);
@@ -133,6 +145,15 @@ function LevelRenderer({
   const labColor = '#4F6EF7';
   const maxScore = toys.length * 10 + 20;
   const allSorted = sortedCount >= toys.length;
+
+  // Toys shaped for the Pixi stage (procedural tokens seeded from TOY_STYLES).
+  const pixiToys = useMemo<SortToy[]>(
+    () => toys.map((t) => {
+      const def = TOY_STYLES[t.type] || TOY_STYLES.block;
+      return { id: t.id, type: t.type, color: def.color, label: def.label };
+    }),
+    [toys],
+  );
 
   // Timer
   useState(() => {
@@ -147,26 +168,30 @@ function LevelRenderer({
     }
   });
 
-  const handleAssignToy = useCallback((toyId: string) => {
+  const handleAssign = useCallback((toyId: string, group: number) => {
     if (groups[toyId] !== undefined) return; // Already sorted
-    setGroups((prev) => ({ ...prev, [toyId]: activeGroup }));
+    setGroups((prev) => ({ ...prev, [toyId]: group }));
     setSortedCount((c) => c + 1);
 
     // Check if grouping is reasonable (simplified scoring)
     const toy = toys.find((t) => t.id === toyId);
     if (toy) {
       const sameTypeInGroup = toys.filter(
-        (t) => t.type === toy.type && groups[t.id] === activeGroup
+        (t) => t.type === toy.type && groups[t.id] === group
       ).length;
-      const isGoodGrouping = sameTypeInGroup > 0 || activeGroup < data.maxGroups;
+      const isGoodGrouping = sameTypeInGroup > 0 || group < data.maxGroups;
 
       if (isGoodGrouping) {
-        setScore((s) => s + 10 + combo);
+        const gained = 10 + combo;
+        const nextScore = score + gained;
+        setScore(nextScore);
         setCombo((c) => c + 1);
         setFeedback({
           type: 'correct',
-          message: combo > 2 ? `${combo}x combo! +${10 + combo} pts` : `+${10 + combo} pts`,
+          message: combo > 2 ? `${combo}x combo! +${gained} pts` : `+${gained} pts`,
         });
+        // Drive the shared GameJuiceEngine (combo flames, Sparky, milestones).
+        juice.onCorrect(sortedCount + 1, nextScore);
       } else {
         setScore((s) => s + 5);
         setCombo(0);
@@ -177,7 +202,7 @@ function LevelRenderer({
         });
       }
     }
-  }, [activeGroup, groups, toys, combo, data.maxGroups]);
+  }, [groups, toys, combo, score, sortedCount, data.maxGroups, juice]);
 
   const handleReveal = useCallback(() => {
     setPhase('reveal');
@@ -252,9 +277,6 @@ function LevelRenderer({
 
   // ═══ SORT PHASE ═══
   if (phase === 'sort') {
-    const unsorted = toys.filter((t) => groups[t.id] === undefined);
-    const sorted = toys.filter((t) => groups[t.id] !== undefined);
-
     return (
       <div className="relative space-y-4">
         <div className="relative z-10 space-y-4">
@@ -266,63 +288,15 @@ function LevelRenderer({
           <ScoreDisplay score={score} maxScore={maxScore} />
           <ComboCounter combo={combo} />
 
-          {/* Group selector tabs */}
-          <div className="flex gap-2 flex-wrap">
-            {Array.from({ length: data.maxGroups }).map((_, i) => (
-              <button
-                key={i}
-                onClick={() => setActiveGroup(i)}
-                className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all
-                  focus-visible:outline-none focus-visible:ring-2`}
-                style={{
-                  background: activeGroup === i ? `${labColor}20` : '#F0F1F8',
-                  color: activeGroup === i ? labColor : '#8C94AC',
-                  border: `2px solid ${activeGroup === i ? labColor : 'transparent'}`,
-                  ['--tw-ring-color' as string]: labColor,
-                }}
-              >
-                Group {i + 1}
-                <span className="ml-1 opacity-60">
-                  ({toys.filter((t) => groups[t.id] === i).length})
-                </span>
-              </button>
-            ))}
-          </div>
-
-          {/* Unsorted toys */}
-          <div>
-            <p className="text-xs font-semibold mb-2" style={{ color: '#8C94AC' }}>
-              {unsorted.length} toys to sort (click to add to Group {activeGroup + 1})
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {unsorted.map((toy) => (
-                <motion.div key={toy.id} layout>
-                  <ToyItem toyKey={toy.type} size="md" glowing onClick={() => handleAssignToy(toy.id)} />
-                </motion.div>
-              ))}
-            </div>
-          </div>
-
-          {/* Sorted toys by group */}
-          {sorted.length > 0 && (
-            <div className="space-y-2">
-              <p className="text-xs font-semibold" style={{ color: '#8C94AC' }}>Sorted</p>
-              {Array.from({ length: data.maxGroups }).map((_, gi) => {
-                const groupToys = sorted.filter((t) => groups[t.id] === gi);
-                if (groupToys.length === 0) return null;
-                return (
-                  <div key={gi} className="flex items-center gap-2 flex-wrap">
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded" style={{ background: `${labColor}15`, color: labColor }}>
-                      G{gi + 1}
-                    </span>
-                    {groupToys.map((t) => (
-                      <ToyItem key={t.id} toyKey={t.type} size="sm" />
-                    ))}
-                  </div>
-                );
-              })}
-            </div>
-          )}
+          {/* Pixi sort scene — drag toys into group bins (Phase B). */}
+          <PixiSortStage
+            toys={pixiToys}
+            groupCount={data.maxGroups}
+            assignments={groups}
+            onAssign={handleAssign}
+            labColor={labColor}
+            reducedMotion={!!prefersReducedMotion}
+          />
 
           {feedback && <FeedbackPopup {...feedback} />}
 

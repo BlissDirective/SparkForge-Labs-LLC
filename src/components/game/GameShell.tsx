@@ -37,6 +37,7 @@ import { useGameSounds } from '@/hooks/useGameSounds';
 import { XPPopupProvider } from '@/components/game/XPPopup';
 import { GameErrorBoundary } from '@/components/game/GameErrorBoundary';
 import { JuiceProvider } from '@/components/juice/JuiceProvider';
+import { publishGameSnapshot, clearGameSnapshot } from '@/lib/dev/gameInspector';
 
 interface GameShellProps {
   title: string;
@@ -164,6 +165,22 @@ export function GameShell({
   }, [gameId]);
 
   const safeGameId = gameId ?? title.toLowerCase().replace(/\s+/g, '-');
+
+  // Dev-only inspector hook (Fable Phase A item 3 / §2.3): mirror shell
+  // state onto window.__SPARKFORGE_GAME__ so the Playwright loop can assert
+  // game state textually while judging canvas visuals from screenshots.
+  useEffect(() => {
+    publishGameSnapshot({
+      gameId: safeGameId,
+      title,
+      labNumber,
+      score,
+      currentRound,
+      isComplete,
+    });
+  }, [safeGameId, title, labNumber, score, currentRound, isComplete]);
+
+  useEffect(() => () => clearGameSnapshot(), []);
 
   return (
     <XPPopupProvider>
