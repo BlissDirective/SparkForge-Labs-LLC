@@ -7,6 +7,7 @@
 'use client';
 
 import { createContext, useContext, useState, useCallback, useRef } from 'react';
+import dynamic from 'next/dynamic';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { JuiceState, JuiceEvent } from '@/lib/juice/GameJuiceEngine';
 import {
@@ -25,6 +26,10 @@ import {
 import type { ComboTier } from '@/lib/juice/GameJuiceEngine';
 import { SparkyCore } from '@/components/sparky/SparkyCore';
 import { Sparkles } from 'lucide-react';
+
+// Reactive Rive mascot (client-only WASM). Renders a procedural placeholder
+// until public/rive/sparky.riv is authored + dropped in.
+const SparkyMascot = dynamic(() => import('@/components/sparky/SparkyRive'), { ssr: false });
 
 // ─── Types ───
 
@@ -81,10 +86,16 @@ export function JuiceProvider({ children }: { children: React.ReactNode }) {
   const [milestones, setMilestones] = useState<MilestonePopupItem[]>([]);
   const [sparkyReaction, setSparkyReaction] = useState<SparkyReactionItem | null>(null);
   const [shakeIntensity, setShakeIntensity] = useState(0);
+  // Monotonic trigger counters for the Rive mascot — each increment fires
+  // the matching state-machine trigger once.
+  const [celebrate, setCelebrate] = useState(0);
+  const [encourage, setEncourage] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
   const sparkyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const comboTier = getComboTier(juiceState.combo);
+  // 0 idle · 1 building · 2 hot · 3 on-fire — mapped to the Rive comboTier input.
+  const comboTierNum = juiceState.combo >= 12 ? 3 : juiceState.combo >= 5 ? 2 : juiceState.combo >= 1 ? 1 : 0;
 
   const spawnFloatingText = useCallback((text: string, color: string, size: 'sm' | 'md' | 'lg', x?: number, y?: number) => {
     const id = `ft-${Date.now()}-${Math.random().toString(36).slice(2, 5)}`;
@@ -134,6 +145,7 @@ export function JuiceProvider({ children }: { children: React.ReactNode }) {
           const mid = `ms-${Date.now()}`;
           setMilestones(p => [...p, { id: mid, title: ms.title, message: ms.message, emoji: ms.emoji, color: ms.color }]);
           setTimeout(() => setMilestones(p => p.filter(m => m.id !== mid)), 2500);
+          setCelebrate(n => n + 1); // fire mascot celebrate trigger
         }
       }
 
@@ -142,6 +154,7 @@ export function JuiceProvider({ children }: { children: React.ReactNode }) {
   }, [spawnFloatingText, showSparky, triggerShake]);
 
   const onWrong = useCallback((round: number, score: number, x?: number, y?: number) => {
+    setEncourage(n => n + 1); // fire mascot encourage-after-miss trigger
     setJuiceState(prev => {
       const { state, events } = recordWrong(prev, round, score);
 
@@ -217,6 +230,15 @@ export function JuiceProvider({ children }: { children: React.ReactNode }) {
             />
           )}
         </AnimatePresence>
+
+        {/* Persistent reactive mascot (Rive + procedural fallback) */}
+        <div className="absolute bottom-3 left-3 z-[55] pointer-events-none">
+          <SparkyMascot
+            comboTier={comboTierNum}
+            celebrate={celebrate}
+            encourage={encourage}
+          />
+        </div>
       </div>
     </JuiceContext.Provider>
   );
