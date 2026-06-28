@@ -54,9 +54,10 @@ const GAMES: { slug: string; archetype: 'SORT' | 'REVEAL' | 'CONNECT' | 'REACT' 
   { slug: 'treat-trainer', archetype: 'PHASER' },
 ];
 
-// Click a button by accessible name, with a short bounded timeout so a missed
-// match never blocks for the whole test budget.
-async function clickByName(page: Page, name: RegExp, timeout = 4000): Promise<boolean> {
+// Click a button by accessible name. The dev-preview shell takes ~13s to
+// hydrate and the game chunk loads after that, so the click auto-waits
+// generously for the target to appear and become actionable.
+async function clickByName(page: Page, name: RegExp, timeout = 40_000): Promise<boolean> {
   try {
     await page.getByRole('button', { name }).first().click({ timeout });
     return true;

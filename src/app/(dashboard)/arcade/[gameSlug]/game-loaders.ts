@@ -15,10 +15,17 @@ import type { ComponentType } from 'react';
 
 export type GameLoaderFn = () => Promise<{ default: ComponentType }>;
 
-/** Normalize `{ default }` vs `{ Name }` modules to `{ default }`. */
+/**
+ * Normalize `{ default }` vs `{ Name }` modules to `{ default }`. Falls back to
+ * the default export when the requested named export is absent — several game
+ * files are `export default function Foo()` while their loader entry still asks
+ * for the named `Foo`, which would otherwise resolve to `undefined` and throw
+ * React error #306 ("element type is invalid"). The fallback makes the loader
+ * tolerant of both export styles.
+ */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- component props vary per game
 const def = (mod: Record<string, any>, named?: string): { default: ComponentType } => ({
-  default: named ? mod[named] : mod.default,
+  default: (named && mod[named]) ? mod[named] : mod.default,
 });
 
 export const GAME_LOADERS: Record<string, GameLoaderFn> = {
