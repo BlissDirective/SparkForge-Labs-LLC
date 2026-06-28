@@ -76,8 +76,8 @@ uses a GameMechanicKit piece.
 | Game | Tier | Current | → Archetype | Key enhancement |
 |------|------|---------|-------------|-----------------|
 | AI Spy | standard | **DONE (REVEAL)** ✅ | **REVEAL** ✅ | Wave-1 proof. Object tiles shown; tap the ones using AI → signal-pulse + why-card. Hunt replaces the tap-quiz. |
-| Time Machine | standard | QUIZ | **SORT** | Era "lanes" as bins; drag each milestone onto its decade. Animated era backdrop shifts as lanes fill. |
-| Human vs Machine | standard | LEVELS | **SORT** | Two bins (Human / Machine) with a live tug-of-war meter between them; correct drops pull the rope. |
+| Time Machine | standard | **DONE (SORT)** ✅ | **SORT** | Wave-6 proof. Sort AI milestones into Early / Recent / Today era bins. |
+| Human vs Machine | standard | **DONE (SORT)** ✅ | **SORT** | Wave-6 proof. Two bins (Humans win / Machines win); sort tasks by who does them better. |
 | Pocket Brain | flagship | LEVELS · 3D | **R3F** (REVEAL fallback) | Keep the in-browser WebGPU LLM. Add a Pixi token-stream overlay so kids *see* tokens generate; mobile fallback = reveal "what the tiny brain knows" tiles. |
 
 ### Lab 2 — Teaching Machines · `#B67BFF` Purple
@@ -95,7 +95,7 @@ uses a GameMechanicKit piece.
 |------|------|---------|-------------|-----------------|
 | Neural Builder | flagship | LEVELS · 3D | **R3F** (CONNECT fallback) | Keep 3D net. CONNECT is the exact 2D/mobile archetype: wire neurons across layers; pulse data along edges on "run". |
 | Neuron Relay | standard | **DONE (CONNECT)** ✅ | **CONNECT** ✅ | Wave-1 proof. Wire input→hidden→output; correct wires light green, dead-ends red. Pulse-race-on-run = follow-up enhancement. |
-| Pixel Investigator | standard | QUIZ | **REVEAL** | Progressive de-pixelation: each correct tap sharpens a region until the image (and how CV "sees" it) resolves. |
+| Pixel Investigator | standard | **DONE (REVEAL)** ✅ | **REVEAL** | Wave-6 proof. Inspect a CV scene; tap to reveal which features the detector confirms vs false alarms. |
 
 ### Lab 4 — AI That Creates · `#D9A430` Amber
 
@@ -112,7 +112,7 @@ uses a GameMechanicKit piece.
 |------|------|---------|-------------|-----------------|
 | Agent Architect | flagship | 3D | **R3F** (CONNECT fallback) | Keep 3D pipeline. CONNECT is the exact 2D archetype: wire perception → reasoning → action modules. |
 | Robot Vacuum | fl-lite | LEVELS · 3D | **REVEAL** (or Phaser grid) | Tap/clean dirt tiles on a room grid; show the planned path. Phaser-4 if true pathfinding is wanted. |
-| Tool Picker | standard | QUIZ | **SORT** | Drag each real-world problem onto the right AI-tool bin; tool tray with icons. |
+| Tool Picker | standard | **DONE (SORT)** ✅ | **SORT** | Wave-6 proof. Sort each problem onto the right AI tool: Vision / Language / Prediction / Recommendation. |
 
 ### Lab 6 — AI & Ethics · `#FF7050` Red-Orange
 
@@ -137,26 +137,26 @@ uses a GameMechanicKit piece.
 
 | Game | Tier | Current | → Archetype | Key enhancement |
 |------|------|---------|-------------|-----------------|
-| Sentiment Scanner | standard | LEVELS | **SORT** | Drag messages into emotion bins (happy/sad/angry/neutral); an emotion-gradient meter colours the scene. |
-| Chatbot Builder | fl-lite | LEVELS · 3D | **CONNECT** | Exact fit: wire dialogue nodes + response branches, then "test-run" a conversation that lights the path taken. |
-| Lost in Translation | standard | LEVELS | **CONNECT** | Wire a translation relay (telephone chain); a meaning-drift meter shows how much was lost each hop. |
-| Emoji Decoder | fl-lite | QUIZ · 3D | **SORT** | Drag emoji-token tiles into sentence order / onto word mappings; decode reveal animates the sentence. |
+| Sentiment Scanner | standard | **DONE (SORT)** ✅ | **SORT** | Wave-5 proof. Sort messages into Happy / Sad / Angry / Neutral emotion bins. |
+| Chatbot Builder | fl-lite | **DONE (CONNECT)** ✅ | **CONNECT** | Wave-5 proof. Wire User Input → Intent → Response → Reply; correct path lights green, dead ends red. |
+| Lost in Translation | standard | **DONE (CONNECT)** ✅ | **CONNECT** | Wave-5 proof. Wire a translation relay through faithful pivots; meaning-drift decoys glow red. |
+| Emoji Decoder | fl-lite | **DONE (SORT)** ✅ | **SORT** | Wave-5 proof. Sort emoji text-names (no glyphs, per Ui-Creation.md) into Positive / Negative / Action / Object meaning bins. |
 | Context Architect | flagship | QUIZ · 3D (+CONNECT bonus) | **R3F** (SORT fallback) | Keep the 3D shelf. SORT models it: drag cards onto/off the shelf within a token-budget meter (Context Rot). |
 
 ### Lab 9 — Build Your AI · `#E68E28` Orange
 
 | Game | Tier | Current | → Archetype | Key enhancement |
 |------|------|---------|-------------|-----------------|
-| Code Blocks | fl-lite | LEVELS · 3D | **CONNECT** | Snap/wire blocks into a program graph (uses `validateCodeSequence`); a run animation steps execution. |
-| Career Explorer | standard | LEVELS | **CONNECT** | Match skill ↔ career pairs by drawing links; reveal a career profile card on a correct match. |
+| Code Blocks | fl-lite | **DONE (CONNECT)** ✅ | **CONNECT** | Wave-6 proof. Wire program blocks Start → step → step → End in execution order; decoys are out-of-order. |
+| Career Explorer | standard | **DONE (CONNECT)** ✅ | **CONNECT** | Wave-6 proof. Bipartite matching: draw a link from each skill to its AI career. |
 | API Explorer | standard | 3D | **CUSTOM** | Real request/response console (band C). Keep DOM; add a Pixi packet animation flying request → API → response. |
-| My First AI App | fl-lite | LEVELS · 3D | **CONNECT** | Wire UI components → AI service → output; live mockup preview updates as the graph completes. |
+| My First AI App | fl-lite | **DONE (CONNECT)** ✅ | **CONNECT** | Wave-6 proof. Wire User Input → AI Service → Output; decoys are wrong/offline services. |
 
 ### Lab 10 — AI Futures · `#DE5AEA` Fuchsia
 
 | Game | Tier | Current | → Archetype | Key enhancement |
 |------|------|---------|-------------|-----------------|
-| Future Forge | fl-lite | LEVELS · 3D | **CONNECT** | Assemble invention modules into a blueprint graph; an impact-simulation gauge scores society effects. |
+| Future Forge | fl-lite | **DONE (CONNECT)** ✅ | **CONNECT** | Wave-6 proof. Assemble invention modules into the correct blueprint chain; decoy modules are dead ends. |
 | AI or Not? | fl-lite | **DONE (REACT)** ✅ | **REACT** ✅ | Wave-1 proof. Timed drill: tap AI "tells" before they vanish; streak/combo builds. Per-level media tells taught as a learn card. |
 
 ### Lab 11 — Agentic AI · `#6FFFE6` Mint-Cyan (all flagship 3D)
@@ -206,13 +206,13 @@ and to front-load the flattest quiz games (biggest delight delta).
    Token Chopper (SORT), AI Art Detective (SORT). ReactionArena extended with a
    labeled "card" mode (word + probability bar) for Word Predictor; both SORT
    games reuse `PixiBinSortStage`. Build green; HS-5 visual pass pending.
-4. **Wave 4 — Lab 7 (Vision):** Camera Quest, Fool the AI, Build Classifier,
-   Prediction Market.
-5. **Wave 5 — Lab 8 (Language):** Sentiment Scanner, Emoji Decoder, Chatbot
-   Builder, Lost in Translation.
-6. **Wave 6 — Labs 1/3/5/9 remainders:** Time Machine, Human vs Machine,
-   Pixel Investigator, Tool Picker, Neuron Relay finish, Code Blocks, Career
-   Explorer, My First AI App, Future Forge.
+4. **Wave 4 — Lab 7 (Vision): ✅ DONE (2026-06-28)** Camera Quest, Fool the AI,
+   Build Classifier, Prediction Market.
+5. **Wave 5 — Lab 8 (Language): ✅ DONE (2026-06-28)** Sentiment Scanner, Emoji
+   Decoder, Chatbot Builder, Lost in Translation.
+6. **Wave 6 — Labs 1/3/5/9 remainders: ✅ DONE (2026-06-28)** Time Machine, Human
+   vs Machine, Pixel Investigator, Tool Picker, Neuron Relay (Wave 1), Code
+   Blocks, Career Explorer, My First AI App, Future Forge.
 7. **Wave 7 — Treat Trainer (Phaser-4 maze)** — the single Phaser case.
 8. **Phase D — flagships:** wire each flagship's archetype as its mobile/2D
    fallback while the R3F scene gets Blender-MCP asset upgrades. Lab 11 last

@@ -1,8 +1,60 @@
 # SparkForge Build Progress
 
-## Current Phase: Game Migration (Fable Frontend Enhancement) — Wave 3 COMPLETE
-## Status: Waves 1–3 shipped — 8 games migrated across all 4 archetypes; awaiting HS-5 visual checkpoint
+## Current Phase: Game Migration (Fable Frontend Enhancement) — Waves 4–6 COMPLETE
+## Status: Waves 1–6 shipped — 24 games migrated; only Treat Trainer (Phaser, Wave 7) remains before HS-5 + re-skin
 ## Last Updated: 2026-06-28
+
+### Game Migration — Waves 4–6 (2026-06-28)
+
+Per `Game-Migration-Map.md` §5 rollout steps 4–6. 16 games migrated in one push
+(15 templatable games via parallel subagents using the established reference
+files + wrappers; Build Classifier rebuilt by the main agent). No new wrappers
+or scene code were needed — every game reuses the Wave-1–3 archetype library.
+
+**Wave 4 — Lab 7 (Vision):**
+| Archetype | Game | Mechanic |
+|-----------|------|----------|
+| REVEAL | Camera Quest | scan a scene, capture the target-class objects |
+| SORT | Fool the AI | Fools-the-AI / AI-still-sees-it + confidence meter |
+| SORT | Build Classifier | drag labelled examples into per-level class bins + accuracy meter (clean rebuild of the 836-line pipeline) |
+| SORT | Prediction Market | Likely / Uncertain / Unlikely |
+
+**Wave 5 — Lab 8 (Language):**
+| Archetype | Game | Mechanic |
+|-----------|------|----------|
+| SORT | Sentiment Scanner | Happy / Sad / Angry / Neutral |
+| SORT | Emoji Decoder | emoji text-names → Positive / Negative / Action / Object (no glyphs) |
+| CONNECT | Chatbot Builder | wire Input → Intent → Response → Reply |
+| CONNECT | Lost in Translation | wire a faithful translation relay |
+
+**Wave 6 — Labs 1/2/5/7/9/10 remainders:**
+| Archetype | Game | Mechanic |
+|-----------|------|----------|
+| SORT | Time Machine | Early / Recent / Today era bins |
+| SORT | Human vs Machine | Humans win / Machines win |
+| REVEAL | Pixel Investigator | inspect CV scene, confirm detected features |
+| SORT | Tool Picker | Vision / Language / Prediction / Recommendation |
+| CONNECT | Code Blocks | wire program blocks in execution order |
+| CONNECT | Career Explorer | bipartite skill ↔ career matching |
+| CONNECT | My First AI App | wire Input → AI Service → Output |
+| CONNECT | Future Forge | wire invention-module blueprint chains |
+
+**Validation:** `tsc` 0 src errors across all 16 · `next lint` clean on all 16
+(incl. the no-emoji guard for Emoji Decoder) · `npm run build` EXIT=0 (143
+static pages). All keep GameShell/GameLevelSystem/lazy-loader/Zustand, fire
+GameJuiceEngine via useJuice, ship keyboard/AT fallbacks, publish scene state to
+window.__SPARKFORGE_GAME__. Existing per-game accents retained (canonical re-skin
+queued as a final pass).
+
+### Discrepancies Log (Waves 4–6)
+
+| Issue | Fix | Status |
+|---|---|---|
+| Build Classifier was an 836-line custom Collect→Train→Test game using useGame()/gameId | Clean SORT rebuild on GameLevelSystem + useGameActions + PixiBinSortStage with per-level class sets + accuracy meter | ✅ |
+| Emoji Decoder is inherently emoji-themed but a no-emoji guard exists | Chips show emoji TEXT-NAMES (e.g. "crying face"), not glyphs; lint passes | ✅ |
+| Several games' registry lab differs from their GameShell labNum/color | Left GameShell as-is; canonical re-skin is the final queued pass | noted |
+
+
 
 ### Game Migration — Wave 3: Lab 4 (AI That Creates) quiz sweep (2026-06-28)
 

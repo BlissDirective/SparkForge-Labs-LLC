@@ -1,89 +1,241 @@
 // ════════════════════════════════════════════════════════════════════════
-// AI TIME MACHINE v3 — Lab 1 — Redesigned
+// AI TIME MACHINE v4 — Lab 1 — SORT archetype (era-SORT)
 // ════════════════════════════════════════════════════════════════════════
-// Travel through time to see how AI evolved. Quiz format.
-// 10 levels covering AI history from 1950s to 2030s.
+// Was an AI-history quiz. Now you SORT the timeline: drag each AI milestone
+// onto the era it belongs to — Early (pre-2000), Recent (2000-2020), or
+// Today (2020+). On a correct call the why-card reveals the date and context.
+// Pixi SORT scene (three bins) inside GameShell.
+//
+// Teaches: the timeline of AI — when the milestones that built modern AI happened.
 
 'use client';
-import { useCallback } from 'react';
+
+import { useState, useCallback, useMemo } from 'react';
+import dynamic from 'next/dynamic';
+import { useReducedMotion } from 'motion/react';
+import {
+  ChevronRight, Clock, GraduationCap, Target, RotateCcw, Sparkles,
+} from 'lucide-react';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameActions } from '@/stores/gameStore';
-import GameLevelSystem, { type LevelResult } from '@/components/games/shared/GameLevelSystem';
-import QuizLevelRenderer, { type QuizQuestion } from '@/components/games/shared/QuizLevelRenderer';
+import { useJuice } from '@/components/juice/JuiceProvider';
+import { SFCard } from '@/components/ui/SFCard';
+import { SFButton } from '@/components/ui/SFButton';
+import GameLevelSystem, {
+  type LevelConfig, type LevelResult,
+} from '@/components/games/shared/GameLevelSystem';
+import {
+  GlowingTitle, ScoreDisplay, ComboCounter, FeedbackPopup,
+} from '@/components/games/shared/GameVisualKit';
+import type { BinSortItem } from '@/components/games/pixi/PixiBinSortStage';
 
-const LEVELS = [
-  { id: 1, name: '1950s Dreams', description: 'The birth of AI thinking.', emoji: '🕰️', difficulty: 'easy' as const, starThresholds: [60,80,95], xpReward: 50 },
-  { id: 2, name: '1960s-70s Winter', description: 'AI winter and expert systems.', emoji: '❄️', difficulty: 'easy' as const, starThresholds: [60,80,95], xpReward: 60 },
-  { id: 3, name: '1980s Expert Era', description: 'Computers that know one thing well.', emoji: '🧠', difficulty: 'easy' as const, starThresholds: [60,80,95], xpReward: 70 },
-  { id: 4, name: '1990s Internet', description: 'AI meets the World Wide Web.', emoji: '🌐', difficulty: 'medium' as const, starThresholds: [60,80,90], xpReward: 80 },
-  { id: 5, name: '2000s Big Data', description: 'More data = smarter AI.', emoji: '📊', difficulty: 'medium' as const, starThresholds: [60,80,90], xpReward: 90 },
-  { id: 6, name: '2010s Deep Learning', description: 'Neural networks revolutionize AI.', emoji: '🧬', difficulty: 'medium' as const, starThresholds: [50,75,90], xpReward: 100 },
-  { id: 7, name: '2020s AI Everywhere', description: 'AI in your pocket, home, and car.', emoji: '📱', difficulty: 'hard' as const, starThresholds: [50,75,85], xpReward: 120 },
-  { id: 8, name: '2025 Agents', description: 'AI agents that act on their own.', emoji: '🤖', difficulty: 'hard' as const, starThresholds: [50,75,85], xpReward: 130 },
-  { id: 9, name: '2030s Futures', description: 'What might AI become?', emoji: '🔮', difficulty: 'expert' as const, starThresholds: [50,70,85], xpReward: 150 },
-  { id: 10, name: 'Time Lord', description: 'Master of AI history!', emoji: '👑', difficulty: 'expert' as const, starThresholds: [50,70,85], xpReward: 200, isBonus: true },
+// Pixi is client-only (WebGL/WebGPU) — never SSR it.
+const PixiBinSortStage = dynamic(() => import('@/components/games/pixi/PixiBinSortStage'), {
+  ssr: false,
+  loading: () => (
+    <div className="h-[420px] w-full animate-pulse rounded-2xl" style={{ background: '#0E1428' }} />
+  ),
+});
+
+const LAB_COLOR = '#4F6EF7';
+const BINS = ['Early (pre-2000)', 'Recent (2000-2020)', 'Today (2020+)']; // bin index 0 / 1 / 2
+const CHIP_PALETTE = ['#4F6EF7', '#2ECC71', '#F59E0B', '#10BAD2', '#8F96FA', '#FF7050'];
+
+const LEVELS: LevelConfig[] = [
+  { id: 1, name: '1950s Dreams', description: 'Where the AI timeline begins.', emoji: '🕰️', difficulty: 'easy', starThresholds: [40, 60, 80], xpReward: 50 },
+  { id: 2, name: 'Early Foundations', description: 'The first thinking machines.', emoji: '❄️', difficulty: 'easy', starThresholds: [40, 60, 80], xpReward: 60 },
+  { id: 3, name: 'Expert Era', description: 'Rules, chess, and chatbots.', emoji: '🧠', difficulty: 'easy', starThresholds: [40, 60, 80], xpReward: 70 },
+  { id: 4, name: 'Web Meets AI', description: 'Data and the internet age.', emoji: '🌐', difficulty: 'medium', starThresholds: [40, 60, 80], xpReward: 80 },
+  { id: 5, name: 'Big Data', description: 'More data, smarter models.', emoji: '📊', difficulty: 'medium', starThresholds: [40, 60, 80], xpReward: 90 },
+  { id: 6, name: 'Deep Learning', description: 'Neural nets change everything.', emoji: '🧬', difficulty: 'medium', starThresholds: [40, 60, 80], xpReward: 100 },
+  { id: 7, name: 'AI Everywhere', description: 'AI in your pocket and home.', emoji: '📱', difficulty: 'hard', starThresholds: [40, 60, 80], xpReward: 120 },
+  { id: 8, name: 'Generative Age', description: 'Models that create.', emoji: '🤖', difficulty: 'hard', starThresholds: [40, 60, 80], xpReward: 130 },
+  { id: 9, name: 'Agents & Beyond', description: 'AI that acts on its own.', emoji: '🔮', difficulty: 'expert', starThresholds: [40, 60, 80], xpReward: 150 },
+  { id: 10, name: 'Time Lord', description: 'Master the whole timeline!', emoji: '👑', difficulty: 'expert', starThresholds: [40, 60, 80], xpReward: 200, isBonus: true },
 ];
 
-function getQuestions(levelId: number): QuizQuestion[] {
-  const q: Record<number, QuizQuestion[]> = {
-    1: [
-      { question: "In 1950, Alan Turing proposed a test for machine intelligence. What is it called?", options: ["The Turing Test","The Intelligence Exam","The Robot Challenge","The Logic Test"], correctIndex: 0, explanation: "The Turing Test asks: Can a machine's responses fool a human into thinking it's also human?", band: 'A' },
-      { question: "In 1956, the term 'Artificial Intelligence' was coined at a conference. Where?", options: ["Dartmouth College","MIT","Stanford","Harvard"], correctIndex: 0, explanation: "The Dartmouth Summer Research Project (1956) is considered the birth of AI as a field.", band: 'A' },
-      { question: "Early AI researchers believed machines could think like humans by the year...", options: ["1970","2000","1980","They never guessed"], correctIndex: 0, explanation: "They were very optimistic! They thought general AI was just decades away. It took much longer.", band: 'A' },
-      { question: "What was the first AI program to play chess called?", options: ["Deep Blue","AlphaZero","Mac Hack","ChessMaster"], correctIndex: 2, explanation: "Mac Hack (1966) was one of the first chess programs, created at MIT.", band: 'B' },
-    ],
-    2: [
-      { question: "The 'AI Winter' of the 1970s happened because...", options: ["Funding dried up after over-promising","Computers were too slow","Nobody was interested","AI was banned"], correctIndex: 0, explanation: "Over-optimistic predictions led to disappointment. Governments cut funding when results didn't match hype.", band: 'B' },
-      { question: "Expert systems of the 1970s were designed to...", options: ["Mimic human experts in narrow domains","Play games","Draw pictures","Control robots"], correctIndex: 0, explanation: "Expert systems encoded the knowledge of human specialists (doctors, engineers) into if-then rules.", band: 'B' },
-      { question: "MYCIN was a famous expert system that could...", options: ["Diagnose blood infections","Play chess","Translate languages","Drive a car"], correctIndex: 0, explanation: "MYCIN (1976) diagnosed bacterial infections and recommended antibiotics — often better than doctors!", band: 'C' },
-    ],
-    3: [
-      { question: "ELIZA (1966) was an early chatbot that pretended to be a...", options: ["Psychotherapist","Teacher","Chef","Astronaut"], correctIndex: 0, explanation: "ELIZA used pattern matching to respond like a Rogerian psychotherapist. Very simple, but surprisingly convincing!", band: 'A' },
-      { question: "Expert systems used 'knowledge bases' which were basically...", options: ["Collections of if-then rules","Neural networks","Random guesses","Photo albums"], correctIndex: 0, explanation: "They encoded human expertise as IF-THEN rules. e.g., IF fever AND rash THEN possible measles.", band: 'B' },
-    ],
-    4: [
-      { question: "The World Wide Web launched in 1991. How did it help AI?", options: ["Provided massive data for training","Made computers faster","Invented neural networks","Created the first AI"], correctIndex: 0, explanation: "The web created enormous datasets. More data = better AI training. This was crucial for ML progress.", band: 'B' },
-      { question: "In 1997, Deep Blue beat the world chess champion. Who?", options: ["Garry Kasparov","Bobby Fischer","Magnus Carlsen","Anatoly Karpov"], correctIndex: 0, explanation: "Deep Blue defeated Garry Kasparov in 1997, a historic moment showing AI could beat humans at complex games.", band: 'A' },
-      { question: "PageRank (1998) used AI to...", options: ["Rank web pages by importance","Translate web pages","Create web pages","Delete web pages"], correctIndex: 0, explanation: "PageRank treated links as votes. It became the foundation of Google's search algorithm.", band: 'C' },
-    ],
-    5: [
-      { question: "'Big Data' in the 2000s meant AI could finally...", options: ["Learn from millions of examples","Think like humans","Build robots","Write novels"], correctIndex: 0, explanation: "Before big data, AI couldn't train on enough examples. More data meant dramatically better performance.", band: 'B' },
-      { question: "Netflix's recommendation algorithm (launched 2006) used AI to...", options: ["Suggest movies you'd like","Edit movies","Create movies","Delete movies"], correctIndex: 0, explanation: "Netflix used collaborative filtering (an AI technique) to recommend shows based on similar users' preferences.", band: 'A' },
-      { question: "Siri was released in 2011 as an early...", options: ["Voice assistant","Robot","Car","Video game"], correctIndex: 0, explanation: "Siri (2011) brought voice-controlled AI assistants to mainstream smartphones.", band: 'A' },
-    ],
-    6: [
-      { question: "In 2012, AlexNet revolutionized AI by winning a computer vision contest. Its secret?", options: ["Deep neural networks + GPUs","Better cameras","More programmers","Quantum computing"], correctIndex: 0, explanation: "AlexNet showed that deep neural networks trained on GPUs could achieve superhuman image recognition.", band: 'C' },
-      { question: "'Deep Learning' means neural networks with...", options: ["Many hidden layers","Just 2 layers","No layers at all","Only input and output"], correctIndex: 0, explanation: "'Deep' refers to having many layers. Each layer learns increasingly complex features.", band: 'B' },
-      { question: "In 2016, AlphaGo beat the world champion at Go. Why was this harder than chess?", options: ["Go has more possible moves than atoms in the universe","Chess is actually harder","Go has simpler rules","Computers can't play Go"], correctIndex: 0, explanation: "Go has 10^170 possible positions (vs 10^44 for chess). Brute force is impossible — AlphaGo used deep learning + tree search.", band: 'C' },
-    ],
-    7: [
-      { question: "GPT-3 (2020) could generate human-like text. How?", options: ["Trained on 175 billion parameters","Magic","Had a human inside","Used quantum physics"], correctIndex: 0, explanation: "GPT-3 was a transformer model with 175B parameters trained on internet text. It learned patterns of language.", band: 'C' },
-      { question: "DALL-E (2021) could create images from...", options: ["Text descriptions","Hand drawings","Voice commands","Video clips"], correctIndex: 0, explanation: "DALL-E used a text encoder + image decoder to generate images from natural language prompts.", band: 'B' },
-      { question: "Tesla's self-driving cars use AI for...", options: ["Computer vision to see the road","Playing music","Talking to passengers","Painting the car"], correctIndex: 0, explanation: "Tesla's Autopilot uses neural networks to process camera feeds for lane detection, object recognition, and path planning.", band: 'B' },
-    ],
-    8: [
-      { question: "AI agents in 2025 can...", options: ["Plan and execute multi-step tasks autonomously","Only answer questions","Drive cars only","Play chess only"], correctIndex: 0, explanation: "AI agents combine planning, tool use, and reasoning to complete complex tasks with minimal human guidance.", band: 'C' },
-      { question: "MCP (Model Context Protocol) lets AI agents...", options: ["Connect to external tools and data","Think faster","Draw better","Speak louder"], correctIndex: 0, explanation: "MCP is a standard protocol that lets AI agents securely connect to databases, APIs, and external tools.", band: 'C' },
-      { question: "'Multimodal' AI can work with...", options: ["Text, images, audio, and video together","Only text","Only images","Only audio"], correctIndex: 0, explanation: "Multimodal AI processes multiple types of input simultaneously, like seeing an image and answering questions about it.", band: 'C' },
-    ],
-    9: [
-      { question: "By 2030, AI might help scientists...", options: ["Discover new medicines","Replace all jobs","Take over the world","Stop working"], correctIndex: 0, explanation: "AI drug discovery is already accelerating research. By 2030, it could help design personalized treatments.", band: 'C' },
-      { question: "'Artificial General Intelligence' (AGI) means AI that can...", options: ["Do any intellectual task a human can","Only play games","Only recognize images","Only drive cars"], correctIndex: 0, explanation: "AGI = human-level intelligence across all domains. It does not exist yet but is a major research goal.", band: 'C' },
-      { question: "The most likely AI risk experts worry about is...", options: ["Misuse by bad actors","AI becoming sentient","AI being too slow","AI making art"], correctIndex: 0, explanation: "Most AI safety researchers worry about misuse (deepfakes, bias, weapons) rather than sci-fi scenarios.", band: 'C' },
-    ],
-    10: [
-      { question: "What year is considered the 'birth of AI'?", options: ["1956","2000","1980","2020"], correctIndex: 0, explanation: "The 1956 Dartmouth Conference coined 'Artificial Intelligence' and launched the field.", band: 'A' },
-      { question: "What was the biggest breakthrough of the 2010s?", options: ["Deep learning on GPUs","The internet","Smartphones","Video games"], correctIndex: 0, explanation: "Deep learning + GPU computing enabled the AI revolution we see today.", band: 'B' },
-      { question: "What is the Turing Test designed to measure?", options: ["If a machine can think like a human","If a computer is fast","If a robot can walk","If AI can draw"], correctIndex: 0, explanation: "The Turing Test checks if a machine's behavior is indistinguishable from a human's.", band: 'A' },
-      { question: "What does the future of AI depend on most?", options: ["Responsible development and human oversight","More processing power alone","Bigger companies","Fewer regulations"], correctIndex: 0, explanation: "The future of AI depends on how wisely humans develop, regulate, and deploy it.", band: 'C' },
-    ],
-  };
+const CONCEPTS: Record<number, string> = {
+  1: 'AI has a long history. Sort each milestone onto the era when it happened.',
+  2: 'The earliest AI ideas — the Turing Test and the first programs — are all from before 2000.',
+  3: 'Expert systems, ELIZA, and Deep Blue all belong to the early, pre-2000 era of AI.',
+  4: 'The web and search ranking arrived in the 1990s — still the early era.',
+  5: 'Big data, recommendations, and voice assistants mark the 2000-2020 recent era.',
+  6: 'Deep learning broke through between 2012 and 2016 — squarely the recent era.',
+  7: 'Smartphones and self-driving research spread AI in the 2010s recent era.',
+  8: 'Generative models like GPT-3 and DALL-E launched in 2020+ — the today era.',
+  9: 'Autonomous agents and multimodal models are the newest, today-era milestones.',
+  10: 'Master test: place every milestone in its correct era across the whole timeline.',
+};
 
-  return q[levelId] || q[1];
+// ════════════════════════════════════════════════════════════════════════
+// MILESTONE BANK — an AI milestone + its era (bin) + why (date/context)
+// bin 0 = Early (pre-2000), bin 1 = Recent (2000-2020), bin 2 = Today (2020+)
+// Interleaved across eras so each level mixes all three.
+// ════════════════════════════════════════════════════════════════════════
+interface Milestone { id: string; label: string; bin: number; why: string; }
+
+const BANK: Milestone[] = [
+  { id: 'turing', label: 'Turing Test', bin: 0, why: 'Alan Turing proposed it in 1950 — long before 2000.' },
+  { id: 'netflix', label: 'Netflix recommender', bin: 1, why: 'Netflix\'s recommendation engine launched around 2006 — the recent era.' },
+  { id: 'gpt3', label: 'GPT-3', bin: 2, why: 'GPT-3 was released in 2020 — the today era of generative AI.' },
+  { id: 'dartmouth', label: 'Dartmouth conference', bin: 0, why: 'The term "AI" was coined at Dartmouth in 1956 — the founding moment.' },
+  { id: 'alexnet', label: 'AlexNet', bin: 1, why: 'AlexNet won the ImageNet contest in 2012 — the recent era.' },
+  { id: 'dalle', label: 'DALL-E image AI', bin: 2, why: 'DALL-E generated images from text starting in 2021 — the today era.' },
+  { id: 'eliza', label: 'ELIZA chatbot', bin: 0, why: 'ELIZA, an early chatbot, was built in 1966 — well before 2000.' },
+  { id: 'siri', label: 'Siri assistant', bin: 1, why: 'Siri brought voice AI to phones in 2011 — the recent era.' },
+  { id: 'agents', label: 'Autonomous agents', bin: 2, why: 'AI agents that plan and act became practical in the 2020s — today.' },
+  { id: 'deepblue', label: 'Deep Blue beats Kasparov', bin: 0, why: 'Deep Blue defeated the chess champion in 1997 — the early era.' },
+  { id: 'alphago', label: 'AlphaGo', bin: 1, why: 'AlphaGo beat a Go champion in 2016 — the recent era.' },
+  { id: 'mcp', label: 'Model Context Protocol', bin: 2, why: 'MCP, a tool-connection standard for agents, emerged in the 2020s — today.' },
+  { id: 'mycin', label: 'MYCIN expert system', bin: 0, why: 'MYCIN diagnosed infections in 1976 — a pre-2000 expert system.' },
+  { id: 'imagenet', label: 'ImageNet dataset', bin: 1, why: 'The ImageNet dataset was released in 2009 — the recent era.' },
+  { id: 'multimodal', label: 'Multimodal models', bin: 2, why: 'Models combining text, image and audio matured in the 2020s — today.' },
+  { id: 'pagerank', label: 'PageRank search', bin: 0, why: 'PageRank ranked web pages in 1998 — still the pre-2000 era.' },
+  { id: 'diffusion', label: 'Diffusion image models', bin: 2, why: 'Stable Diffusion and friends arrived in 2022 — the today era.' },
+  { id: 'gpu', label: 'GPU deep-learning boom', bin: 1, why: 'Training neural nets on GPUs took off in the 2010s — the recent era.' },
+];
+
+function getItems(levelId: number): Milestone[] {
+  const count = Math.min(8, 6 + Math.floor(levelId / 4)); // 6–8 items
+  const offset = ((levelId - 1) * 2) % BANK.length;
+  const out: Milestone[] = [];
+  for (let i = 0; i < count; i++) out.push(BANK[(offset + i) % BANK.length]);
+  const seen = new Set<string>();
+  return out.filter((it) => (seen.has(it.id) ? false : seen.add(it.id)));
 }
 
+// ════════════════════════════════════════════════════════════════════════
+// LEVEL RENDERER — the SORT board (Early / Recent / Today)
+// ════════════════════════════════════════════════════════════════════════
+function LevelRenderer({
+  level, onComplete, onExit,
+}: {
+  level: LevelConfig; onComplete: (r: LevelResult) => void; onExit: () => void;
+}) {
+  const juice = useJuice();
+  const prefersReducedMotion = useReducedMotion();
+  const [phase, setPhase] = useState<'welcome' | 'sort'>('welcome');
+  const items = useMemo(() => getItems(level.id), [level.id]);
+  const [assignments, setAssignments] = useState<Record<string, number | undefined>>({});
+  const [score, setScore] = useState(0);
+  const [combo, setCombo] = useState(0);
+  const [wrong, setWrong] = useState(0);
+  const [feedback, setFeedback] = useState<{ type: 'correct' | 'wrong' | 'info'; message: string; explanation?: string } | null>(null);
+
+  const maxScore = items.length * 10 + 20;
+  const sortedCount = items.filter((t) => assignments[t.id] !== undefined).length;
+  const allSorted = sortedCount >= items.length;
+
+  const sceneItems = useMemo<BinSortItem[]>(
+    () => items.map((it, i) => ({ id: it.id, label: it.label, name: it.label, color: CHIP_PALETTE[i % CHIP_PALETTE.length] })),
+    [items],
+  );
+
+  const finishLevel = useCallback((finalScore: number, finalWrong: number) => {
+    const accuracyBonus = Math.max(0, 20 - finalWrong * 5);
+    const total = finalScore + accuracyBonus;
+    const stars = (total >= level.starThresholds[2] ? 3
+      : total >= level.starThresholds[1] ? 2
+        : total >= level.starThresholds[0] ? 1 : 0) as 0 | 1 | 2 | 3;
+    setTimeout(() => {
+      onComplete({ score: total, maxScore, stars, xpEarned: level.xpReward * (stars / 3), timeMs: 0 });
+    }, 1300);
+  }, [level, maxScore, onComplete]);
+
+  const handleAssign = useCallback((id: string, bin: number) => {
+    if (assignments[id] !== undefined) return;
+    const item = items.find((t) => t.id === id);
+    if (!item) return;
+    const nextAssign = { ...assignments, [id]: bin };
+    setAssignments(nextAssign);
+    const correct = item.bin === bin;
+    const doneCount = Object.keys(nextAssign).length;
+
+    if (correct) {
+      const gained = 10 + combo;
+      const nextScore = score + gained;
+      const nextCombo = combo + 1;
+      setScore(nextScore);
+      setCombo(nextCombo);
+      setFeedback({ type: 'correct', message: nextCombo > 2 ? `${nextCombo}x combo! +${gained}` : `Right era! +${gained}`, explanation: item.why });
+      juice.onCorrect(doneCount, nextScore);
+      if (doneCount >= items.length) finishLevel(nextScore, wrong);
+    } else {
+      setCombo(0);
+      const nextWrong = wrong + 1;
+      setWrong(nextWrong);
+      setFeedback({ type: 'wrong', message: `That belongs in ${BINS[item.bin]}.`, explanation: item.why });
+      juice.onWrong(0, score);
+      if (doneCount >= items.length) finishLevel(score, nextWrong);
+    }
+  }, [assignments, items, combo, score, wrong, juice, finishLevel]);
+
+  // ═══ WELCOME ═══
+  if (phase === 'welcome') {
+    return (
+      <div className="relative z-10 space-y-5">
+        <GlowingTitle emoji="🕰️" color={LAB_COLOR}>Level {level.id}: {level.name}</GlowingTitle>
+        <SFCard variant="elevated" className="p-5">
+          <p className="text-sm mb-3" style={{ color: '#5A6078' }}>{level.description}</p>
+          <div className="rounded-xl p-3 text-xs" style={{ background: `${LAB_COLOR}10`, color: LAB_COLOR }}>
+            <GraduationCap className="w-4 h-4 inline mr-1" />
+            <strong>Concept:</strong> {CONCEPTS[level.id] || CONCEPTS[1]}
+          </div>
+          <div className="mt-3 rounded-xl p-3 text-xs flex items-start gap-2" style={{ background: '#FF6B3510', color: '#FF6B35' }}>
+            <Target className="w-4 h-4 shrink-0 mt-0.5" />
+            <span><strong>Sort:</strong> Drag each milestone into <strong>Early</strong>, <strong>Recent</strong>, or <strong>Today</strong>. Build the timeline!</span>
+          </div>
+        </SFCard>
+        <SFButton variant="primary" size="lg" className="w-full" onClick={() => setPhase('sort')}>
+          Start the Time Machine <ChevronRight className="w-5 h-5 ml-2" />
+        </SFButton>
+      </div>
+    );
+  }
+
+  // ═══ SORT ═══
+  return (
+    <div className="relative z-10 space-y-4">
+      <div className="flex items-center justify-between">
+        <GlowingTitle emoji="🕰️" color={LAB_COLOR}>Sort the Timeline</GlowingTitle>
+        <span className="text-sm font-bold flex items-center gap-1" style={{ color: LAB_COLOR }}>
+          <Clock className="w-4 h-4" />{sortedCount} / {items.length}
+        </span>
+      </div>
+
+      <ScoreDisplay score={score} maxScore={maxScore} />
+      <ComboCounter combo={combo} />
+
+      <PixiBinSortStage
+        items={sceneItems}
+        bins={BINS}
+        assignments={assignments}
+        onAssign={handleAssign}
+        labColor={LAB_COLOR}
+        reducedMotion={!!prefersReducedMotion}
+      />
+
+      {feedback && <FeedbackPopup {...feedback} />}
+
+      <div className="flex gap-2">
+        <SFButton variant="primary" className="flex-1" onClick={() => finishLevel(score, wrong)} disabled={!allSorted}>
+          <Sparkles className="w-4 h-4 mr-2" />
+          {allSorted ? 'Lock in the timeline!' : `Sort ${items.length - sortedCount} more…`}
+        </SFButton>
+        <SFButton variant="outline" onClick={onExit} aria-label="Exit level">
+          <RotateCcw className="w-4 h-4" />
+        </SFButton>
+      </div>
+    </div>
+  );
+}
+
+// ════════════════════════════════════════════════════════════════════════
+// MAIN EXPORT
+// ════════════════════════════════════════════════════════════════════════
 export default function TimeMachineGame() {
   const { awardXP, completeGame } = useGameActions();
+
   const handleComplete = useCallback((results: LevelResult[]) => {
     const totalXP = results.reduce((s, r) => s + r.xpEarned, 0);
     const totalStars = results.reduce((s, r) => s + r.stars, 0);
@@ -93,11 +245,14 @@ export default function TimeMachineGame() {
 
   return (
     <GameShell title="AI Time Machine" color="#4F6EF7" labNum={1}>
-      <GameLevelSystem gameTitle="AI Time Machine" gameEmoji="🕰️" labColor="#4F6EF7" levels={LEVELS}
+      <GameLevelSystem
+        gameTitle="AI Time Machine"
+        gameEmoji="🕰️"
+        labColor="#4F6EF7"
+        levels={LEVELS}
         onComplete={handleComplete}
         renderLevel={(level, onComplete, onExit) => (
-          <QuizLevelRenderer level={level} onComplete={onComplete} onExit={onExit}
-            questions={getQuestions(level.id)} labColor="#4F6EF7" gameEmoji="🕰️" timePerQuestion={20} />
+          <LevelRenderer level={level} onComplete={onComplete} onExit={onExit} />
         )}
       />
     </GameShell>
