@@ -1,8 +1,37 @@
 # SparkForge Build Progress
 
-## Current Phase: Game Migration (Fable Frontend Enhancement) — Wave 2 COMPLETE
-## Status: Waves 1–2 shipped — 5 games migrated across all 4 archetypes; awaiting HS-5 visual checkpoint
+## Current Phase: Game Migration (Fable Frontend Enhancement) — Wave 3 COMPLETE
+## Status: Waves 1–3 shipped — 8 games migrated across all 4 archetypes; awaiting HS-5 visual checkpoint
 ## Last Updated: 2026-06-28
+
+### Game Migration — Wave 3: Lab 4 (AI That Creates) quiz sweep (2026-06-28)
+
+Per `Game-Migration-Map.md` §5 rollout step 3. Three Lab-4 quiz games migrated.
+
+| Archetype | Proof game | Mechanic before → after | Files |
+|-----------|-----------|--------------------------|-------|
+| **REACT** | Word Predictor | Next-word MCQ → candidate words rise as cards with probability bars; tap the likeliest before it fades | `WordPredictorGame.tsx` (extends `ReactionArena`) |
+| **SORT** | Token Chopper | Tokenization quiz → sort chopped pieces into Word / Subword / Punct / Special bins | `TokenChopperGame.tsx` (reuses `PixiBinSortStage`) |
+| **SORT** | AI Art Detective | AI-vs-human-art quiz → drag each tell into Human-made / AI-made; why-card reveals the artifact | `AiArtDetectiveGame.tsx` (reuses `PixiBinSortStage`) |
+
+**Shared-scene enhancement (backward compatible):**
+- `scenes/ReactionArena.tsx` — opt-in labeled "card" mode via `makeTarget()`:
+  targets render as word cards with a probability bar; `onHit` now reports
+  whether the tapped card was the correct choice. Generic circle mode (AI or
+  Not) unchanged. `PixiReactStage` threads `makeTarget` + a11y `choices`.
+
+**Validation:** `tsc` 0 src errors · `next lint` clean on all 6 changed files ·
+`npm run build` EXIT=0 (143 static pages; only a pre-existing unrelated warning).
+
+### Discrepancies Log (Game Migration Wave 3)
+
+| Issue | Fix | Status |
+|---|---|---|
+| Generic ReactionArena (tap-any) could not express "tap the LIKELIEST word" | Added opt-in labeled card mode (`makeTarget` + `onHit(correct)`); generic mode untouched | ✅ |
+| Token Chopper map note also says "keep CONNECT bonus round" | Focused this proof on token-type SORT; the pipeline-ordering idea is deferred to a CONNECT follow-up (noted in file header) | noted |
+| Token Chopper / AI Art Detective registry labs differ from GameShell `labNum` | Left GameShell as-is (lab/color reassignment needs sign-off) | noted |
+
+
 
 ### Game Migration — Wave 2: Lab 6 (Ethics) quiz sweep (2026-06-28)
 

@@ -102,9 +102,9 @@ uses a GameMechanicKit piece.
 | Game | Tier | Current | → Archetype | Key enhancement |
 |------|------|---------|-------------|-----------------|
 | Prompt Lab | flagship | 3D | **R3F** | Keep 3D. Pixi "generation" particle burst when a prompt resolves. |
-| Word Predictor | standard | QUIZ | **REACT** | Candidate next-words rise as targets with probability bars; tap the likeliest before it fades. Teaches token probability under time. |
-| Token Chopper | standard | QUIZ (+SORT bonus) | **SORT** | Drag chop-points / token chunks into slots; animated scissor cut. Keep the existing tokenization-pipeline CONNECT bonus round. |
-| AI Art Detective | standard | QUIZ | **SORT** | Two bins (Human-made / AI-made); on drop, zoom-in highlights the tell-tale artifacts. |
+| Word Predictor | standard | **DONE (REACT)** ✅ | **REACT** ✅ | Wave-3 proof. Candidate next-words rise as cards with probability bars; tap the likeliest before it fades. ReactionArena gained a labeled "card" mode. |
+| Token Chopper | standard | **DONE (SORT)** ✅ | **SORT** ✅ | Wave-3 proof. Sort chopped pieces into Word / Subword / Punct / Special token-type bins. (Reuses `PixiBinSortStage`.) |
+| AI Art Detective | standard | **DONE (SORT)** ✅ | **SORT** ✅ | Wave-3 proof. Two bins Human-made / AI-made; drop a clue → why-card reveals the artifact. (Reuses `PixiBinSortStage`.) |
 
 ### Lab 5 — AI Helpers · `#00D17A` Green
 
@@ -202,8 +202,10 @@ and to front-load the flattest quiz games (biggest delight delta).
    mechanic-kit demo. Generic `PixiBinSortStage` (named bins) + `SortDragScene
    binLabels` + `ChipToken` word-wrap extracted for the rollout. Build green;
    HS-5 Playwright visual pass pending.
-3. **Wave 3 — Lab 4 (Creates):** Word Predictor (REACT), Token Chopper (SORT),
-   AI Art Detective (SORT).
+3. **Wave 3 — Lab 4 (Creates): ✅ DONE (2026-06-28)** Word Predictor (REACT),
+   Token Chopper (SORT), AI Art Detective (SORT). ReactionArena extended with a
+   labeled "card" mode (word + probability bar) for Word Predictor; both SORT
+   games reuse `PixiBinSortStage`. Build green; HS-5 visual pass pending.
 4. **Wave 4 — Lab 7 (Vision):** Camera Quest, Fool the AI, Build Classifier,
    Prediction Market.
 5. **Wave 5 — Lab 8 (Language):** Sentiment Scanner, Emoji Decoder, Chatbot
