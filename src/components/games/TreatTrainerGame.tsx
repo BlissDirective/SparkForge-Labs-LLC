@@ -1,106 +1,152 @@
 // ════════════════════════════════════════════════════════════════════════
-// TREAT TRAINER v3 — Lab 2 — Redesigned
+// TREAT TRAINER v4 — Lab 2 (Teaching Machines) — Phaser-4 maze (Wave 7)
 // ════════════════════════════════════════════════════════════════════════
-// Train a virtual pet by adjusting training parameters.
-// Simulation: food amount, exercise, sleep, play.
-// 10 levels with different pet types and challenges.
+// Was a four-slider pet-care simulation. Now a real tilemap MAZE with wall
+// collision and BFS pathfinding (the one Phaser case in the migration map):
+// guide the dog through the maze to collect every treat in as few steps as
+// possible. A "Plan path" button shows the AI's shortest route — teaching how
+// an agent SEARCHES for a path to a goal. Phaser-4 scene inside GameShell.
+//
+// Teaches: pathfinding / search — an agent plans the most efficient route to
+// its reward, the foundation of how AI navigates and plans.
 
 'use client';
-import { useCallback, useState } from 'react';
+
+import { useState, useCallback, useMemo } from 'react';
+import dynamic from 'next/dynamic';
+import { useReducedMotion } from 'motion/react';
+import {
+  ChevronRight, PawPrint, GraduationCap, Target,
+} from 'lucide-react';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameActions } from '@/stores/gameStore';
-import GameLevelSystem, { type LevelResult } from '@/components/games/shared/GameLevelSystem';
-import SimLevelRenderer, { type SimParameter } from '@/components/games/shared/SimulationLevelRenderer';
-import type { SimResult } from '@/components/games/shared/SimulationLevelRenderer';
+import { useJuice } from '@/components/juice/JuiceProvider';
+import { SFCard } from '@/components/ui/SFCard';
+import { SFButton } from '@/components/ui/SFButton';
+import GameLevelSystem, {
+  type LevelConfig, type LevelResult,
+} from '@/components/games/shared/GameLevelSystem';
+import { GlowingTitle } from '@/components/games/shared/GameVisualKit';
 
-const LEVELS = [
-  { id: 1, name: 'Puppy Basics', description: 'Train your first virtual puppy!', emoji: '🐕', difficulty: 'easy' as const, starThresholds: [60,80,95], xpReward: 50 },
-  { id: 2, name: 'Kitty Care', description: 'Cats need different training!', emoji: '🐱', difficulty: 'easy' as const, starThresholds: [60,80,95], xpReward: 60 },
-  { id: 3, name: 'Bird Brain', description: 'Teach a parrot tricks!', emoji: '🦜', difficulty: 'easy' as const, starThresholds: [60,80,95], xpReward: 70 },
-  { id: 4, name: 'Bunny Hop', description: 'Gentle training for bunnies.', emoji: '🐰', difficulty: 'medium' as const, starThresholds: [60,80,90], xpReward: 80 },
-  { id: 5, name: 'Hamster Wheel', description: 'High-energy hamster training!', emoji: '🐹', difficulty: 'medium' as const, starThresholds: [60,80,90], xpReward: 90 },
-  { id: 6, name: 'Fish Focus', description: 'Can you train a fish?', emoji: '🐠', difficulty: 'medium' as const, starThresholds: [50,75,90], xpReward: 100 },
-  { id: 7, name: 'Lizard Logic', description: 'Reptiles learn too!', emoji: '🦎', difficulty: 'hard' as const, starThresholds: [50,75,85], xpReward: 120 },
-  { id: 8, name: 'Octopus Genius', description: 'The smartest invertebrate!', emoji: '🐙', difficulty: 'hard' as const, starThresholds: [50,75,85], xpReward: 130 },
-  { id: 9, name: 'Multi-Pet', description: 'Train multiple pets at once!', emoji: '🏠', difficulty: 'expert' as const, starThresholds: [50,70,85], xpReward: 150 },
-  { id: 10, name: 'Master Trainer', description: 'The ultimate pet training challenge!', emoji: '👑', difficulty: 'expert' as const, starThresholds: [50,70,85], xpReward: 200, isBonus: true },
+// Phaser is client-only — never SSR it.
+const PhaserMazeStage = dynamic(() => import('@/components/games/phaser/PhaserMazeStage'), {
+  ssr: false,
+  loading: () => (
+    <div className="mx-auto aspect-square w-full max-w-[420px] animate-pulse rounded-2xl" style={{ background: '#0E1428' }} />
+  ),
+});
+
+const LAB_COLOR = '#4F6EF7';
+
+const LEVELS: LevelConfig[] = [
+  { id: 1, name: 'First Steps', description: 'Guide the pup to the treats!', emoji: '🐕', difficulty: 'easy', starThresholds: [50, 70, 90], xpReward: 50 },
+  { id: 2, name: 'Two Treats', description: 'Collect both, take the short way.', emoji: '🦴', difficulty: 'easy', starThresholds: [50, 70, 90], xpReward: 60 },
+  { id: 3, name: 'Winding Paths', description: 'The maze gets twistier.', emoji: '🐾', difficulty: 'easy', starThresholds: [50, 70, 90], xpReward: 70 },
+  { id: 4, name: 'Plan Ahead', description: 'Use the path planner if you get stuck.', emoji: '🧭', difficulty: 'medium', starThresholds: [50, 70, 90], xpReward: 80 },
+  { id: 5, name: 'Three Treats', description: 'Choose a smart order to collect them.', emoji: '🍖', difficulty: 'medium', starThresholds: [50, 70, 90], xpReward: 90 },
+  { id: 6, name: 'Bigger Maze', description: 'More cells, more choices.', emoji: '🗺️', difficulty: 'medium', starThresholds: [50, 70, 90], xpReward: 100 },
+  { id: 7, name: 'Dead Ends', description: 'Avoid wandering down dead ends.', emoji: '🚧', difficulty: 'hard', starThresholds: [50, 70, 90], xpReward: 120 },
+  { id: 8, name: 'Four Treats', description: 'Plan the most efficient tour.', emoji: '🎯', difficulty: 'hard', starThresholds: [50, 70, 90], xpReward: 130 },
+  { id: 9, name: 'The Big One', description: 'A large maze with five treats.', emoji: '🌀', difficulty: 'expert', starThresholds: [50, 70, 90], xpReward: 150 },
+  { id: 10, name: 'Master Pathfinder', description: 'The ultimate maze challenge!', emoji: '👑', difficulty: 'expert', starThresholds: [50, 70, 90], xpReward: 200, isBonus: true },
 ];
 
-const PETS = ['🐕', '🐱', '🦜', '🐰', '🐹', '🐠', '🦎', '🐙', '🐕', '🐱'];
-const PET_NAMES = ['Puppy', 'Kitty', 'Parrot', 'Bunny', 'Hamster', 'Fish', 'Lizard', 'Octopus', 'Multi', 'Ultimate'];
-
-function getSimulate(levelId: number) {
-  const petIdx = (levelId - 1) % PETS.length;
-  return (params: Record<string, number>): SimResult => {
-    const food = params.food || 50;
-    const exercise = params.exercise || 50;
-    const sleep = params.sleep || 50;
-    const play = params.play || 50;
-
-    // Optimal ranges vary by pet
-    const opts: Record<string, number[]> = {
-      '🐕': [60, 70, 60, 80], '🐱': [50, 40, 70, 60], '🦜': [40, 30, 60, 90],
-      '🐰': [50, 50, 70, 70], '🐹': [30, 90, 60, 80], '🐠': [20, 10, 80, 40],
-      '🦎': [40, 20, 80, 30], '🐙': [50, 40, 60, 90],
-    };
-    const opt = opts[PETS[petIdx]] || [50, 50, 60, 70];
-
-    // Calculate happiness (closeness to optimal)
-    const happiness = 100 - (
-      Math.abs(food - opt[0]) * 0.8 +
-      Math.abs(exercise - opt[1]) * 0.6 +
-      Math.abs(sleep - opt[2]) * 0.5 +
-      Math.abs(play - opt[3]) * 0.7
-    ) / 4;
-
-    const health = Math.min(100, (food + sleep) / 2 + 10);
-    const energy = Math.min(100, exercise * 0.6 + sleep * 0.4);
-    const score = Math.max(0, Math.round(happiness));
-
-    return {
-      score,
-      maxScore: 100,
-      outputs: {
-        happiness: { value: Math.max(0, Math.round(happiness)), target: 80, label: 'Happiness', emoji: '😊' },
-        health: { value: Math.round(health), target: 80, label: 'Health', emoji: '❤️' },
-        energy: { value: Math.round(energy), target: 70, label: 'Energy', emoji: '⚡' },
-      },
-      feedback: score >= 80 ? `${PETS[petIdx]} is thriving!` : score >= 60 ? `${PETS[petIdx]} is doing okay.` : `${PETS[petIdx]} needs better care.`,
-      explanation: score >= 80 ? 'Perfect balance! You found the sweet spot.' : score >= 60 ? 'Getting there. Try adjusting one parameter at a time.' : 'Keep experimenting! Each pet has unique needs.',
-    };
-  };
-}
-
-function getParams(levelId: number): SimParameter[] {
-  return [
-    { id: 'food', label: 'Food Amount', emoji: '🍖', value: 50, min: 0, max: 100, step: 5, unit: '%' },
-    { id: 'exercise', label: 'Exercise', emoji: '🏃', value: 50, min: 0, max: 100, step: 5, unit: '%' },
-    { id: 'sleep', label: 'Sleep', emoji: '💤', value: 50, min: 0, max: 100, step: 5, unit: '%' },
-    { id: 'play', label: 'Play Time', emoji: '🎾', value: 50, min: 0, max: 100, step: 5, unit: '%' },
-  ];
-}
-
 const CONCEPTS: Record<number, string> = {
-  1: 'Supervised learning: you provide labeled examples (treat = good behavior) and the pet learns.',
-  2: 'Different species need different training approaches — just like different ML models suit different problems.',
-  3: 'Reinforcement learning: the pet learns from rewards and penalties over time.',
-  4: 'Generalization: a well-trained pet responds correctly to NEW situations, not just memorized ones.',
-  5: 'Feature importance: some factors (exercise for hamsters) matter more than others.',
-  6: 'Limited training data: some animals (fish) have fewer neurons — smaller models need different approaches.',
-  7: 'Cold-blooded learning: reptiles learn slower but retain longer — like models with lower learning rates.',
-  8: 'High intelligence: octopuses have distributed neurons — like ensemble models with multiple sub-networks.',
-  9: 'Multi-task learning: training multiple pets simultaneously with shared techniques.',
-  10: 'Master training combines everything: the right model, optimal parameters, and consistent feedback.',
+  1: 'An AI agent finds a path to its goal. Here you are the agent — reach every treat.',
+  2: 'Fewer steps = a better path. Search algorithms look for the shortest route.',
+  3: 'Walls are obstacles. The agent must plan around them, not through them.',
+  4: 'Pathfinding (like BFS) explores the maze to find the shortest route. Tap "Plan path" to see it.',
+  5: 'With several goals, the ORDER you visit them changes the total distance.',
+  6: 'A bigger search space is harder — more cells to explore before finding the goal.',
+  7: 'Dead ends waste steps. Good search prunes paths that lead nowhere.',
+  8: 'Visiting many goals efficiently is a routing problem — the heart of AI planning.',
+  9: 'Large mazes show why efficient search matters: brute force gets slow fast.',
+  10: 'Master test: collect every treat on the shortest possible route.',
 };
 
-const CHALLENGES: Record<number, string | undefined> = {
-  6: 'Fish have tiny brains — find what works with minimal parameters!',
-  8: 'Octopuses are smart but stubborn — hit 85+ happiness!',
-  10: 'Balance ALL four parameters perfectly for the ultimate pet!',
-};
+// Maze size + treat count grow with the level.
+function mazeFor(levelId: number): { cols: number; rows: number; treats: number } {
+  const cols = Math.min(9, 4 + Math.floor(levelId / 1.5));
+  const treats = Math.min(5, 1 + Math.floor(levelId / 2));
+  return { cols, rows: cols, treats };
+}
 
+// ════════════════════════════════════════════════════════════════════════
+// LEVEL RENDERER — the Phaser maze
+// ════════════════════════════════════════════════════════════════════════
+function LevelRenderer({
+  level, onComplete, onExit,
+}: {
+  level: LevelConfig; onComplete: (r: LevelResult) => void; onExit: () => void;
+}) {
+  const juice = useJuice();
+  const prefersReducedMotion = useReducedMotion();
+  const [phase, setPhase] = useState<'welcome' | 'maze'>('welcome');
+  const maze = useMemo(() => mazeFor(level.id), [level.id]);
+
+  const handleMazeComplete = useCallback((score: number, detail: { steps: number; optimal: number }) => {
+    const stars = (score >= level.starThresholds[2] ? 3
+      : score >= level.starThresholds[1] ? 2
+        : score >= level.starThresholds[0] ? 1 : 1) as 0 | 1 | 2 | 3; // always >=1: finishing the maze is a win
+    juice.onCorrect(detail.optimal, score);
+    onComplete({ score, maxScore: 100, stars, xpEarned: level.xpReward * (stars / 3), timeMs: 0 });
+  }, [level, juice, onComplete]);
+
+  // ═══ WELCOME ═══
+  if (phase === 'welcome') {
+    return (
+      <div className="relative z-10 space-y-5">
+        <GlowingTitle emoji="🐕" color={LAB_COLOR}>Level {level.id}: {level.name}</GlowingTitle>
+        <SFCard variant="elevated" className="p-5">
+          <p className="text-sm mb-3" style={{ color: '#5A6078' }}>{level.description}</p>
+          <div className="rounded-xl p-3 text-xs" style={{ background: `${LAB_COLOR}10`, color: LAB_COLOR }}>
+            <GraduationCap className="w-4 h-4 inline mr-1" />
+            <strong>Concept:</strong> {CONCEPTS[level.id] || CONCEPTS[1]}
+          </div>
+          <div className="mt-3 rounded-xl p-3 text-xs flex items-start gap-2" style={{ background: '#FF6B3510', color: '#FF6B35' }}>
+            <Target className="w-4 h-4 shrink-0 mt-0.5" />
+            <span><strong>Maze:</strong> Move the dog with the arrows (or arrow keys) to collect all {maze.treats} treat{maze.treats > 1 ? 's' : ''}. Fewer steps = more stars!</span>
+          </div>
+        </SFCard>
+        <SFButton variant="primary" size="lg" className="w-full" onClick={() => setPhase('maze')}>
+          Enter Maze <ChevronRight className="w-5 h-5 ml-2" />
+        </SFButton>
+      </div>
+    );
+  }
+
+  // ═══ MAZE ═══
+  return (
+    <div className="relative z-10 space-y-4">
+      <div className="flex items-center justify-between">
+        <GlowingTitle emoji="🐕" color={LAB_COLOR}>Find the Treats</GlowingTitle>
+        <SFButton variant="outline" size="sm" onClick={onExit} aria-label="Exit level">Exit</SFButton>
+      </div>
+
+      <PhaserMazeStage
+        levelKey={level.id}
+        cols={maze.cols}
+        rows={maze.rows}
+        treats={maze.treats}
+        labColor={LAB_COLOR}
+        reducedMotion={!!prefersReducedMotion}
+        onComplete={handleMazeComplete}
+      />
+
+      <div className="flex items-center gap-2 text-xs" style={{ color: '#8C94AC' }}>
+        <PawPrint className="h-4 w-4" style={{ color: LAB_COLOR }} />
+        Collect every treat to finish. Tap <strong>Plan path</strong> to see the shortest route.
+      </div>
+    </div>
+  );
+}
+
+// ════════════════════════════════════════════════════════════════════════
+// MAIN EXPORT
+// ════════════════════════════════════════════════════════════════════════
 export default function TreatTrainerGame() {
   const { awardXP, completeGame } = useGameActions();
+
   const handleComplete = useCallback((results: LevelResult[]) => {
     const totalXP = results.reduce((s, r) => s + r.xpEarned, 0);
     const totalStars = results.reduce((s, r) => s + r.stars, 0);
@@ -109,19 +155,15 @@ export default function TreatTrainerGame() {
   }, [awardXP, completeGame]);
 
   return (
-    <GameShell title="Treat Trainer" color="#4F6EF7" labNum={2}>
-      <GameLevelSystem gameTitle="Treat Trainer" gameEmoji="🐕" labColor="#4F6EF7" levels={LEVELS}
+    <GameShell title="Treat Trainer" color={LAB_COLOR} labNum={2}>
+      <GameLevelSystem
+        gameTitle="Treat Trainer"
+        gameEmoji="🐕"
+        labColor={LAB_COLOR}
+        levels={LEVELS}
         onComplete={handleComplete}
         renderLevel={(level, onComplete, onExit) => (
-          <SimLevelRenderer
-            level={level} onComplete={onComplete} onExit={onExit}
-            labColor="#4F6EF7" gameEmoji={PETS[(level.id - 1) % PETS.length]}
-            description={`Train your virtual ${PET_NAMES[level.id - 1]} by balancing food, exercise, sleep, and play!`}
-            concept={CONCEPTS[level.id] || CONCEPTS[1]}
-            challenge={CHALLENGES[level.id]}
-            parameters={getParams(level.id)}
-            simulate={getSimulate(level.id)}
-          />
+          <LevelRenderer level={level} onComplete={onComplete} onExit={onExit} />
         )}
       />
     </GameShell>

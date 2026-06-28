@@ -1,8 +1,35 @@
 # SparkForge Build Progress
 
-## Current Phase: Game Migration (Fable Frontend Enhancement) — Waves 4–6 COMPLETE
-## Status: Waves 1–6 shipped — 24 games migrated; only Treat Trainer (Phaser, Wave 7) remains before HS-5 + re-skin
+## Current Phase: Game Migration (Fable Frontend Enhancement) — Waves 1–7 COMPLETE
+## Status: All 7 waves shipped — 25 games migrated across all 4 Pixi archetypes + 1 Phaser maze; next: HS-5 Playwright + canonical re-skin
 ## Last Updated: 2026-06-28
+
+### Game Migration — Wave 7: Treat Trainer (Phaser-4 maze) (2026-06-28)
+
+The single Phaser case in the map. Added `phaser@^4.2.0`.
+
+- `src/components/games/phaser/mazeGame.ts` — self-contained maze factory.
+  Uses `import type * as PhaserNS from 'phaser'` (erased at build) and receives
+  the Phaser namespace at runtime, so Phaser never enters the SSR/server bundle.
+  Recursive-backtracker perfect maze, wall-collision movement, BFS shortest-path
+  (for the "Plan path" hint + greedy nearest-treat scoring baseline).
+- `src/components/games/phaser/PhaserMazeStage.tsx` — React wrapper, dynamic
+  `{ssr:false}`. Creates/destroys the `Phaser.Game` per level, publishes scene
+  state to `window.__SPARKFORGE_GAME__`, and provides a DOM d-pad + "Plan path"
+  button so keyboard/AT players use the same controls as the canvas.
+- `TreatTrainerGame.tsx` — rewritten from the 4-slider pet sim into 10 maze
+  levels (grid + treat count grow with level). Teaches pathfinding/search.
+
+**Validation:** `tsc` 0 src errors · `next lint` clean · `npm run build` EXIT=0
+(143 static pages; arcade routes compiled with the new Phaser chunk lazy-loaded
+behind the game loader). Runtime visual verification deferred to HS-5.
+
+---
+**Migration tally:** SORT ×12 · REVEAL ×5 · CONNECT ×7 · REACT ×2 · Phaser ×1 =
+**25 games** + 5 reusable stage wrappers (PixiSortStage, PixiBinSortStage,
+PixiRevealStage, PixiConnectStage, PixiReactStage) + PhaserMazeStage.
+
+
 
 ### Game Migration — Waves 4–6 (2026-06-28)
 

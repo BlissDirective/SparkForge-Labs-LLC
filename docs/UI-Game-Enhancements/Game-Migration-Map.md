@@ -86,7 +86,7 @@ uses a GameMechanicKit piece.
 |------|------|---------|-------------|-----------------|
 | Pet Trainer | flagship | LEVELS · 3D | **R3F** | Keep 3D pet. Bind a **Rive** pet face to reward/correct events (closes HS-8). |
 | Sort Toy Box | flagship | **DONE (SORT)** | **SORT** ✅ | Reference implementation — the Phase-B/C proof. Next: Scenario sprite set for toys. |
-| Treat Trainer | standard | LEVELS | **Phaser-4** (maze) | Genuine tilemap maze + pathfinding (the one game the doc flags for Phaser physics). Reward pellets, dog sprite. |
+| Treat Trainer | standard | **DONE (Phaser-4)** ✅ | **Phaser-4** (maze) | Wave-7 proof. Recursive-backtracker maze + wall collision; guide the dog to collect every treat; BFS "Plan path" hint + step-efficiency scoring. Teaches pathfinding/search. |
 | Data Detective | fl-lite | QUIZ · 3D | **REVEAL** | Scan a dataset grid; tap to reveal outliers/missing cells (heatmap reveal). Magnifier reticle cursor. |
 
 ### Lab 3 — The Brain Inside · `#FF70AF` Pink
@@ -213,7 +213,10 @@ and to front-load the flattest quiz games (biggest delight delta).
 6. **Wave 6 — Labs 1/3/5/9 remainders: ✅ DONE (2026-06-28)** Time Machine, Human
    vs Machine, Pixel Investigator, Tool Picker, Neuron Relay (Wave 1), Code
    Blocks, Career Explorer, My First AI App, Future Forge.
-7. **Wave 7 — Treat Trainer (Phaser-4 maze)** — the single Phaser case.
+7. **Wave 7 — Treat Trainer (Phaser-4 maze): ✅ DONE (2026-06-28)** — the single
+   Phaser case. `phaser@^4` added; self-contained maze factory (`mazeGame.ts`,
+   type-only Phaser import → no SSR leak) + `PhaserMazeStage` wrapper with a DOM
+   d-pad/hint a11y path. Build green.
 8. **Phase D — flagships:** wire each flagship's archetype as its mobile/2D
    fallback while the R3F scene gets Blender-MCP asset upgrades. Lab 11 last
    (newest, all flagship).
