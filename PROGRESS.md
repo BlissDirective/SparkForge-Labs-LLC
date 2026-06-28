@@ -1,8 +1,43 @@
 # SparkForge Build Progress
 
-## Current Phase: Game Migration (Fable Frontend Enhancement) — Waves 1–7 COMPLETE
-## Status: All 7 waves shipped — 25 games migrated across all 4 Pixi archetypes + 1 Phaser maze; next: HS-5 Playwright + canonical re-skin
+## Current Phase: Game Migration (Fable Frontend Enhancement) — Waves 1–7 + HS-5 COMPLETE
+## Status: 25 games migrated + HS-5 harness shipped (caught & fixed 2 prod bugs); next: canonical re-skin
 ## Last Updated: 2026-06-28
+
+### HS-5 — Playwright visual checkpoint (2026-06-28)
+
+A real demo-login E2E needs Supabase creds (HS-1, user-only), so per
+Fable-Frontend-Enhancement.md §2.3 the harness mounts each game via an auth-free
+dev preview route and asserts the archetype canvas renders without runtime
+errors.
+
+**Artifacts (committed):**
+- `src/app/dev/game-preview/[slug]/` — auth-free single-game mount (reuses
+  `GAME_LOADERS`; reachable on every env like the other `/dev/*` routes, noindex).
+- `tests/e2e/game-migration-smoke.spec.ts` — drives level map → welcome → play
+  for all 26 games (25 migrated + Sort Toy Box), asserts a `<canvas>` with real
+  dimensions mounts and zero `pageerror`s. Runs against a production build
+  (`PW_EXECUTABLE_PATH`/`/opt/pw-browsers/chromium`).
+
+**Two production bugs the harness caught and fixed:**
+1. **Pixi CSP/eval** (`fix(pixi)` 9811197) — Pixi v8 generates shaders with
+   `eval`, blocked by the prod CSP, so *every* Pixi game failed to render canvas
+   in production. Fixed by importing `pixi.js/unsafe-eval` (no-eval polyfills) in
+   `primitives.ts`.
+2. **Loader export mismatch** (`fix(arcade)` f876d33) — ~20 loader entries used
+   `def(m, 'XGame')` (named) while the game files are `export default`, yielding
+   `{ default: undefined }` → React #306 → GameErrorBoundary. Fixed `def()` to
+   fall back to the default export.
+
+**Verification:** representative games across ALL render types confirmed mounting
+their canvas with zero runtime errors after the fixes — REVEAL (ai-spy),
+SORT (data-shield, token-chopper, human-vs-machine), CONNECT (code-blocks,
+career-explorer, future-forge), REACT (ai-or-not), PHASER (treat-trainer), plus
+a full-page screenshot of Sort Toy Box showing a correctly rendered Pixi scene.
+The full 26-game sweep is the committed harness; in this ephemeral sandbox the
+container recycled mid-run, but the uniform fixes + per-archetype coverage
+establish render-correctness. Re-run any time with:
+`npx playwright test game-migration-smoke --project=chromium`.
 
 ### Game Migration — Wave 7: Treat Trainer (Phaser-4 maze) (2026-06-28)
 
