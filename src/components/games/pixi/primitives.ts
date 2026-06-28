@@ -5,6 +5,12 @@
 // archetype (<pixiContainer>, <pixiGraphics>, <pixiText>) via extend(), so it
 // must be imported by the stage and every scene before their JSX renders.
 
+// Production CSP forbids `unsafe-eval`; Pixi v8 generates shader/uniform sync
+// code with eval by default. Importing this subpath swaps in no-eval polyfills
+// (self-installs on import) so the canvas initializes under a strict CSP. Must
+// run before any Application renderer is created — this module is imported by
+// the stage + every scene, so the import is hoisted ahead of all renders.
+import 'pixi.js/unsafe-eval';
 import { extend } from '@pixi/react';
 import { Container, Graphics, Text } from 'pixi.js';
 
