@@ -25,6 +25,8 @@ interface SortDragSceneProps {
   reducedMotion: boolean;
   width: number;
   height: number;
+  /** Named bins (e.g. Private / Shareable / Sensitive). Falls back to "Group N". */
+  binLabels?: string[];
 }
 
 const BIN_H = 92;
@@ -51,7 +53,7 @@ function trayPosition(idx: number, w: number): { x: number; y: number } {
 }
 
 export default function SortDragScene({
-  items, groupCount, assignments, onAssign, labColor, reducedMotion, width, height,
+  items, groupCount, assignments, onAssign, labColor, reducedMotion, width, height, binLabels,
 }: SortDragSceneProps) {
   const accent = hexNum(labColor);
   const bins = useMemo(() => layoutBins(width, height, groupCount), [width, height, groupCount]);
@@ -130,7 +132,7 @@ export default function SortDragScene({
         const count = items.filter((t) => assignments[t.id] === b.index).length;
         return (
           <pixiContainer key={`label-${b.index}`} x={b.x + b.w / 2} y={b.y + 16}>
-            <pixiText text={`Group ${b.index + 1}`} anchor={0.5} style={{ fill: 0xffffff, fontSize: 13, fontWeight: '700', fontFamily: 'system-ui, sans-serif' }} />
+            <pixiText text={binLabels?.[b.index] ?? `Group ${b.index + 1}`} anchor={0.5} style={{ fill: 0xffffff, fontSize: 13, fontWeight: '700', fontFamily: 'system-ui, sans-serif', align: 'center', wordWrap: true, wordWrapWidth: b.w - 10 }} />
             <pixiText text={`${count}`} anchor={0.5} y={20} style={{ fill: accent, fontSize: 16, fontWeight: '700', fontFamily: 'system-ui, sans-serif' }} />
           </pixiContainer>
         );

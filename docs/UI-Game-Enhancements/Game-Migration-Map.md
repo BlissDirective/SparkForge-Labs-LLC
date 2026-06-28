@@ -119,8 +119,8 @@ uses a GameMechanicKit piece.
 | Game | Tier | Current | → Archetype | Key enhancement |
 |------|------|---------|-------------|-----------------|
 | Bias Detective | flagship | QUIZ · 3D | **R3F** (SORT fallback) | Keep 3D scales. SORT models the scales literally: drop evidence onto two pans and watch them tip toward fair/unfair. |
-| Data Shield | standard | QUIZ | **SORT** | Drag data items into Private / Shareable / Sensitive bins — this is *exactly* the GameMechanicKit privacy demo. Shield-strength meter. |
-| Real or Fake | standard | QUIZ | **REVEAL** | Inspect media tiles; tapping reveals the deepfake "tells" (warped hands, artifacts) before the verdict. |
+| Data Shield | standard | **DONE (SORT)** ✅ | **SORT** ✅ | Wave-2 proof. Drag data items into Private / Sensitive / Shareable bins; shield-strength meter rises on correct calls. Generic `PixiBinSortStage` (named bins) extracted. |
+| Real or Fake | standard | **DONE (REVEAL)** ✅ | **REVEAL** ✅ | Wave-2 proof. Inspect media snippets; tap the fakes → verdict + the tell revealed. Real items explain why they are trustworthy. |
 | Ethics Courtroom | standard | 3D | **CUSTOM** | Debate/decision game — no canvas archetype. Adopt `ChoiceCardDeck` for arguments + a Rive judge that reacts to your case. |
 
 ### Lab 7 — Computer Vision · `#10BAD2` Cyan
@@ -197,8 +197,11 @@ and to front-load the flattest quiz games (biggest delight delta).
    AI or Not? (Lab 10). All three migrated; build green; reusable
    `PixiRevealStage` / `PixiConnectStage` / `PixiReactStage` wrappers extracted
    for the lab-by-lab rollout. Pending: HS-5 Playwright SSIM ≥ 0.96 visual pass.
-2. **Wave 2 — Lab 6 (Ethics) quiz sweep:** Data Shield (SORT), Real or Fake
-   (REVEAL) — Data Shield is a 1:1 match to the existing mechanic-kit demo.
+2. **Wave 2 — Lab 6 (Ethics) quiz sweep: ✅ DONE (2026-06-28)** Data Shield
+   (SORT), Real or Fake (REVEAL) — Data Shield is a 1:1 match to the existing
+   mechanic-kit demo. Generic `PixiBinSortStage` (named bins) + `SortDragScene
+   binLabels` + `ChipToken` word-wrap extracted for the rollout. Build green;
+   HS-5 Playwright visual pass pending.
 3. **Wave 3 — Lab 4 (Creates):** Word Predictor (REACT), Token Chopper (SORT),
    AI Art Detective (SORT).
 4. **Wave 4 — Lab 7 (Vision):** Camera Quest, Fool the AI, Build Classifier,

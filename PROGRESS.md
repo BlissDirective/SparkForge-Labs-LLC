@@ -1,8 +1,37 @@
 # SparkForge Build Progress
 
-## Current Phase: Game Migration (Fable Frontend Enhancement) — Wave 1 COMPLETE
-## Status: Wave 1 shipped — 3 remaining Pixi archetypes proven on standard games; awaiting HS-5 visual checkpoint
+## Current Phase: Game Migration (Fable Frontend Enhancement) — Wave 2 COMPLETE
+## Status: Waves 1–2 shipped — 5 games migrated across all 4 archetypes; awaiting HS-5 visual checkpoint
 ## Last Updated: 2026-06-28
+
+### Game Migration — Wave 2: Lab 6 (Ethics) quiz sweep (2026-06-28)
+
+Per `Game-Migration-Map.md` §5 rollout step 2. Two Lab-6 quiz games migrated.
+
+| Archetype | Proof game | Mechanic before → after | Files |
+|-----------|-----------|--------------------------|-------|
+| **SORT** | Data Shield | Privacy quiz → drag data items into Private / Sensitive / Shareable bins; shield-strength meter rises on correct calls | `DataShieldGame.tsx`, new `pixi/PixiBinSortStage.tsx` |
+| **REVEAL** | Real or Fake? | Media-literacy quiz → inspect snippets; tap the fakes to reveal verdict + the tell | `RealOrFakeGame.tsx` (reuses `pixi/PixiRevealStage.tsx`) |
+
+**Shared-scene enhancements (backward compatible):**
+- `scenes/SortDragScene.tsx` — `binLabels` prop (named bins instead of "Group N").
+- `ChipToken.tsx` — multi-word labels now word-wrap + shrink (named items, not
+  just short codes).
+- New generic `PixiBinSortStage` (arbitrary items + named bins) — the SORT
+  wrapper for the rollout (PixiSortStage stays Sort-Toy-Box-specific).
+
+**Validation:** `tsc` 0 src errors · `next lint` clean on all 5 changed files ·
+`npm run build` EXIT=0 (143 static pages; only a pre-existing unrelated warning).
+
+### Discrepancies Log (Game Migration Wave 2)
+
+| Issue | Fix | Status |
+|---|---|---|
+| `SortDragScene` bins were hardcoded "Group N" — wrong for named privacy bins | Added opt-in `binLabels`; default keeps "Group N" | ✅ |
+| `ChipToken` rendered one short line — named data items would overflow | Word-wrap + size-down for multi-word/long labels | ✅ |
+| Data Shield / Real or Fake registry lab is 6 but GameShell uses `labNum={5}`/green | Left GameShell as-is (lab/color reassignment needs sign-off; out of scope) | noted |
+
+
 
 ### Game Migration — Wave 1: prove the remaining 3 archetypes (2026-06-28)
 

@@ -51,7 +51,19 @@ export function ChipToken({ x, y, size, color, label, interactive = false, onPoi
       <pixiText
         text={label}
         anchor={0.5}
-        style={{ fill: 0xffffff, fontSize: Math.round(size * 0.26), fontWeight: '700', fontFamily: 'system-ui, sans-serif' }}
+        style={{
+          fill: 0xffffff,
+          // Multi-word / long labels wrap and shrink so named items (not just
+          // short codes) read inside the chip.
+          fontSize: (label.length > 5 || label.includes(' '))
+            ? Math.max(9, Math.round(size * 0.17))
+            : Math.round(size * 0.26),
+          fontWeight: '700',
+          fontFamily: 'system-ui, sans-serif',
+          align: 'center',
+          wordWrap: true,
+          wordWrapWidth: size * 0.92,
+        }}
       />
     </pixiContainer>
   );
