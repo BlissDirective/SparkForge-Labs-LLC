@@ -1,8 +1,33 @@
 # SparkForge Build Progress
 
-## Current Phase: Game Migration (Fable Frontend Enhancement) — COMPLETE
-## Status: All 7 waves + HS-5 + canonical re-skin done. 25 games migrated, 2 prod bugs fixed, every game on its canonical lab accent.
+## Current Phase: Fable Frontend Enhancement — Phases A–C COMPLETE; Phase D started (needs direction)
+## Status: 26 games migrated (25 waves + Bias Detective flagship→SORT), HS-5 green 26/26, canonical re-skin done. Phase D plan in docs/UI-Game-Enhancements/Phase-D-Status.md — flagship R3F + asset tracks await authoritative input.
 ## Last Updated: 2026-06-28
+
+### Phase D — started (2026-06-28)
+
+Assessment + decision plan: `docs/UI-Game-Enhancements/Phase-D-Status.md`.
+Key finding: GameShell renders no per-game 3D (cockpit removed in v2), so a
+flagship only has R3F if its own file imports one. Only Prompt Lab, Agent
+Architect, Context Architect, Pixel Witness (+ Lab 11 TBD) have genuine in-file
+R3F; the rest are quiz/levels/sim games.
+
+**Done (safe, in-plan, proven pattern):**
+- **Bias Detective (Lab 6 flagship) → SORT** — concept quiz → weigh AI systems
+  onto "Shows Bias" / "Fair Design" scales with a fairness-balance meter. Same
+  educational cases (Amazon hiring, COMPAS, healthcare proxy, facial
+  recognition, audits). Canonical Lab 6 `#FF7050`. tsc/lint/build clean; added
+  to the smoke spec.
+
+**Awaiting authoritative input (per Phase-D-Status.md):**
+- Migrate the remaining flat flagship games where the archetype is a clean fit
+  (vs. design-ambiguous ones like Pocket Brain, whose compression-sim mechanic
+  doesn't match the map's REVEAL note).
+- Genuine-R3F flagships: additive `useDeviceProfile` 2D fallback (desktop R3F
+  kept) — a 3D/structure change (CLAUDE.md approval gate).
+- Asset-pipeline tracks (Blender GLB/HS-8, Rive `sparky.riv`, Scenario
+  backgrounds, Figma chrome) — blocked on connectors/keys only the owner provides.
+- Emoji → icon sweep (Ui-Creation.md) — design-dependent.
 
 ### Canonical lab re-skin (2026-06-28) — final pass
 

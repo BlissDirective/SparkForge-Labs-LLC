@@ -52,6 +52,8 @@ const GAMES: { slug: string; archetype: 'SORT' | 'REVEAL' | 'CONNECT' | 'REACT' 
   { slug: 'my-first-ai-app', archetype: 'CONNECT' },
   { slug: 'future-forge', archetype: 'CONNECT' },
   { slug: 'treat-trainer', archetype: 'PHASER' },
+  // Phase D — flagship quiz games migrated to archetypes
+  { slug: 'bias-detective', archetype: 'SORT' },
 ];
 
 // Click a button by accessible name. The dev-preview shell takes ~13s to
