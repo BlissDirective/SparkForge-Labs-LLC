@@ -39,7 +39,7 @@ const PixiConnectStage = dynamic(() => import('@/components/games/pixi/PixiConne
   ),
 });
 
-const LAB_COLOR = '#4F6EF7';
+const LAB_COLOR = '#E68E28';
 const GOOD = 0x2ecc71;
 const BAD = 0xff4d4d;
 
@@ -312,7 +312,7 @@ export default function MyFirstAiAppGame() {
   }, [awardXP, completeGame]);
 
   return (
-    <GameShell title="My First AI App" color="#4F6EF7" labNum={1}>
+    <GameShell title="My First AI App" color="#E68E28" labNum={9}>
       <GameLevelSystem
         gameTitle="My First AI App"
         gameEmoji="📱"

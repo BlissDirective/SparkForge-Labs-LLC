@@ -36,7 +36,7 @@ const PhaserMazeStage = dynamic(() => import('@/components/games/phaser/PhaserMa
   ),
 });
 
-const LAB_COLOR = '#4F6EF7';
+const LAB_COLOR = '#B67BFF';
 
 const LEVELS: LevelConfig[] = [
   { id: 1, name: 'First Steps', description: 'Guide the pup to the treats!', emoji: '🐕', difficulty: 'easy', starThresholds: [50, 70, 90], xpReward: 50 },

@@ -40,7 +40,7 @@ const PixiConnectStage = dynamic(() => import('@/components/games/pixi/PixiConne
   ),
 });
 
-const LAB_COLOR = '#E945F5';
+const LAB_COLOR = '#DE5AEA';
 const GOOD = 0x2ecc71;
 const BAD = 0xff4d4d;
 
@@ -316,7 +316,7 @@ export default function FutureForgeGame() {
   }, [awardXP, completeGame]);
 
   return (
-    <GameShell title="Future Forge" color="#E945F5" labNum={10}>
+    <GameShell title="Future Forge" color="#DE5AEA" labNum={10}>
       <GameLevelSystem
         gameTitle="Future Forge"
         gameEmoji="🔮"

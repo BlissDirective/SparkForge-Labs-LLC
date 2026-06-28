@@ -36,7 +36,7 @@ const PixiReactStage = dynamic(() => import('@/components/games/pixi/PixiReactSt
   ),
 });
 
-const LAB_COLOR = '#4F6EF7';
+const LAB_COLOR = '#DE5AEA';
 const ROUND_SEC = 24;
 
 const LEVELS: LevelConfig[] = [
@@ -220,7 +220,7 @@ export default function AiOrNotGame() {
   }, [awardXP, completeGame]);
 
   return (
-    <GameShell title="AI or Not?" color={LAB_COLOR} labNum={1}>
+    <GameShell title="AI or Not?" color={LAB_COLOR} labNum={10}>
       <GameLevelSystem
         gameTitle="AI or Not?"
         gameEmoji="🔍"

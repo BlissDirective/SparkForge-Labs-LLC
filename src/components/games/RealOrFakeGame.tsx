@@ -38,7 +38,7 @@ const PixiRevealStage = dynamic(() => import('@/components/games/pixi/PixiReveal
   ),
 });
 
-const LAB_COLOR = '#2ECC71';
+const LAB_COLOR = '#FF7050';
 
 const LEVELS: LevelConfig[] = [
   { id: 1, name: 'News Basics', description: 'Catch the fake headlines.', emoji: '📰', difficulty: 'easy', starThresholds: [40, 60, 80], xpReward: 50 },
@@ -253,7 +253,7 @@ export default function RealOrFakeGame() {
   }, [awardXP, completeGame]);
 
   return (
-    <GameShell title="Real or Fake?" color={LAB_COLOR} labNum={5}>
+    <GameShell title="Real or Fake?" color={LAB_COLOR} labNum={6}>
       <GameLevelSystem
         gameTitle="Real or Fake?"
         gameEmoji="🔍"

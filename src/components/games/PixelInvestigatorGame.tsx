@@ -39,7 +39,7 @@ const PixiRevealStage = dynamic(() => import('@/components/games/pixi/PixiReveal
   ),
 });
 
-const LAB_COLOR = '#FF6B35';
+const LAB_COLOR = '#FF70AF';
 
 const LEVELS: LevelConfig[] = [
   { id: 1, name: 'Zoom In', description: 'Pixels tell the truth — find the real features.', emoji: '🔍', difficulty: 'easy', starThresholds: [40, 60, 80], xpReward: 50 },
@@ -255,7 +255,7 @@ export default function PixelInvestigatorGame() {
   }, [awardXP, completeGame]);
 
   return (
-    <GameShell title="Pixel Investigator" color="#FF6B35" labNum={7}>
+    <GameShell title="Pixel Investigator" color="#FF70AF" labNum={3}>
       <GameLevelSystem
         gameTitle="Pixel Investigator"
         gameEmoji="🔍"

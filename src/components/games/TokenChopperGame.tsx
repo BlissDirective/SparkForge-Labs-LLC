@@ -39,7 +39,7 @@ const PixiBinSortStage = dynamic(() => import('@/components/games/pixi/PixiBinSo
   ),
 });
 
-const LAB_COLOR = '#FF6B35';
+const LAB_COLOR = '#D9A430';
 const BINS = ['Word', 'Subword', 'Punct', 'Special']; // bin index 0 / 1 / 2 / 3
 const CHIP_PALETTE = ['#4F6EF7', '#E945F5', '#2ECC71', '#10BAD2', '#8F96FA', '#F59E0B'];
 
@@ -244,7 +244,7 @@ export default function TokenChopperGame() {
   }, [awardXP, completeGame]);
 
   return (
-    <GameShell title="Token Chopper" color={LAB_COLOR} labNum={8}>
+    <GameShell title="Token Chopper" color={LAB_COLOR} labNum={4}>
       <GameLevelSystem
         gameTitle="Token Chopper"
         gameEmoji="✂️"

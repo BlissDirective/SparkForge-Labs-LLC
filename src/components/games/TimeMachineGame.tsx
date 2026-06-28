@@ -37,7 +37,7 @@ const PixiBinSortStage = dynamic(() => import('@/components/games/pixi/PixiBinSo
   ),
 });
 
-const LAB_COLOR = '#4F6EF7';
+const LAB_COLOR = '#0FB8FA';
 const BINS = ['Early (pre-2000)', 'Recent (2000-2020)', 'Today (2020+)']; // bin index 0 / 1 / 2
 const CHIP_PALETTE = ['#4F6EF7', '#2ECC71', '#F59E0B', '#10BAD2', '#8F96FA', '#FF7050'];
 
@@ -244,7 +244,7 @@ export default function TimeMachineGame() {
   }, [awardXP, completeGame]);
 
   return (
-    <GameShell title="AI Time Machine" color="#4F6EF7" labNum={1}>
+    <GameShell title="AI Time Machine" color="#0FB8FA" labNum={1}>
       <GameLevelSystem
         gameTitle="AI Time Machine"
         gameEmoji="🕰️"

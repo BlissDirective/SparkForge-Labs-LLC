@@ -38,7 +38,7 @@ const PixiBinSortStage = dynamic(() => import('@/components/games/pixi/PixiBinSo
   ),
 });
 
-const LAB_COLOR = '#FF6B35';
+const LAB_COLOR = '#8F96FA';
 const BINS = ['Happy', 'Sad', 'Angry', 'Neutral']; // bin index 0 / 1 / 2 / 3
 const CHIP_PALETTE = ['#4F6EF7', '#E945F5', '#2ECC71', '#10BAD2', '#8F96FA', '#F59E0B'];
 
@@ -244,7 +244,7 @@ export default function SentimentScannerGame() {
   }, [awardXP, completeGame]);
 
   return (
-    <GameShell title="Sentiment Scanner" color="#FF6B35" labNum={8}>
+    <GameShell title="Sentiment Scanner" color="#8F96FA" labNum={8}>
       <GameLevelSystem
         gameTitle="Sentiment Scanner"
         gameEmoji="😊"

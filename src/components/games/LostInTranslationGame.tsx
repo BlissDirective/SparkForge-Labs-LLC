@@ -39,7 +39,7 @@ const PixiConnectStage = dynamic(() => import('@/components/games/pixi/PixiConne
   ),
 });
 
-const LAB_COLOR = '#FF6B35';
+const LAB_COLOR = '#8F96FA';
 const GOOD = 0x2ecc71;
 const BAD = 0xff4d4d;
 
@@ -312,7 +312,7 @@ export default function LostInTranslationGame() {
   }, [awardXP, completeGame]);
 
   return (
-    <GameShell title="Lost in Translation" color="#FF6B35" labNum={8}>
+    <GameShell title="Lost in Translation" color="#8F96FA" labNum={8}>
       <GameLevelSystem
         gameTitle="Lost in Translation"
         gameEmoji="🌍"

@@ -39,7 +39,7 @@ const PixiBinSortStage = dynamic(() => import('@/components/games/pixi/PixiBinSo
   ),
 });
 
-const LAB_COLOR = '#4F6EF7';
+const LAB_COLOR = '#8F96FA';
 const BINS = ['Positive', 'Negative', 'Action', 'Object']; // bin index 0 / 1 / 2 / 3
 const CHIP_PALETTE = ['#4F6EF7', '#E945F5', '#2ECC71', '#10BAD2', '#8F96FA', '#F59E0B'];
 
@@ -245,7 +245,7 @@ export default function EmojiDecoderGame() {
   }, [awardXP, completeGame]);
 
   return (
-    <GameShell title="Emoji Decoder" color="#4F6EF7" labNum={1}>
+    <GameShell title="Emoji Decoder" color="#8F96FA" labNum={8}>
       <GameLevelSystem
         gameTitle="Emoji Decoder"
         gameEmoji="😊"

@@ -37,7 +37,7 @@ const PixiBinSortStage = dynamic(() => import('@/components/games/pixi/PixiBinSo
   ),
 });
 
-const LAB_COLOR = '#4F6EF7';
+const LAB_COLOR = '#0FB8FA';
 const BINS = ['Humans win', 'Machines win']; // bin index 0 / 1
 const CHIP_PALETTE = ['#4F6EF7', '#2ECC71', '#F59E0B', '#10BAD2', '#8F96FA', '#FF7050'];
 
@@ -240,7 +240,7 @@ export default function HumanVsMachineGame() {
   }, [awardXP, completeGame]);
 
   return (
-    <GameShell title="Human vs Machine" color="#4F6EF7" labNum={2}>
+    <GameShell title="Human vs Machine" color="#0FB8FA" labNum={1}>
       <GameLevelSystem
         gameTitle="Human vs Machine"
         gameEmoji="🤖"

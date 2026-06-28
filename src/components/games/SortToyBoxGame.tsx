@@ -142,7 +142,7 @@ function LevelRenderer({
   const [aiGroups, setAiGroups] = useState<Record<string, number>>({});
   const [sortedCount, setSortedCount] = useState(0);
 
-  const labColor = '#4F6EF7';
+  const labColor = '#B67BFF';
   const maxScore = toys.length * 10 + 20;
   const allSorted = sortedCount >= toys.length;
 
@@ -406,11 +406,11 @@ export default function SortToyBoxGame() {
   }, [awardXP, completeGame]);
 
   return (
-    <GameShell title="Sort the Toy Box" color="#4F6EF7" labNum={2}>
+    <GameShell title="Sort the Toy Box" color="#B67BFF" labNum={2}>
       <GameLevelSystem
         gameTitle="Sort the Toy Box"
         gameEmoji="📦"
-        labColor="#4F6EF7"
+        labColor="#B67BFF"
         levels={LEVELS}
         onComplete={handleAllComplete}
         renderLevel={(level, onComplete, onExit) => (

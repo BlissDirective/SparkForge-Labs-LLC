@@ -37,7 +37,7 @@ const PixiRevealStage = dynamic(() => import('@/components/games/pixi/PixiReveal
   ),
 });
 
-const LAB_COLOR = '#4F6EF7';
+const LAB_COLOR = '#0FB8FA';
 
 // ════════════════════════════════════════════════════════════════════════
 // LEVELS

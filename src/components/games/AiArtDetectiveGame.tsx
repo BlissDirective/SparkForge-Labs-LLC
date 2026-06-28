@@ -37,7 +37,7 @@ const PixiBinSortStage = dynamic(() => import('@/components/games/pixi/PixiBinSo
   ),
 });
 
-const LAB_COLOR = '#E945F5';
+const LAB_COLOR = '#D9A430';
 const BINS = ['Human-made', 'AI-made']; // bin index 0 / 1
 const CHIP_PALETTE = ['#4F6EF7', '#2ECC71', '#F59E0B', '#10BAD2', '#8F96FA', '#FF7050'];
 

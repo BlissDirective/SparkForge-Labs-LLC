@@ -38,7 +38,7 @@ const PixiReactStage = dynamic(() => import('@/components/games/pixi/PixiReactSt
   ),
 });
 
-const LAB_COLOR = '#E945F5';
+const LAB_COLOR = '#D9A430';
 const ROUND_SEC = 26;
 
 const LEVELS: LevelConfig[] = [

@@ -39,7 +39,7 @@ const PixiBinSortStage = dynamic(() => import('@/components/games/pixi/PixiBinSo
   ),
 });
 
-const LAB_COLOR = '#FF6B35';
+const LAB_COLOR = '#10BAD2';
 const BINS = ['Fools the AI', 'AI still sees it']; // bin index 0 / 1
 const CHIP_PALETTE = ['#4F6EF7', '#E945F5', '#F59E0B', '#10BAD2', '#FF7050', '#8F96FA'];
 
@@ -258,7 +258,7 @@ export default function FoolTheAiGame() {
   }, [awardXP, completeGame]);
 
   return (
-    <GameShell title="Fool the AI" color="#FF6B35" labNum={7}>
+    <GameShell title="Fool the AI" color="#10BAD2" labNum={7}>
       <GameLevelSystem
         gameTitle="Fool the AI"
         gameEmoji="😈"

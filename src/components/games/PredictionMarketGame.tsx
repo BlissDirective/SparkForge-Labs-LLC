@@ -38,7 +38,7 @@ const PixiBinSortStage = dynamic(() => import('@/components/games/pixi/PixiBinSo
   ),
 });
 
-const LAB_COLOR = '#DE5AEA';
+const LAB_COLOR = '#10BAD2';
 const BINS = ['Likely', 'Uncertain', 'Unlikely']; // bin index 0 / 1 / 2
 const CHIP_PALETTE = ['#4F6EF7', '#2ECC71', '#F59E0B', '#10BAD2', '#8F96FA', '#FF7050'];
 
@@ -250,7 +250,7 @@ export default function PredictionMarketGame() {
   }, [awardXP, completeGame]);
 
   return (
-    <GameShell title="Prediction Market" color="#DE5AEA" labNum={10}>
+    <GameShell title="Prediction Market" color="#10BAD2" labNum={7}>
       <GameLevelSystem
         gameTitle="Prediction Market"
         gameEmoji="📈"

@@ -37,7 +37,7 @@ const PixiBinSortStage = dynamic(() => import('@/components/games/pixi/PixiBinSo
   ),
 });
 
-const LAB_COLOR = '#2ECC71';
+const LAB_COLOR = '#FF7050';
 const BINS = ['Private', 'Sensitive', 'Shareable']; // bin index 0 / 1 / 2
 const CHIP_PALETTE = ['#4F6EF7', '#E945F5', '#F59E0B', '#10BAD2', '#FF7050', '#8F96FA'];
 
@@ -257,7 +257,7 @@ export default function DataShieldGame() {
   }, [awardXP, completeGame]);
 
   return (
-    <GameShell title="Data Shield" color={LAB_COLOR} labNum={5}>
+    <GameShell title="Data Shield" color={LAB_COLOR} labNum={6}>
       <GameLevelSystem
         gameTitle="Data Shield"
         gameEmoji="🛡️"

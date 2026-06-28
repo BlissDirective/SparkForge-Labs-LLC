@@ -1,8 +1,27 @@
 # SparkForge Build Progress
 
-## Current Phase: Game Migration (Fable Frontend Enhancement) — Waves 1–7 + HS-5 COMPLETE
-## Status: 25 games migrated + HS-5 harness shipped (caught & fixed 2 prod bugs); next: canonical re-skin
+## Current Phase: Game Migration (Fable Frontend Enhancement) — COMPLETE
+## Status: All 7 waves + HS-5 + canonical re-skin done. 25 games migrated, 2 prod bugs fixed, every game on its canonical lab accent.
 ## Last Updated: 2026-06-28
+
+### Canonical lab re-skin (2026-06-28) — final pass
+
+All 26 migrated games (25 waves + Sort Toy Box) re-skinned to their canonical
+lab accent + lab number, sourced from `gameRegistry.ts` (`lab:`) ×
+`labColors.ts` (`hex:`). Lab → hex: 1 #0FB8FA · 2 #B67BFF · 3 #FF70AF ·
+4 #D9A430 · 5 #00D17A · 6 #FF7050 · 7 #10BAD2 · 8 #8F96FA · 9 #E68E28 ·
+10 #DE5AEA.
+
+A deterministic script touched only three things per file — the `LAB_COLOR`
+const, the GameShell `color` literal (when not already `{LAB_COLOR}`), and the
+GameShell `labNum` — so semantic colors (success-green, the `#FF6B35` challenge
+callout) were preserved. This also corrected pre-existing GameShell mismatches
+where the hardcoded labNum/color disagreed with the registry: AI or Not 1→10,
+Emoji Decoder 1→8, My First AI App 1→9, Data Shield 5→6, Real or Fake 5→6,
+Token Chopper 8→4, Pixel Investigator 7→3, Prediction Market 10→7,
+Human vs Machine 2→1.
+
+**Validation:** `tsc` 0 src errors · `npm run build` EXIT=0 (143 static pages).
 
 ### HS-5 — Playwright visual checkpoint (2026-06-28)
 

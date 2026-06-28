@@ -36,6 +36,15 @@ Two non-archetype dispositions also appear in the map:
 
 ---
 
+> **Re-skin status (2026-06-28): ✅ APPLIED.** All 26 migrated games now carry
+> their canonical lab accent + lab number from the table below (sourced from
+> `gameRegistry.ts` `lab:` + `labColors.ts` `hex:`). This also corrected several
+> pre-existing GameShell mismatches (e.g. AI or Not 1→10, Emoji Decoder 1→8,
+> Data Shield/Real or Fake 5→6, Token Chopper 8→4, Pixel Investigator 7→3,
+> Prediction Market 10→7). Only the `LAB_COLOR` const + GameShell `color`/`labNum`
+> changed; semantic colors (success-green, the `#FF6B35` challenge callout) were
+> left untouched.
+
 ## 2. Skinning model — "every lab is a world"
 
 Each game inherits its **lab accent** (hex) as the `labColor` prop on

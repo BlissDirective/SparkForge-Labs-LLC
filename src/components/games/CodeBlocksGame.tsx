@@ -38,7 +38,7 @@ const PixiConnectStage = dynamic(() => import('@/components/games/pixi/PixiConne
   ),
 });
 
-const LAB_COLOR = '#E945F5';
+const LAB_COLOR = '#E68E28';
 const GOOD = 0x2ecc71;
 const BAD = 0xff4d4d;
 
@@ -324,7 +324,7 @@ export default function CodeBlocksGame() {
   }, [awardXP, completeGame]);
 
   return (
-    <GameShell title="Code Blocks" color="#E945F5" labNum={9}>
+    <GameShell title="Code Blocks" color="#E68E28" labNum={9}>
       <GameLevelSystem
         gameTitle="Code Blocks"
         gameEmoji="💻"

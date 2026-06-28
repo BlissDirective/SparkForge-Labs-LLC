@@ -39,7 +39,7 @@ const PixiRevealStage = dynamic(() => import('@/components/games/pixi/PixiReveal
   ),
 });
 
-const LAB_COLOR = '#FF6B35';
+const LAB_COLOR = '#10BAD2';
 
 // Each level trains a detector for ONE target class. isPrize = belongs to it.
 const LEVELS: LevelConfig[] = [
@@ -341,7 +341,7 @@ export default function CameraQuestGame() {
   }, [awardXP, completeGame]);
 
   return (
-    <GameShell title="Camera Quest" color="#FF6B35" labNum={7}>
+    <GameShell title="Camera Quest" color="#10BAD2" labNum={7}>
       <GameLevelSystem
         gameTitle="Camera Quest"
         gameEmoji="📸"
