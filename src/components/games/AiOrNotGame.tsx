@@ -1,75 +1,217 @@
 // ════════════════════════════════════════════════════════════════════════
-// AI OR NOT v3 — Lab 1 — Redesigned
+// AI OR NOT? v4 — Lab 10 (AI Futures) — REACT archetype migration (Wave 1)
 // ════════════════════════════════════════════════════════════════════════
-// Decide: Is this AI-made or human-made? Images, text, music, art.
-// 10 levels across media types with 80+ challenges.
+// Was a multiple-choice quiz. Now a DETECTION DRILL: AI "tells" surface in the
+// arena and you tap them before they vanish. Speed builds a streak — the same
+// reflex the skill needs. Each level focuses on a media type and teaches its
+// tells as a learn card. Pixi REACT scene (ReactionArena) inside GameShell.
+//
+// Teaches: the tell-tale signs of AI-generated media, under time pressure.
 
 'use client';
-import { useCallback } from 'react';
+
+import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
+import dynamic from 'next/dynamic';
+import { useReducedMotion } from 'motion/react';
+import {
+  ChevronRight, GraduationCap, Target, Timer, Crosshair,
+} from 'lucide-react';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameActions } from '@/stores/gameStore';
-import GameLevelSystem, { type LevelResult } from '@/components/games/shared/GameLevelSystem';
-import QuizLevelRenderer, { type QuizQuestion } from '@/components/games/shared/QuizLevelRenderer';
+import { useJuice } from '@/components/juice/JuiceProvider';
+import { SFCard } from '@/components/ui/SFCard';
+import { SFButton } from '@/components/ui/SFButton';
+import GameLevelSystem, {
+  type LevelConfig, type LevelResult,
+} from '@/components/games/shared/GameLevelSystem';
+import {
+  GlowingTitle, ScoreDisplay, ComboCounter,
+} from '@/components/games/shared/GameVisualKit';
 
-const LEVELS = [
-  { id: 1, name: 'AI Art', description: 'Can you spot AI-generated art?', emoji: '🎨', difficulty: 'easy' as const, starThresholds: [60,80,95], xpReward: 50 },
-  { id: 2, name: 'Text Tricks', description: 'AI text vs human writing.', emoji: '✍️', difficulty: 'easy' as const, starThresholds: [60,80,95], xpReward: 60 },
-  { id: 3, name: 'Music Mystery', description: 'Is that a real musician or AI?', emoji: '🎵', difficulty: 'easy' as const, starThresholds: [60,80,95], xpReward: 70 },
-  { id: 4, name: 'Photo Fakes', description: 'Real photos vs AI-generated ones.', emoji: '📸', difficulty: 'medium' as const, starThresholds: [60,80,90], xpReward: 80 },
-  { id: 5, name: 'Voice vs AI', description: 'Can you tell real voices from synthetic?', emoji: '🗣️', difficulty: 'medium' as const, starThresholds: [60,80,90], xpReward: 90 },
-  { id: 6, name: 'Deepfake Detect', description: 'Spot manipulated videos.', emoji: '🎬', difficulty: 'medium' as const, starThresholds: [50,75,90], xpReward: 100 },
-  { id: 7, name: 'Code Challenge', description: 'Human programmer vs AI coder.', emoji: '💻', difficulty: 'hard' as const, starThresholds: [50,75,85], xpReward: 120 },
-  { id: 8, name: 'News or Nonsense', description: 'Real news vs AI-generated articles.', emoji: '📰', difficulty: 'hard' as const, starThresholds: [50,75,85], xpReward: 130 },
-  { id: 9, name: 'Multi-Media Mix', description: 'All media types combined!', emoji: '🔀', difficulty: 'expert' as const, starThresholds: [50,70,85], xpReward: 150 },
-  { id: 10, name: 'Grand Detector', description: 'The ultimate AI detection test.', emoji: '🔍', difficulty: 'expert' as const, starThresholds: [50,70,85], xpReward: 200, isBonus: true },
+// Pixi is client-only (WebGL/WebGPU) — never SSR it.
+const PixiReactStage = dynamic(() => import('@/components/games/pixi/PixiReactStage'), {
+  ssr: false,
+  loading: () => (
+    <div className="h-[420px] w-full animate-pulse rounded-2xl" style={{ background: '#0E1428' }} />
+  ),
+});
+
+const LAB_COLOR = '#4F6EF7';
+const ROUND_SEC = 24;
+
+const LEVELS: LevelConfig[] = [
+  { id: 1, name: 'AI Art', description: 'Catch the tells in AI-generated art!', emoji: '🎨', difficulty: 'easy', starThresholds: [70, 120, 180], xpReward: 50 },
+  { id: 2, name: 'Text Tricks', description: 'Spot AI writing patterns fast.', emoji: '✍️', difficulty: 'easy', starThresholds: [70, 120, 180], xpReward: 60 },
+  { id: 3, name: 'Music Mystery', description: 'React to synthetic-music tells.', emoji: '🎵', difficulty: 'easy', starThresholds: [70, 120, 180], xpReward: 70 },
+  { id: 4, name: 'Photo Fakes', description: 'Catch AI photo artifacts.', emoji: '📸', difficulty: 'medium', starThresholds: [80, 130, 190], xpReward: 80 },
+  { id: 5, name: 'Voice vs AI', description: 'Detect synthetic-voice tells.', emoji: '🗣️', difficulty: 'medium', starThresholds: [80, 130, 190], xpReward: 90 },
+  { id: 6, name: 'Deepfake Detect', description: 'Spot manipulated-video tells.', emoji: '🎬', difficulty: 'medium', starThresholds: [80, 140, 200], xpReward: 100 },
+  { id: 7, name: 'Code Challenge', description: 'React to AI-coding tells.', emoji: '💻', difficulty: 'hard', starThresholds: [90, 150, 210], xpReward: 120 },
+  { id: 8, name: 'News or Nonsense', description: 'Catch AI fake-news tells.', emoji: '📰', difficulty: 'hard', starThresholds: [90, 150, 210], xpReward: 130 },
+  { id: 9, name: 'Multi-Media Mix', description: 'All tell types, faster.', emoji: '🔀', difficulty: 'expert', starThresholds: [100, 160, 220], xpReward: 150 },
+  { id: 10, name: 'Grand Detector', description: 'The ultimate detection drill.', emoji: '🔍', difficulty: 'expert', starThresholds: [100, 170, 230], xpReward: 200, isBonus: true },
 ];
 
-function getQuestions(levelId: number): QuizQuestion[] {
-  const all: QuizQuestion[] = [
-    // AI Art (Level 1)
-    { question: "This painting has perfect symmetry, impossible geometry, and strange hands. AI or Human?", options: ["AI — strange hands are an AI giveaway","Human — artists make mistakes too","AI — perfect symmetry is suspicious","Both A and C"], correctIndex: 3, explanation: "AI art often shows perfect symmetry and malformed hands/fingers — two classic tells.", band: 'A' },
-    { question: "A landscape photo has consistent shadows and natural grain. AI or Human?", options: ["Human — natural imperfections","AI — can fake grain now","Could be either","Definitely AI"], correctIndex: 0, explanation: "Natural grain, consistent lighting, and subtle imperfections are signs of real photography.", band: 'A' },
-    { question: "An image has a watermark signature and visible brush strokes. AI or Human?", options: ["Human — physical brush strokes","AI — can fake signatures now","Probably AI","Can't tell"], correctIndex: 0, explanation: "Visible brush texture and artist signatures are strong indicators of human-created art.", band: 'A' },
-    // Text (Level 2)
-    { question: "A poem has inconsistent metaphors and some typos. AI or Human?", options: ["Human — humans make mistakes","AI — AI is inconsistent","Probably AI","Both can be inconsistent"], correctIndex: 0, explanation: "Typos and imperfect flow are more common in human writing. AI text tends to be too polished.", band: 'A' },
-    { question: "An essay repeats the same phrase structure in every paragraph. AI or Human?", options: ["AI — repetitive patterns are an AI tell","Human — students repeat themselves","Could be either","Human — bad writing"], correctIndex: 0, explanation: "AI text often shows repetitive sentence structure. Humans vary their writing style naturally.", band: 'B' },
-    { question: "A story has invented words, creative spelling, and unique formatting. AI or Human?", options: ["Human — creativity shows personality","AI — invented words confuse AI","Probably human","Can't tell"], correctIndex: 0, explanation: "Inventive language and unique formatting are hallmarks of human creativity that AI rarely replicates.", band: 'B' },
-    // Music (Level 3)
-    { question: "A song has slight timing variations and breath sounds between phrases. AI or Human?", options: ["Human — natural performance variation","AI — can add breath sounds","Probably AI","Can't tell"], correctIndex: 0, explanation: "Natural timing variation and authentic breath sounds indicate human performance.", band: 'B' },
-    { question: "A piece has perfectly quantized timing and no dynamics variation. AI or Human?", options: ["AI — too perfect is suspicious","Human — some musicians are precise","Probably human","Can't tell"], correctIndex: 0, explanation: "Perfect quantization with no dynamics variation is a strong indicator of AI-generated or heavily processed music.", band: 'B' },
-    // Photos (Level 4)
-    { question: "A photo has realistic lens flare, chromatic aberration, and depth of field. AI or Human?", options: ["Human — real camera optics","AI — can simulate all of these","Could be either","Definitely AI"], correctIndex: 0, explanation: "Authentic optical effects from real lenses are hard for AI to replicate perfectly.", band: 'C' },
-    { question: "A portrait has mismatched earrings, inconsistent background blur, and extra fingers. AI or Human?", options: ["AI — multiple AI artifacts","Human — could be Photoshop","Probably AI","Can't tell"], correctIndex: 0, explanation: "Multiple inconsistencies (fingers, asymmetry, background artifacts) together strongly indicate AI generation.", band: 'C' },
-    // Voice (Level 5)
-    { question: "A voice recording has natural intonation changes and occasional mouth noise. AI or Human?", options: ["Human — natural vocal variation","AI — can be very realistic now","Probably human","Can't tell"], correctIndex: 0, explanation: "Natural prosody, mouth clicks, and breathing patterns are difficult for AI voice to replicate.", band: 'C' },
-    { question: "A voice sounds slightly robotic with consistent pace and no breaths. AI or Human?", options: ["AI — too consistent","Human — some people talk that way","Probably human","Can't tell"], correctIndex: 0, explanation: "Perfectly consistent pace without natural variation or breathing is a common AI voice tell.", band: 'B' },
-    // Deepfake (Level 6)
-    { question: "A video shows someone blinking unnaturally — eyes stay closed too long. AI or Human?", options: ["AI — deepfake blinking is often off","Human — could be tired","Probably AI","Can't tell"], correctIndex: 0, explanation: "Deepfakes often struggle with natural blinking patterns and eye movement synchronization.", band: 'C' },
-    { question: "A video has consistent lighting, natural skin texture, and matching lip sync. AI or Human?", options: ["Human — natural appearance","AI — deepfakes are perfect now","Probably human","Can't tell"], correctIndex: 0, explanation: "Natural skin texture, consistent lighting, and perfect lip sync are signs of authentic video.", band: 'C' },
-    // Code (Level 7)
-    { question: "Code has inconsistent naming, commented-out experiments, and TODOs. AI or Human?", options: ["Human — messy but authentic","AI — always clean code","Probably human","Can't tell"], correctIndex: 0, explanation: "Messy code with TODOs, experiments, and inconsistent style is typical of human programmers.", band: 'C' },
-    { question: "Code is perfectly formatted with exhaustive comments and no edge case handling. AI or Human?", options: ["AI — too clean, misses edge cases","Human — writes clean code","Probably human","Can't tell"], correctIndex: 0, explanation: "AI-generated code often looks perfect but fails on edge cases. Humans add defensive code.", band: 'C' },
-    // News (Level 8)
-    { question: "A news article has named sources, dates, and links to studies. AI or Human?", options: ["Human — real journalism cites sources","AI — can hallucinate sources","Probably human","Can't tell"], correctIndex: 0, explanation: "Real journalism includes verifiable sources. AI sometimes hallucinates fake sources.", band: 'B' },
-    { question: "A news article uses sensational language, has no byline, and no verifiable facts. AI or Human?", options: ["AI — or low-quality fake news","Human — tabloids exist","Probably AI","Can't tell"], correctIndex: 0, explanation: "Sensationalism without attribution is a red flag. AI can generate convincing fake news.", band: 'C' },
-    // Multi (Level 9)
-    { question: "An image has EXIF camera metadata and a geo-tag. AI or Human?", options: ["Human — AI images lack EXIF","AI — can add fake EXIF","Probably human","Can't tell"], correctIndex: 0, explanation: "Authentic camera EXIF data is strong evidence of a real photograph vs AI generation.", band: 'C' },
-    { question: "A video shows hands with 6 fingers. AI or Human?", options: ["AI — classic AI hand error","Human — rare birth condition","Probably AI","Can't tell"], correctIndex: 0, explanation: "Extra fingers, melting features, or unnatural hand structure are classic AI generation artifacts.", band: 'A' },
-  ];
+// Media type + its AI tells (faithful to v3 explanations), per level.
+const MEDIA: Record<number, { type: string; tells: string[] }> = {
+  1: { type: 'AI Art', tells: ['strange hands', 'perfect symmetry', 'impossible geometry', 'melting edges'] },
+  2: { type: 'AI Text', tells: ['repetitive structure', 'too polished', 'no real typos', 'generic phrasing'] },
+  3: { type: 'AI Music', tells: ['perfect quantization', 'no dynamics', 'no breath sounds', 'machine timing'] },
+  4: { type: 'AI Photos', tells: ['extra fingers', 'mismatched earrings', 'warped background', 'odd reflections'] },
+  5: { type: 'AI Voice', tells: ['no breaths', 'robotic pace', 'flat intonation', 'too consistent'] },
+  6: { type: 'Deepfakes', tells: ['unnatural blinking', 'lip-sync drift', 'flickering edges', 'frozen stare'] },
+  7: { type: 'AI Code', tells: ['too clean', 'misses edge cases', 'over-commented', 'no TODOs'] },
+  8: { type: 'AI News', tells: ['hallucinated sources', 'no byline', 'sensational tone', 'no real facts'] },
+  9: { type: 'Mixed Media', tells: ['no EXIF data', 'six fingers', 'fake metadata', 'odd artifacts'] },
+  10: { type: 'All Media', tells: ['strange hands', 'no breaths', 'hallucinated sources', 'lip-sync drift', 'too perfect'] },
+};
 
-  // Distribute questions across levels
-  const perLevel = 8;
-  const start = (levelId - 1) * 2;
-  const levelQs = [];
-  for (let i = 0; i < perLevel; i++) {
-    const idx = (start + i) % all.length;
-    levelQs.push(all[idx]);
-  }
-  return levelQs;
+// Difficulty ramp: targets spawn faster and live shorter as levels climb.
+function tuning(levelId: number) {
+  return {
+    spawnEveryMs: Math.max(620, 1180 - levelId * 55),
+    lifeMs: Math.max(900, 1750 - levelId * 80),
+    maxConcurrent: 2 + Math.floor(levelId / 3),
+  };
 }
 
+// ════════════════════════════════════════════════════════════════════════
+// LEVEL RENDERER — the REACT detection drill
+// ════════════════════════════════════════════════════════════════════════
+function LevelRenderer({
+  level, onComplete, onExit,
+}: {
+  level: LevelConfig; onComplete: (r: LevelResult) => void; onExit: () => void;
+}) {
+  const juice = useJuice();
+  const prefersReducedMotion = useReducedMotion();
+  const media = MEDIA[level.id] || MEDIA[1];
+  const tune = useMemo(() => tuning(level.id), [level.id]);
+
+  const [phase, setPhase] = useState<'welcome' | 'drill'>('welcome');
+  const [timeLeft, setTimeLeft] = useState(ROUND_SEC);
+  const [score, setScore] = useState(0);
+  const [combo, setCombo] = useState(0);
+  const [hits, setHits] = useState(0);
+  const [misses, setMisses] = useState(0);
+  const [tellIdx, setTellIdx] = useState(0);
+
+  const maxScore = 240;
+  const active = phase === 'drill' && timeLeft > 0;
+
+  // Latest score in a ref so the unmount/onComplete path reads a fresh value.
+  const scoreRef = useRef(0);
+  scoreRef.current = score;
+
+  // Round countdown + rotating tell caption.
+  useEffect(() => {
+    if (phase !== 'drill') return;
+    const tick = setInterval(() => setTimeLeft((t) => Math.max(0, t - 1)), 1000);
+    const rotate = setInterval(() => setTellIdx((i) => (i + 1) % media.tells.length), 2600);
+    return () => { clearInterval(tick); clearInterval(rotate); };
+  }, [phase, media.tells.length]);
+
+  // End of round → score it.
+  useEffect(() => {
+    if (phase !== 'drill' || timeLeft > 0) return;
+    const total = scoreRef.current;
+    const stars = (total >= level.starThresholds[2] ? 3
+      : total >= level.starThresholds[1] ? 2
+        : total >= level.starThresholds[0] ? 1 : 0) as 0 | 1 | 2 | 3;
+    const id = setTimeout(() => {
+      onComplete({ score: total, maxScore, stars, xpEarned: level.xpReward * (stars / 3), timeMs: ROUND_SEC * 1000 });
+    }, 900);
+    return () => clearTimeout(id);
+  }, [phase, timeLeft, level, maxScore, onComplete]);
+
+  const handleHit = useCallback(() => {
+    if (!active) return;
+    setHits((h) => h + 1);
+    setCombo((c) => {
+      const nc = c + 1;
+      setScore((s) => {
+        const ns = s + 10 + c;
+        juice.onCorrect(nc, ns);
+        return ns;
+      });
+      return nc;
+    });
+  }, [active, juice]);
+
+  const handleMiss = useCallback(() => {
+    if (!active) return;
+    setMisses((m) => m + 1);
+    setCombo(0);
+    juice.onWrong(0, scoreRef.current);
+  }, [active, juice]);
+
+  // ═══ WELCOME ═══
+  if (phase === 'welcome') {
+    return (
+      <div className="relative z-10 space-y-5">
+        <GlowingTitle emoji="🔍" color={LAB_COLOR}>Level {level.id}: {level.name}</GlowingTitle>
+        <SFCard variant="elevated" className="p-5">
+          <p className="text-sm mb-3" style={{ color: '#5A6078' }}>{level.description}</p>
+          <div className="rounded-xl p-3 text-xs" style={{ background: `${LAB_COLOR}10`, color: LAB_COLOR }}>
+            <GraduationCap className="w-4 h-4 inline mr-1" />
+            <strong>{media.type} tells:</strong> {media.tells.join(' · ')}
+          </div>
+          <div className="mt-3 rounded-xl p-3 text-xs flex items-start gap-2" style={{ background: '#FF6B3510', color: '#FF6B35' }}>
+            <Target className="w-4 h-4 shrink-0 mt-0.5" />
+            <span><strong>Drill:</strong> Tap every tell that pops up before it vanishes. Build your detection streak!</span>
+          </div>
+        </SFCard>
+        <SFButton variant="primary" size="lg" className="w-full" onClick={() => { setTimeLeft(ROUND_SEC); setPhase('drill'); }}>
+          Start Drill <ChevronRight className="w-5 h-5 ml-2" />
+        </SFButton>
+      </div>
+    );
+  }
+
+  // ═══ DRILL ═══
+  return (
+    <div className="relative z-10 space-y-4">
+      <div className="flex items-center justify-between">
+        <GlowingTitle emoji="🔍" color={LAB_COLOR}>Catch the Tells</GlowingTitle>
+        <span className="text-sm font-bold flex items-center gap-1" style={{ color: timeLeft <= 5 ? '#FF4D4D' : LAB_COLOR }}>
+          <Timer className="w-4 h-4" />{timeLeft}s
+        </span>
+      </div>
+
+      <div className="rounded-xl px-3 py-2 text-sm font-semibold flex items-center gap-2" style={{ background: `${LAB_COLOR}12`, color: LAB_COLOR }}>
+        <Crosshair className="w-4 h-4" /> Catch the AI tell: <span style={{ color: '#1A1D2B' }}>{media.tells[tellIdx]}</span>
+      </div>
+
+      <ScoreDisplay score={score} maxScore={maxScore} />
+      <ComboCounter combo={combo} />
+
+      <PixiReactStage
+        active={active}
+        onHit={handleHit}
+        onMiss={handleMiss}
+        labColor={LAB_COLOR}
+        status={`${hits} tells caught, ${misses} missed. Streak ${combo}.`}
+        actionLabel="Catch tell"
+        spawnEveryMs={tune.spawnEveryMs}
+        lifeMs={tune.lifeMs}
+        maxConcurrent={tune.maxConcurrent}
+        reducedMotion={!!prefersReducedMotion}
+      />
+
+      <div className="flex items-center justify-between text-xs" style={{ color: '#8C94AC' }}>
+        <span>Caught: <strong style={{ color: '#2ECC71' }}>{hits}</strong> · Missed: <strong style={{ color: '#FF4D4D' }}>{misses}</strong></span>
+        <SFButton variant="outline" size="sm" onClick={onExit} aria-label="Exit level">Exit</SFButton>
+      </div>
+    </div>
+  );
+}
+
+// ════════════════════════════════════════════════════════════════════════
+// MAIN EXPORT
+// ════════════════════════════════════════════════════════════════════════
 export default function AiOrNotGame() {
   const { awardXP, completeGame } = useGameActions();
+
   const handleComplete = useCallback((results: LevelResult[]) => {
     const totalXP = results.reduce((s, r) => s + r.xpEarned, 0);
     const totalStars = results.reduce((s, r) => s + r.stars, 0);
@@ -78,12 +220,15 @@ export default function AiOrNotGame() {
   }, [awardXP, completeGame]);
 
   return (
-    <GameShell title="AI or Not?" color="#4F6EF7" labNum={1}>
-      <GameLevelSystem gameTitle="AI or Not?" gameEmoji="🤔" labColor="#4F6EF7" levels={LEVELS}
+    <GameShell title="AI or Not?" color={LAB_COLOR} labNum={1}>
+      <GameLevelSystem
+        gameTitle="AI or Not?"
+        gameEmoji="🔍"
+        labColor={LAB_COLOR}
+        levels={LEVELS}
         onComplete={handleComplete}
         renderLevel={(level, onComplete, onExit) => (
-          <QuizLevelRenderer level={level} onComplete={onComplete} onExit={onExit}
-            questions={getQuestions(level.id)} labColor="#4F6EF7" gameEmoji="🤔" timePerQuestion={15} />
+          <LevelRenderer level={level} onComplete={onComplete} onExit={onExit} />
         )}
       />
     </GameShell>

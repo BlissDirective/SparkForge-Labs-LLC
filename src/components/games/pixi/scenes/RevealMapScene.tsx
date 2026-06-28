@@ -24,12 +24,19 @@ interface RevealMapSceneProps {
   reducedMotion: boolean;
   width: number;
   height: number;
+  /**
+   * When true, a covered tile shows its label instead of "?" — for hunts where
+   * the object is visible but its hidden property (e.g. "uses AI") is what the
+   * tap uncovers. Defaults to false (classic memory/search "?" cover).
+   */
+  showLabelsCovered?: boolean;
 }
 
 const GAP = 10;
 
 export default function RevealMapScene({
   tiles, columns, revealed, onReveal, labColor, reducedMotion, width, height,
+  showLabelsCovered = false,
 }: RevealMapSceneProps) {
   const accent = hexNum(labColor);
   const cols = Math.max(1, columns);
@@ -92,18 +99,29 @@ export default function RevealMapScene({
                 }
               }}
             />
-            <pixiText
-              text={isOpen ? (tile.label ?? (tile.isPrize ? 'WIN' : '-')) : '?'}
-              anchor={0.5}
-              x={cell / 2}
-              y={cell / 2}
-              style={{
-                fill: isOpen && tile.isPrize ? 0xffffff : 0x8c94ac,
-                fontSize: Math.round(cell * 0.3),
-                fontWeight: '700',
-                fontFamily: 'system-ui, sans-serif',
-              }}
-            />
+            {(() => {
+              const wordy = (showLabelsCovered && !!tile.label) || (isOpen && !!tile.label);
+              const text = isOpen
+                ? (tile.label ?? (tile.isPrize ? 'WIN' : '-'))
+                : (showLabelsCovered ? (tile.label ?? '?') : '?');
+              return (
+                <pixiText
+                  text={text}
+                  anchor={0.5}
+                  x={cell / 2}
+                  y={cell / 2}
+                  style={{
+                    fill: isOpen && tile.isPrize ? 0xffffff : isOpen ? 0xaeb6cc : 0x8c94ac,
+                    fontSize: wordy ? clamp(Math.round(cell * 0.16), 10, 16) : Math.round(cell * 0.3),
+                    fontWeight: '700',
+                    fontFamily: 'system-ui, sans-serif',
+                    align: 'center',
+                    wordWrap: wordy,
+                    wordWrapWidth: cell - 10,
+                  }}
+                />
+              );
+            })()}
           </pixiContainer>
         );
       })}

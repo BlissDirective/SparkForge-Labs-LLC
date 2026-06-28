@@ -1,81 +1,294 @@
 // ════════════════════════════════════════════════════════════════════════
-// AI SPY v3 — Lab 1 (What IS AI?) — Redesigned
+// AI SPY v4 — Lab 1 (What IS AI?) — REVEAL archetype migration (Wave 1)
 // ════════════════════════════════════════════════════════════════════════
-// Spot hidden AI in everyday scenes. Tap items that use AI.
-// Replaced Three.js with rich scene cards + particle field.
-// 10 levels with 80+ scenes across home, school, city, future.
+// Was a tap-quiz on QuizLevelRenderer. Now a HUNT: a grid of everyday objects
+// is shown; tap the ones you think use AI. Tapping an AI object fires a glowing
+// "signal" pulse + a why-card; tapping a plain object reveals why it has no AI.
+// Same educational facts, far more game-feel. Pixi REVEAL scene inside GameShell.
+//
+// Teaches: where AI hides in daily life — it senses, learns, or predicts.
 
 'use client';
-import { useCallback } from 'react';
+
+import { useState, useCallback, useMemo } from 'react';
+import dynamic from 'next/dynamic';
+import { useReducedMotion } from 'motion/react';
+import {
+  ChevronRight, Sparkles, Eye, GraduationCap, Target, RotateCcw,
+} from 'lucide-react';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameActions } from '@/stores/gameStore';
-import GameLevelSystem, { type LevelResult } from '@/components/games/shared/GameLevelSystem';
-import QuizLevelRenderer, { type QuizQuestion } from '@/components/games/shared/QuizLevelRenderer';
+import { useJuice } from '@/components/juice/JuiceProvider';
+import { SFCard } from '@/components/ui/SFCard';
+import { SFButton } from '@/components/ui/SFButton';
+import GameLevelSystem, {
+  type LevelConfig, type LevelResult,
+} from '@/components/games/shared/GameLevelSystem';
+import {
+  GlowingTitle, ScoreDisplay, ComboCounter, FeedbackPopup,
+} from '@/components/games/shared/GameVisualKit';
+import type { RevealTile } from '@/components/games/pixi/PixiRevealStage';
 
-const LEVELS = [
-  { id: 1, name: 'Living Room', description: 'Spot AI hiding in your home!', emoji: '🏠', difficulty: 'easy' as const, starThresholds: [60,80,95], xpReward: 50 },
-  { id: 2, name: 'School Day', description: 'AI at school — where is it?', emoji: '🏫', difficulty: 'easy' as const, starThresholds: [60,80,95], xpReward: 60 },
-  { id: 3, name: 'City Walk', description: 'AI is all around the city!', emoji: '🌆', difficulty: 'easy' as const, starThresholds: [60,80,95], xpReward: 70 },
-  { id: 4, name: 'The Kitchen', description: 'Smart kitchen gadgets use AI.', emoji: '🍳', difficulty: 'medium' as const, starThresholds: [60,80,90], xpReward: 80 },
-  { id: 5, name: 'Playground', description: 'Even playtime has AI!', emoji: '🎮', difficulty: 'medium' as const, starThresholds: [60,80,90], xpReward: 90 },
-  { id: 6, name: 'The Hospital', description: 'AI helps doctors heal people.', emoji: '🏥', difficulty: 'medium' as const, starThresholds: [50,75,90], xpReward: 100 },
-  { id: 7, name: 'Space Station', description: 'AI in space exploration!', emoji: '🚀', difficulty: 'hard' as const, starThresholds: [50,75,85], xpReward: 120 },
-  { id: 8, name: 'Factory Floor', description: 'Robots and AI build our world.', emoji: '🏭', difficulty: 'hard' as const, starThresholds: [50,75,85], xpReward: 130 },
-  { id: 9, name: 'Ocean Deep', description: 'AI explores underwater worlds.', emoji: '🌊', difficulty: 'expert' as const, starThresholds: [50,70,85], xpReward: 150 },
-  { id: 10, name: 'Future World', description: 'The ultimate AI spotting test!', emoji: '🔮', difficulty: 'expert' as const, starThresholds: [50,70,85], xpReward: 200, isBonus: true },
+// Pixi is client-only (WebGL/WebGPU) — never SSR it.
+const PixiRevealStage = dynamic(() => import('@/components/games/pixi/PixiRevealStage'), {
+  ssr: false,
+  loading: () => (
+    <div className="h-[420px] w-full animate-pulse rounded-2xl" style={{ background: '#0E1428' }} />
+  ),
+});
+
+const LAB_COLOR = '#4F6EF7';
+
+// ════════════════════════════════════════════════════════════════════════
+// LEVELS
+// ════════════════════════════════════════════════════════════════════════
+const LEVELS: LevelConfig[] = [
+  { id: 1, name: 'Living Room', description: 'Spot AI hiding in your home!', emoji: '🏠', difficulty: 'easy', starThresholds: [40, 60, 80], xpReward: 50 },
+  { id: 2, name: 'School Day', description: 'AI at school — where is it?', emoji: '🏫', difficulty: 'easy', starThresholds: [40, 60, 80], xpReward: 60 },
+  { id: 3, name: 'City Walk', description: 'AI is all around the city!', emoji: '🌆', difficulty: 'easy', starThresholds: [40, 60, 80], xpReward: 70 },
+  { id: 4, name: 'The Kitchen', description: 'Smart kitchen gadgets use AI.', emoji: '🍳', difficulty: 'medium', starThresholds: [40, 60, 80], xpReward: 80 },
+  { id: 5, name: 'Playground', description: 'Even playtime has AI!', emoji: '🎮', difficulty: 'medium', starThresholds: [40, 60, 80], xpReward: 90 },
+  { id: 6, name: 'The Hospital', description: 'AI helps doctors heal people.', emoji: '🏥', difficulty: 'medium', starThresholds: [40, 60, 80], xpReward: 100 },
+  { id: 7, name: 'Space Station', description: 'AI in space exploration!', emoji: '🚀', difficulty: 'hard', starThresholds: [40, 60, 80], xpReward: 120 },
+  { id: 8, name: 'Factory Floor', description: 'Robots and AI build our world.', emoji: '🏭', difficulty: 'hard', starThresholds: [40, 60, 80], xpReward: 130 },
+  { id: 9, name: 'Ocean Deep', description: 'AI explores underwater worlds.', emoji: '🌊', difficulty: 'expert', starThresholds: [40, 60, 80], xpReward: 150 },
+  { id: 10, name: 'Future World', description: 'The ultimate AI spotting test!', emoji: '🔮', difficulty: 'expert', starThresholds: [40, 60, 80], xpReward: 200, isBonus: true },
 ];
 
-function getQuestions(levelId: number): QuizQuestion[] {
-  const q: Record<number, QuizQuestion[]> = {
-    1: [
-      { question: "Does a Smart TV that recommends shows use AI?", options: ["Yes — it learns your preferences!","No — it's just a regular TV","Maybe — only sometimes","Only if you press a button"], correctIndex: 0, explanation: "Smart TVs use recommendation algorithms to suggest shows based on your viewing history.", band: 'A' },
-      { question: "Does a voice assistant (like Alexa) use AI?", options: ["Yes — it understands your voice!","No — it's just a speaker","Only for music","It uses magic"], correctIndex: 0, explanation: "Voice assistants use speech recognition and natural language processing (AI) to understand commands.", band: 'A' },
-      { question: "Does a regular couch use AI?", options: ["Yes — it's very smart","No — it's just furniture","Only if it has USB ports","If it's expensive"], correctIndex: 1, explanation: "A regular couch has no sensors or processors — it's just furniture! No AI here.", band: 'A' },
-      { question: "Does a robot vacuum use AI?", options: ["Yes — it maps rooms and avoids obstacles","No — it just bumps around randomly","Only if you control it","Only on hardwood"], correctIndex: 0, explanation: "Robot vacuums use SLAM (Simultaneous Localization and Mapping) — an AI technique to navigate.", band: 'A' },
-      { question: "Does a light switch use AI?", options: ["Yes — it's smart!","No — it's just a simple circuit","Only LED switches","If it connects to WiFi"], correctIndex: 1, explanation: "A mechanical light switch simply completes or breaks an electrical circuit. No computation involved.", band: 'A' },
-      { question: "Does a smart thermostat use AI?", options: ["Yes — it learns your temperature preferences","No — it just has buttons","Only in winter","Only if it has a screen"], correctIndex: 0, explanation: "Smart thermostats learn your schedule and preferences to optimize heating and cooling automatically.", band: 'B' },
-      { question: "Does a regular picture frame use AI?", options: ["Yes — if it shows AI art","No — it just holds photos","Only digital frames","If it's expensive"], correctIndex: 1, explanation: "A regular picture frame is purely physical with no computational capability.", band: 'A' },
-      { question: "Does a video doorbell with face detection use AI?", options: ["Yes — computer vision recognizes faces","No — it's just a camera","Only if connected to the internet","Only at night"], correctIndex: 0, explanation: "Video doorbells use computer vision (a type of AI) to detect faces and distinguish between people, packages, and animals.", band: 'B' },
-    ],
-    2: [
-      { question: "Does an online math tutor app use AI?", options: ["Yes — it adapts to your skill level!","No — it just has worksheets","Only for older kids","Only for multiplication"], correctIndex: 0, explanation: "Adaptive learning apps use AI to adjust difficulty and personalize lessons based on your performance.", band: 'A' },
-      { question: "Does a regular pencil use AI?", options: ["Yes — if it's a smart pencil","No — it's just wood and graphite","Only mechanical pencils","Only colored pencils"], correctIndex: 1, explanation: "A regular pencil is a simple writing tool with no electronics or AI.", band: 'A' },
-      { question: "Does plagiarism detection software use AI?", options: ["Yes — it compares text to billions of sources","No — teachers just guess","Only for long essays","Only checks spelling"], correctIndex: 0, explanation: "Plagiarism detectors use NLP (Natural Language Processing) to compare text against vast databases.", band: 'B' },
-      { question: "Does a cafeteria cash register use AI?", options: ["Yes — it counts money","No — it just adds prices","Only self-checkout ones","If it beeps"], correctIndex: 1, explanation: "A basic cash register performs arithmetic — not AI. Smart registers with facial payment do use AI.", band: 'A' },
-      { question: "Does language translation software use AI?", options: ["Yes — neural networks translate languages","No — it just swaps words","Only for Spanish","Only in apps"], correctIndex: 0, explanation: "Modern translators use neural machine translation — deep learning models that understand context.", band: 'B' },
-      { question: "Does a regular eraser use AI?", options: ["Yes — it knows what to erase","No — it's just rubber","Only electric erasers","Only pink ones"], correctIndex: 1, explanation: "An eraser is a simple physical tool. No AI involved in removing pencil marks!", band: 'A' },
-      { question: "Does a school bus with GPS tracking use AI?", options: ["Yes — route optimization uses AI","No — GPS is just maps","Only if it drives itself","Only in big cities"], correctIndex: 0, explanation: "GPS + route optimization uses AI to find the most efficient routes and predict arrival times.", band: 'B' },
-      { question: "Does a spelling auto-correct use AI?", options: ["Yes — it learns common mistakes","No — it just has a dictionary","Only on phones","Only in English"], correctIndex: 0, explanation: "Modern auto-correct uses machine learning to predict and fix errors based on context, not just dictionaries.", band: 'B' },
-    ],
-    3: [
-      { question: "Do traffic lights that adapt to traffic use AI?", options: ["Yes — smart traffic systems optimize flow","No — they're just timers","Only in some countries","Only at night"], correctIndex: 0, explanation: "Smart traffic systems use sensors and AI to adjust signal timing based on real-time traffic conditions.", band: 'B' },
-      { question: "Does a regular park bench use AI?", options: ["Yes — if it has solar panels","No — it's just a bench","Only smart benches","Only in Japan"], correctIndex: 1, explanation: "A regular park bench is just seating. No AI in sitting!", band: 'A' },
-      { question: "Does a self-checkout scanner use AI?", options: ["Yes — computer vision identifies items","No — it just reads barcodes","Only the camera ones","Only in supermarkets"], correctIndex: 0, explanation: "Modern self-checkout uses computer vision to identify produce and verify scanned items.", band: 'B' },
-      { question: "Does a parking meter use AI?", options: ["Yes — smart meters detect availability","No — it just counts time","Only digital ones","Only in downtown"], correctIndex: 1, explanation: "Basic parking meters just track time. Smart parking systems that detect open spots do use AI.", band: 'A' },
-      { question: "Does facial recognition on phones use AI?", options: ["Yes — neural nets map your face","No — it's just a camera","Only on expensive phones","Only for photos"], correctIndex: 0, explanation: "Face ID uses deep learning neural networks to create and compare facial geometry maps.", band: 'B' },
-      { question: "Does a regular mailbox use AI?", options: ["Yes — it knows when mail arrives","No — it's just a metal box","Only smart mailboxes","Only in the future"], correctIndex: 1, explanation: "A regular mailbox is just a container. No intelligence needed for holding letters!", band: 'A' },
-      { question: "Does a weather prediction app use AI?", options: ["Yes — machine learning improves forecasts","No — it's just a guess","Only for rain","Only professional ones"], correctIndex: 0, explanation: "Modern weather apps use ML models trained on satellite data, radar, and historical patterns.", band: 'B' },
-      { question: "Does a public fountain use AI?", options: ["Yes — if it has music sync","No — it's just water pressure","Only interactive fountains","Only at night"], correctIndex: 1, explanation: "A basic fountain operates on water pressure and pumps. Smart fountains with patterns may use simple programming.", band: 'A' },
-    ],
-  };
+const CONCEPTS: Record<number, string> = {
+  1: 'AI hides in objects that learn what you like, hear your voice, or sense the world. Plain objects just sit there.',
+  2: 'A tool uses AI when it adapts, understands language, or finds patterns — not when it only stores or adds things.',
+  3: 'Out in the city, AI senses traffic, recognises faces, and predicts the weather. Simple machinery does none of that.',
+  4: 'Smart gadgets learn your habits. If it just heats, holds, or spins on a timer, there is no AI inside.',
+  5: 'Games and toys can use AI to react to you. Ask: does it learn or just follow fixed rules?',
+  6: 'Hospitals use AI to read scans and spot patterns doctors might miss. Basic tools stay basic.',
+  7: 'In space, AI plans routes and analyses data far from Earth. Not every gauge is intelligent.',
+  8: 'Factories use AI vision and robots that adapt. Many machines are still just motors and timers.',
+  9: 'Underwater drones use AI to navigate and identify life. A plain buoy only floats.',
+  10: 'Master test: across every world, find the things that sense, learn, or predict.',
+};
 
-  // Levels 4-10 reuse and expand patterns
-  const base = q[levelId] || q[1];
-  // Add harder questions for higher levels
-  const extra: QuizQuestion[] = levelId >= 4 ? [
-    { question: "Does a fitness tracker use AI?", options: ["Yes — it learns your activity patterns","No — it just counts steps","Only heart rate monitors","Only smartwatches"], correctIndex: 0, explanation: "Fitness trackers use ML to recognize activities (walking, running, swimming) from motion sensor data.", band: 'C' },
-    { question: "Does a spam email filter use AI?", options: ["Yes — it learns to spot junk mail","No — it just blocks addresses","Only Gmail","Only for ads"], correctIndex: 0, explanation: "Spam filters use ML classification to learn patterns in spam and adapt to new techniques.", band: 'B' },
-  ] : [];
-  const extra2: QuizQuestion[] = levelId >= 7 ? [
-    { question: "Does a content recommendation algorithm use reinforcement learning?", options: ["Yes — it optimizes for engagement","No — it just shows popular items","Only TikTok","Only Netflix"], correctIndex: 0, explanation: "Advanced recommendation systems use reinforcement learning to optimize for long-term user engagement.", band: 'C' },
-    { question: "Does a medical imaging system use convolutional neural networks?", options: ["Yes — CNNs excel at image recognition","No — doctors just look at pictures","Only X-rays","Only in research"], correctIndex: 0, explanation: "Medical imaging AI uses CNNs (Convolutional Neural Networks) to detect tumors, fractures, and diseases.", band: 'C' },
-  ] : [];
+// ════════════════════════════════════════════════════════════════════════
+// TILE DATA — every object + whether it uses AI + the "why" (faithful to v3)
+// ════════════════════════════════════════════════════════════════════════
+interface SpyTile { id: string; label: string; isAI: boolean; why: string; }
 
-  return [...base, ...extra, ...extra2].slice(0, 10);
+// Pools by world; higher levels remix the pool plus harder "C-band" objects.
+const POOLS: Record<number, SpyTile[]> = {
+  1: [
+    { id: 'smart-tv', label: 'Smart TV', isAI: true, why: 'Recommendation algorithms learn what you watch and suggest more.' },
+    { id: 'voice-assistant', label: 'Voice Assistant', isAI: true, why: 'Speech recognition + language understanding interpret your voice.' },
+    { id: 'couch', label: 'Couch', isAI: false, why: 'Just furniture — no sensors or processors. No AI here.' },
+    { id: 'robot-vacuum', label: 'Robot Vacuum', isAI: true, why: 'Uses SLAM mapping to navigate rooms and dodge obstacles.' },
+    { id: 'light-switch', label: 'Light Switch', isAI: false, why: 'A mechanical switch just completes a circuit. No computation.' },
+    { id: 'thermostat', label: 'Smart Thermostat', isAI: true, why: 'Learns your schedule to heat and cool automatically.' },
+    { id: 'picture-frame', label: 'Picture Frame', isAI: false, why: 'Purely physical — it only holds a photo.' },
+    { id: 'video-doorbell', label: 'Video Doorbell', isAI: true, why: 'Computer vision detects faces, people, and packages.' },
+  ],
+  2: [
+    { id: 'tutor-app', label: 'Math Tutor App', isAI: true, why: 'Adaptive learning adjusts difficulty to your skill level.' },
+    { id: 'pencil', label: 'Pencil', isAI: false, why: 'Wood and graphite — a simple writing tool.' },
+    { id: 'plagiarism', label: 'Plagiarism Checker', isAI: true, why: 'NLP compares your text against billions of sources.' },
+    { id: 'register', label: 'Cash Register', isAI: false, why: 'A basic register only adds prices — that is arithmetic, not AI.' },
+    { id: 'translator', label: 'Translator', isAI: true, why: 'Neural machine translation understands context, not just words.' },
+    { id: 'eraser', label: 'Eraser', isAI: false, why: 'A piece of rubber — no intelligence in removing marks.' },
+    { id: 'bus-gps', label: 'Bus Route GPS', isAI: true, why: 'Route optimisation predicts arrivals and the fastest path.' },
+    { id: 'autocorrect', label: 'Auto-Correct', isAI: true, why: 'Machine learning predicts fixes from the context you type.' },
+  ],
+  3: [
+    { id: 'traffic', label: 'Adaptive Traffic Light', isAI: true, why: 'Sensors + AI tune signal timing to live traffic.' },
+    { id: 'bench', label: 'Park Bench', isAI: false, why: 'It is seating. No AI in sitting!' },
+    { id: 'self-checkout', label: 'Self-Checkout', isAI: true, why: 'Computer vision identifies produce and verifies items.' },
+    { id: 'meter', label: 'Parking Meter', isAI: false, why: 'A basic meter just counts time.' },
+    { id: 'face-unlock', label: 'Face Unlock', isAI: true, why: 'Deep neural nets map and match your facial geometry.' },
+    { id: 'mailbox', label: 'Mailbox', isAI: false, why: 'A metal box that holds letters — no intelligence needed.' },
+    { id: 'weather', label: 'Weather App', isAI: true, why: 'ML models trained on radar and history improve forecasts.' },
+    { id: 'fountain', label: 'Public Fountain', isAI: false, why: 'Runs on pumps and water pressure, not AI.' },
+  ],
+};
+
+// Harder, cross-cutting objects mixed into levels 4+ (B/C band facts from v3).
+const HARD_POOL: SpyTile[] = [
+  { id: 'fitness', label: 'Fitness Tracker', isAI: true, why: 'ML recognises activities — walking, running, swimming — from motion.' },
+  { id: 'spam', label: 'Spam Filter', isAI: true, why: 'Classification learns the patterns of junk mail and adapts.' },
+  { id: 'recsys', label: 'Recommendation Feed', isAI: true, why: 'Reinforcement learning optimises for long-term engagement.' },
+  { id: 'medical', label: 'Medical Scanner', isAI: true, why: 'CNNs detect tumours and fractures in medical images.' },
+  { id: 'clock', label: 'Wall Clock', isAI: false, why: 'Gears and a battery — it only keeps time.' },
+  { id: 'fan', label: 'Electric Fan', isAI: false, why: 'A motor spinning blades. No sensing or learning.' },
+  { id: 'umbrella', label: 'Umbrella', isAI: false, why: 'Fabric and ribs — purely mechanical.' },
+  { id: 'kettle', label: 'Kettle', isAI: false, why: 'It heats water with an element. No AI.' },
+];
+
+function getTiles(levelId: number): SpyTile[] {
+  const base = POOLS[((levelId - 1) % 3) + 1];
+  if (levelId <= 3) return base;
+  // Higher levels: blend the rotating pool with progressively harder objects.
+  const hardCount = Math.min(4, 1 + Math.floor((levelId - 4) / 2));
+  const offset = (levelId * 2) % HARD_POOL.length;
+  const hard = Array.from({ length: hardCount }, (_, i) => HARD_POOL[(offset + i) % HARD_POOL.length]);
+  // De-dup by id, keep 8 tiles.
+  const seen = new Set<string>();
+  return [...base, ...hard].filter((t) => (seen.has(t.id) ? false : seen.add(t.id))).slice(0, 8);
 }
 
+// ════════════════════════════════════════════════════════════════════════
+// LEVEL RENDERER — the REVEAL hunt
+// ════════════════════════════════════════════════════════════════════════
+function LevelRenderer({
+  level, onComplete, onExit,
+}: {
+  level: LevelConfig; onComplete: (r: LevelResult) => void; onExit: () => void;
+}) {
+  const juice = useJuice();
+  const prefersReducedMotion = useReducedMotion();
+  const [phase, setPhase] = useState<'welcome' | 'hunt'>('welcome');
+  const tiles = useMemo(() => getTiles(level.id), [level.id]);
+  const [revealed, setRevealed] = useState<Record<string, boolean>>({});
+  const [score, setScore] = useState(0);
+  const [combo, setCombo] = useState(0);
+  const [wrongTaps, setWrongTaps] = useState(0);
+  const [feedback, setFeedback] = useState<{ type: 'correct' | 'wrong' | 'info'; message: string; explanation?: string } | null>(null);
+
+  const prizeTotal = useMemo(() => tiles.filter((t) => t.isAI).length, [tiles]);
+  const maxScore = prizeTotal * 10 + 20;
+
+  const sceneTiles = useMemo<RevealTile[]>(
+    () => tiles.map((t) => ({ id: t.id, isPrize: t.isAI, label: t.label })),
+    [tiles],
+  );
+
+  const finishLevel = useCallback((finalScore: number, finalWrong: number, finalRevealed: Record<string, boolean>) => {
+    // Reveal anything still covered so the board reads as fully scanned.
+    const all: Record<string, boolean> = { ...finalRevealed };
+    tiles.forEach((t) => { all[t.id] = true; });
+    setRevealed(all);
+
+    const accuracyBonus = Math.max(0, 20 - finalWrong * 5);
+    const total = finalScore + accuracyBonus;
+    const stars = (total >= level.starThresholds[2] ? 3
+      : total >= level.starThresholds[1] ? 2
+        : total >= level.starThresholds[0] ? 1 : 0) as 0 | 1 | 2 | 3;
+
+    setTimeout(() => {
+      onComplete({
+        score: total,
+        maxScore,
+        stars,
+        xpEarned: level.xpReward * (stars / 3),
+        timeMs: 0,
+      });
+    }, 1400);
+  }, [tiles, level, maxScore, onComplete]);
+
+  const handleReveal = useCallback((id: string, isPrize: boolean) => {
+    if (revealed[id]) return;
+    const tile = tiles.find((t) => t.id === id);
+    if (!tile) return;
+
+    const nextRevealed = { ...revealed, [id]: true };
+    setRevealed(nextRevealed);
+
+    if (isPrize) {
+      const gained = 10 + combo;
+      const nextScore = score + gained;
+      const nextCombo = combo + 1;
+      setScore(nextScore);
+      setCombo(nextCombo);
+      setFeedback({
+        type: 'correct',
+        message: nextCombo > 2 ? `${nextCombo}x combo! AI found +${gained}` : `AI signal! +${gained}`,
+        explanation: tile.why,
+      });
+      const foundNow = tiles.filter((t) => t.isAI && nextRevealed[t.id]).length;
+      juice.onCorrect(foundNow, nextScore);
+      if (foundNow >= prizeTotal) finishLevel(nextScore, wrongTaps, nextRevealed);
+    } else {
+      setCombo(0);
+      const nextWrong = wrongTaps + 1;
+      setWrongTaps(nextWrong);
+      setFeedback({
+        type: 'info',
+        message: 'No AI in that one.',
+        explanation: tile.why,
+      });
+      juice.onWrong(0, score);
+    }
+  }, [revealed, tiles, combo, score, wrongTaps, prizeTotal, juice, finishLevel]);
+
+  const found = tiles.filter((t) => t.isAI && revealed[t.id]).length;
+
+  // ═══ WELCOME ═══
+  if (phase === 'welcome') {
+    return (
+      <div className="relative z-10 space-y-5">
+        <GlowingTitle emoji="🔍" color={LAB_COLOR}>Level {level.id}: {level.name}</GlowingTitle>
+        <SFCard variant="elevated" className="p-5">
+          <p className="text-sm mb-3" style={{ color: '#5A6078' }}>{level.description}</p>
+          <div className="rounded-xl p-3 text-xs" style={{ background: `${LAB_COLOR}10`, color: LAB_COLOR }}>
+            <GraduationCap className="w-4 h-4 inline mr-1" />
+            <strong>Concept:</strong> {CONCEPTS[level.id] || CONCEPTS[1]}
+          </div>
+          <div className="mt-3 rounded-xl p-3 text-xs flex items-start gap-2" style={{ background: '#FF6B3510', color: '#FF6B35' }}>
+            <Target className="w-4 h-4 shrink-0 mt-0.5" />
+            <span><strong>Hunt:</strong> Tap every object you think uses AI. Find all {prizeTotal} hidden AIs!</span>
+          </div>
+        </SFCard>
+        <SFButton variant="primary" size="lg" className="w-full" onClick={() => setPhase('hunt')}>
+          Start Hunt <ChevronRight className="w-5 h-5 ml-2" />
+        </SFButton>
+      </div>
+    );
+  }
+
+  // ═══ HUNT ═══
+  return (
+    <div className="relative z-10 space-y-4">
+      <div className="flex items-center justify-between">
+        <GlowingTitle emoji="🔍" color={LAB_COLOR}>Find the AI</GlowingTitle>
+        <span className="text-sm font-bold" style={{ color: LAB_COLOR }}>
+          <Eye className="w-4 h-4 inline mr-1" />{found} / {prizeTotal}
+        </span>
+      </div>
+
+      <ScoreDisplay score={score} maxScore={maxScore} />
+      <ComboCounter combo={combo} />
+
+      <PixiRevealStage
+        tiles={sceneTiles}
+        columns={4}
+        revealed={revealed}
+        onReveal={handleReveal}
+        labColor={LAB_COLOR}
+        actionLabel="Scan for AI"
+        showLabelsCovered
+        reducedMotion={!!prefersReducedMotion}
+      />
+
+      {feedback && <FeedbackPopup {...feedback} />}
+
+      <div className="flex gap-2">
+        <SFButton
+          variant="primary"
+          className="flex-1"
+          onClick={() => finishLevel(score, wrongTaps, revealed)}
+        >
+          <Sparkles className="w-4 h-4 mr-2" />
+          {found >= prizeTotal ? 'All AI found!' : 'Finish hunt'}
+        </SFButton>
+        <SFButton variant="outline" onClick={onExit}>
+          <RotateCcw className="w-4 h-4" />
+        </SFButton>
+      </div>
+    </div>
+  );
+}
+
+// ════════════════════════════════════════════════════════════════════════
+// MAIN EXPORT
+// ════════════════════════════════════════════════════════════════════════
 export default function AiSpyGame() {
   const { awardXP, completeGame } = useGameActions();
+
   const handleComplete = useCallback((results: LevelResult[]) => {
     const totalXP = results.reduce((s, r) => s + r.xpEarned, 0);
     const totalStars = results.reduce((s, r) => s + r.stars, 0);
@@ -84,12 +297,15 @@ export default function AiSpyGame() {
   }, [awardXP, completeGame]);
 
   return (
-    <GameShell title="AI Spy" color="#4F6EF7" labNum={1}>
-      <GameLevelSystem gameTitle="AI Spy" gameEmoji="👁️" labColor="#4F6EF7" levels={LEVELS}
+    <GameShell title="AI Spy" color={LAB_COLOR} labNum={1}>
+      <GameLevelSystem
+        gameTitle="AI Spy"
+        gameEmoji="🔍"
+        labColor={LAB_COLOR}
+        levels={LEVELS}
         onComplete={handleComplete}
         renderLevel={(level, onComplete, onExit) => (
-          <QuizLevelRenderer level={level} onComplete={onComplete} onExit={onExit}
-            questions={getQuestions(level.id)} labColor="#4F6EF7" gameEmoji="👁️" />
+          <LevelRenderer level={level} onComplete={onComplete} onExit={onExit} />
         )}
       />
     </GameShell>

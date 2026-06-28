@@ -32,12 +32,18 @@ interface ConnectBoardSceneProps {
   reducedMotion: boolean;
   width: number;
   height: number;
+  /**
+   * Optional per-edge color override, keyed by the sorted "a-b" pair, as a Pixi
+   * hex number (e.g. 0xff4d4d). Lets a game paint correct wires green and wrong
+   * ones red. Edges not present default to the standard green.
+   */
+  edgeColors?: Record<string, number>;
 }
 
 const NODE_R = 28;
 
 export default function ConnectBoardScene({
-  nodes, connections, onConnect, labColor, reducedMotion, width, height,
+  nodes, connections, onConnect, labColor, reducedMotion, width, height, edgeColors,
 }: ConnectBoardSceneProps) {
   const accent = hexNum(labColor);
 
@@ -114,11 +120,13 @@ export default function ConnectBoardScene({
       const ca = centers.get(a);
       const cb = centers.get(b);
       if (!ca || !cb) continue;
+      const key = [a, b].sort().join('-');
+      const color = edgeColors?.[key] ?? 0x2ecc71;
       g.moveTo(ca.x, ca.y);
       g.lineTo(cb.x, cb.y);
-      g.stroke({ color: 0x2ecc71, alpha: 0.85, width: 4 });
+      g.stroke({ color, alpha: 0.85, width: 4 });
     }
-  }, [connections, centers]);
+  }, [connections, centers, edgeColors]);
 
   return (
     <pixiContainer>

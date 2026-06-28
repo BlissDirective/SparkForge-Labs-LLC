@@ -1,6 +1,50 @@
 # SparkForge Build Progress
 
-## Current Phase: SparkForge Branding 3D — Phase 5 COMPLETE pending HS-9 sign-off
+## Current Phase: Game Migration (Fable Frontend Enhancement) — Wave 1 COMPLETE
+## Status: Wave 1 shipped — 3 remaining Pixi archetypes proven on standard games; awaiting HS-5 visual checkpoint
+## Last Updated: 2026-06-28
+
+### Game Migration — Wave 1: prove the remaining 3 archetypes (2026-06-28)
+
+Per `docs/UI-Game-Enhancements/Game-Migration-Map.md` §5 rollout order. Phase C
+shipped the 4 Pixi archetypes; Sort Toy Box (SORT) was the only runtime-proven
+game. Wave 1 proves the other three archetypes on one standard game each.
+
+| Archetype | Proof game | Lab | Mechanic before → after | Files |
+|-----------|-----------|-----|--------------------------|-------|
+| **REVEAL** | AI Spy | 1 | QuizLevelRenderer tap-quiz → AI-hunt grid: tap objects you think use AI; AI ones fire a signal pulse + why-card | `AiSpyGame.tsx`, new `pixi/PixiRevealStage.tsx` |
+| **CONNECT** | Neuron Relay | 3 | Four-slider simulation → wire the signal path input→hidden→output; correct wires green, dead-ends red | `NeuronRelayGame.tsx`, new `pixi/PixiConnectStage.tsx` |
+| **REACT** | AI or Not? | 10/1 | Multiple-choice quiz → timed detection drill: tap AI "tells" before they vanish, build a streak | `AiOrNotGame.tsx`, new `pixi/PixiReactStage.tsx` |
+
+**Shared-scene enhancements (backward compatible):**
+- `scenes/RevealMapScene.tsx` — `showLabelsCovered` prop (hunt mode shows object
+  names on covered tiles; what's hidden is the AI verdict, not the object).
+- `scenes/ConnectBoardScene.tsx` — `edgeColors` prop (per-edge color override so
+  games paint correct wires green and wrong ones red).
+
+**Per-game DoD status:** archetype wired ✅ · lab skin applied (existing per-game
+accent retained — canonical-color re-skin deferred to avoid an unapproved visual
+change) ✅ · juice firing via `useJuice().onCorrect/onWrong` ✅ · keyboard/AT
+fallback present in every wrapper ✅ · `window.__SPARKFORGE_GAME__` scene state
+published via `PixiGameStage` inspector ✅ · `npm run build` green ✅ · Playwright
+SSIM ≥ 0.96 visual pass — **pending** (games sit behind dashboard auth; HS-5
+checkpoint).
+
+**Validation:** `tsc --noEmit` 0 src errors · `next lint` clean on all 8 changed
+files · `npm run build` EXIT=0 (only pre-existing unused-var warnings in
+unrelated files).
+
+### Discrepancies Log (Game Migration Wave 1)
+
+| Issue | Fix | Status |
+|---|---|---|
+| `RevealMapScene` showed `?` on covered tiles — wrong for a hunt where the object must be visible | Added opt-in `showLabelsCovered` with word-wrapped labels; default false keeps classic memory behavior | ✅ |
+| `ConnectBoardScene` drew every edge green, so wrong wires looked correct | Added opt-in `edgeColors` map keyed by sorted `a-b` pair | ✅ |
+| `AiOrNot` registry lab is 10 but the game's GameShell uses `labNum={1}`/blue | Left GameShell as-is (lab reassignment is an unapproved visual change; out of Wave 1 scope) | noted |
+
+---
+
+## Prior Phase: SparkForge Branding 3D — Phase 5 COMPLETE pending HS-9 sign-off
 ## Status: AWAITING HS-9 USER VERIFICATION — all 7 sub-commits of Phase 5c shipped; HeroAnimation.tsx now runs v3 wholesale on the live homepage
 ## Last Updated: 2026-04-29
 

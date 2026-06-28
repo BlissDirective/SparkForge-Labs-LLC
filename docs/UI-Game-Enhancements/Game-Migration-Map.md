@@ -75,7 +75,7 @@ uses a GameMechanicKit piece.
 
 | Game | Tier | Current | → Archetype | Key enhancement |
 |------|------|---------|-------------|-----------------|
-| AI Spy | standard | QUIZ | **REVEAL** | Scene-photo tiles; tapping an AI-powered object reveals a glowing "signal" pulse + the why-card. Turns a tap-quiz into a hunt. |
+| AI Spy | standard | **DONE (REVEAL)** ✅ | **REVEAL** ✅ | Wave-1 proof. Object tiles shown; tap the ones using AI → signal-pulse + why-card. Hunt replaces the tap-quiz. |
 | Time Machine | standard | QUIZ | **SORT** | Era "lanes" as bins; drag each milestone onto its decade. Animated era backdrop shifts as lanes fill. |
 | Human vs Machine | standard | LEVELS | **SORT** | Two bins (Human / Machine) with a live tug-of-war meter between them; correct drops pull the rope. |
 | Pocket Brain | flagship | LEVELS · 3D | **R3F** (REVEAL fallback) | Keep the in-browser WebGPU LLM. Add a Pixi token-stream overlay so kids *see* tokens generate; mobile fallback = reveal "what the tiny brain knows" tiles. |
@@ -94,7 +94,7 @@ uses a GameMechanicKit piece.
 | Game | Tier | Current | → Archetype | Key enhancement |
 |------|------|---------|-------------|-----------------|
 | Neural Builder | flagship | LEVELS · 3D | **R3F** (CONNECT fallback) | Keep 3D net. CONNECT is the exact 2D/mobile archetype: wire neurons across layers; pulse data along edges on "run". |
-| Neuron Relay | standard | LEVELS | **CONNECT** | Wire a signal path through neurons; on submit, a pulse races the edges and lights the output. |
+| Neuron Relay | standard | **DONE (CONNECT)** ✅ | **CONNECT** ✅ | Wave-1 proof. Wire input→hidden→output; correct wires light green, dead-ends red. Pulse-race-on-run = follow-up enhancement. |
 | Pixel Investigator | standard | QUIZ | **REVEAL** | Progressive de-pixelation: each correct tap sharpens a region until the image (and how CV "sees" it) resolves. |
 
 ### Lab 4 — AI That Creates · `#D9A430` Amber
@@ -157,7 +157,7 @@ uses a GameMechanicKit piece.
 | Game | Tier | Current | → Archetype | Key enhancement |
 |------|------|---------|-------------|-----------------|
 | Future Forge | fl-lite | LEVELS · 3D | **CONNECT** | Assemble invention modules into a blueprint graph; an impact-simulation gauge scores society effects. |
-| AI or Not? | fl-lite | QUIZ · 3D | **REACT** | Fast-fire human-vs-AI judgments build a detection streak/combo; speed sharpens the skill the game teaches. |
+| AI or Not? | fl-lite | **DONE (REACT)** ✅ | **REACT** ✅ | Wave-1 proof. Timed drill: tap AI "tells" before they vanish; streak/combo builds. Per-level media tells taught as a learn card. |
 
 ### Lab 11 — Agentic AI · `#6FFFE6` Mint-Cyan (all flagship 3D)
 
@@ -192,9 +192,11 @@ Lab-by-lab, ~4–6 games/week per the Fable plan. Sequenced to **prove each
 archetype on a standard game before any flagship leans on it as a fallback**,
 and to front-load the flattest quiz games (biggest delight delta).
 
-1. **Wave 1 — prove the remaining 3 archetypes (1 game each).**
+1. **Wave 1 — prove the remaining 3 archetypes (1 game each). ✅ DONE (2026-06-28)**
    `CONNECT` → Neuron Relay (Lab 3) · `REVEAL` → AI Spy (Lab 1) · `REACT` →
-   AI or Not? (Lab 10). Runtime-validates the Phase-C scenes that only built so far.
+   AI or Not? (Lab 10). All three migrated; build green; reusable
+   `PixiRevealStage` / `PixiConnectStage` / `PixiReactStage` wrappers extracted
+   for the lab-by-lab rollout. Pending: HS-5 Playwright SSIM ≥ 0.96 visual pass.
 2. **Wave 2 — Lab 6 (Ethics) quiz sweep:** Data Shield (SORT), Real or Fake
    (REVEAL) — Data Shield is a 1:1 match to the existing mechanic-kit demo.
 3. **Wave 3 — Lab 4 (Creates):** Word Predictor (REACT), Token Chopper (SORT),
