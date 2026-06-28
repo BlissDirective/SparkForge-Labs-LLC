@@ -48,15 +48,21 @@ errors.
    `{ default: undefined }` → React #306 → GameErrorBoundary. Fixed `def()` to
    fall back to the default export.
 
-**Verification:** representative games across ALL render types confirmed mounting
-their canvas with zero runtime errors after the fixes — REVEAL (ai-spy),
-SORT (data-shield, token-chopper, human-vs-machine), CONNECT (code-blocks,
-career-explorer, future-forge), REACT (ai-or-not), PHASER (treat-trainer), plus
-a full-page screenshot of Sort Toy Box showing a correctly rendered Pixi scene.
-The full 26-game sweep is the committed harness; in this ephemeral sandbox the
-container recycled mid-run, but the uniform fixes + per-archetype coverage
-establish render-correctness. Re-run any time with:
-`npx playwright test game-migration-smoke --project=chromium`.
+**Verification — FULL SWEEP PASSED ✅ (2026-06-28):** all **26/26 games** mount
+their archetype canvas with zero runtime `pageerror`s, against a production
+build, run as 3 resilient batches (9 + 9 + 8) of <1 min each:
+- Batch 1 → 9 passed: sort-toy-box, ai-spy, neuron-relay, ai-or-not,
+  data-shield, real-or-fake, word-predictor, token-chopper, ai-art-detective.
+- Batch 2 → 9 passed: camera-quest, fool-the-ai, build-classifier,
+  prediction-market, sentiment-scanner, emoji-decoder, chatbot-builder,
+  lost-in-translation, time-machine.
+- Batch 3 → 8 passed: human-vs-machine, pixel-investigator, tool-picker,
+  code-blocks, career-explorer, my-first-ai-app, future-forge, treat-trainer.
+
+Covers all five render types (SORT · REVEAL · CONNECT · REACT · Phaser); 26
+screenshots captured. Sandbox containers recycle every few minutes, so the
+sweep is batched here; in CI it runs as one job via the playwright.config
+`webServer`. Re-run: `npx playwright test game-migration-smoke --project=chromium`.
 
 ### Game Migration — Wave 7: Treat Trainer (Phaser-4 maze) (2026-06-28)
 
