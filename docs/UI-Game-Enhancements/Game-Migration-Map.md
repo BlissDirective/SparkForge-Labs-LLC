@@ -127,10 +127,10 @@ uses a GameMechanicKit piece.
 
 | Game | Tier | Current | → Archetype | Key enhancement |
 |------|------|---------|-------------|-----------------|
-| Camera Quest | fl-lite | QUIZ · 3D | **REVEAL** | Viewfinder reticle scans a scene; tap to "capture" the target object and add it to the training set. |
-| Fool the AI | standard | QUIZ | **SORT** | Drag perturbation patches/stickers onto image zones; a live confidence meter drops as the classifier gets fooled. |
-| Build Classifier | standard | 3D | **SORT** | Drag training examples into class bins; a live accuracy meter rewards balanced, correct labelling. |
-| Prediction Market | standard | QUIZ | **SORT** | Allocate prediction tokens across outcome bins; odds bars animate; resolve against "crowd wisdom". |
+| Camera Quest | fl-lite | **DONE (REVEAL)** ✅ | **REVEAL** | Wave-4 proof. Scan a scene; capture the objects that match the level's target class for the training set. |
+| Fool the AI | standard | **DONE (SORT)** ✅ | **SORT** | Wave-4 proof. Sort image attacks into Fools-the-AI / AI-still-sees-it; AI-confidence meter responds. |
+| Build Classifier | standard | **DONE (SORT)** ✅ | **SORT** | Wave-4 proof. Drag labelled examples into per-level class bins; live accuracy meter. (Clean rebuild from the old 836-line pipeline.) |
+| Prediction Market | standard | **DONE (SORT)** ✅ | **SORT** | Wave-4 proof. Sort predictions into Likely / Uncertain / Unlikely; teaches probabilistic forecasting. |
 | Pixel Witness | flagship | QUIZ · 3D | **R3F** (REVEAL fallback) | Keep 3D edit-bay. REVEAL fits the 2D path: step frames, toggle senses, reveal where the AI's account lies. |
 
 ### Lab 8 — Words & Language · `#8F96FA` Violet

@@ -1,149 +1,247 @@
 // ════════════════════════════════════════════════════════════════════════
-// PREDICTION MARKET v4 — Lab 10 Flagship (Redesigned)
+// PREDICTION MARKET v5 — Lab 10 Flagship — SORT archetype (Wave 3)
 // ════════════════════════════════════════════════════════════════════════
-// Test your forecasting skills on AI predictions. Quiz-based:
-// prediction markets, collective intelligence, probability calibration,
-// expert vs. crowd wisdom. 10 levels from basic forecasting to expert.
+// Was a forecasting quiz. Now you SORT the forecast: drag each near-future
+// claim about AI and tech into Likely / Uncertain / Unlikely by how probable
+// it is. On a correct call the why-card explains the base rate and the
+// reasoning. Pixi SORT scene (three bins) inside GameShell.
+//
+// Teaches: probabilistic forecasting, base rates, and crowd wisdom — reading
+// how probable a prediction really is.
 
 'use client';
-import { useCallback } from 'react';
+
+import { useState, useCallback, useMemo } from 'react';
+import dynamic from 'next/dynamic';
+import { useReducedMotion } from 'motion/react';
+import {
+  ChevronRight, TrendingUp, GraduationCap, Target, RotateCcw, Sparkles,
+} from 'lucide-react';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameActions } from '@/stores/gameStore';
-import GameLevelSystem, { type LevelResult } from '@/components/games/shared/GameLevelSystem';
-import QuizLevelRenderer, { type QuizQuestion } from '@/components/games/shared/QuizLevelRenderer';
+import { useJuice } from '@/components/juice/JuiceProvider';
+import { SFCard } from '@/components/ui/SFCard';
+import { SFButton } from '@/components/ui/SFButton';
+import GameLevelSystem, {
+  type LevelConfig, type LevelResult,
+} from '@/components/games/shared/GameLevelSystem';
+import {
+  GlowingTitle, ScoreDisplay, ComboCounter, FeedbackPopup,
+} from '@/components/games/shared/GameVisualKit';
+import type { BinSortItem } from '@/components/games/pixi/PixiBinSortStage';
 
-const LEVELS = [
-  { id: 1, name: 'Predictions 101', description: 'What are predictions and how do they work?', emoji: '🔮', difficulty: 'easy' as const, starThresholds: [60,80,95], xpReward: 50 },
-  { id: 2, name: 'Probability', description: 'Understanding chance and likelihood!', emoji: '🎲', difficulty: 'easy' as const, starThresholds: [60,80,95], xpReward: 60 },
-  { id: 3, name: 'Prediction Markets', description: 'How markets aggregate beliefs!', emoji: '📈', difficulty: 'easy' as const, starThresholds: [60,80,95], xpReward: 70 },
-  { id: 4, name: 'Crowd Wisdom', description: 'Why groups can be smarter than experts!', emoji: '👥', difficulty: 'medium' as const, starThresholds: [60,80,90], xpReward: 80 },
-  { id: 5, name: 'Calibration', description: 'Are your confidence levels accurate?', emoji: '🎯', difficulty: 'medium' as const, starThresholds: [60,80,90], xpReward: 90 },
-  { id: 6, name: 'AI Forecasting', description: 'Predicting the future of artificial intelligence!', emoji: '🤖', difficulty: 'medium' as const, starThresholds: [50,75,90], xpReward: 100 },
-  { id: 7, name: 'Base Rates', description: 'Start with the historical average!', emoji: '📊', difficulty: 'hard' as const, starThresholds: [50,75,85], xpReward: 120 },
-  { id: 8, name: 'Brier Score', description: 'Measuring forecasting accuracy!', emoji: '📉', difficulty: 'hard' as const, starThresholds: [50,75,85], xpReward: 130 },
-  { id: 9, name: 'Superforecasters', description: 'What makes elite forecasters special?', emoji: '🏆', difficulty: 'expert' as const, starThresholds: [50,70,85], xpReward: 150 },
-  { id: 10, name: 'Oracle', description: 'The ultimate forecasting challenge!', emoji: '👑', difficulty: 'expert' as const, starThresholds: [50,70,85], xpReward: 200, isBonus: true },
+// Pixi is client-only (WebGL/WebGPU) — never SSR it.
+const PixiBinSortStage = dynamic(() => import('@/components/games/pixi/PixiBinSortStage'), {
+  ssr: false,
+  loading: () => (
+    <div className="h-[420px] w-full animate-pulse rounded-2xl" style={{ background: '#0E1428' }} />
+  ),
+});
+
+const LAB_COLOR = '#DE5AEA';
+const BINS = ['Likely', 'Uncertain', 'Unlikely']; // bin index 0 / 1 / 2
+const CHIP_PALETTE = ['#4F6EF7', '#2ECC71', '#F59E0B', '#10BAD2', '#8F96FA', '#FF7050'];
+
+const LEVELS: LevelConfig[] = [
+  { id: 1, name: 'Predictions 101', description: 'Sort claims by how probable they are.', emoji: '🔮', difficulty: 'easy', starThresholds: [40, 60, 80], xpReward: 50 },
+  { id: 2, name: 'Probability', description: 'Read the chance behind each claim.', emoji: '🎲', difficulty: 'easy', starThresholds: [40, 60, 80], xpReward: 60 },
+  { id: 3, name: 'Prediction Markets', description: 'What the crowd price says.', emoji: '📈', difficulty: 'easy', starThresholds: [40, 60, 80], xpReward: 70 },
+  { id: 4, name: 'Crowd Wisdom', description: 'Sort with the wisdom of crowds.', emoji: '👥', difficulty: 'medium', starThresholds: [40, 60, 80], xpReward: 80 },
+  { id: 5, name: 'Calibration', description: 'Match confidence to reality.', emoji: '🎯', difficulty: 'medium', starThresholds: [40, 60, 80], xpReward: 90 },
+  { id: 6, name: 'AI Forecasting', description: 'Predicting the future of AI.', emoji: '🤖', difficulty: 'medium', starThresholds: [40, 60, 80], xpReward: 100 },
+  { id: 7, name: 'Base Rates', description: 'Start with the historical average.', emoji: '📊', difficulty: 'hard', starThresholds: [40, 60, 80], xpReward: 120 },
+  { id: 8, name: 'Tricky Claims', description: 'The hardest forecasts yet.', emoji: '📉', difficulty: 'hard', starThresholds: [40, 60, 80], xpReward: 130 },
+  { id: 9, name: 'Superforecaster', description: 'Sort like an elite forecaster.', emoji: '🏆', difficulty: 'expert', starThresholds: [40, 60, 80], xpReward: 150 },
+  { id: 10, name: 'Oracle', description: 'The ultimate forecasting sort!', emoji: '👑', difficulty: 'expert', starThresholds: [40, 60, 80], xpReward: 200, isBonus: true },
 ];
 
-function getQuestions(levelId: number): QuizQuestion[] {
-  const q: Record<number, QuizQuestion[]> = {
-    1: [
-      { question: "What is a prediction?", options: ["A statement about the past","A statement about what will happen in the future","A type of math problem","A scientific law"], correctIndex: 1, explanation: "A prediction is a statement about what will happen in the future based on current evidence, patterns, or models. Predictions can range from weather forecasts to technology trends.", band: 'A' },
-      { question: "Are all predictions equally certain?", options: ["Yes — predictions are always right","No — predictions vary in confidence","Only expert predictions are certain","AI predictions are always certain"], correctIndex: 1, explanation: "Predictions vary widely in confidence. 'The sun will rise tomorrow' is near-certain. 'AI will cure cancer by 2030' is highly uncertain. Good predictions include confidence levels.", band: 'A' },
-      { question: "What makes a prediction good?", options: ["It comes true","It's specific, testable, and includes a timeframe","It's made by a famous person","It's optimistic"], correctIndex: 1, explanation: "Good predictions are specific (what exactly will happen), testable (can be checked against reality), and time-bound (by when). Vague predictions are hard to evaluate.", band: 'A' },
-      { question: "What is a 'self-fulfilling prophecy'?", options: ["A prediction that fails","A prediction that influences behavior and causes itself to come true","A type of magic","A scientific experiment"], correctIndex: 1, explanation: "A self-fulfilling prophecy is a prediction that directly or indirectly causes itself to become true, by influencing people's behavior. E.g., predicting a bank run may cause one.", band: 'B' },
-      { question: "What is the difference between a forecast and a guess?", options: ["They're the same","A forecast uses data and reasoning; a guess doesn't","Forecasts are always right","Guesses are better"], correctIndex: 1, explanation: "Forecasts are evidence-based predictions using data, models, and reasoning. Guesses lack systematic analysis. Good forecasters can explain WHY they predict something.", band: 'A' },
-      { question: "Why do predictions about technology often fail?", options: ["Technology never changes","People tend to overestimate short-term change and underestimate long-term change","Predictions are illegal","AI prevents predictions"], correctIndex: 1, explanation: "Amara's Law: we tend to overestimate technology's effect in the short run and underestimate it in the long run. Hype cycles create unrealistic near-term expectations.", band: 'B' },
-      { question: "What is 'falsifiability' in predictions?", options: ["Making false predictions","The ability to prove a prediction wrong if it doesn't come true","A type of lie detector","A math formula"], correctIndex: 1, explanation: "A falsifiable prediction specifies conditions under which it would be proven wrong. 'Something big will happen' is unfalsifiable. 'AI will beat the world chess champion by 2000' is falsifiable.", band: 'B' },
-      { question: "What is the 'planning fallacy'?", options: ["Not making plans","Consistently underestimating how long tasks will take","Over-planning","A type of calendar"], correctIndex: 1, explanation: "The planning fallacy is the human tendency to underestimate task completion times, even when we have experience with similar tasks taking longer. We ignore historical data.", band: 'A' },
-    ],
-    2: [
-      { question: "What does it mean when something has a 70% chance of happening?", options: ["It will definitely happen","Out of 100 similar situations, it would happen about 70 times","It's impossible","70 things will happen"], correctIndex: 1, explanation: "A 70% probability means that in many repeated trials under similar conditions, the event would occur about 70% of the time. It doesn't guarantee any single outcome.", band: 'A' },
-      { question: "If a coin is flipped 10 times and lands heads each time, what's the chance of heads on the 11th flip?", options: ["Higher than 50%","Still 50% — each flip is independent","Lower than 50%","100%"], correctIndex: 1, explanation: "The gambler's fallacy is believing past independent events affect future ones. A fair coin is always 50/50, regardless of previous outcomes. The coin has no memory.", band: 'A' },
-      { question: "What is the difference between probability and odds?", options: ["They're the same","Probability is favorable/all outcomes; odds is favorable/unfavorable","Odds are always higher","Probability is a guess"], correctIndex: 1, explanation: "If an event has 1 in 4 chance: probability = 1/4 = 25%. Odds = 1:3 (1 favorable to 3 unfavorable). Odds ratios are common in betting and statistics.", band: 'B' },
-      { question: "What is a 'base rate'?", options: ["A type of tax","The historical frequency of an event in a population","A sports term","A math formula"], correctIndex: 1, explanation: "The base rate is the historical or population frequency of an event. E.g., if 1% of people have a disease, that's the base rate — your starting point before considering specific evidence.", band: 'B' },
-      { question: "What is Bayesian reasoning?", options: ["A type of music","Updating beliefs based on new evidence, starting from a base rate","A computer program","A type of graph"], correctIndex: 1, explanation: "Bayesian reasoning updates predictions when new evidence arrives. Start with a prior belief (base rate), then adjust based on how strong and relevant the new evidence is.", band: 'C' },
-      { question: "What is conditional probability?", options: ["A probability with conditions","The probability of an event given that another event has occurred","A type of contract","A math puzzle"], correctIndex: 1, explanation: "P(A|B) = probability of A given B has occurred. E.g., the probability of having a disease GIVEN a positive test result. This is different from the test's accuracy rate.", band: 'C' },
-      { question: "Why do people struggle with probability intuitively?", options: ["They're not smart","Human intuition evolved for immediate threats, not statistical reasoning","Probability doesn't exist","It's too simple"], correctIndex: 1, explanation: "Human intuition evolved for quick pattern recognition in small groups, not statistical reasoning over large populations. We're naturally bad at probability without training.", band: 'B' },
-      { question: "What does 'statistically significant' mean?", options: ["Very important","Unlikely to have occurred by random chance (typically p < 0.05)","Definitely true","A large number"], correctIndex: 1, explanation: "Statistical significance means a result is unlikely to be due to random chance alone. It doesn't mean the effect is large or practically important — just probably real.", band: 'B' },
-    ],
-    3: [
-      { question: "What is a prediction market?", options: ["A store that sells predictions","A market where people trade contracts based on event outcomes","A type of lottery","A weather station"], correctIndex: 1, explanation: "Prediction markets let participants buy and sell contracts that pay out based on event outcomes. The market price reflects the aggregate belief about the probability.", band: 'B' },
-      { question: "How does a prediction market aggregate information?", options: ["It asks an expert","Market prices reflect the weighted average of all participants' beliefs, weighted by confidence (money)","It uses a magic formula","It flips a coin"], correctIndex: 1, explanation: "Prediction markets aggregate diverse opinions by letting people 'put their money where their mouth is.' Those with more confidence invest more, influencing the price.", band: 'B' },
-      { question: "What does a 70-cent price mean in a prediction market?", options: ["It costs 70 cents","The market believes there's a ~70% chance the event will happen","70 people voted yes","It's 70% certain to fail"], correctIndex: 1, explanation: "In a $1 prediction market, the price approximately equals the market's assessed probability. 70 cents = ~70% chance. Prices adjust as new information arrives.", band: 'B' },
-      { question: "What is the 'wisdom of crowds' effect?", options: ["Crowds are always wise","The average prediction of a diverse group often outperforms individual experts","Only experts are wise","Crowds are always wrong"], correctIndex: 1, explanation: "The wisdom of crowds: under the right conditions (diversity, independence, aggregation), the average group prediction can be more accurate than most individuals.", band: 'B' },
-      { question: "What makes prediction markets work well?", options: ["Having only experts participate","Diverse participants with different information, plus financial incentives","Keeping them secret","Using complex math"], correctIndex: 1, explanation: "Prediction markets work best with diverse participants who have different information sources. Financial incentives motivate careful thinking and honest revelation of beliefs.", band: 'B' },
-      { question: "What is arbitrage in prediction markets?", options: ["A type of building","Exploiting price inconsistencies between related markets for guaranteed profit","A type of chart","A trading strategy that always loses"], correctIndex: 1, explanation: "Arbitrage exploits inconsistent prices. If 'Will it rain?' is priced at 70% but 'Will it be sunny?' at 40%, there's an arbitrage opportunity (they should sum to 100%).", band: 'C' },
-      { question: "What is a 'market maker' in prediction markets?", options: ["Someone who makes markets","An entity that provides liquidity by always offering to buy or sell","A fortune teller","A shop owner"], correctIndex: 1, explanation: "Market makers provide liquidity by continuously offering to buy (bid) and sell (ask) contracts. They ensure participants can always trade, narrowing the spread.", band: 'C' },
-      { question: "What can cause prediction markets to fail?", options: ["Nothing — they're perfect","Low participation, manipulated bets, unclear questions, or regulatory limits","Using too much math","Having too many participants"], correctIndex: 1, explanation: "Prediction markets fail with thin markets (too few traders), attempts to manipulate prices, ambiguous questions that are hard to resolve, or regulations limiting participation.", band: 'B' },
-    ],
-    4: [
-      { question: "When is a crowd smarter than an expert?", options: ["Never","When the crowd is diverse, independent, and incentives align","Always","Only for simple questions"], correctIndex: 1, explanation: "Crowds outperform experts when: (1) diverse perspectives exist, (2) opinions are formed independently, (3) there's a good aggregation mechanism, and (4) incentives reward accuracy.", band: 'B' },
-      { question: "What is 'groupthink' and why is it dangerous?", options: ["Thinking about groups","When group members conform to majority opinion, suppressing dissent","A type of puzzle","Working in teams"], correctIndex: 1, explanation: "Groupthink occurs when the desire for conformity suppresses dissent. The group becomes overconfident and ignores warning signs. Diverse, independent opinions prevent this.", band: 'B' },
-      { question: "What is the 'Dunning-Kruger effect'?", options: ["A type of chart","People with low ability at a task overestimate their ability","A learning technique","A type of market"], correctIndex: 1, explanation: "The Dunning-Kruger effect: people with limited knowledge in a domain often overestimate their competence because they lack the expertise to recognize their errors.", band: 'B' },
-      { question: "Why do experts sometimes fail at predicting?", options: ["They're never wrong","They may be overconfident, have narrow expertise, or lack feedback on predictions","Predictions are impossible","Only amateurs can predict"], correctIndex: 1, explanation: "Experts often fail due to overconfidence in their domain, narrow perspective, lack of systematic tracking, and cognitive biases. Famous ≠ accurate at forecasting.", band: 'B' },
-      { question: "What is 'forecasting tournaments'?", options: ["Weather competitions","Competitions where people make predictions and accuracy is scored over time","A type of game show","Olympic events"], correctIndex: 1, explanation: "Forecasting tournaments score participants' predictions against reality over time. They identify top forecasters, study what makes them good, and improve collective forecasting.", band: 'B' },
-      { question: "What is the 'outside view' in forecasting?", options: ["Looking outside the window","Considering base rates and historical analogs before specific details","A type of camera","Ignoring evidence"], correctIndex: 1, explanation: "The outside view starts with the base rate — how often do similar events happen? The inside view considers specific details. Good forecasters use both, starting with the outside view.", band: 'C' },
-      { question: "What is 'reference class forecasting'?", options: ["Predicting the weather","Comparing your project to a class of similar past projects for better estimates","A type of library","Using reference books"], correctIndex: 1, explanation: "Reference class forecasting: identify a class of similar past projects/events, find the historical distribution of outcomes, and use that as your starting estimate.", band: 'C' },
-      { question: "What is 'information cascade' and why is it bad for predictions?", options: ["A waterfall of data","When people follow others' decisions rather than their own information, leading to group errors","A type of stream","A data structure"], correctIndex: 1, explanation: "Information cascades occur when people ignore their own information and follow the crowd. Early errors compound as everyone piles on. Independent thinking prevents this.", band: 'C' },
-    ],
-    5: [
-      { question: "What is probability calibration?", options: ["Fixing a thermometer","How well your stated confidence matches your actual accuracy","A type of scale","A math formula"], correctIndex: 1, explanation: "Calibration measures whether your confidence levels match reality. If you say '80% confident' 10 times, you should be right about 8 times. Most people are overconfident.", band: 'B' },
-      { question: "What is 'overconfidence bias'?", options: ["Being very confident correctly","Stating higher confidence than your actual accuracy justifies","A good thing","Being an expert"], correctIndex: 1, explanation: "Overconfidence bias: people systematically assign higher probabilities to their beliefs than warranted. Studies show people claim 90% confidence but are right only 70% of the time.", band: 'B' },
-      { question: "What is a calibration curve?", options: ["A tool for curves","A graph comparing predicted confidence vs. actual accuracy across probability levels","A road map","A type of graph paper"], correctIndex: 1, explanation: "A calibration curve plots predicted probability (x-axis) against actual frequency of being correct (y-axis). A well-calibrated person's curve follows the diagonal.", band: 'C' },
-      { question: "How can you improve your calibration?", options: ["Guess more","Track predictions, review accuracy, and practice with feedback","Be more confident","Avoid numbers"], correctIndex: 1, explanation: "Calibration improves by: making many predictions, tracking outcomes, reviewing accuracy, and adjusting. Training programs can significantly improve forecasting calibration.", band: 'B' },
-      { question: "What does it mean to be 'well-calibrated'?", options: ["Having good equipment","When your 70% predictions are right 70% of the time","Being an expert","Always being right"], correctIndex: 1, explanation: "A well-calibrated forecaster's confidence levels match their actual hit rate. They know what they know and know what they don't know. This is rarer than you'd think.", band: 'B' },
-      { question: "What is 'resolution' in forecasting?", options: ["Image quality","How much your predictions differ from the base rate (being decisive)","A type of screen","A math formula"], correctIndex: 1, explanation: "Resolution measures how much your predictions vary from the base rate. A forecaster who always predicts 50% has low resolution. One who confidently predicts 10% or 90% has high resolution.", band: 'C' },
-      { question: "What is the difference between accuracy and calibration?", options: ["They're the same","Accuracy = being right. Calibration = confidence matching accuracy. You can be accurate but poorly calibrated.","Calibration is more important","Accuracy doesn't matter"], correctIndex: 1, explanation: "Accuracy is being right. Calibration is having appropriate confidence. Someone who always guesses 50% might be well-calibrated but have poor accuracy. Both matter.", band: 'C' },
-      { question: "What is a 'confidence interval'?", options: ["A type of gym","A range that captures the true value with a stated probability (e.g., 90%)","Being confident","A type of market"], correctIndex: 1, explanation: "A 90% confidence interval is a range where you believe the true value has a 90% chance of falling. Narrow intervals show precision; wide intervals show uncertainty.", band: 'C' },
-    ],
-    6: [
-      { question: "What is AI forecasting?", options: ["Weather prediction by AI","Predicting the future development and impact of artificial intelligence","Predicting AI stock prices","A type of calendar"], correctIndex: 1, explanation: "AI forecasting predicts the timeline, capabilities, and societal impact of artificial intelligence. It ranges from narrow predictions (when will AI solve protein folding?) to broad ones (AGI timeline).", band: 'B' },
-      { question: "Why is AI forecasting especially difficult?", options: ["AI doesn't exist","Rapid change, few historical analogs, and high uncertainty about research breakthroughs","It's too easy","Only experts can do it"], correctIndex: 1, explanation: "AI progresses rapidly with few historical analogs. Breakthroughs are hard to predict. Past AI forecasts have been notoriously bad — both too optimistic and too pessimistic.", band: 'B' },
-      { question: "What is AGI (Artificial General Intelligence)?", options: ["A type of company","AI that can perform any intellectual task a human can","A programming language","A robot"], correctIndex: 1, explanation: "AGI = Artificial General Intelligence. Hypothetical AI with general problem-solving ability comparable to humans across all cognitive domains. It doesn't exist yet.", band: 'B' },
-      { question: "What is the 'AI alignment' problem?", options: ["Aligning text","Ensuring AI systems pursue intended goals safely and reliably","A hardware issue","A type of programming"], correctIndex: 1, explanation: "The alignment problem: ensuring AI systems pursue the goals we actually intend, not just the literal interpretation. Misaligned AI could optimize for the wrong objective.", band: 'C' },
-      { question: "What is a 'takeoff scenario' in AI forecasting?", options: ["An airplane","How quickly AI capabilities might advance once certain thresholds are reached","A type of race","A startup launch"], correctIndex: 1, explanation: "'Takeoff' refers to how quickly AI might advance from human-level to superhuman. Scenarios range from 'slow takeoff' (years) to 'fast takeoff' (days or weeks).", band: 'C' },
-      { question: "What is the 'control problem' in AI?", options: ["A remote control","How to maintain control over systems that may become more capable than humans","A management issue","A hardware problem"], correctIndex: 1, explanation: "The control problem asks how humans can maintain meaningful control over AI systems that may eventually exceed human intelligence in most or all domains.", band: 'C' },
-      { question: "What is the 'long-term vs. short-term' debate in AI forecasting?", options: ["A timer","Disagreement about whether transformative AI is decades away or much sooner","A type of investment","A programming issue"], correctIndex: 1, explanation: "AI forecasters debate timelines for transformative AI. Some expect decades; others point to rapid progress suggesting sooner arrival. Both sides agree uncertainty is high.", band: 'B' },
-      { question: "What is 'compute trend' forecasting?", options: ["Math calculations","Using trends in AI training compute to predict capability milestones","A type of computer","A hardware trend"], correctIndex: 1, explanation: "Compute trend forecasting tracks the growth in AI training computation and uses it to predict when models might reach certain capability thresholds.", band: 'C' },
-    ],
-    7: [
-      { question: "Why is the base rate important in forecasting?", options: ["It's not","It provides a reality check against overestimating special-case probabilities","It's required by law","It makes predictions easier"], correctIndex: 1, explanation: "The base rate (historical frequency) anchors predictions in reality. Ignoring it leads to overestimating rare events and underestimating common ones — common cognitive errors.", band: 'B' },
-      { question: "What is the 'conjunction fallacy'?", options: ["A math error","Judging a specific conjunction of events as more probable than a single general one","A type of puzzle","A logical rule"], correctIndex: 1, explanation: "The conjunction fallacy: people rate P(A and B) higher than P(A) alone, which is logically impossible. 'Linda is a bank teller AND feminist' seems more likely than just 'bank teller.'", band: 'C' },
-      { question: "What is 'anchoring bias'?", options: ["A boat anchor","Over-relying on the first piece of information when making estimates","A type of chain","A cooking term"], correctIndex: 1, explanation: "Anchoring: the first number you hear heavily influences your estimate. If asked 'Is the Nile longer than 5000 miles?' your estimate will be higher than if asked about 1000 miles.", band: 'B' },
-      { question: "What is 'availability bias'?", options: ["Checking if something is available","Overestimating probabilities of vivid, memorable events","A store inventory","A scheduling issue"], correctIndex: 1, explanation: "Availability bias: we judge probability by how easily examples come to mind. Dramatic events (plane crashes) seem more common than they are because they're memorable.", band: 'B' },
-      { question: "What is 'regression to the mean'?", options: ["A math formula","Extreme outcomes tend to be followed by more average ones","Moving backwards","A type of statistics"], correctIndex: 1, explanation: "Regression to the mean: extreme events are usually followed by less extreme ones. A student who scores way above average probably won't score as high next time — not because they got worse, but because the first score had luck involved.", band: 'C' },
-      { question: "What is 'scenario planning'?", options: ["Making a schedule","Developing multiple plausible future scenarios rather than single-point predictions","A type of calendar","A project plan"], correctIndex: 1, explanation: "Scenario planning develops several plausible future stories rather than betting on one prediction. It helps organizations prepare for multiple possible outcomes.", band: 'B' },
-      { question: "What is 'the outside view' vs 'the inside view'?", options: ["Window directions","Outside = base rate/historical data; Inside = specific details of this case","Political views","A camera angle"], correctIndex: 1, explanation: "The outside view asks 'how do similar cases typically turn out?' The inside view considers the specific details of this case. Good forecasters start with the outside view.", band: 'C' },
-      { question: "What is 'counterfactual reasoning' in forecasting?", options: ["Counting things","Considering what would have happened under different conditions","A math technique","A type of argument"], correctIndex: 1, explanation: "Counterfactual reasoning imagines alternative scenarios: 'What if X had happened instead of Y?' It helps identify causal factors and avoid hindsight bias in evaluating predictions.", band: 'C' },
-    ],
-    8: [
-      { question: "What is the Brier score?", options: ["A sports score","A measure of forecast accuracy where lower scores are better","A test grade","A type of rating"], correctIndex: 1, explanation: "The Brier score measures forecast accuracy. For binary events, Brier = (predicted probability - actual outcome)². Lower is better. Perfect prediction = 0, random guessing = 0.25.", band: 'C' },
-      { question: "What Brier score represents perfect forecasting?", options: ["100","0","0.5","1"], correctIndex: 1, explanation: "A Brier score of 0 means perfect forecasting — every predicted probability matched the actual outcome exactly. Lower scores are always better.", band: 'C' },
-      { question: "What does a Brier score of 0.25 mean for a binary event?", options: ["Perfect forecasting","About the same as random guessing (50/50)","Terrible forecasting","Better than average"], correctIndex: 1, explanation: "For binary events, always predicting 50% gives a Brier score of 0.25. A score of 0.25 means the forecaster did no better than guessing 50/50 every time.", band: 'C' },
-      { question: "What is 'logarithmic scoring' in forecasting?", options: ["A math test","A scoring rule that penalizes overconfidence more heavily than Brier","A type of music","A computer algorithm"], correctIndex: 1, explanation: "Logarithmic scoring heavily penalizes confident wrong predictions. Predicting 99% for something that doesn't happen gets a much worse score than predicting 60%.", band: 'C' },
-      { question: "What is 'proper scoring' and why does it matter?", options: ["Good manners","A scoring system where your best strategy is to report your true beliefs","A type of game","A grading system"], correctIndex: 1, explanation: "Proper scoring rules incentivize honest probability reporting. If the scoring is proper, you maximize your expected score by stating your true beliefs — no incentive to lie.", band: 'C' },
-      { question: "What is 'skill scoring' in forecasting?", options: ["Being skilled","Comparing a forecast against a simple benchmark (like 'always predict the base rate')","A talent competition","A grade"], correctIndex: 1, explanation: "Skill score = (Your score - Benchmark score) / (Perfect score - Benchmark score). It measures how much better you are than a simple baseline strategy.", band: 'C' },
-      { question: "Why score forecasts at all?", options: ["To embarrass people","To provide feedback, identify good forecasters, and improve over time","It's required","For entertainment"], correctIndex: 1, explanation: "Scoring forecasts creates feedback loops. Forecasters learn from their mistakes. Organizations identify their best forecasters. Over time, the whole system improves.", band: 'B' },
-      { question: "What is 'track record' in forecasting?", options: ["A music track","A documented history of someone's prediction accuracy over time","A type of record","A running track"], correctIndex: 1, explanation: "A forecaster's track record is their documented history of predictions and outcomes. Good track records over many predictions are much more meaningful than a few lucky guesses.", band: 'B' },
-    ],
-    9: [
-      { question: "What is a 'superforecaster'?", options: ["Someone with superpowers","An elite forecaster who consistently outperforms, identified through tournaments","A weather reporter","A psychic"], correctIndex: 1, explanation: "Superforecasters are individuals who consistently make accurate predictions in forecasting tournaments. Philip Tetlock's research identified their common traits and techniques.", band: 'B' },
-      { question: "What traits make superforecasters special?", options: ["High IQ alone","Fox-like thinking: multidisciplinary, open-minded, updating frequently, precise probabilities","Being very confident","Having access to secret data"], correctIndex: 1, explanation: "Superforecasters are 'foxes' not 'hedgehogs' — they draw from many sources, update beliefs frequently with new evidence, break problems into parts, and use precise probabilities.", band: 'C' },
-      { question: "What does it mean to 'think in bets'?", options: ["Gambling","Framing decisions in terms of probabilities and expected value","Playing cards","A sports strategy"], correctIndex: 1, explanation: "Thinking in bets means evaluating decisions by their probability of success and expected payoff, rather than by outcomes alone. Good decisions can have bad outcomes (and vice versa).", band: 'B' },
-      { question: "How often do superforecasters update their predictions?", options: ["Never — they stick to their guns","Frequently — they update as new evidence arrives","Once a year","Only when they're wrong"], correctIndex: 1, explanation: "Superforecasters update frequently with new evidence. They aren't attached to their initial predictions. Even small pieces of relevant information trigger Bayesian updates.", band: 'C' },
-      { question: "What is 'belief updating' in forecasting?", options: ["Updating your software","Changing your probability estimates when new evidence arrives","A type of computer","A religious practice"], correctIndex: 1, explanation: "Belief updating is adjusting your probability estimates based on new evidence. Good forecasters update incrementally rather than waiting for definitive proof.", band: 'B' },
-      { question: "What is 'pre-mortem' analysis in forecasting?", options: ["Medical examination","Imagining a prediction failed and working backward to find why","A type of test","A funeral"], correctIndex: 1, explanation: "Pre-mortem: imagine it's the future and your prediction was wrong. What went wrong? This overcomes optimism bias and surfaces risks you might otherwise miss.", band: 'C' },
-      { question: "What is 'red teaming' a prediction?", options: ["Painting it red","Actively trying to find reasons why your prediction might be wrong","A sports team","A type of competition"], correctIndex: 1, explanation: "Red teaming a prediction means actively seeking evidence and arguments against your current view. It combats confirmation bias and stress-tests your reasoning.", band: 'C' },
-      { question: "Can superforecasting skill transfer across domains?", options: ["No — it's domain-specific","Partially — the cognitive habits transfer even if domain knowledge doesn't","Always completely","Only within science"], correctIndex: 1, explanation: "Superforecasting skill partially transfers. The cognitive habits (updating, outside view, precision) transfer across domains, but you still need domain knowledge for specific predictions.", band: 'C' },
-    ],
-    10: [
-      { question: "What is 'model combination' in forecasting?", options: ["Building toy models","Combining multiple prediction models for better accuracy than any single model","A type of math","A business strategy"], correctIndex: 1, explanation: "Combining multiple models (ensemble methods) often outperforms any single model. Different models capture different patterns; their combination is more robust.", band: 'C' },
-      { question: "What is 'prediction market failure' and how to detect it?", options: ["Markets never fail","When prices don't reflect true probabilities due to manipulation, low liquidity, or biased participation","A type of crash","When predictions are wrong"], correctIndex: 1, explanation: "Prediction markets fail with low liquidity, attempted manipulation, biased participant pools, or unclear resolution criteria. Comparing multiple markets helps detect failures.", band: 'C' },
-      { question: "What is 'forecast aggregation'?", options: ["Weather reports","Combining multiple forecasts (mean, median, weighted) for better accuracy","A type of collection","A math operation"], correctIndex: 1, explanation: "Aggregating forecasts from multiple sources often beats individual forecasts. Simple aggregation (mean/median) works well; weighted aggregation (by track record) can do better.", band: 'C' },
-      { question: "What is 'recalibration' of probabilistic forecasts?", options: ["Fixing watches","Adjusting predicted probabilities to match historical calibration patterns","A type of training","A computer setting"], correctIndex: 1, explanation: "Recalibration adjusts forecasted probabilities based on historical calibration data. If a model is systematically overconfident, its probabilities can be adjusted to be more accurate.", band: 'C' },
-      { question: "What is the role of AI in modern forecasting?", options: ["AI can't forecast","AI excels at pattern detection in large datasets; humans excel at causal reasoning","Only humans can forecast","AI replaces all human forecasters"], correctIndex: 1, explanation: "The best forecasting combines AI (pattern detection in big data, sentiment analysis) with human judgment (causal reasoning, domain expertise). Each complements the other.", band: 'C' },
-      { question: "What are 'prediction metrics' for long-term forecasts?", options: ["Distance measurements","Scoring rules adapted for long time horizons with delayed resolution","A type of ruler","A calendar"], correctIndex: 1, explanation: "Long-term forecasts need special metrics because resolution is delayed. Discounting, survival analysis, and interim metrics help evaluate predictions years before final resolution.", band: 'C' },
-      { question: "What is 'epistemic humility' in forecasting?", options: ["Being humble about what you know","Recognizing the limits of your knowledge and expressing appropriate uncertainty","A type of weakness","Not making predictions"], correctIndex: 1, explanation: "Epistemic humility means recognizing what you don't know and expressing appropriate uncertainty. It's a strength in forecasting, not a weakness. Overconfidence is the enemy.", band: 'C' },
-      { question: "What is the future of collective forecasting?", options: ["It will be replaced by AI","Hybrid human-AI systems with real-time aggregation and continuous calibration","Only experts will forecast","Prediction markets will disappear"], correctIndex: 1, explanation: "The future is hybrid: AI handles data processing and pattern detection, humans provide causal reasoning and domain expertise, and platforms enable real-time aggregation and feedback.", band: 'C' },
-    ],
-  };
+const CONCEPTS: Record<number, string> = {
+  1: 'A prediction is a claim about the future. Sort each one by how probable it is.',
+  2: 'Probability runs from near-certain to near-impossible. Place each claim on that scale.',
+  3: 'A prediction-market price is a probability: a high price means the crowd thinks it is likely.',
+  4: 'The wisdom of crowds: a diverse group often forecasts better than any single expert.',
+  5: 'Good forecasters are calibrated — their "likely" really does come true most of the time.',
+  6: 'AI progress is fast but hard to time. Some milestones are near, others are far off.',
+  7: 'Base rates anchor a forecast: how often have similar things happened before?',
+  8: 'Some claims are deceptively confident. Weigh the evidence before you sort.',
+  9: 'Superforecasters update on evidence and avoid extreme over- or under-confidence.',
+  10: 'Master test: sort every claim into Likely, Uncertain, or Unlikely.',
+};
 
-  const base = q[levelId] || q[1];
-  const extra: QuizQuestion[] = levelId >= 4 ? [
-    { question: "What is the 'efficient market hypothesis' and its relevance to prediction markets?", options: ["Markets are fast","Prices reflect all available information; consistently beating the market is nearly impossible","A type of store","A math theory"], correctIndex: 1, explanation: "The efficient market hypothesis suggests prices reflect all available information. Applied to prediction markets, it implies market prices are hard to consistently beat — the crowd's aggregate wisdom is powerful.", band: 'C' },
-    { question: "What is a 'prediction tournament' platform?", options: ["A sports arena","A structured competition for scoring and ranking forecasters","A type of game","A betting site"], correctIndex: 1, explanation: "Platforms like Metaculus, Good Judgment Open, and INFER host prediction tournaments where participants forecast on real-world events and accuracy is tracked and scored.", band: 'B' },
-  ] : [];
-  const extra2: QuizQuestion[] = levelId >= 7 ? [
-    { question: "What is 'tail risk' in forecasting?", options: ["A type of animal","The risk of rare, extreme events that have outsized impact","A type of risk assessment","A financial term only"], correctIndex: 1, explanation: "Tail risk is the danger of rare, extreme events (the 'tails' of the probability distribution). These low-probability, high-impact events are often under-prepared for because they seem unlikely.", band: 'C' },
-    { question: "What is 'forecasting methodology' rigor?", options: ["Being strict","Using structured approaches: track records, calibration, explicit reasoning, and feedback loops","A type of science","A management style"], correctIndex: 1, explanation: "Rigorous forecasting involves: making explicit predictions with probabilities, tracking outcomes, reviewing accuracy, updating beliefs, and using structured reasoning frameworks.", band: 'C' },
-  ] : [];
+// ════════════════════════════════════════════════════════════════════════
+// FORECAST BANK — a near-future claim + how probable (bin) + why (interleaved)
+// bin 0 = Likely · bin 1 = Uncertain · bin 2 = Unlikely
+// ════════════════════════════════════════════════════════════════════════
+interface Claim { id: string; label: string; bin: number; why: string; }
 
-  return [...base, ...extra, ...extra2].slice(0, 10);
+const BANK: Claim[] = [
+  { id: 'phones', label: 'Most phones ship with an AI assistant', bin: 0, why: 'AI assistants are already standard on new phones — a strong base rate makes this likely.' },
+  { id: 'agi-year', label: 'True human-level AGI arrives next year', bin: 2, why: 'No clear path to general human-level AI exists yet, so a one-year arrival is unlikely.' },
+  { id: 'homework', label: 'Some students use AI for homework help', bin: 0, why: 'This is already common today — the base rate makes it near-certain.' },
+  { id: 'robot-chef', label: 'A robot replaces every restaurant chef', bin: 2, why: 'Cooking needs dexterity and judgment robots lack; full replacement is unlikely soon.' },
+  { id: 'better-translate', label: 'AI translation keeps improving this year', bin: 0, why: 'Steady year-over-year gains make continued improvement very likely.' },
+  { id: 'self-drive-city', label: 'Self-driving taxis run in more cities', bin: 1, why: 'Expansion is happening but slow and uneven, so the timing is genuinely uncertain.' },
+  { id: 'ai-president', label: 'An AI is elected to public office', bin: 2, why: 'Laws require humans to hold office, so this is highly unlikely.' },
+  { id: 'voice-search', label: 'More people search by talking to AI', bin: 0, why: 'Voice and chat search are clearly trending up — a likely continuation.' },
+  { id: 'cure-all', label: 'AI cures every disease within a year', bin: 2, why: 'Drug discovery takes many years of trials; a one-year cure-all is unlikely.' },
+  { id: 'classroom-ai', label: 'Some classrooms add an AI tutor', bin: 0, why: 'Pilots already exist; broad trials make this likely.' },
+  { id: 'agi-decade', label: 'AI passes many expert exams this decade', bin: 1, why: 'Plausible given fast progress, but the timing is uncertain.' },
+  { id: 'no-jobs', label: 'AI eliminates all human jobs next year', bin: 2, why: 'History shows automation shifts jobs slowly; total loss in a year is unlikely.' },
+  { id: 'art-tools', label: 'More artists try AI image tools', bin: 0, why: 'Adoption is rising fast, so more artists trying them is likely.' },
+  { id: 'agi-conscious', label: 'AI becomes conscious and self-aware', bin: 2, why: 'There is no scientific evidence AI can be conscious; this is unlikely.' },
+  { id: 'better-weather', label: 'AI weather forecasts beat old models', bin: 1, why: 'Promising early results, but consistent wins are not yet certain.' },
+  { id: 'phone-photos', label: 'Phone cameras use AI to fix photos', bin: 0, why: 'AI photo enhancement is already widespread — very likely to continue.' },
+  { id: 'ban-ai', label: 'Every country bans AI completely', bin: 2, why: 'Countries are investing heavily in AI; a global ban is highly unlikely.' },
+  { id: 'ai-coding', label: 'More coders use AI to write code', bin: 0, why: 'AI coding tools are widely adopted already, so growth is likely.' },
+  { id: 'agi-runaway', label: 'AI takes over the internet on its own', bin: 2, why: 'Systems are sandboxed and supervised; an autonomous takeover is unlikely.' },
+  { id: 'market-grows', label: 'Prediction markets gain more users', bin: 1, why: 'Interest is growing but regulation and trust remain uncertain.' },
+  { id: 'voice-clone', label: 'Voice-cloning scams keep appearing', bin: 0, why: 'These scams already exist and are rising — likely to continue.' },
+  { id: 'fusion-ai', label: 'AI delivers limitless free energy this year', bin: 2, why: 'Energy breakthroughs take decades to deploy; a one-year payoff is unlikely.' },
+  { id: 'chat-customer', label: 'More companies add AI chat support', bin: 0, why: 'Adoption is already high and climbing, so this is likely.' },
+  { id: 'regulation', label: 'New AI safety rules pass somewhere', bin: 1, why: 'Several governments are drafting rules, but passage and timing are uncertain.' },
+];
+
+function getItems(levelId: number): Claim[] {
+  const count = Math.min(8, 6 + Math.floor(levelId / 4)); // 6–8 items
+  const offset = ((levelId - 1) * 2) % BANK.length;
+  const out: Claim[] = [];
+  for (let i = 0; i < count; i++) out.push(BANK[(offset + i) % BANK.length]);
+  const seen = new Set<string>();
+  return out.filter((it) => (seen.has(it.id) ? false : seen.add(it.id)));
 }
 
+// ════════════════════════════════════════════════════════════════════════
+// LEVEL RENDERER — the SORT board (Likely / Uncertain / Unlikely)
+// ════════════════════════════════════════════════════════════════════════
+function LevelRenderer({
+  level, onComplete, onExit,
+}: {
+  level: LevelConfig; onComplete: (r: LevelResult) => void; onExit: () => void;
+}) {
+  const juice = useJuice();
+  const prefersReducedMotion = useReducedMotion();
+  const [phase, setPhase] = useState<'welcome' | 'sort'>('welcome');
+  const items = useMemo(() => getItems(level.id), [level.id]);
+  const [assignments, setAssignments] = useState<Record<string, number | undefined>>({});
+  const [score, setScore] = useState(0);
+  const [combo, setCombo] = useState(0);
+  const [wrong, setWrong] = useState(0);
+  const [feedback, setFeedback] = useState<{ type: 'correct' | 'wrong' | 'info'; message: string; explanation?: string } | null>(null);
+
+  const maxScore = items.length * 10 + 20;
+  const sortedCount = items.filter((t) => assignments[t.id] !== undefined).length;
+  const allSorted = sortedCount >= items.length;
+
+  const sceneItems = useMemo<BinSortItem[]>(
+    () => items.map((it, i) => ({ id: it.id, label: it.label, name: it.label, color: CHIP_PALETTE[i % CHIP_PALETTE.length] })),
+    [items],
+  );
+
+  const finishLevel = useCallback((finalScore: number, finalWrong: number) => {
+    const accuracyBonus = Math.max(0, 20 - finalWrong * 5);
+    const total = finalScore + accuracyBonus;
+    const stars = (total >= level.starThresholds[2] ? 3
+      : total >= level.starThresholds[1] ? 2
+        : total >= level.starThresholds[0] ? 1 : 0) as 0 | 1 | 2 | 3;
+    setTimeout(() => {
+      onComplete({ score: total, maxScore, stars, xpEarned: level.xpReward * (stars / 3), timeMs: 0 });
+    }, 1300);
+  }, [level, maxScore, onComplete]);
+
+  const handleAssign = useCallback((id: string, bin: number) => {
+    if (assignments[id] !== undefined) return;
+    const item = items.find((t) => t.id === id);
+    if (!item) return;
+    const nextAssign = { ...assignments, [id]: bin };
+    setAssignments(nextAssign);
+    const correct = item.bin === bin;
+    const doneCount = Object.keys(nextAssign).length;
+
+    if (correct) {
+      const gained = 10 + combo;
+      const nextScore = score + gained;
+      const nextCombo = combo + 1;
+      setScore(nextScore);
+      setCombo(nextCombo);
+      setFeedback({ type: 'correct', message: nextCombo > 2 ? `${nextCombo}x combo! +${gained}` : `Good call! +${gained}`, explanation: item.why });
+      juice.onCorrect(doneCount, nextScore);
+      if (doneCount >= items.length) finishLevel(nextScore, wrong);
+    } else {
+      setCombo(0);
+      const nextWrong = wrong + 1;
+      setWrong(nextWrong);
+      setFeedback({ type: 'wrong', message: `That claim is ${BINS[item.bin]}.`, explanation: item.why });
+      juice.onWrong(0, score);
+      if (doneCount >= items.length) finishLevel(score, nextWrong);
+    }
+  }, [assignments, items, combo, score, wrong, juice, finishLevel]);
+
+  // ═══ WELCOME ═══
+  if (phase === 'welcome') {
+    return (
+      <div className="relative z-10 space-y-5">
+        <GlowingTitle emoji="🔮" color={LAB_COLOR}>Level {level.id}: {level.name}</GlowingTitle>
+        <SFCard variant="elevated" className="p-5">
+          <p className="text-sm mb-3" style={{ color: '#5A6078' }}>{level.description}</p>
+          <div className="rounded-xl p-3 text-xs" style={{ background: `${LAB_COLOR}10`, color: LAB_COLOR }}>
+            <GraduationCap className="w-4 h-4 inline mr-1" />
+            <strong>Concept:</strong> {CONCEPTS[level.id] || CONCEPTS[1]}
+          </div>
+          <div className="mt-3 rounded-xl p-3 text-xs flex items-start gap-2" style={{ background: '#FF6B3510', color: '#FF6B35' }}>
+            <Target className="w-4 h-4 shrink-0 mt-0.5" />
+            <span><strong>Sort:</strong> Drag each claim into <strong>Likely</strong>, <strong>Uncertain</strong>, or <strong>Unlikely</strong>. Read the odds!</span>
+          </div>
+        </SFCard>
+        <SFButton variant="primary" size="lg" className="w-full" onClick={() => setPhase('sort')}>
+          Start Forecasting <ChevronRight className="w-5 h-5 ml-2" />
+        </SFButton>
+      </div>
+    );
+  }
+
+  // ═══ SORT ═══
+  return (
+    <div className="relative z-10 space-y-4">
+      <div className="flex items-center justify-between">
+        <GlowingTitle emoji="🔮" color={LAB_COLOR}>Sort the Forecasts</GlowingTitle>
+        <span className="text-sm font-bold flex items-center gap-1" style={{ color: LAB_COLOR }}>
+          <TrendingUp className="w-4 h-4" />{sortedCount} / {items.length}
+        </span>
+      </div>
+
+      <ScoreDisplay score={score} maxScore={maxScore} />
+      <ComboCounter combo={combo} />
+
+      <PixiBinSortStage
+        items={sceneItems}
+        bins={BINS}
+        assignments={assignments}
+        onAssign={handleAssign}
+        labColor={LAB_COLOR}
+        reducedMotion={!!prefersReducedMotion}
+      />
+
+      {feedback && <FeedbackPopup {...feedback} />}
+
+      <div className="flex gap-2">
+        <SFButton variant="primary" className="flex-1" onClick={() => finishLevel(score, wrong)} disabled={!allSorted}>
+          <Sparkles className="w-4 h-4 mr-2" />
+          {allSorted ? 'Resolve!' : `Sort ${items.length - sortedCount} more…`}
+        </SFButton>
+        <SFButton variant="outline" onClick={onExit} aria-label="Exit level">
+          <RotateCcw className="w-4 h-4" />
+        </SFButton>
+      </div>
+    </div>
+  );
+}
+
+// ════════════════════════════════════════════════════════════════════════
+// MAIN EXPORT
+// ════════════════════════════════════════════════════════════════════════
 export default function PredictionMarketGame() {
   const { awardXP, completeGame } = useGameActions();
+
   const handleComplete = useCallback((results: LevelResult[]) => {
     const totalXP = results.reduce((s, r) => s + r.xpEarned, 0);
     const totalStars = results.reduce((s, r) => s + r.stars, 0);
@@ -153,14 +251,14 @@ export default function PredictionMarketGame() {
 
   return (
     <GameShell title="Prediction Market" color="#DE5AEA" labNum={10}>
-      <GameLevelSystem gameTitle="Prediction Market" gameEmoji="📈" labColor="#DE5AEA" levels={LEVELS}
+      <GameLevelSystem
+        gameTitle="Prediction Market"
+        gameEmoji="📈"
+        labColor="#DE5AEA"
+        levels={LEVELS}
         onComplete={handleComplete}
         renderLevel={(level, onComplete, onExit) => (
-          <QuizLevelRenderer
-            level={level} onComplete={onComplete} onExit={onExit}
-            questions={getQuestions(level.id)} labColor="#DE5AEA" gameEmoji="📈"
-            timePerQuestion={level.difficulty === 'expert' ? 15 : level.difficulty === 'hard' ? 20 : 25}
-          />
+          <LevelRenderer level={level} onComplete={onComplete} onExit={onExit} />
         )}
       />
     </GameShell>
