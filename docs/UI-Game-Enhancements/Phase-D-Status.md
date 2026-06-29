@@ -49,28 +49,35 @@ Two distinct sub-tracks fall out of this:
   mechanics"). The Wave 1–7 migrations were each explicitly authorized; the
   flagship-tier games were not.
 - **(ii) Genuine-R3F flagships** (Context Architect, Pixel Witness, Agent
-  Architect, Prompt Lab, + Lab 11): the plan says *keep R3F on desktop, add the
-  2D archetype as the mobile/tablet fallback* via `useDeviceProfile` (Mobile
-  Fallback Policy v6.8). This is additive (desktop untouched) but is a
-  *3D/structure* change — also an approval gate in CLAUDE.md.
+  Architect, Prompt Lab, + Lab 11): **revised direction (owner, 2026-06-28)** —
+  do **not** ship separate 2D games for low-end devices. Instead render the
+  *same R3F scene, fidelity-scaled* along a quality ladder, with the Pixi 2D
+  archetype reserved as the true **FLOOR** (no-WebGL2 devices) + the a11y path.
+  Full design + implementation plan: **`Adaptive-Quality-Strategy.md`**.
 
 ### 2b. Asset-pipeline track — BLOCKED on external connectors
 
 None of these can proceed in this environment; each needs something only you can
-provide:
+provide. **Full acquisition + setup steps (accounts, keys, `.mcp.json`
+entries): `Asset-Pipeline-Setup.md`.**
 
 | Track | Needs | Unblocks |
 |-------|-------|----------|
-| **Blender MCP** GLB assets | `ahujasid/blender-mcp` connector | Themed 3D props; closes **HS-8** procedural-pet gap |
-| **Rive** mascot | the actual `public/rive/sparky.riv` file (Rive editor/animator) | Sparky reactions across all games (runtime already wired) |
-| **Scenario API** | API key | Style-locked per-lab background art |
-| **Figma MCP** | Figma connector + design files | App-chrome design-to-code (optional, designer-in-loop) |
+| **Blender MCP** GLB assets | Blender desktop + `ahujasid/blender-mcp` (local Claude Code); optional Hyper3D/Meshy/Tripo key | Themed 3D props; closes **HS-8** procedural-pet gap |
+| **Rive** mascot | the actual `public/rive/sparky.riv` file (Rive account/editor) | Sparky reactions across all games (runtime already wired) |
+| **Scenario API** | account + `SCENARIO_API_KEY` + a trained style model | Style-locked per-lab background art + emoji-replacement icons |
+| **Figma MCP** | Figma Dev-Mode seat (desktop) or a personal-access-token via framelink | App-chrome design-to-code (optional, designer-in-loop) |
+
+Note the **local-only caveat**: Blender/Figma/Rive-editor MCPs remote-control a
+desktop app and only work in a **local** Claude Code session, not the web/remote
+sandbox. Scenario/Meshy/Tripo are key-based and run anywhere. See the setup doc.
 
 ### 2c. Emoji → icon/asset sweep (Ui-Creation.md)
 
-Large and design-dependent (which icon replaces which emoji). The policy says
-"replace as game art lands," so it naturally pairs with the Scenario/Rive asset
-work above.
+~1,464 occurrences, split into three buckets — UI affordances → **lucide** (no
+new assets), decorative → **Scenario** style-locked icons, characters →
+**Rive/Blender**. Repeatable inventory→map→generate→swap→verify process and a
+Scenario prompt template are documented in **`Asset-Pipeline-Setup.md` §6**.
 
 ---
 
@@ -80,13 +87,17 @@ work above.
    Pocket Brain (REVEAL), Pet Trainer (SORT/REVEAL), Neural Builder (CONNECT) on
    the proven Wave 1–7 pattern + smoke harness. (Same risk profile as the
    completed waves; just needs the mechanic-change approval.)
-2. **Decide the genuine-R3F fallback approach** → additive `useDeviceProfile`
-   gate that keeps desktop R3F and renders the 2D archetype on mobile/tablet for
-   Context Architect, Pixel Witness, Agent Architect, Prompt Lab, + Lab 11.
+2. **Adaptive quality (revised)** → build `useQualityTier()` + drei
+   `PerformanceMonitor` auto-scaling so the *same* R3F scene optimizes for
+   low-end devices, with the 2D archetype only as the no-WebGL2 FLOOR. Plan in
+   `Adaptive-Quality-Strategy.md`. Suggested order: cockpit first (proof), then
+   the genuine-R3F flagships.
 3. **Provide (or defer) the asset connectors** → Blender / Rive `.riv` /
-   Scenario key / Figma. I'll resume those tracks when access exists; otherwise
-   they stay documented here as backlog.
-4. **Emoji sweep** → do alongside (3), or mechanically now if you prefer.
+   Scenario key / Figma — acquisition steps in `Asset-Pipeline-Setup.md`. Note
+   Blender/Figma/Rive-editor MCPs are local-Claude-Code-only; Scenario/Meshy/
+   Tripo run anywhere with a key.
+4. **Emoji sweep** → UI bucket (lucide) can start now with no assets; decorative/
+   character buckets pair with Scenario/Rive once keys/assets exist.
 
 I did **not** make unilateral changes to flagship mechanics or 3D games, per the
 CLAUDE.md approval gates. Reply with which of 1–4 to proceed on and I'll execute.
