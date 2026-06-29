@@ -139,7 +139,7 @@ export default function SimLevelRenderer({
           {bestScore > 0 && <ScoreDisplay score={bestScore} maxScore={100} label="Best Score" />}
 
           {/* Parameters */}
-          <SFCard variant="elevated" className="p-4 space-y-4">
+          <SFCard variant="elevated" className="p-4 space-y-4" role="group" aria-label="Simulation parameters">
             <h3 className="text-sm font-bold" style={{ color: '#1A1D2B' }}>Adjust Parameters</h3>
             {params.map((p) => (
               <div key={p.id}>
@@ -158,6 +158,8 @@ export default function SimLevelRenderer({
                   step={p.step}
                   value={p.value}
                   onChange={(e) => handleParamChange(p.id, parseFloat(e.target.value))}
+                  aria-label={p.label}
+                  aria-valuetext={`${p.value}${p.unit || ''}`}
                   className="w-full h-2 rounded-full appearance-none cursor-pointer"
                   style={{
                     background: `linear-gradient(to right, ${labColor} 0%, ${labColor} ${((p.value - p.min) / (p.max - p.min)) * 100}%, #EEF0F8 ${((p.value - p.min) / (p.max - p.min)) * 100}%, #EEF0F8 100%)`,
@@ -183,6 +185,8 @@ export default function SimLevelRenderer({
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0 }}
                 className="space-y-3"
+                role="status"
+                aria-live="polite"
               >
                 <SFCard variant="elevated" className="p-4">
                   <ScoreDisplay score={result.score} maxScore={result.maxScore} />

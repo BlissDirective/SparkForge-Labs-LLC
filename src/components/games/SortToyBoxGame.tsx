@@ -14,6 +14,7 @@
 
 import { useState, useCallback, useMemo } from 'react';
 import dynamic from 'next/dynamic';
+import PixiStageSkeleton from '@/components/games/pixi/PixiStageSkeleton';
 import { motion, useReducedMotion } from 'motion/react';
 import {
   Brain, ChevronRight, Sparkles, Timer, Trophy,
@@ -36,9 +37,7 @@ import type { SortToy } from '@/components/games/pixi/PixiSortStage';
 // Pixi is client-only (WebGL/WebGPU) — never SSR it.
 const PixiSortStage = dynamic(() => import('@/components/games/pixi/PixiSortStage'), {
   ssr: false,
-  loading: () => (
-    <div className="h-[420px] w-full animate-pulse rounded-2xl" style={{ background: '#0E1428' }} />
-  ),
+  loading: () => <PixiStageSkeleton />,
 });
 
 // ════════════════════════════════════════════════════════════════════════

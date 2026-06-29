@@ -14,6 +14,7 @@
 
 import { useState, useCallback, useMemo } from 'react';
 import dynamic from 'next/dynamic';
+import PixiStageSkeleton from '@/components/games/pixi/PixiStageSkeleton';
 import { useReducedMotion } from 'motion/react';
 import {
   ChevronRight, Zap, GraduationCap, Target, RotateCcw, Sparkles,
@@ -34,9 +35,7 @@ import type { BoardNode } from '@/components/games/pixi/PixiConnectStage';
 // Pixi is client-only (WebGL/WebGPU) — never SSR it.
 const PixiConnectStage = dynamic(() => import('@/components/games/pixi/PixiConnectStage'), {
   ssr: false,
-  loading: () => (
-    <div className="h-[420px] w-full animate-pulse rounded-2xl" style={{ background: '#0E1428' }} />
-  ),
+  loading: () => <PixiStageSkeleton />,
 });
 
 const LAB_COLOR = '#E68E28';

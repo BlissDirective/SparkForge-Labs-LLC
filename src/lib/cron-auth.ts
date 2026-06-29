@@ -54,21 +54,29 @@ export function verifyCronBearer(
   const authHeader = req.headers.get(headerName);
   const cronSecret = process.env.CRON_SECRET;
 
-  // Production gate — missing secret is a deploy-time configuration error.
+  // Missing secret is a deploy-time configuration error. The unauthenticated
+  // bypass is NOT inferred from NODE_ENV (a mis-set staging NODE_ENV would have
+  // silently exposed cron endpoints — audit §2.6); it requires an EXPLICIT
+  // `ALLOW_UNAUTHENTICATED_CRON=true` opt-in, and never applies in production.
   if (!cronSecret) {
-    if (process.env.NODE_ENV === 'production') {
+    const explicitlyAllowed =
+      process.env.ALLOW_UNAUTHENTICATED_CRON === 'true' &&
+      process.env.NODE_ENV !== 'production';
+
+    if (!explicitlyAllowed) {
       console.error(
-        `[cron/${routeName}] CRON_SECRET missing in production — endpoint blocked`,
+        `[cron/${routeName}] CRON_SECRET missing — endpoint blocked `
+        + `(set CRON_SECRET, or ALLOW_UNAUTHENTICATED_CRON=true in non-production to bypass)`,
       );
       return NextResponse.json(
-        { error: 'CRON_SECRET required in production', code: 'CONFIG_ERROR' },
+        { error: 'CRON_SECRET required', code: 'CONFIG_ERROR' },
         { status: 500 },
       );
     }
-    // Dev / test: allow the call through without auth. Log it so it
-    // shows up in CI output if someone mistakenly removes the env.
+
+    // Explicit, non-production opt-in only.
     console.warn(
-      `[cron/${routeName}] CRON_SECRET not set (non-production) — skipping auth`,
+      `[cron/${routeName}] CRON_SECRET not set — auth skipped via ALLOW_UNAUTHENTICATED_CRON`,
     );
     return null;
   }

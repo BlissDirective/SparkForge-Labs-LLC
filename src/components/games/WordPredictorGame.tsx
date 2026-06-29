@@ -13,6 +13,7 @@
 
 import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import dynamic from 'next/dynamic';
+import PixiStageSkeleton from '@/components/games/pixi/PixiStageSkeleton';
 import { useReducedMotion } from 'motion/react';
 import {
   ChevronRight, GraduationCap, Target, Timer, Crosshair,
@@ -33,9 +34,7 @@ import type { TargetContent } from '@/components/games/pixi/scenes/ReactionArena
 // Pixi is client-only (WebGL/WebGPU) — never SSR it.
 const PixiReactStage = dynamic(() => import('@/components/games/pixi/PixiReactStage'), {
   ssr: false,
-  loading: () => (
-    <div className="h-[420px] w-full animate-pulse rounded-2xl" style={{ background: '#0E1428' }} />
-  ),
+  loading: () => <PixiStageSkeleton />,
 });
 
 const LAB_COLOR = '#D9A430';

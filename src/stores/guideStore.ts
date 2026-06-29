@@ -69,6 +69,11 @@ interface GuideState {
    *  repeat stalls don't re-nudge until context actually changes. */
   lastDismissedHintKey: string | null;
 
+  /** Audit §3.6: the child this persisted guide state belongs to. Used to
+   *  reset child-specific personalization/conversation/turn-count when a parent
+   *  switches children on the same device, so state doesn't bleed across kids. */
+  boundChildId: string | null;
+
   // Actions
   show: () => void;
   hide: () => void;
@@ -101,6 +106,8 @@ interface GuideState {
   showHint: (text: string, opts?: { ttlMs?: number; anchor?: 'avatar' | 'top-center' | 'bottom-center'; key?: string }) => void;
   /** UX-ENH-006: dismiss the current hint (user clicked X or clicked avatar). */
   dismissHint: (key?: string) => void;
+  /** Audit §3.6: bind this store to a child; resets child-specific state on switch. */
+  bindToChild: (childId: string | null) => void;
 }
 
 const today = () => new Date().toISOString().split('T')[0];
@@ -130,6 +137,7 @@ export const useGuideStore = create<GuideState>()(
       autoGreet: true,
       guideTurnsToday: 0,
       guideTurnsResetDate: today(),
+      boundChildId: null,
 
       // UX-ENH-006 defaults
       hintVisible: false,
@@ -204,10 +212,29 @@ export const useGuideStore = create<GuideState>()(
         hintExpiresAt: null,
         lastDismissedHintKey: key ?? null,
       }),
+
+      // Audit §3.6: reset child-specific personalization, conversation, and
+      // per-child turn tracking when the bound child changes, so one child's
+      // guide state never bleeds into another's on a shared device.
+      bindToChild: (childId) => {
+        if (get().boundChildId === childId) return;
+        set({
+          boundChildId: childId,
+          preferredName: '',
+          avatarConcept: 'orb' as AvatarConcept,
+          guideTurnsToday: 0,
+          guideTurnsResetDate: today(),
+          messages: [],
+          conversationId: null,
+          streamingContent: '',
+          isStreaming: false,
+        });
+      },
     }),
     {
       name: 'sparkforge-guide',
       partialize: (state) => ({
+        boundChildId: state.boundChildId,
         preferredName: state.preferredName,
         avatarConcept: state.avatarConcept,
         voiceSpeed: state.voiceSpeed,

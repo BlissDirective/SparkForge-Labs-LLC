@@ -15,6 +15,7 @@ import type { TutorExpression } from './AITutorAvatar';
 import type { ChatMessage } from './AITutorChat';
 import { usePathname } from 'next/navigation';
 import { useActiveChild } from '@/hooks/useChildren';
+import { useGuideStore } from '@/stores/guideStore';
 import {
   filterInput,
   generateTutorResponse,
@@ -96,6 +97,14 @@ export function AITutorProvider({ children }: AITutorProviderProps) {
   const activeChild = useActiveChild();
   const childId = activeChild?.id ?? 'anonymous';
   const expressionTimeout = useRef<NodeJS.Timeout | null>(null);
+
+  // Audit §3.6: rebind the persisted guide store to the active child so its
+  // personalization/conversation/turn-count don't bleed across children on a
+  // shared device. Uses the real child id (null when anonymous), not the
+  // 'anonymous' display fallback.
+  useEffect(() => {
+    useGuideStore.getState().bindToChild(activeChild?.id ?? null);
+  }, [activeChild?.id]);
 
   // Load persisted messages when child changes
   useEffect(() => {

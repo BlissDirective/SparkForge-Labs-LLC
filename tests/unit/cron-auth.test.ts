@@ -3,9 +3,10 @@
 // ════════════════════════════════════════════════════════════════
 // Covers the 4 decision paths in cron-auth.ts:
 //   1. No secret in production → 500
-//   2. No secret in dev        → warn + pass through
-//   3. Secret set + valid bearer → null (proceed)
-//   4. Secret set + invalid / missing bearer → 401
+//   2. No secret in non-prod WITHOUT opt-in → 500 (audit §2.6 hardening)
+//   3. No secret in non-prod WITH ALLOW_UNAUTHENTICATED_CRON=true → pass through
+//   4. Secret set + valid bearer → null (proceed)
+//   5. Secret set + invalid / missing bearer → 401
 //
 // Also verifies that a timing-safe comparison is used by checking
 // the helper doesn't throw on differing string lengths (native
@@ -46,9 +47,26 @@ describe('T17 — verifyCronBearer', () => {
     expect(body.code).toBe('CONFIG_ERROR');
   });
 
-  it('passes through when secret missing in dev (noisy warn)', () => {
+  it('blocks (500) when secret missing in non-prod WITHOUT explicit opt-in', async () => {
+    delete process.env.ALLOW_UNAUTHENTICATED_CRON;
+    const res = verifyCronBearer(makeReq(), { routeName: 'x' });
+    expect(res).not.toBeNull();
+    expect(res!.status).toBe(500);
+    const body = await res!.json();
+    expect(body.code).toBe('CONFIG_ERROR');
+  });
+
+  it('passes through in non-prod ONLY with ALLOW_UNAUTHENTICATED_CRON=true', () => {
+    process.env.ALLOW_UNAUTHENTICATED_CRON = 'true';
     const res = verifyCronBearer(makeReq(), { routeName: 'x' });
     expect(res).toBeNull();
+  });
+
+  it('ignores the opt-in in production (still 500)', () => {
+    (process.env as Record<string, string>).NODE_ENV = 'production';
+    process.env.ALLOW_UNAUTHENTICATED_CRON = 'true';
+    const res = verifyCronBearer(makeReq(), { routeName: 'x' });
+    expect(res!.status).toBe(500);
   });
 
   it('accepts the correct Bearer token', () => {

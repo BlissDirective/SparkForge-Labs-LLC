@@ -14,6 +14,7 @@
 
 import { useState, useCallback, useMemo } from 'react';
 import dynamic from 'next/dynamic';
+import PixiStageSkeleton from '@/components/games/pixi/PixiStageSkeleton';
 import { useReducedMotion } from 'motion/react';
 import {
   ChevronRight, Wrench, GraduationCap, Target, RotateCcw, Sparkles,
@@ -34,9 +35,7 @@ import type { BinSortItem } from '@/components/games/pixi/PixiBinSortStage';
 // Pixi is client-only (WebGL/WebGPU) — never SSR it.
 const PixiBinSortStage = dynamic(() => import('@/components/games/pixi/PixiBinSortStage'), {
   ssr: false,
-  loading: () => (
-    <div className="h-[420px] w-full animate-pulse rounded-2xl" style={{ background: '#0E1428' }} />
-  ),
+  loading: () => <PixiStageSkeleton />,
 });
 
 const LAB_COLOR = '#00D17A';

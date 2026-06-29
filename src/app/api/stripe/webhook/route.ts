@@ -310,6 +310,17 @@ export async function POST(req: NextRequest) {
       const priceId = sub.items.data[0]?.price.id;
       const derivedTier = tierFromPriceId(priceId);
 
+      // Audit §2.7: a price ID that is present but unmapped means the env-var
+      // price IDs have drifted from Stripe. Don't silently skip — surface it,
+      // otherwise tier state corrupts invisibly.
+      if (priceId && !derivedTier) {
+        Sentry.captureMessage(
+          `[webhook] unmapped Stripe price id "${priceId}" on ${event.type} (event=${event.id}); `
+          + 'check STRIPE_PRICE_* env vars — tier left unchanged',
+          { level: 'error' },
+        );
+      }
+
       const updates: Record<string, unknown> = {
         subscription_status: status,
         stripe_subscription_id: sub.id,

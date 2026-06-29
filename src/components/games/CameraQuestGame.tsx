@@ -14,6 +14,7 @@
 
 import { useState, useCallback, useMemo } from 'react';
 import dynamic from 'next/dynamic';
+import PixiStageSkeleton from '@/components/games/pixi/PixiStageSkeleton';
 import { useReducedMotion } from 'motion/react';
 import {
   ChevronRight, Sparkles, Search, GraduationCap, Target, RotateCcw,
@@ -34,9 +35,7 @@ import type { RevealTile } from '@/components/games/pixi/PixiRevealStage';
 // Pixi is client-only (WebGL/WebGPU) — never SSR it.
 const PixiRevealStage = dynamic(() => import('@/components/games/pixi/PixiRevealStage'), {
   ssr: false,
-  loading: () => (
-    <div className="h-[420px] w-full animate-pulse rounded-2xl" style={{ background: '#0E1428' }} />
-  ),
+  loading: () => <PixiStageSkeleton />,
 });
 
 const LAB_COLOR = '#10BAD2';

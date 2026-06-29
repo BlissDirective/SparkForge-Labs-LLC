@@ -3,6 +3,32 @@
 > **Date:** 2026-06-12
 > **Branch:** `setup-sparkforge-dev` @ `9e5d1e4`
 > **Scope:** General code review, frontend audit, backend audit
+
+---
+
+## Resolution Status — 2026-06-28 (addressing criticism #2: close, don't re-audit)
+
+| # | Action | Status |
+|---|--------|--------|
+| 1 | `buddyId` UUID validation in `GET /api/messages` + no interpolated `.or()` of user input | ✅ Fixed (hardening commit) |
+| 2 | `checkDuplicate()` on mutating POSTs (seasons/mastery/friends/messages/UGC) | ✅ Fixed — now on 12 routes |
+| 3 | `applyRateLimit()` on social/UGC routes | ✅ Fixed — messages/friends/buddy-quests/ugc(+rate/moderate) |
+| 4 | Atomic invite-code redemption (`UPDATE … WHERE redeemed=false`) | ✅ Fixed |
+| 5 | Clamp buddy-quest progress | ✅ Verified safe — no client-writable raw progress; regular quest progress already `Math.min`-clamped. DB `CHECK` constraint remains a recommended follow-up migration (needs owner review). |
+| 6 | Remove `@splinetool/*`; verify `@mlc-ai/web-llm` dynamic | ✅ `@splinetool/*` removed; web-llm is only pulled via the lazily-loaded Pocket Brain game (code-split, not in the shared bundle). |
+| 7 | ARIA + keyboard in shared renderers | ✅ Quiz/Level/VisualKit already had it; **SimulationLevelRenderer a11y added** (labelled sliders + live results). |
+| 8 | Child-scoped persistence | ✅ `guideStore` now rebinds + resets per active child via `AITutorProvider`; `deviceStore` left device-global by design; `cockpitStore` removed by owner. |
+| 9 | Cron bypass → explicit opt-in | ✅ Fixed — requires `ALLOW_UNAUTHENTICATED_CRON=true` (non-prod only); tests updated. |
+| 10 | Archive superseded root docs + `docs/INDEX.md` | ✅ 5 audit reports → `docs/archive/`; `docs/INDEX.md` added. |
+| 11 | E2E Stripe checkout → webhook → tier → reward | ⏳ Open (larger; recommended next). |
+| 12 | Reject/alert unmapped Stripe price IDs | ✅ Fixed — Sentry error on present-but-unmapped price id. |
+| Crit. #4 | Stale CLAUDE.md counts (35→42 games, 15→~19 stores) | ✅ Corrected. |
+
+Validation after fixes: `tsc` 0 errors · `vitest` **816/816 pass** (cron tests
+updated; spacing-budget regression fixed by extracting `PixiStageSkeleton`) ·
+`next build` clean. Remaining open: **#11** (Stripe money-path E2E).
+
+---
 > **Method:** Full baseline validation (typecheck / lint / unit tests / production build) + three parallel deep audits (backend & security, frontend & games, architecture & repo health), with the highest-severity findings manually verified against source before publishing.
 
 ---
