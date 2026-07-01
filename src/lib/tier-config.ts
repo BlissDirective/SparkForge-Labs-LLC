@@ -29,7 +29,7 @@ export const TIER_CONFIG: Record<SubscriptionTier, TierLimits> = {
     gamesPerWeek: 3,
     maxChildren: 1,
     freeLabsAccess: [1, 2, 3],
-    previewLabs: [4, 5, 6, 7, 8, 9, 10],
+    previewLabs: [4, 5, 6, 7, 8, 9, 10, 11],
     lockedLabs: [],
     features: {
       promptLab: true,
@@ -45,7 +45,7 @@ export const TIER_CONFIG: Record<SubscriptionTier, TierLimits> = {
     promptsPerDay: 50,
     gamesPerWeek: null,
     maxChildren: 3,
-    freeLabsAccess: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+    freeLabsAccess: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
     previewLabs: [],
     lockedLabs: [],
     features: {
@@ -62,7 +62,7 @@ export const TIER_CONFIG: Record<SubscriptionTier, TierLimits> = {
     promptsPerDay: 200,
     gamesPerWeek: null,
     maxChildren: 5,
-    freeLabsAccess: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+    freeLabsAccess: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
     previewLabs: [],
     lockedLabs: [],
     features: {
@@ -147,7 +147,7 @@ export const TIER_DISPLAY: Record<SubscriptionTier, TierDisplayConfig> = {
     yearlyPrice: 0,
     features: [
       'Labs 1–3 fully unlocked',
-      'Labs 4–10 first lesson free',
+      'Labs 4–11 first lesson free',
       '3 games per week',
       '5 Prompt Lab tries per day',
       '1 child profile',
@@ -161,7 +161,7 @@ export const TIER_DISPLAY: Record<SubscriptionTier, TierDisplayConfig> = {
     yearlyPrice: 79.99,
     highlight: true,
     features: [
-      'All 10 Labs fully unlocked',
+      'All 11 Labs fully unlocked',
       'Unlimited games',
       '50 Prompt Lab tries per day',
       '3 child profiles',
