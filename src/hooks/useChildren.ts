@@ -34,8 +34,16 @@ export function useActiveChild(): Child | undefined {
   const activeChildId = useChildStore((s) => s.activeChildId);
 
   return useMemo(() => {
-    if (!activeChildId || !children) return undefined;
-    return children.find((c) => c.id === activeChildId);
+    if (!children || children.length === 0) return undefined;
+    // Fall back to the first child when no selection exists (fresh
+    // device / cleared storage) or the stored id no longer matches
+    // (profile deleted, different account on the same browser).
+    // Without this every page dead-ends on "pick a profile" even
+    // though the account has exactly one child.
+    const selected = activeChildId
+      ? children.find((c) => c.id === activeChildId)
+      : undefined;
+    return selected ?? children[0];
   }, [activeChildId, children]);
 }
 

@@ -9,7 +9,7 @@ import { SkipLink } from '@/components/shared/SkipLink';
 export const metadata: Metadata = {
   title: 'SparkForge — AI Learning Lab for Kids',
   description:
-    'A gamified AI learning platform for children ages 7-16. 10 labs, 35+ games, built for curious minds.',
+    'A gamified AI learning platform for children ages 7-16. 11 labs, 42 games, built for curious minds.',
 };
 
 export default function MarketingLayout({
@@ -18,7 +18,7 @@ export default function MarketingLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-surface-deep relative">
+    <div className="min-h-screen bg-surface-deep relative" data-surface="dark">
       {/* UX-HIGH-001: WCAG 2.4.1 skip-link. Lands on the <main> below. */}
       <SkipLink targetId="marketing-main" />
       {/* Aurora background — subtle animated gradient behind all marketing pages.

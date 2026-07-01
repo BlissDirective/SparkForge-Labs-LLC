@@ -106,7 +106,7 @@ export default function TermsPage() {
             <div className="space-y-3 mb-4">
               {[
                 { tier: 'Free', desc: 'Access to Labs 1\u20133, 3 games per week, 1 child profile, 5 Prompt Lab tries/day.' },
-                { tier: 'Plus', desc: 'Full access to all 10 labs and 35 games, unlimited play, 3 child profiles, 50 Prompt Lab tries/day, parent progress reports.' },
+                { tier: 'Plus', desc: 'Full access to all 11 labs and 42 games, unlimited play, 3 child profiles, 50 Prompt Lab tries/day, parent progress reports.' },
                 { tier: 'Forge', desc: 'All Plus features, plus 5 child profiles, 200 Prompt Lab tries/day, AI-generated content, early access to new content, and priority support.' },
               ].map((t) => (
                 <div key={t.tier} className="p-3 rounded-lg bg-white/[0.02] border border-white/[0.06]">

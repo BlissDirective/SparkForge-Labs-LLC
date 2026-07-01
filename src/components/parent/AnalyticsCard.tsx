@@ -105,26 +105,12 @@ export default function AnalyticsCard({
   weeklyComparison,
   recentAchievements,
 }: AnalyticsCardProps) {
-  // Default time breakdown if none provided
-  const defaultBreakdown: GameTimeBreakdown[] = useMemo(() => [
-    { gameName: 'Pet Trainer', minutes: 45, color: '#E945F5' },
-    { gameName: 'Sort Toy Box', minutes: 30, color: '#4F6EF7' },
-    { gameName: 'Data Detective', minutes: 25, color: '#FF6B35' },
-    { gameName: 'Code Blocks', minutes: 20, color: '#2ECC71' },
-  ], []);
-
-  const breakdown = timeBreakdown && timeBreakdown.length > 0 ? timeBreakdown : defaultBreakdown;
+  // Real data only — placeholder bars here used to contradict the
+  // zeroed stat cards above them ("0h Total Time" next to "Pet
+  // Trainer 45m"), which reads as broken tracking to a parent.
+  const breakdown = timeBreakdown ?? [];
   const maxMinutes = Math.max(...breakdown.map((b) => b.minutes), 1);
-
-  // Default weekly data
-  const defaultWeekly: WeeklyComparison[] = useMemo(() => [
-    { week: 'W1', gamesPlayed: 4, timeMinutes: 60, xpEarned: 240 },
-    { week: 'W2', gamesPlayed: 6, timeMinutes: 90, xpEarned: 380 },
-    { week: 'W3', gamesPlayed: 5, timeMinutes: 75, xpEarned: 310 },
-    { week: 'W4', gamesPlayed: 8, timeMinutes: 120, xpEarned: 520 },
-  ], []);
-
-  const weekly = weeklyComparison && weeklyComparison.length > 0 ? weeklyComparison : defaultWeekly;
+  const weekly = weeklyComparison ?? [];
 
   // Compute learning velocity (XP per hour)
   const velocity = totalTimeMinutes > 0 ? Math.round((xpEarned / totalTimeMinutes) * 60) : 0;
@@ -172,16 +158,22 @@ export default function AnalyticsCard({
           </h4>
         </div>
         <div className="space-y-3">
-          {breakdown.map((b) => (
-            <MiniBar
-              key={b.gameName}
-              value={b.minutes}
-              max={maxMinutes}
-              color={b.color}
-              label={b.gameName}
-              sublabel={`${b.minutes}m`}
-            />
-          ))}
+          {breakdown.length === 0 ? (
+            <p className="text-xs" style={{ color: '#8C94AC' }}>
+              No play time yet — this fills in as your child plays games.
+            </p>
+          ) : (
+            breakdown.map((b) => (
+              <MiniBar
+                key={b.gameName}
+                value={b.minutes}
+                max={maxMinutes}
+                color={b.color}
+                label={b.gameName}
+                sublabel={`${b.minutes}m`}
+              />
+            ))
+          )}
         </div>
       </SFCard>
 
@@ -194,10 +186,18 @@ export default function AnalyticsCard({
               Weekly Activity
             </h4>
           </div>
-          <SparkBars data={weekly} />
-          <p className="text-xs text-center mt-2" style={{ color: '#8C94AC' }}>
-            Games played per week
-          </p>
+          {weekly.length === 0 ? (
+            <p className="text-xs" style={{ color: '#8C94AC' }}>
+              No activity yet — weekly trends appear after the first game.
+            </p>
+          ) : (
+            <>
+              <SparkBars data={weekly} />
+              <p className="text-xs text-center mt-2" style={{ color: '#8C94AC' }}>
+                Games played per week
+              </p>
+            </>
+          )}
         </SFCard>
 
         <SFCard variant="elevated" className="p-5 flex flex-col justify-center">

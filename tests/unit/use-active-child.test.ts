@@ -155,10 +155,11 @@ describe('useActiveChild — STATE-MED-001 (B-full)', () => {
     });
   });
 
-  it('returns undefined when active child is not in the fetched list', async () => {
+  it('falls back to the first child when the stored id is stale', async () => {
     // Edge case: stale activeChild id pointing at a child that has been
-    // deleted server-side. useActiveChild correctly degrades to
-    // undefined instead of returning the stale childStore snapshot.
+    // deleted server-side. useActiveChild degrades to the first real
+    // child instead of dead-ending the whole app on "pick a profile"
+    // (the account demonstrably has a child).
     const ghost = makeChild('ghost-id');
     const real = makeChild('real-id');
     mockApiFetch.mockResolvedValueOnce([real] as never);
@@ -177,7 +178,26 @@ describe('useActiveChild — STATE-MED-001 (B-full)', () => {
     const { result } = renderHook(() => useActiveChild(), {
       wrapper: wrapper(client),
     });
-    expect(result.current).toBeUndefined();
+    expect(result.current?.id).toBe(real.id);
+  });
+
+  it('falls back to the first child when nothing is selected', async () => {
+    const only = makeChild('only-id');
+    mockApiFetch.mockResolvedValueOnce([only] as never);
+
+    const client = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    });
+
+    const { result: childrenHook } = renderHook(() => useChildren(), {
+      wrapper: wrapper(client),
+    });
+    await waitFor(() => expect(childrenHook.current.data).toBeDefined());
+
+    const { result } = renderHook(() => useActiveChild(), {
+      wrapper: wrapper(client),
+    });
+    expect(result.current?.id).toBe(only.id);
   });
 });
 

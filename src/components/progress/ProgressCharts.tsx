@@ -219,21 +219,20 @@ export default function ProgressCharts({
   totalGamesPlayed,
   totalTimeMinutes,
 }: ProgressChartsProps) {
-  // Default weekly data if none provided
-  const defaultWeekly: WeeklyPoint[] = useMemo(
-    () => [
-      { day: 'Mon', minutes: 25 },
-      { day: 'Tue', minutes: 45 },
-      { day: 'Wed', minutes: 30 },
-      { day: 'Thu', minutes: 60 },
-      { day: 'Fri', minutes: 20 },
-      { day: 'Sat', minutes: 75 },
-      { day: 'Sun', minutes: 40 },
-    ],
+  // Real data only. The old placeholder week rendered a fake activity
+  // curve next to "0 Games Played / 0h", which looks like broken
+  // tracking. An empty week shows a flat zero baseline instead.
+  const emptyWeek: WeeklyPoint[] = useMemo(
+    () =>
+      ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day) => ({
+        day,
+        minutes: 0,
+      })),
     []
   );
 
-  const sparkData = weeklyActivity && weeklyActivity.length > 0 ? weeklyActivity : defaultWeekly;
+  const hasActivity = !!weeklyActivity && weeklyActivity.length > 0;
+  const sparkData = hasActivity ? weeklyActivity : emptyWeek;
 
   return (
     <div className="space-y-6">
@@ -284,6 +283,11 @@ export default function ProgressCharts({
               </span>
             ))}
           </div>
+          {!hasActivity && (
+            <p className="text-xs mt-2" style={{ color: '#8C94AC' }}>
+              No play time yet this week — jump into a game to get started!
+            </p>
+          )}
         </div>
       </div>
 

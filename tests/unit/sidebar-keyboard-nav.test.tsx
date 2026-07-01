@@ -7,13 +7,29 @@
 // uses native Tab focus order. This test locks in the new contract:
 // a nav of real, keyboard-reachable links with an active-route marker.
 
-import { render, screen } from '@testing-library/react';
+import { render as rtlRender, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Sidebar } from '@/components/layout/Sidebar';
 
 vi.mock('next/navigation', () => ({
   usePathname: () => '/home',
 }));
+
+vi.mock('@/lib/api', () => ({
+  apiFetch: vi.fn(() => Promise.resolve([])),
+  csrfHeader: vi.fn(() => ({})),
+}));
+
+// ChildProfileMini reads the active child via React Query.
+function render(ui: React.ReactElement) {
+  const client = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
+  return rtlRender(
+    <QueryClientProvider client={client}>{ui}</QueryClientProvider>,
+  );
+}
 
 afterEach(() => {
   document.body.innerHTML = '';

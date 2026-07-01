@@ -59,7 +59,7 @@ export function MarketingFooter() {
               </span>
             </Link>
             <p className="text-sm font-body text-white/60 leading-relaxed">
-              AI Learning Lab for curious minds ages 7&ndash;16. 10 labs, 35 games, built for the next generation.
+              AI Learning Lab for curious minds ages 7&ndash;16. 11 labs, 42 games, built for the next generation.
             </p>
           </div>
 

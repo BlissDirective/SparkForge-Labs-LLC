@@ -212,7 +212,7 @@ export default function LoginPage() {
 
               {/* Sign up link */}
               <div className="mt-5 text-center text-sm" style={{ color: '#8C94AC' }}>
-                Do not have an account?{' '}
+                Don&apos;t have an account?{' '}
                 <Link href="/signup" className="font-semibold hover:underline transition-colors" style={{ color: '#4F6EF7' }}>
                   Sign up
                 </Link>

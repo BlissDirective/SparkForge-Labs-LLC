@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useActiveChild } from '@/hooks/useChildren';
 import {
   Home,
   Gamepad2,
@@ -129,6 +130,37 @@ export function Sidebar() {
 }
 
 function ChildProfileMini() {
+  const child = useActiveChild();
+
+  if (!child) {
+    return (
+      <Link href="/parent/add-child" className="flex items-center gap-3 px-2 group">
+        <div
+          className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold text-white"
+          style={{
+            background: 'linear-gradient(135deg, rgb(var(--sf-accent-purple)), rgb(var(--sf-primary)))',
+          }}
+        >
+          +
+        </div>
+        <div className="flex-1 min-w-0">
+          <p
+            className="text-sm font-semibold truncate group-hover:underline"
+            style={{ color: 'rgb(var(--sf-text-primary) / 1)' }}
+          >
+            Create a profile
+          </p>
+          <p
+            className="text-xs truncate"
+            style={{ color: 'rgb(var(--sf-text-muted) / 1)' }}
+          >
+            Start your AI journey
+          </p>
+        </div>
+      </Link>
+    );
+  }
+
   return (
     <div className="flex items-center gap-3 px-2">
       <div
@@ -137,20 +169,20 @@ function ChildProfileMini() {
           background: 'linear-gradient(135deg, rgb(var(--sf-accent-purple)), rgb(var(--sf-primary)))',
         }}
       >
-        A
+        {child.display_name.charAt(0).toUpperCase()}
       </div>
       <div className="flex-1 min-w-0">
         <p
           className="text-sm font-semibold truncate"
           style={{ color: 'rgb(var(--sf-text-primary) / 1)' }}
         >
-          Alex
+          {child.display_name}
         </p>
         <p
           className="text-xs truncate"
           style={{ color: 'rgb(var(--sf-text-muted) / 1)' }}
         >
-          Level 5 Explorer
+          Level {child.level} {child.level_title}
         </p>
       </div>
     </div>

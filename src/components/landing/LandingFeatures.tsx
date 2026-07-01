@@ -9,8 +9,8 @@ import GradientText from '@/components/bits/GradientText';
 const FEATURES = [
   {
     icon: Gamepad2,
-    title: '30+ AI Learning Games',
-    description: 'Play games that teach real AI concepts — from machine learning to neural networks. Every game is designed for kids ages 6-14.',
+    title: '42 AI Learning Games',
+    description: 'Play games that teach real AI concepts — from machine learning to neural networks. Every game is designed for kids ages 7–16.',
     color: '#4F6EF7',
   },
   {

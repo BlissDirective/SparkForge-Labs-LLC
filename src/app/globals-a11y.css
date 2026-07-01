@@ -292,3 +292,33 @@
 .light *:focus-visible {
   outline-color: #0284C7;
 }
+
+/* ── Dark-surface opt-out ──────────────────────────
+   Marketing + auth pages are permanently dark designs (aurora hero,
+   starfield login). The .light remap above turned their `text-white`
+   near-black on dark backgrounds, making headlines and card copy
+   unreadable for any visitor whose system prefers light mode.
+   Containers marked data-surface="dark" keep dark-surface styling
+   regardless of the html-level theme class. */
+
+.light [data-surface='dark'] .text-white { color: #ffffff !important; }
+.light [data-surface='dark'] .text-white\/80 { color: rgba(255, 255, 255, 0.8) !important; }
+.light [data-surface='dark'] .text-white\/60,
+.light [data-surface='dark'] .text-white\/70 { color: rgba(255, 255, 255, 0.7) !important; }
+.light [data-surface='dark'] .text-white\/40,
+.light [data-surface='dark'] .text-white\/50 { color: rgba(255, 255, 255, 0.5) !important; }
+.light [data-surface='dark'] .text-white\/20,
+.light [data-surface='dark'] .text-white\/30 { color: rgba(255, 255, 255, 0.3) !important; }
+.light [data-surface='dark'] .bg-white\/5 { background: rgba(255, 255, 255, 0.05) !important; }
+.light [data-surface='dark'] .bg-white\/10 { background: rgba(255, 255, 255, 0.1) !important; }
+.light [data-surface='dark'] .bg-white\/20 { background: rgba(255, 255, 255, 0.2) !important; }
+.light [data-surface='dark'] .border-white\/10 { border-color: rgba(255, 255, 255, 0.1) !important; }
+.light [data-surface='dark'] .border-white\/20 { border-color: rgba(255, 255, 255, 0.2) !important; }
+.light [data-surface='dark'] .bg-surface-deep,
+.light [data-surface='dark'] .bg-deep-space { background: #0A0E1A !important; }
+.light [data-surface='dark'] nav,
+.light [data-surface='dark'] aside { background: transparent !important; border-color: rgba(255, 255, 255, 0.1) !important; }
+.light [data-surface='dark'] .glass-card {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}

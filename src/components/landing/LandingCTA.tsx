@@ -97,7 +97,7 @@ export function LandingCTA() {
 
         <p className="text-base sm:text-lg mb-8 max-w-xl mx-auto" style={{ color: TEXT_MUTED }}>
           Sign in to unlock the full SparkForge experience — including your personal AI tutor,
-          30+ games, learning labs, progress tracking, and rewards.
+          42 games, learning labs, progress tracking, and rewards.
         </p>
 
         {/* CTA Buttons */}

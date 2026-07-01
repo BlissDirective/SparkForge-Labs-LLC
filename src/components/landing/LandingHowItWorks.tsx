@@ -83,7 +83,7 @@ const FUN_FACTS = [
   },
   {
     icon: Users,
-    title: 'Ages 6 to 14',
+    title: 'Ages 7 to 16',
     stat: '3 Bands',
     detail: 'Age-adaptive: Band A (ages 7-9), Band B (10-12), Band C (13-16). Content grows with you.',
     color: '#E945F5',

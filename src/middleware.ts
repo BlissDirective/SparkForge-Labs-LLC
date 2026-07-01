@@ -241,8 +241,14 @@ async function ensureCsrfCookie(
 // Frontend pages that render without a session.
 // S3-CRIT-001: /reset-password is public.
 const PUBLIC_PAGE_PATHS: ReadonlyArray<string> = [
-  '/', '/login', '/signup', '/reset-password',
+  '/', '/login', '/signup', '/reset-password', '/forgot-password',
   '/pricing', '/about', '/privacy', '/terms',
+  // Legal / compliance pages linked from the marketing footer — these
+  // must be readable without an account (COPPA notice especially).
+  '/privacy/children', '/privacy/rights', '/coppa-notice',
+  '/cookies', '/dmca',
+  // PWA offline fallback must load without a session.
+  '/offline',
 ];
 
 function classify(request: NextRequest) {
@@ -256,7 +262,14 @@ function classify(request: NextRequest) {
     isPublicPage: PUBLIC_PAGE_PATHS.includes(pathname) || isDevRoute,
     isPublicAPI: isPublicAPI(pathname),
     isStatic: pathname.startsWith('/_next'),
-    isAsset: /\.(ico|png|jpg|svg|woff2?)$/.test(pathname),
+    // Static files served from public/ — includes the service worker
+    // (sw.js) and manifest.json: gating those behind auth 307s them to
+    // /login, which breaks PWA install ("script resource is behind a
+    // redirect") and blocks game audio/video/3D assets.
+    isAsset:
+      /\.(ico|png|jpe?g|svg|gif|webp|woff2?|ttf|otf|js|json|webmanifest|txt|xml|mp3|wav|ogg|mp4|webm|glb|gltf|hdr|riv|wasm)$/.test(
+        pathname,
+      ),
   };
 }
 

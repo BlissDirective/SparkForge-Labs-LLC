@@ -20,7 +20,7 @@ export function HeroContent() {
       >
         <Sparkles className="w-4 h-4" style={{ color: '#E945F5' }} />
         <span className="text-sm font-medium" style={{ color: 'rgba(255, 255, 255, 0.9)' }}>
-          AI Learning for Kids Ages 6-14
+          AI Learning for Kids Ages 7–16
         </span>
       </motion.div>
 
@@ -52,7 +52,7 @@ export function HeroContent() {
         className="text-lg sm:text-xl max-w-2xl mx-auto leading-relaxed"
         style={{ color: 'rgba(255, 255, 255, 0.7)' }}
       >
-        Play 30+ games that teach real AI, coding, and digital literacy.
+        Play 42 games that teach real AI, coding, and digital literacy.
         No experience needed — just curiosity.
       </motion.p>
 
@@ -107,7 +107,7 @@ export function HeroContent() {
         </span>
         <span className="flex items-center gap-1.5">
           <Gamepad2 className="w-3.5 h-3.5" style={{ color: '#4F6EF7' }} />
-          30+ Learning Games
+          42 Learning Games
         </span>
       </motion.div>
     </div>
