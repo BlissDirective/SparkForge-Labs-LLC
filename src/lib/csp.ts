@@ -49,6 +49,10 @@ export function buildCsp(nonce: string, isProd: boolean): string {
     [
       "connect-src 'self'",
       'https://*.supabase.co',
+      // Supabase Realtime upgrades to a WebSocket; without the wss:
+      // scheme the browser blocks the connection (Safari throws a
+      // synchronous SecurityError that used to crash the dashboard).
+      'wss://*.supabase.co',
       'https://*.sentry.io',
       'https://vitals.vercel-insights.com',
       'https://va.vercel-scripts.com',
