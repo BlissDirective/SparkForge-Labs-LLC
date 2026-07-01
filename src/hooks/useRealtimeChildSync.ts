@@ -21,6 +21,22 @@ import {
   subscribeToChildProgress,
   subscribeToChildRow,
 } from '@/lib/realtime/channels';
+import type { RealtimeChannel } from '@supabase/supabase-js';
+
+// Realtime is an enhancement, not a requirement: React Query refetches
+// cover the data either way. Safari (private browsing / Lockdown Mode)
+// throws a synchronous SecurityError ("The operation is insecure.")
+// from the WebSocket constructor, which would otherwise bubble out of
+// the effect and trip the dashboard error boundary. Swallow it and log.
+function safeSubscribe(channel: RealtimeChannel): boolean {
+  try {
+    void channel.subscribe();
+    return true;
+  } catch (err) {
+    console.warn('[realtime] subscribe failed, continuing without live sync:', err);
+    return false;
+  }
+}
 
 export function useRealtimeChildSync(childId: string | null | undefined): void {
   const qc = useQueryClient();
@@ -48,12 +64,16 @@ export function useRealtimeChildSync(childId: string | null | undefined): void {
       void qc.invalidateQueries({ queryKey: ['xp', childId] });
     });
 
-    void progressChannel.subscribe();
-    void rowChannel.subscribe();
+    safeSubscribe(progressChannel);
+    safeSubscribe(rowChannel);
 
     return () => {
-      void supabase.removeChannel(progressChannel);
-      void supabase.removeChannel(rowChannel);
+      try {
+        void supabase.removeChannel(progressChannel);
+        void supabase.removeChannel(rowChannel);
+      } catch {
+        // Channel teardown is best-effort when the socket never opened.
+      }
     };
   }, [childId, qc]);
 }
@@ -85,12 +105,16 @@ export function useRealtimeChildrenSync(
     ]);
 
     channels.forEach((c) => {
-      void c.subscribe();
+      safeSubscribe(c);
     });
 
     return () => {
       channels.forEach((c) => {
-        void supabase.removeChannel(c);
+        try {
+          void supabase.removeChannel(c);
+        } catch {
+          // Channel teardown is best-effort when the socket never opened.
+        }
       });
     };
     // childIds reference equality drives re-subscription. Callers
