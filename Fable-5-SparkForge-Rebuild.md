@@ -710,6 +710,26 @@ Building on the shipped v1 (Sparky hero + micro-game), the DESIGN.md-powered v2:
 - **Trust chapter for parents:** COPPA/no-ads/no-tracking with links (all legal pages now reachable), UNESCO competency mapping (Part II).
 - Performance budget: hero LCP < 2.5s, no canvas on mobile, `prefers-reduced-motion` = full static integrity.
 
+### III.2.1 Hero v3 — "The Hologram Reveal" (owner direction, July 2)
+
+**Concept (owner):** Sparky connects to a small projection device that holographically emits a large banner reading "Welcome to SparkForge Labs" — this is the homepage title animation. Micro-game demo and remaining sections sit below. Owner is open to removing/replacing all current react-bits effects during the redesign.
+
+**Storyboard (build spec):**
+1. *0–0.8s* — Sparky floats in; an inert projection puck sits on the hero floor.
+2. *0.8–1.5s* — Sparky reaches out; a cyan energy arc jumps from his chest core to the puck; its ring ignites.
+3. *1.5–3s* — a translucent cyan light-cone fans upward (animated scanlines, edge flicker); the banner materializes inside it, resolving from glitch-noise to crisp type with a persistent hologram shimmer.
+4. *3s+* — subtitle + CTAs fade in; Sparky settles into idle bob beside his projector; the whole rig parallaxes gently with the cursor.
+5. Reduced-motion / instant-on path: skip to the finished lit composition.
+
+**Tech:** pure SVG + Framer Motion (no new deps). The hologram replaces the FloatingLines WebGL background as the hero's light source — first react-bits removal. SparkyCore gains a fluid size mode (exact px or CSS clamp()) so the mascot scales proportionally to the viewport on marketing surfaces while dashboard/game placements keep fixed sizes.
+
+**Open questions for the owner (answer in chat):**
+1. Banner copy exactly "Welcome to SparkForge Labs"? Does it replace "Learn AI. Build the Future." or does that become the subtitle? (Lean: banner headline + tagline subtitle.)
+2. Sequence every visit (~3s) or first visit only? (Lean: every visit, fast, instant-on for reduced motion.)
+3. Hologram color: canonical Sparky cyan (lean) or magenta→blue brand gradient?
+4. Mobile: scaled full sequence (lean, simplified cone) or static composition?
+5. Build now as Hero v3, or after DESIGN.md? (Lean: build now — it defines the design language.)
+
 ## III.3 App-wide rollout — page-by-page phases (post-DESIGN.md)
 
 Each phase = one PR, one visual checkpoint, guards must stay green. Order chosen by user exposure:
