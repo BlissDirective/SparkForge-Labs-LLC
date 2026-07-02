@@ -3,78 +3,132 @@
 // ════════════════════════════════════════════════════════════════════════════
 // HERO HOLOGRAM — "The Hologram Reveal" (Part III.2.1, owner-approved)
 // ════════════════════════════════════════════════════════════════════════════
-// Sparky connects to a projection puck; a cyan light-cone fans upward and
+// Sparky powers a projection puck; a cyan light-cone fans upward and
 // materializes the page title "Welcome to SparkForge Labs" as a hologram.
-// Owner decisions (July 2): full sequence on every visit (~3s), cyan
-// gradient to match Sparky, same sequence on mobile with simplified cone
-// effects, reduced-motion skips straight to the finished composition.
+// Owner decisions (July 2): full sequence every visit (~3s), cyan gradient
+// matching Sparky, same sequence on mobile with simplified cone effects,
+// reduced-motion renders the finished composition instantly.
+// Owner revisions (July 2, round 2): no energy arc between Sparky and the
+// puck; larger title; stronger banded gradient so the type reads as light;
+// the beam trapezoid fully encases every letter at all viewports — the
+// cone and the title share one measured container so the geometry can't
+// drift apart responsively.
 //
-// Pure SVG + Framer Motion — no new dependencies. The h1 is real HTML
-// text (screen readers see the title immediately; the animation is
-// presentation only).
+// Pure SVG + Framer Motion — no new dependencies. The h1 is real HTML text
+// (screen readers get the title immediately; animation is presentational).
 
 import { useEffect, useState } from 'react';
 import { motion, useReducedMotion } from 'motion/react';
 import { SparkyCore } from '@/components/sparky/SparkyCore';
 
 const CYAN = '#4DE9FF';
-const CYAN_DEEP = '#00B8E0';
 
-// Sequence timeline (seconds) — every beat keys off these so the whole
-// choreography can be retuned in one place.
+// Sequence timeline (seconds).
 const T = {
   sparkyIn: 0,
-  arc: 0.7,
-  puck: 1.05,
-  cone: 1.3,
-  banner: 1.8,
-  settled: 2.6,
+  puck: 0.8,
+  cone: 1.1,
+  banner: 1.6,
+  settled: 2.5,
 } as const;
+
+// Beam geometry: trapezoid from the puck mouth (bottom) fanning out to the
+// full container width (top). The title sits in the upper band of the same
+// container with side padding ≥ the cone's inset at the title's lowest
+// point, so no glyph can escape the light.
+const BEAM_CLIP = 'polygon(46.5% 100%, 53.5% 100%, 100% 0%, 0% 0%)';
 
 export function HeroHologram() {
   const reducedMotion = useReducedMotion() ?? false;
-  // Mobile gets the same sequence with simplified cone effects
-  // (no flicker/scanline animation) — owner decision #4.
+  // Mobile keeps the same sequence with simplified cone effects (no
+  // flicker / interior scanline animation) — owner decision #4.
   const [simplified, setSimplified] = useState(false);
   useEffect(() => {
     setSimplified(window.matchMedia('(max-width: 767px)').matches);
   }, []);
 
-  // Reduced motion: render the finished composition instantly.
   const instant = reducedMotion;
   const d = (t: number) => (instant ? 0 : t);
 
   return (
-    <div
-      className="relative mx-auto w-full"
-      style={{ maxWidth: 'min(88vw, 860px)' }}
-    >
-      {/* ══ Banner (inside the cone's apex) ══ */}
-      <div className="relative z-10 flex flex-col items-center">
+    <div className="relative mx-auto w-full" style={{ maxWidth: 'min(96vw, 1080px)' }}>
+      {/* ══ Light cone — spans the WHOLE container, title included ══ */}
+      <motion.div
+        aria-hidden="true"
+        className="absolute inset-x-0 top-0 pointer-events-none"
+        initial={instant ? false : { opacity: 0, scaleY: 0 }}
+        animate={{ opacity: 1, scaleY: 1 }}
+        transition={{ delay: d(T.cone), duration: instant ? 0 : 0.65, ease: 'easeOut' }}
+        style={{
+          bottom: 'clamp(30px, 5vw, 48px)', // beam mouth meets the puck
+          transformOrigin: 'bottom center',
+          clipPath: BEAM_CLIP,
+          background: `linear-gradient(180deg, ${CYAN}0A 0%, ${CYAN}1F 30%, ${CYAN}2E 78%, ${CYAN}45 100%)`,
+          ...(simplified
+            ? {}
+            : {
+                backgroundImage: `linear-gradient(180deg, ${CYAN}0A 0%, ${CYAN}1F 30%, ${CYAN}2E 78%, ${CYAN}45 100%), repeating-linear-gradient(180deg, transparent 0px, transparent 6px, ${CYAN}0E 7px)`,
+              }),
+        }}
+      >
+        {/* Edge glow rails (desktop only) */}
+        {!simplified && !instant && (
+          <>
+            <motion.div
+              className="absolute inset-0"
+              animate={{ opacity: [0.45, 0.85, 0.55, 0.95, 0.6] }}
+              transition={{ repeat: Infinity, duration: 3.4, ease: 'easeInOut' }}
+              style={{
+                clipPath: 'polygon(46.5% 100%, 47.6% 100%, 1.2% 0%, 0% 0%)',
+                background: `linear-gradient(180deg, ${CYAN}70, transparent 85%)`,
+              }}
+            />
+            <motion.div
+              className="absolute inset-0"
+              animate={{ opacity: [0.6, 0.9, 0.5, 0.85, 0.55] }}
+              transition={{ repeat: Infinity, duration: 3.4, ease: 'easeInOut', delay: 0.6 }}
+              style={{
+                clipPath: 'polygon(52.4% 100%, 53.5% 100%, 100% 0%, 98.8% 0%)',
+                background: `linear-gradient(180deg, ${CYAN}70, transparent 85%)`,
+              }}
+            />
+          </>
+        )}
+      </motion.div>
+
+      {/* ══ Banner — inside the beam's upper band ══ */}
+      <div className="relative z-10 px-[9%] pt-[1.5%]">
         <motion.h1
-          initial={instant ? false : { opacity: 0, filter: 'blur(14px)', scale: 0.96 }}
+          initial={instant ? false : { opacity: 0, filter: 'blur(16px)', scale: 0.94 }}
           animate={{
             opacity: 1,
             filter: 'blur(0px)',
             scale: 1,
-            // Glitch jitter as the letters resolve, then locked.
             x: instant ? 0 : [0, -3, 2, -1, 0],
           }}
-          transition={{
-            delay: d(T.banner),
-            duration: instant ? 0 : 0.85,
-            ease: 'easeOut',
-          }}
-          className="text-center font-extrabold tracking-tight leading-[1.08] select-none"
+          transition={{ delay: d(T.banner), duration: instant ? 0 : 0.85, ease: 'easeOut' }}
+          className="text-center font-extrabold tracking-tight leading-[1.06] select-none"
           style={{
             fontFamily: 'var(--font-display)',
-            fontSize: 'clamp(1.9rem, 5.4vw, 4.2rem)',
-            backgroundImage: `linear-gradient(180deg, #EAFDFF 0%, ${CYAN} 45%, ${CYAN_DEEP} 100%)`,
+            fontSize: 'clamp(2rem, 7vw, 5.6rem)',
+            // Banded, semi-translucent gradient — light, not paint (owner
+            // revision: "more gradient-like, more hologram").
+            backgroundImage: `linear-gradient(180deg,
+              rgba(240, 255, 255, 0.98) 0%,
+              rgba(159, 244, 255, 0.92) 16%,
+              rgba(77, 233, 255, 0.95) 34%,
+              rgba(0, 184, 224, 0.62) 50%,
+              rgba(127, 239, 255, 0.9) 62%,
+              rgba(77, 233, 255, 0.85) 78%,
+              rgba(0, 150, 200, 0.55) 100%)`,
+            backgroundSize: '100% 200%',
             WebkitBackgroundClip: 'text',
             backgroundClip: 'text',
             color: 'transparent',
-            textShadow: 'none',
-            filter: `drop-shadow(0 0 18px ${CYAN}55) drop-shadow(0 0 42px ${CYAN}30)`,
+            filter: `drop-shadow(0 0 20px ${CYAN}66) drop-shadow(0 0 52px ${CYAN}33)`,
+            ...(instant || simplified
+              ? {}
+              : { animation: 'sf-holo-drift 5s ease-in-out infinite alternate' }),
           }}
         >
           Welcome to
@@ -82,7 +136,7 @@ export function HeroHologram() {
           SparkForge Labs
         </motion.h1>
 
-        {/* Persistent hologram shimmer + scanlines over the title */}
+        {/* Persistent scanlines over the title */}
         {!instant && (
           <motion.div
             aria-hidden="true"
@@ -100,53 +154,20 @@ export function HeroHologram() {
         )}
       </div>
 
-      {/* ══ Projection scene: cone + puck + arc + Sparky ══ */}
-      <div className="relative mt-2" style={{ height: 'clamp(150px, 24vw, 230px)' }}>
-        {/* Light cone — fans upward from the puck to the banner */}
-        <motion.div
-          aria-hidden="true"
-          className="absolute left-1/2 bottom-[26%] -translate-x-1/2 pointer-events-none"
-          initial={instant ? false : { opacity: 0, scaleY: 0 }}
-          animate={{ opacity: 1, scaleY: 1 }}
-          transition={{ delay: d(T.cone), duration: instant ? 0 : 0.6, ease: 'easeOut' }}
-          style={{
-            width: 'min(72vw, 640px)',
-            height: 'calc(clamp(150px, 24vw, 230px) * 0.74 + clamp(1.9rem, 5.4vw, 4.2rem) * 2.4)',
-            transformOrigin: 'bottom center',
-            clipPath: 'polygon(44% 100%, 56% 100%, 100% 0%, 0% 0%)',
-            background: `linear-gradient(180deg, ${CYAN}30 0%, ${CYAN}14 55%, ${CYAN}05 100%)`,
-            // Desktop gets animated interior scanlines; mobile keeps a plain cone.
-            ...(simplified
-              ? {}
-              : {
-                  backgroundImage: `linear-gradient(180deg, ${CYAN}30 0%, ${CYAN}12 55%, ${CYAN}04 100%), repeating-linear-gradient(180deg, transparent 0px, transparent 5px, ${CYAN}12 6px)`,
-                }),
-          }}
-        >
-          {/* Edge flicker (desktop only) */}
-          {!simplified && !instant && (
-            <motion.div
-              className="absolute inset-0"
-              animate={{ opacity: [0.5, 0.9, 0.6, 1, 0.7] }}
-              transition={{ repeat: Infinity, duration: 3.2, ease: 'easeInOut' }}
-              style={{
-                clipPath: 'polygon(44% 100%, 45.5% 100%, 1.5% 0%, 0% 0%)',
-                background: `linear-gradient(180deg, ${CYAN}66, transparent 80%)`,
-              }}
-            />
-          )}
-        </motion.div>
+      {/* Gradient-drift keyframes for the hologram type */}
+      <style>{`@keyframes sf-holo-drift { from { background-position-y: 0%; } to { background-position-y: 100%; } }`}</style>
 
+      {/* ══ Floor: puck + Sparky ══ */}
+      <div className="relative" style={{ height: 'clamp(120px, 19vw, 190px)' }}>
         {/* Projection puck */}
         <motion.div
           aria-hidden="true"
-          className="absolute left-1/2 bottom-[14%] -translate-x-1/2"
+          className="absolute left-1/2 bottom-0 -translate-x-1/2"
           initial={instant ? false : { opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: d(0.3), duration: instant ? 0 : 0.4 }}
+          transition={{ delay: d(0.25), duration: instant ? 0 : 0.4 }}
         >
           <svg width="120" height="44" viewBox="0 0 120 44">
-            {/* Puck body — chrome to match Sparky */}
             <ellipse cx="60" cy="30" rx="34" ry="10" fill="#39445F" />
             <ellipse cx="60" cy="26" rx="34" ry="10" fill="url(#hh-puck)" />
             <defs>
@@ -156,7 +177,6 @@ export function HeroHologram() {
                 <stop offset="100%" stopColor="#5A6684" />
               </linearGradient>
             </defs>
-            {/* Emitter ring — ignites when Sparky connects */}
             <motion.ellipse
               cx="60"
               cy="24.5"
@@ -166,11 +186,7 @@ export function HeroHologram() {
               stroke={CYAN}
               strokeWidth="2"
               initial={instant ? false : { opacity: 0.12 }}
-              animate={
-                instant
-                  ? { opacity: 0.95 }
-                  : { opacity: [0.12, 0.12, 1, 0.85, 0.95] }
-              }
+              animate={instant ? { opacity: 0.95 } : { opacity: [0.12, 0.12, 1, 0.85, 0.95] }}
               transition={{ delay: d(T.puck), duration: instant ? 0 : 0.5 }}
               style={{ filter: `drop-shadow(0 0 6px ${CYAN})` }}
             />
@@ -188,54 +204,10 @@ export function HeroHologram() {
           </svg>
         </motion.div>
 
-        {/* Energy arc from Sparky's chest core to the puck */}
-        <motion.svg
-          aria-hidden="true"
-          className="absolute left-1/2 bottom-[16%] pointer-events-none"
-          style={{ transform: 'translateX(-100%)', overflow: 'visible' }}
-          width="180"
-          height="90"
-          viewBox="0 0 180 90"
-        >
-          <motion.path
-            d="M 8 34 Q 80 -6 172 62"
-            fill="none"
-            stroke={CYAN}
-            strokeWidth="2.4"
-            strokeLinecap="round"
-            initial={instant ? false : { pathLength: 0, opacity: 0 }}
-            animate={
-              instant
-                ? { pathLength: 1, opacity: 0.75 }
-                : { pathLength: 1, opacity: [0, 1, 0.75] }
-            }
-            transition={{ delay: d(T.arc), duration: instant ? 0 : 0.5, ease: 'easeInOut' }}
-            style={{ filter: `drop-shadow(0 0 5px ${CYAN})` }}
-          />
-          {/* Traveling pulse along the arc (desktop only) */}
-          {!simplified && !instant && (
-            <motion.circle
-              r="3.2"
-              fill="#FFFFFF"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: [0, 1, 0] }}
-              transition={{ delay: d(T.arc), duration: 0.6, repeat: Infinity, repeatDelay: 2.2 }}
-              style={{ filter: `drop-shadow(0 0 6px ${CYAN})` }}
-            >
-              <animateMotion
-                path="M 8 34 Q 80 -6 172 62"
-                dur="0.6s"
-                begin={`${T.arc}s`}
-                repeatCount="indefinite"
-              />
-            </motion.circle>
-          )}
-        </motion.svg>
-
-        {/* Sparky — fluid-sized, floats in from the left and settles */}
+        {/* Sparky — beside his projector, no tether (owner revision) */}
         <motion.div
-          className="absolute bottom-[4%]"
-          style={{ left: 'max(2%, calc(50% - min(36vw, 320px)))' }}
+          className="absolute bottom-0"
+          style={{ left: 'max(2%, calc(50% - min(34vw, 300px)))' }}
           initial={instant ? false : { opacity: 0, x: -46, y: 8 }}
           animate={{ opacity: 1, x: 0, y: 0 }}
           transition={{ delay: d(T.sparkyIn), duration: instant ? 0 : 0.7, ease: 'easeOut' }}
