@@ -48,7 +48,8 @@ const AI_STATS = [
   { value: 42, suffix: '', label: 'AI Learning Games', icon: Gamepad2, color: '#4F6EF7' },
   { value: 11, suffix: '', label: 'Learning Labs', icon: Star, color: '#E945F5' },
   { value: 1200, suffix: '+', label: 'Quiz Questions', icon: Brain, color: '#00D2FF' },
-  { value: 97, suffix: '%', label: 'Kids Love It', icon: Sparkles, color: '#FFD93D' },
+  // Honest stat only — the old "97% Kids Love It" had no source (P1-5).
+  { value: 0, suffix: '', label: 'Ads or Trackers', icon: Sparkles, color: '#FFD93D' },
 ];
 
 // ── Fun Facts ──
@@ -76,16 +77,16 @@ const FUN_FACTS = [
   },
   {
     icon: Zap,
-    title: 'Learn 5x Faster',
-    stat: '5x',
-    detail: 'faster concept retention through play vs lecture. Games make learning stick.',
+    title: 'Play-First Learning',
+    stat: '100%',
+    detail: 'of concepts are taught through games you play — never lectures you sit through.',
     color: '#FFD93D',
   },
   {
     icon: Users,
     title: 'Ages 7 to 16',
     stat: '3 Bands',
-    detail: 'Age-adaptive: Band A (ages 7-9), Band B (10-12), Band C (13-16). Content grows with you.',
+    detail: 'Age-adaptive: Explorer (7–10), Adventurer (11–13), Pioneer (14–16). Content grows with you.',
     color: '#E945F5',
   },
   {
@@ -119,7 +120,7 @@ export function LandingHowItWorks() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
+          viewport={{ once: true, margin: '0px 0px 25% 0px' }}
           className="text-center mb-16"
         >
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full mb-6"
@@ -144,7 +145,7 @@ export function LandingHowItWorks() {
               key={step.num}
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
+              viewport={{ once: true, margin: '0px 0px 25% 0px' }}
               transition={{ delay: i * 0.1 }}
               className="relative"
             >
@@ -188,7 +189,7 @@ export function LandingHowItWorks() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
+          viewport={{ once: true, margin: '0px 0px 25% 0px' }}
           className="rounded-2xl p-6 sm:p-8 mb-20"
           style={{
             background: 'linear-gradient(135deg, rgba(79,110,247,0.08), rgba(233,69,245,0.06))',
@@ -201,7 +202,7 @@ export function LandingHowItWorks() {
                 key={stat.label}
                 initial={{ opacity: 0, scale: 0.8 }}
                 whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
+                viewport={{ once: true, margin: '0px 0px 25% 0px' }}
                 transition={{ delay: i * 0.1 }}
                 className="text-center"
               >
@@ -221,7 +222,7 @@ export function LandingHowItWorks() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
+          viewport={{ once: true, margin: '0px 0px 25% 0px' }}
           className="text-center mb-12"
         >
           <h3 className="text-2xl sm:text-3xl font-extrabold mb-3" style={{ fontFamily: 'var(--font-display)' }}>
@@ -239,7 +240,7 @@ export function LandingHowItWorks() {
               key={fact.title}
               initial={{ opacity: 0, y: 25 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
+              viewport={{ once: true, margin: '0px 0px 25% 0px' }}
               transition={{ delay: i * 0.08 }}
             >
               <StarBorder color={fact.color} speed={5 + (i % 3) * 2}>
@@ -269,7 +270,7 @@ export function LandingHowItWorks() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
+          viewport={{ once: true, margin: '0px 0px 25% 0px' }}
           className="text-center"
         >
           <h3 className="text-xl sm:text-2xl font-extrabold mb-6" style={{ fontFamily: 'var(--font-display)', color: '#FFFFFF' }}>
@@ -284,7 +285,7 @@ export function LandingHowItWorks() {
                   key={skill}
                   initial={{ opacity: 0, scale: 0.8 }}
                   whileInView={{ opacity: 1, scale: 1 }}
-                  viewport={{ once: true }}
+                  viewport={{ once: true, margin: '0px 0px 25% 0px' }}
                   transition={{ delay: i * 0.04 }}
                   whileHover={{ scale: 1.08, y: -2 }}
                   className="px-4 py-2 rounded-full text-sm font-semibold cursor-default"

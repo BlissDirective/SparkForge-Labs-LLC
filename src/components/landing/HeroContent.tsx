@@ -50,7 +50,10 @@ export function HeroContent() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, delay: 0.6 }}
         className="text-lg sm:text-xl max-w-2xl mx-auto leading-relaxed"
-        style={{ color: 'rgba(255, 255, 255, 0.7)' }}
+        style={{
+          color: 'rgba(255, 255, 255, 0.88)',
+          textShadow: '0 1px 12px rgba(10, 15, 30, 0.8)',
+        }}
       >
         Play 42 games that teach real AI, coding, and digital literacy.
         No experience needed — just curiosity.
@@ -95,7 +98,11 @@ export function HeroContent() {
         animate={{ opacity: 1 }}
         transition={{ duration: 1, delay: 1.2 }}
         className="pt-12 flex flex-wrap items-center justify-center gap-6"
-        style={{ color: 'rgba(255, 255, 255, 0.5)', fontSize: '0.875rem' }}
+        style={{
+          color: 'rgba(255, 255, 255, 0.75)',
+          fontSize: '0.875rem',
+          textShadow: '0 1px 10px rgba(10, 15, 30, 0.8)',
+        }}
       >
         <span className="flex items-center gap-1.5">
           <Shield className="w-3.5 h-3.5" style={{ color: '#2ECC71' }} />

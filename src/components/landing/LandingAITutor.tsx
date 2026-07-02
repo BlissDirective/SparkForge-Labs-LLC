@@ -75,7 +75,7 @@ export function LandingAITutor() {
                   key={feature.text}
                   initial={{ opacity: 0, y: 10 }}
                   whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
+                  viewport={{ once: true, margin: '0px 0px 25% 0px' }}
                   transition={{ delay: 0.3 + i * 0.1 }}
                   className="flex items-start gap-3"
                 >
@@ -118,7 +118,7 @@ export function LandingAITutor() {
             <motion.div
               initial={{ opacity: 0, scale: 0.8 }}
               whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
+              viewport={{ once: true, margin: '0px 0px 25% 0px' }}
               transition={{ delay: 0.8 }}
               className="absolute top-4 right-0 sm:right-4"
             >

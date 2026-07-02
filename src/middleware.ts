@@ -251,6 +251,23 @@ const PUBLIC_PAGE_PATHS: ReadonlyArray<string> = [
   '/offline',
 ];
 
+// Dashboard route groups that require a session. Unauthed requests to
+// these redirect to /login; anything that is neither public nor listed
+// here simply doesn't exist, so we let Next render its 404 instead of
+// bouncing lost visitors to the login form (P0-8).
+const PROTECTED_PAGE_PREFIXES: ReadonlyArray<string> = [
+  '/home', '/labs', '/arcade', '/buddies', '/content', '/create',
+  '/achievements', '/admin', '/mastery', '/onboarding', '/parent',
+  '/profile', '/progress', '/seasons', '/settings', '/story',
+  '/mfa-challenge',
+];
+
+function isProtectedPage(pathname: string): boolean {
+  return PROTECTED_PAGE_PREFIXES.some(
+    (p) => pathname === p || pathname.startsWith(`${p}/`),
+  );
+}
+
 function classify(request: NextRequest) {
   const { pathname } = request.nextUrl;
   // /dev/* routes (branding + 3D visual checkpoints) are public on every
@@ -261,6 +278,7 @@ function classify(request: NextRequest) {
     isAPI: pathname.startsWith('/api'),
     isPublicPage: PUBLIC_PAGE_PATHS.includes(pathname) || isDevRoute,
     isPublicAPI: isPublicAPI(pathname),
+    isProtectedPage: isProtectedPage(pathname),
     isStatic: pathname.startsWith('/_next'),
     // Static files served from public/ — includes the service worker
     // (sw.js) and manifest.json: gating those behind auth 307s them to
@@ -403,7 +421,14 @@ export async function middleware(request: NextRequest) {
       await ensureCsrfCookie(request, response);
       return response;
     }
-    // Everything else: 401 for API, redirect for pages.
+    // Unknown page paths (neither public nor a protected dashboard
+    // route) don't exist — let Next render its 404 instead of
+    // redirecting lost visitors to /login (P0-8).
+    if (!c.isAPI && !c.isProtectedPage) {
+      await ensureCsrfCookie(request, response);
+      return response;
+    }
+    // Protected pages redirect to login; APIs get a 401.
     return withCsp(unauthedResponse(request, c.isAPI), cspValue);
   }
 

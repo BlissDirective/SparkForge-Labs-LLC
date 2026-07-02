@@ -85,7 +85,7 @@ export default function ParentPage() {
       {/* Summary Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
-          { label: 'Children', value: childCount, icon: Users, color: '#4F6EF7' },
+          { label: childCount === 1 ? 'Child Profile' : 'Child Profiles', value: childCount, icon: Users, color: '#4F6EF7' },
           { label: 'Progress', value: overallProgress, icon: TrendingUp, color: '#2ECC71', suffix: '%' },
           { label: 'Games', value: 42, icon: Gamepad2, color: '#E945F5' },
           { label: 'Streak', value: activeChild?.streak_count ?? 0, icon: Clock, color: '#FF6B35', suffix: ' days' },

@@ -234,8 +234,10 @@ export default function LoginPage() {
                 <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #E945F525, #E945F510)' }}>
                   <Play className="w-4 h-4" style={{ color: '#E945F5' }} />
                 </div>
-                <h3 className="text-sm font-bold" style={{ color: '#FFFFFF' }}>
-                  <MetallicPaint baseColor="#FFFFFF" shimmerColor="#E945F5" speed={4}>
+                {/* P2-8: the card surface is white — the old white
+                    MetallicPaint text was invisible on it. */}
+                <h3 className="text-sm font-bold" style={{ color: '#1A1D2B' }}>
+                  <MetallicPaint baseColor="#1A1D2B" shimmerColor="#E945F5" speed={4}>
                     Try SparkForge Free
                   </MetallicPaint>
                 </h3>
@@ -245,11 +247,11 @@ export default function LoginPage() {
               </p>
 
               <div className="flex items-center justify-center gap-4 mb-4">
-                <div className="flex items-center gap-1 text-xs" style={{ color: 'rgba(248,250,255,0.5)' }}>
+                <div className="flex items-center gap-1 text-xs" style={{ color: '#52586E' }}>
                   <Gamepad2 className="w-3.5 h-3.5" style={{ color: '#4F6EF7' }} />
                   42 Games
                 </div>
-                <div className="flex items-center gap-1 text-xs" style={{ color: 'rgba(248,250,255,0.5)' }}>
+                <div className="flex items-center gap-1 text-xs" style={{ color: '#52586E' }}>
                   <Clock className="w-3.5 h-3.5" style={{ color: '#FFD93D' }} />
                   1 Hour
                 </div>

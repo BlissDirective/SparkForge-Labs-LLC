@@ -52,7 +52,7 @@ export function useCreateChild() {
   const setActiveChildId = useChildStore((s) => s.setActiveChildId);
 
   return useMutation({
-    mutationFn: (body: { displayName: string; ageBand: string; birthYear?: number }) =>
+    mutationFn: (body: { displayName: string; ageBand: string; age?: number; birthYear?: number }) =>
       apiFetch<Child>('/api/children', { method: 'POST', body: JSON.stringify(body) }),
     onSuccess: (newChild) => {
       // T5c-C4: React Query cache update + invalidate so useChildren

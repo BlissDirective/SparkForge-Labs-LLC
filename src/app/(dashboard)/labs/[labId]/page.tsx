@@ -24,7 +24,7 @@ import { useParams, notFound } from 'next/navigation';
 import { motion } from 'motion/react';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
-import { useActiveChild } from '@/hooks/useChildren';
+import { useActiveChild, useChildren } from '@/hooks/useChildren';
 import { useUIStore } from '@/stores/uiStore';
 import { useCockpitStore } from '@/stores/cockpitStore';
 import { useLabProgress } from '@/hooks/useProgress';
@@ -51,6 +51,7 @@ export default function LabDetailPage() {
   const labId = parseInt(labIdRaw || '0', 10);
 
   const activeChild = useActiveChild();
+  const childrenQuery = useChildren();
   const setLabColor = useUIStore((s) => s.setLabColor);
   const focusLab = useCockpitStore((s) => s.focusLab);
   const broadcast = useCockpitBroadcast((s) => s.broadcast);
@@ -91,12 +92,36 @@ export default function LabDetailPage() {
   }, [labId, color, name, setLabColor, focusLab, broadcast]);
 
   if (!activeChild) {
+    // Distinguish "still loading" from "no profile exists" — the old
+    // version spun forever for accounts without a child (P1-7).
+    if (childrenQuery.isLoading) {
+      return (
+        <div className="text-center py-20" role="status" aria-label="Loading lab">
+          <div
+            className="w-8 h-8 border-2 border-t-current rounded-full animate-spin mx-auto"
+            style={{ borderColor: `${color}30`, borderTopColor: color }}
+          />
+          <p className="text-sm mt-4" style={{ color: '#8C94AC' }}>
+            Loading {name}…
+          </p>
+        </div>
+      );
+    }
     return (
-      <div className="text-center py-20" role="status">
-        <div
-          className="w-8 h-8 border-2 border-t-current rounded-full animate-spin mx-auto"
-          style={{ borderColor: `${color}30`, borderTopColor: color }}
-        />
+      <div className="text-center py-20">
+        <p className="text-lg font-bold mb-2" style={{ color: '#1A1D2B', fontFamily: 'var(--font-display)' }}>
+          Create a profile to enter {name}
+        </p>
+        <p className="text-sm mb-4" style={{ color: '#52586E' }}>
+          Labs track progress per explorer — set up a profile first.
+        </p>
+        <Link
+          href="/parent/add-child"
+          className="inline-block px-6 py-3 rounded-xl text-white font-semibold text-sm"
+          style={{ background: 'linear-gradient(90deg, #E945F5, #4F6EF7)' }}
+        >
+          Create Profile
+        </Link>
       </div>
     );
   }

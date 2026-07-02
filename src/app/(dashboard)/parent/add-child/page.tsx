@@ -1,28 +1,31 @@
 // ════════════════════════════════════════════════════
 // ADD CHILD — Create new child profile under parent
-// v2: Tier limit check, Frost-Prismatic, ARIA, band preview
-// Enhancement #4: Confetti burst on successful child creation
+// v3 (P0-7): Light design system (the v2 Frost-Prismatic dark card
+// rendered dark-on-dark inside the light dashboard), child count from
+// React Query (parentStore.children was never hydrated, so the tier
+// check lied), creation via useCreateChild (updates the cache and
+// auto-selects the first child), success → /home.
 // ════════════════════════════════════════════════════
 'use client';
 
-import { useState, useCallback } from 'react';
-import { csrfHeader } from '@/lib/api';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'motion/react';
-import { ArrowLeft, UserPlus } from 'lucide-react';
+import { ArrowLeft, UserPlus, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
+import { useChildren, useCreateChild } from '@/hooks/useChildren';
 import { useParentStore } from '@/stores/parentStore';
 import { getTierLimits, TIER_DISPLAY } from '@/lib/tier-config';
+import { SFButton } from '@/components/ui/SFButton';
 
 const AGE_OPTIONS = Array.from({ length: 10 }, (_, i) => i + 7);
 
 const BAND_INFO: Record<'A' | 'B' | 'C', { label: string; color: string; emoji: string }> = {
-  A: { label: '7–10 (Explorer)', color: '#3B82F6', emoji: '🔭' },
-  B: { label: '11–13 (Adventurer)', color: '#8B5CF6', emoji: '🧭' },
-  C: { label: '14–16 (Pioneer)', color: '#F59E0B', emoji: '🚀' },
+  A: { label: '7–10 (Explorer)', color: '#2563EB', emoji: '🔭' },
+  B: { label: '11–13 (Adventurer)', color: '#7C3AED', emoji: '🧭' },
+  C: { label: '14–16 (Pioneer)', color: '#B45309', emoji: '🚀' },
 };
 
-// ENH #4: Confetti particle config
 interface ConfettiParticle {
   id: number;
   x: number;
@@ -32,7 +35,7 @@ interface ConfettiParticle {
 }
 
 function generateConfetti(count: number): ConfettiParticle[] {
-  const colors = ['#00BBFF', '#00FF88', '#AA66FF', '#FF6644', '#FFAA44', '#FF66AA'];
+  const colors = ['#4F6EF7', '#2ECC71', '#E945F5', '#FF6B35', '#FFAA44', '#FF66AA'];
   return Array.from({ length: count }, (_, i) => ({
     id: i,
     x: Math.random() * 100,
@@ -44,70 +47,51 @@ function generateConfetti(count: number): ConfettiParticle[] {
 
 export default function AddChildPage() {
   const router = useRouter();
-  // PERF-HIGH-001 (Opt A): narrow selectors — re-render only on the
-  // two fields this page actually reads.
   const tier = useParentStore((s) => s.tier);
-  const children = useParentStore((s) => s.children);
   const limits = getTierLimits(tier);
+  const { data: children, isLoading: childrenLoading } = useChildren();
+  const createChild = useCreateChild();
 
   const [name, setName] = useState('');
   const [age, setAge] = useState(10);
-  const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
-  const [showConfetti, setShowConfetti] = useState(false); // ENH #4
-  const [confettiParticles] = useState(() => generateConfetti(30)); // ENH #4
+  const [showConfetti, setShowConfetti] = useState(false);
+  const [confettiParticles] = useState(() => generateConfetti(30));
 
   const ageBand: 'A' | 'B' | 'C' = age <= 10 ? 'A' : age <= 13 ? 'B' : 'C';
   const bandInfo = BAND_INFO[ageBand];
-  const atLimit = children.length >= limits.maxChildren;
+  const childCount = children?.length ?? 0;
+  const atLimit = !childrenLoading && childCount >= limits.maxChildren;
+  const saving = createChild.isPending;
 
-  const handleCreate = useCallback(async () => {
-    if (!name.trim() || saving || atLimit) return;
-    setSaving(true);
+  const handleCreate = async () => {
+    const trimmed = name.trim();
+    if (saving || atLimit) return;
+    if (!trimmed) {
+      setError('Pick a nickname first — anything fun works!');
+      return;
+    }
     setError('');
 
     try {
-      // S8-WARN-005 fix: Route through API for server-side validation + tier limit enforcement
-      const res = await fetch('/api/children', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', ...csrfHeader() },
-        body: JSON.stringify({
-          displayName: name.trim(),
-          age,
-          ageBand,
-        }),
-      });
-
-      const result = await res.json();
-
-      if (!res.ok) {
-        // DASH-08: Parse error codes for tier-specific messages
-        const errorMsg = result.error || 'Failed to create profile';
-        if (result.code === 'TIER_LIMIT' || errorMsg.toLowerCase().includes('limit')) {
-          setError('Your current plan has reached its child profile limit. Upgrade to add more profiles.');
-        } else if (result.code === 'VALIDATION_ERROR' || res.status === 422) {
-          setError(result.error || 'Please check the form fields and try again.');
-        } else {
-          setError(errorMsg);
-        }
-        setSaving(false);
-      } else {
-        // ENH #4: Show confetti, then navigate
-        setShowConfetti(true);
-        setTimeout(() => {
-          router.push('/parent');
-        }, 1500);
-      }
+      await createChild.mutateAsync({ displayName: trimmed, ageBand, age });
+      setShowConfetti(true);
+      setTimeout(() => {
+        router.push('/home');
+      }, 1500);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Failed to create profile';
-      setError(message);
-      setSaving(false);
+      if (/limit/i.test(message)) {
+        setError('Your current plan has reached its child profile limit. Upgrade to add more profiles.');
+      } else {
+        setError(message || 'Something went wrong — please try again.');
+      }
     }
-  }, [name, saving, atLimit, age, ageBand, router]);
+  };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-8 relative overflow-hidden">
-      {/* ENH #4: Confetti burst overlay */}
+    <div className="min-h-[70vh] flex items-center justify-center p-4 md:p-8 relative overflow-hidden">
+      {/* Confetti burst overlay */}
       <AnimatePresence>
         {showConfetti && (
           <>
@@ -115,11 +99,7 @@ export default function AddChildPage() {
               <motion.div
                 key={p.id}
                 className="fixed w-3 h-3 rounded-sm pointer-events-none z-50"
-                style={{
-                  left: `${p.x}%`,
-                  top: '50%',
-                  backgroundColor: p.color,
-                }}
+                style={{ left: `${p.x}%`, top: '50%', backgroundColor: p.color }}
                 initial={{ y: 0, opacity: 1, rotate: 0, scale: 1 }}
                 animate={{
                   y: [0, -300 - Math.random() * 200, 600],
@@ -128,11 +108,7 @@ export default function AddChildPage() {
                   rotate: p.rotation + 720,
                   scale: [1, 1.2, 0.5],
                 }}
-                transition={{
-                  duration: 1.5,
-                  delay: p.delay,
-                  ease: 'easeOut',
-                }}
+                transition={{ duration: 1.5, delay: p.delay, ease: 'easeOut' }}
                 exit={{ opacity: 0 }}
               />
             ))}
@@ -150,7 +126,7 @@ export default function AddChildPage() {
                 >
                   🎉
                 </motion.div>
-                <p className="font-display text-xl font-bold text-white">
+                <p className="font-display text-xl font-bold" style={{ color: '#1A1D2B' }}>
                   Profile Created!
                 </p>
               </div>
@@ -160,14 +136,20 @@ export default function AddChildPage() {
       </AnimatePresence>
 
       <motion.div
-        className="bg-[var(--surface-card)] border border-[var(--surface-border)] rounded-2xl p-8 max-w-md w-full"
+        className="rounded-2xl p-6 md:p-8 max-w-md w-full"
+        style={{
+          background: '#FFFFFF',
+          border: '1px solid #E6E9F4',
+          boxShadow: '0 8px 30px rgba(26,29,43,0.08)',
+        }}
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
       >
         {/* Back link */}
         <Link href="/parent">
           <motion.div
-            className="inline-flex items-center gap-2 text-white/60 hover:text-white font-body text-sm mb-6 transition-colors"
+            className="inline-flex items-center gap-2 font-body text-sm mb-6 transition-colors"
+            style={{ color: '#8C94AC' }}
             whileHover={{ x: -2 }}
           >
             <ArrowLeft className="w-4 h-4" /> Back
@@ -176,13 +158,20 @@ export default function AddChildPage() {
 
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 rounded-full bg-spark-blue/10 flex items-center justify-center">
-            <UserPlus className="w-5 h-5 text-spark-blue" />
+          <div
+            className="w-10 h-10 rounded-full flex items-center justify-center"
+            style={{ background: 'rgba(79,110,247,0.1)' }}
+          >
+            <UserPlus className="w-5 h-5" style={{ color: '#4F6EF7' }} />
           </div>
           <div>
-            <h1 className="font-display text-xl font-bold text-white">Add Child Profile</h1>
-            <p className="font-body text-xs text-white/70">
-              {children.length}/{limits.maxChildren} profiles used ({TIER_DISPLAY[tier].name})
+            <h1 className="font-display text-xl font-bold" style={{ color: '#1A1D2B' }}>
+              Add Child Profile
+            </h1>
+            <p className="font-body text-xs" style={{ color: '#8C94AC' }}>
+              {childrenLoading
+                ? 'Checking your profiles…'
+                : `${childCount}/${limits.maxChildren} profiles used (${TIER_DISPLAY[tier].name})`}
             </p>
           </div>
         </div>
@@ -190,17 +179,18 @@ export default function AddChildPage() {
         {atLimit ? (
           /* Tier limit reached */
           <div className="text-center py-8">
-            <UserPlus className="w-10 h-10 text-white/55 mx-auto mb-3" />
-            <h2 className="font-display text-lg font-bold text-white mb-2">
+            <UserPlus className="w-10 h-10 mx-auto mb-3" style={{ color: '#C3C9DB' }} />
+            <h2 className="font-display text-lg font-bold mb-2" style={{ color: '#1A1D2B' }}>
               Profile Limit Reached
             </h2>
-            <p className="font-body text-sm text-white/70 mb-4">
+            <p className="font-body text-sm mb-4" style={{ color: '#52586E' }}>
               Your {TIER_DISPLAY[tier].name} plan supports up to {limits.maxChildren} child
               profile{limits.maxChildren === 1 ? '' : 's'}.
             </p>
             <Link
               href="/parent/subscription"
-              className="inline-block px-6 py-3 rounded-xl bg-gradient-to-r from-spark-orange to-amber-600 text-white font-display font-bold text-sm"
+              className="inline-block px-6 py-3 rounded-xl text-white font-display font-bold text-sm"
+              style={{ background: 'linear-gradient(90deg, #FF6B35, #D97706)' }}
             >
               Upgrade for More Profiles
             </Link>
@@ -212,7 +202,8 @@ export default function AddChildPage() {
             <div>
               <label
                 htmlFor="child-name"
-                className="font-body text-sm text-white/60 block mb-1"
+                className="font-body text-sm font-medium block mb-1"
+                style={{ color: '#52586E' }}
               >
                 Display Name
               </label>
@@ -221,19 +212,27 @@ export default function AddChildPage() {
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') void handleCreate();
+                }}
                 placeholder="e.g., SparkKid"
                 maxLength={20}
-                className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white font-body placeholder:text-white/55 focus:border-spark-blue/50 focus:outline-none"
+                className="w-full px-4 py-3 rounded-xl font-body focus:outline-none focus:ring-2"
+                style={{
+                  background: '#F6F8FD',
+                  border: '1px solid #E6E9F4',
+                  color: '#1A1D2B',
+                }}
                 aria-label="Child display name"
               />
-              <p className="font-body text-xs text-white/55 mt-1">
+              <p className="font-body text-xs mt-1" style={{ color: '#8C94AC' }}>
                 No real names — this is just a fun nickname
               </p>
             </div>
 
             {/* Age selector */}
             <div>
-              <label className="font-body text-sm text-white/60 block mb-2">
+              <label className="font-body text-sm font-medium block mb-2" style={{ color: '#52586E' }}>
                 Age
               </label>
               <div className="flex flex-wrap gap-2">
@@ -241,11 +240,20 @@ export default function AddChildPage() {
                   <motion.button
                     key={a}
                     onClick={() => setAge(a)}
-                    className={`w-10 h-10 rounded-lg border font-display text-sm font-bold transition-all ${
+                    className="w-10 h-10 rounded-lg font-display text-sm font-bold transition-all"
+                    style={
                       age === a
-                        ? 'border-spark-blue/50 bg-spark-blue/20 text-spark-blue'
-                        : 'border-white/10 bg-white/5 text-white/70 hover:border-white/20'
-                    }`}
+                        ? {
+                            border: '2px solid #4F6EF7',
+                            background: 'rgba(79,110,247,0.12)',
+                            color: '#4F6EF7',
+                          }
+                        : {
+                            border: '1px solid #E6E9F4',
+                            background: '#F6F8FD',
+                            color: '#52586E',
+                          }
+                    }
                     whileTap={{ scale: 0.95 }}
                     aria-label={`Age ${a}`}
                     aria-pressed={age === a}
@@ -257,14 +265,16 @@ export default function AddChildPage() {
             </div>
 
             {/* Age band preview */}
-            <div className="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/10">
+            <div
+              className="flex items-center gap-3 p-3 rounded-xl"
+              style={{ background: '#F6F8FD', border: '1px solid #E6E9F4' }}
+            >
               <span className="text-2xl">{bandInfo.emoji}</span>
               <div>
-                <p className="font-body text-xs text-white/70">Age Band</p>
-                <p
-                  className="font-display text-sm font-bold"
-                  style={{ color: bandInfo.color }}
-                >
+                <p className="font-body text-xs" style={{ color: '#8C94AC' }}>
+                  Age Band
+                </p>
+                <p className="font-display text-sm font-bold" style={{ color: bandInfo.color }}>
                   {bandInfo.label}
                 </p>
               </div>
@@ -272,20 +282,28 @@ export default function AddChildPage() {
 
             {/* Error display */}
             {error && (
-              <p className="font-body text-sm text-spark-coral" aria-live="polite">
+              <div
+                className="flex items-start gap-2 p-3 rounded-xl font-body text-sm"
+                style={{ background: '#EF444412', color: '#DC2626', border: '1px solid #EF444430' }}
+                role="alert"
+                aria-live="polite"
+              >
+                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
                 {error}
-              </p>
+              </div>
             )}
 
-            {/* Submit button */}
-            <motion.button
-              onClick={handleCreate}
-              disabled={saving || !name.trim() || showConfetti}
-              className="w-full py-3 rounded-xl bg-gradient-to-r from-spark-blue to-blue-600 text-white font-display font-bold text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-              whileTap={{ scale: 0.98 }}
+            {/* Submit */}
+            <SFButton
+              variant="primary"
+              size="lg"
+              fullWidth
+              loading={saving}
+              disabled={saving || showConfetti}
+              onClick={() => void handleCreate()}
             >
-              {saving ? 'Creating...' : showConfetti ? 'Created!' : 'Create Profile'}
-            </motion.button>
+              {showConfetti ? 'Created!' : 'Create Profile'}
+            </SFButton>
           </div>
         )}
       </motion.div>

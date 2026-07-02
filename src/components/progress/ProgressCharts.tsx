@@ -300,7 +300,13 @@ export default function ProgressCharts({
           <BarChart3 className="w-4 h-4" style={{ color: '#E945F5' }} />
           Progress by Lab
         </h3>
-        <BarChart data={labData} />
+        {labData.length === 0 ? (
+          <p className="text-xs" style={{ color: '#8C94AC' }}>
+            Lab-by-lab progress appears here after your first game.
+          </p>
+        ) : (
+          <BarChart data={labData} />
+        )}
       </div>
     </div>
   );

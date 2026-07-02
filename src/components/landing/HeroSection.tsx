@@ -50,6 +50,19 @@ export function HeroSection() {
         )}
       </div>
 
+      {/* Readability scrim — the animated light streaks can pass directly
+          behind the headline and wash the text out (P1-3). A soft radial
+          darkening behind the content keeps WCAG contrast without
+          dimming the whole animation. */}
+      <div
+        className="absolute inset-0 z-[5] pointer-events-none"
+        aria-hidden="true"
+        style={{
+          background:
+            'radial-gradient(ellipse 70% 60% at 50% 45%, rgba(10,15,30,0.72) 0%, rgba(10,15,30,0.35) 55%, rgba(10,15,30,0) 100%)',
+        }}
+      />
+
       {/* Content Overlay */}
       <div className="relative z-10 w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <HeroContent />

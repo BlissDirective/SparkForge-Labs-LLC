@@ -59,7 +59,7 @@ export function LandingCTA() {
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
+        viewport={{ once: true, margin: '0px 0px 25% 0px' }}
         transition={{ duration: 0.7 }}
         className="max-w-4xl mx-auto text-center relative"
       >
@@ -67,7 +67,7 @@ export function LandingCTA() {
         <motion.div
           initial={{ scale: 0.9, opacity: 0 }}
           whileInView={{ scale: 1, opacity: 1 }}
-          viewport={{ once: true }}
+          viewport={{ once: true, margin: '0px 0px 25% 0px' }}
           transition={{ delay: 0.2 }}
           className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-6"
           style={{ backgroundColor: 'rgba(233,69,245,0.08)', border: '1px solid rgba(233,69,245,0.15)' }}
@@ -83,44 +83,46 @@ export function LandingCTA() {
         >
           <span className="block mb-2" style={{ color: TEXT_HEADING }}>
             <DecryptedText
-              text="Login to see the all New"
+              text="Ready to explore the new"
               className="decrypted-text"
             />
           </span>
           <GradientText from="#E945F5" to="#4F6EF7">
             <DecryptedText
-              text="Agentic Lab and Games"
+              text="Agentic AI Lab and Games?"
               className="decrypted-text"
             />
           </GradientText>
         </h2>
 
         <p className="text-base sm:text-lg mb-8 max-w-xl mx-auto" style={{ color: TEXT_MUTED }}>
-          Sign in to unlock the full SparkForge experience — including your personal AI tutor,
-          42 games, learning labs, progress tracking, and rewards.
+          Create a free account to unlock the full SparkForge experience — your personal AI
+          tutor, 42 games, learning labs, progress tracking, and rewards.
         </p>
 
-        {/* CTA Buttons */}
+        {/* CTA Buttons — new visitors first (P1-10): signup is the
+            primary action; returning users get the secondary link. */}
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
           <a
-            href="/login"
+            href="/signup"
             className="group inline-flex items-center gap-2.5 px-8 py-4 rounded-full font-semibold text-white text-base transition-all hover:scale-[1.03] active:scale-[0.97]"
             style={{
               background: 'linear-gradient(135deg, #E945F5, #4F6EF7)',
               boxShadow: '0 4px 24px rgba(233,69,245,0.3)',
             }}
           >
-            <LogIn className="w-5 h-5" />
-            Sign In
+            <Sparkles className="w-5 h-5" />
+            Create Free Account
             <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
           </a>
 
           <a
-            href="/signup"
+            href="/login"
             className="inline-flex items-center gap-2 px-8 py-4 rounded-full font-semibold text-base transition-all hover:bg-white/5"
             style={{ color: '#A0B0FF', border: '2px solid rgba(160, 176, 255, 0.3)' }}
           >
-            Create Free Account
+            <LogIn className="w-5 h-5" />
+            Sign In
           </a>
         </div>
 

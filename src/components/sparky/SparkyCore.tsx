@@ -189,7 +189,10 @@ function SparkyFace({
   expression: SparkyExpression;
   isHovered: boolean;
 }) {
-  const cfg = EXPRESSIONS[expression];
+  // The AI-tutor API can return expression strings outside the union
+  // (server prompt drift); an unknown key made cfg undefined and
+  // rendered <path d="undefined"> (P1-6). Fall back to idle.
+  const cfg = EXPRESSIONS[expression] ?? EXPRESSIONS.idle;
 
   // Unique gradient IDs per expression to prevent caching issues
   const uid = expression.charAt(0) + expression.charAt(expression.length - 1);

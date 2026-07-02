@@ -416,24 +416,16 @@ export default function ArcadePage() {
                             </p>
 
                             <div className="flex items-center justify-between">
+                              {/* P2-5: the old 1–3 star row restated the
+                                  tier but read as a quality rating —
+                                  "standard" games looked like 1-star
+                                  duds. The tier badge alone is honest. */}
                               <div className="flex items-center gap-2">
-                                <span className="flex items-center gap-0.5">
-                                  {Array.from({ length: 3 }).map((_, j) => (
-                                    <Star
-                                      key={j}
-                                      className="w-3 h-3"
-                                      style={{
-                                        color: j < (game.tier === 'flagship' ? 3 : game.tier === 'fl-lite' ? 2 : 1) ? '#FFD93D' : '#EEF2FA',
-                                        fill: j < (game.tier === 'flagship' ? 3 : game.tier === 'fl-lite' ? 2 : 1) ? '#FFD93D' : 'none',
-                                      }}
-                                    />
-                                  ))}
-                                </span>
                                 <SFBadge
                                   variant={game.tier === 'flagship' ? 'premium' : game.tier === 'fl-lite' ? 'secondary' : 'default'}
                                   size="sm"
                                 >
-                                  {game.tier}
+                                  {game.tier === 'fl-lite' ? 'Lite' : game.tier.charAt(0).toUpperCase() + game.tier.slice(1)}
                                 </SFBadge>
                               </div>
 

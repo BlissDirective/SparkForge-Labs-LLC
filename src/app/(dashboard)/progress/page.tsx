@@ -20,8 +20,6 @@ import { GAME_REGISTRY } from '@/config/gameRegistry';
 import { LAB_COLORS, LAB_NAMES, LAB_ICONS } from '@/config/labs';
 import { SFCard } from '@/components/ui/SFCard';
 import { SFProgressBar } from '@/components/ui/SFProgressBar';
-import { SFCircularProgress } from '@/components/ui/SFCircularProgress';
-import SpotlightCard from '@/components/bits/SpotlightCard';
 import GradientText from '@/components/bits/GradientText';
 import CountUp from '@/components/bits/CountUp';
 import { ProgressCharts } from '@/components/progress';
@@ -123,49 +121,32 @@ export default function ProgressPage() {
         />
       </motion.div>
 
-      {/* Overall + Streak */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
-          <SpotlightCard spotlightColor="rgba(79,110,247,0.1)">
-            <div className="p-5 flex items-center gap-5">
-              <SFCircularProgress value={overallProgress} size={80} strokeWidth={8} color="#4F6EF7">
-                <span className="text-lg font-extrabold" style={{ color: '#4F6EF7' }}>{overallProgress}%</span>
-              </SFCircularProgress>
-              <div>
-                <h3 className="text-lg font-bold" style={{ fontFamily: 'var(--font-display)', color: '#1A1D2B' }}>
-                  Overall Progress
-                </h3>
-                <p className="text-sm" style={{ color: '#8C94AC' }}>
-                  Across all {labBreakdown.length} learning labs
-                </p>
-                <SFProgressBar value={overallProgress} max={100} variant="primary" className="mt-3" />
-              </div>
+      {/* Streak — the old "Overall Progress" spotlight card duplicated
+          the Overall Completion donut rendered by ProgressCharts just
+          above (and read "Across all 0 learning labs" for fresh
+          profiles). One source of truth for completion; streak gets
+          its own full-width card (P1-6). */}
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
+        <SFCard variant="elevated" className="p-5">
+          <div className="flex items-center gap-4">
+            <div
+              className="w-16 h-16 rounded-full flex items-center justify-center"
+              style={{ background: 'linear-gradient(135deg, #FF6B35, #FFD93D)', boxShadow: '0 4px 16px rgba(255,107,53,0.25)' }}
+            >
+              <Flame className="w-8 h-8 text-white" />
             </div>
-          </SpotlightCard>
-        </motion.div>
-
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}>
-          <SFCard variant="elevated" className="h-full flex flex-col justify-center p-5">
-            <div className="flex items-center gap-4">
-              <div
-                className="w-16 h-16 rounded-full flex items-center justify-center"
-                style={{ background: 'linear-gradient(135deg, #FF6B35, #FFD93D)', boxShadow: '0 4px 16px rgba(255,107,53,0.25)' }}
-              >
-                <Flame className="w-8 h-8 text-white" />
-              </div>
-              <div>
-                <p className="text-sm" style={{ color: '#8C94AC' }}>Current Streak</p>
-                <p className="text-3xl font-extrabold" style={{ fontFamily: 'var(--font-display)', color: '#FF6B35' }}>
-                  {child?.streak_count ?? 0} days
-                </p>
-                <p className="text-xs" style={{ color: '#8C94AC' }}>
-                  Keep playing daily to maintain your streak!
-                </p>
-              </div>
+            <div>
+              <p className="text-sm" style={{ color: '#8C94AC' }}>Current Streak</p>
+              <p className="text-3xl font-extrabold" style={{ fontFamily: 'var(--font-display)', color: '#FF6B35' }}>
+                {child?.streak_count ?? 0} days
+              </p>
+              <p className="text-xs" style={{ color: '#8C94AC' }}>
+                Keep playing daily to maintain your streak!
+              </p>
             </div>
-          </SFCard>
-        </motion.div>
-      </div>
+          </div>
+        </SFCard>
+      </motion.div>
 
       {/* Lab Breakdown */}
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
@@ -175,6 +156,20 @@ export default function ProgressPage() {
         </h2>
 
         <div className="space-y-3">
+          {labBreakdown.length === 0 && !isLoading && (
+            <SFCard variant="default" padding="sm" className="text-center py-6">
+              <p className="text-sm" style={{ color: '#52586E' }}>
+                No lab progress yet — play any game to start filling this in!
+              </p>
+              <Link
+                href="/labs"
+                className="inline-block mt-2 text-sm font-semibold"
+                style={{ color: '#4F6EF7' }}
+              >
+                Explore the Labs →
+              </Link>
+            </SFCard>
+          )}
           {labBreakdown.map((lab) => (
             <SFCard key={lab.lab} variant="default" padding="sm" className="flex items-center gap-4">
               <div

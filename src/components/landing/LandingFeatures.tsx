@@ -65,7 +65,7 @@ export function LandingFeatures() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
+          viewport={{ once: true, margin: '0px 0px 25% 0px' }}
           className="text-center mb-14"
         >
           <h2
@@ -87,7 +87,7 @@ export function LandingFeatures() {
               key={feature.title}
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
+              viewport={{ once: true, margin: '0px 0px 25% 0px' }}
               transition={{ delay: i * 0.08 }}
             >
               <SpotlightCard

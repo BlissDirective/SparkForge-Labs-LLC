@@ -66,8 +66,8 @@ Legend: **U** = hurts understanding, **T** = hurts trust, **C** = hurts conversi
 | P0-4 | Legal/COPPA pages (`/coppa-notice`, `/privacy/children`, `/privacy/rights`, `/cookies`, `/dmca`) redirect to login | T | middleware allowlist | ✅ |
 | P0-5 | Pricing page prices/tier names invisible in light mode | C | dark-surface opt-out | ✅ |
 | P0-6 | Service worker + PWA broken in production (auth-gated `/sw.js`) | U | asset bypass | ✅ |
-| P0-7 | **Add Child Profile modal renders dark-theme UI on the light app** — heading/inputs near-unreadable; creation fails silently with no error feedback. This is the FIRST action every new parent must take. | U/C | Rebuild modal on the light design system; show validation + API errors inline; optimistic redirect to Home on success | ⬜ Phase 1 |
-| P0-8 | Unknown URLs 307 to `/login` (no 404 page reachable when logged out) | U | Serve `not-found` for unknown paths; keep auth redirect only for known-protected prefixes | ⬜ Phase 1 |
+| P0-7 | **Add Child Profile modal renders dark-theme UI on the light app** — heading/inputs near-unreadable; creation fails silently with no error feedback. This is the FIRST action every new parent must take. | U/C | Rebuilt on the light design system; child count now from React Query (the old parentStore count was never hydrated, so the tier check lied); inline validation + API errors; success → /home with the new child active | ✅ |
+| P0-8 | Unknown URLs 307 to `/login` (no 404 page reachable when logged out) | U | Middleware now redirects only known protected prefixes; unknown paths render Next's 404 | ✅ |
 
 ### P1 — fix before marketing push
 
@@ -75,14 +75,14 @@ Legend: **U** = hurts understanding, **T** = hurts trust, **C** = hurts conversi
 |---|---|---|---|---|
 | P1-1 | Marketing copy contradictions (games/labs/ages) | T | unified to 42/11/7–16 | ✅ |
 | P1-2 | Fake data: sidebar "Alex Lv5", parent Time-by-Game, progress This-Week sparkline | T | real data + empty states | ✅ |
-| P1-3 | Homepage hero: "Learn AI." near-black on dark bg; light-streak washes out subheadline + trust chips | U/C | Rework hero text contrast (Phase 2 redesign) | ⬜ |
+| P1-3 | Homepage hero: "Learn AI." near-black on dark bg; light-streak washes out subheadline + trust chips | U/C | Headline fixed by the dark-surface opt-out; added radial scrim + text shadows so the streak can't wash out subheadline/trust chips | ✅ |
 | P1-4 | **Lab tier gating unenforced** — `freeLabsAccess`/`previewLabs` have zero runtime consumers. Free accounts get everything; pricing page promises limits that don't exist → no upgrade pressure | C | Implement gate at lab/game entry, upsell modal on locked content | ⬜ Phase 4 |
-| P1-5 | "97% Kids Love It" + "5x faster retention" unsubstantiated claims | T | Replace with real numbers or drop | ⬜ Phase 2 |
-| P1-6 | Progress page: "Across all 0 learning labs", duplicated Overall cards, `<path d="undefined">` SVG error on Profile | T | data wiring + chart guard | ⬜ Phase 1 |
-| P1-7 | Lab detail page shows bare infinite spinner (no skeleton, no error state) | U | skeleton + error/empty states (largely unblocked by P0-2 fix) | ⬜ Phase 1 |
-| P1-8 | Cookie banner: "essential cookies only" link near-invisible; overlaps footer text; on mobile it collides with Sparky avatar + covers "Got It" | U/T | Restyle banner, single bottom-sheet on mobile, z-index audit | ⬜ Phase 1 |
-| P1-9 | Mobile marketing nav overflows (Privacy/Terms clipped, no hamburger) | U | responsive nav menu | ⬜ Phase 2 |
-| P1-10 | Final homepage CTA is "Sign In"-first ("Login to see the all New Agentic Lab and Games" — awkward grammar, wrong audience) | C | New-visitor-first CTA: "Create Free Account", fix copy | ⬜ Phase 2 |
+| P1-5 | "97% Kids Love It" + "5x faster retention" unsubstantiated claims | T | Replaced with honest stats ("0 Ads or Trackers", "100% play-first"); band ages unified to 7–10/11–13/14–16 | ✅ |
+| P1-6 | Progress page: "Across all 0 learning labs", duplicated Overall cards, `<path d="undefined">` SVG error on Profile | T | Duplicate card removed (donut is the single source); lab-breakdown empty states added; Sparky falls back to idle on unknown tutor expressions (the SVG error source) | ✅ |
+| P1-7 | Lab detail page shows bare infinite spinner (no skeleton, no error state) | U | Loading vs no-profile states distinguished; no-profile shows a Create Profile CTA instead of spinning forever | ✅ |
+| P1-8 | Cookie banner: "essential cookies only" link near-invisible; overlaps footer text; on mobile it collides with Sparky avatar + covers "Got It" | U/T | Self-contained explicit colors (immune to theme remaps), z-60 above Sparky, bottom offset clears the mobile nav | ✅ |
+| P1-9 | Mobile marketing nav overflows (Privacy/Terms clipped, no hamburger) | U | Hamburger menu on mobile; Privacy/Terms moved out of primary nav (footer keeps them) | ✅ |
+| P1-10 | Final homepage CTA is "Sign In"-first ("Login to see the all New Agentic Lab and Games" — awkward grammar, wrong audience) | C | "Create Free Account" is now primary, copy rewritten; Sign In secondary | ✅ |
 
 ### P2 — quality of experience
 
@@ -91,17 +91,17 @@ Legend: **U** = hurts understanding, **T** = hurts trust, **C** = hurts conversi
 | P2-1 | Flagship gameplay is UI-only (Pet Trainer = 4 sliders + Run button; slider tracks invisible; the "pet" is a stray googly-eye orb overlapping the wrong tile) | U/C | Game-feel overhaul (Phase 5) |
 | P2-2 | Level-select screens: flat grey lock tiles, no imagery, no juice | C | Phase 5 template |
 | P2-3 | White-frame cards with dark inner panels on homepage look theme-broken | T | Phase 2 design system pass |
-| P2-4 | Homepage scroll sections invisible until IntersectionObserver fires (blank 3,600px in static render; fast scrollers see empty page; SEO/social preview sees nothing) | U | Animate opacity 0.99→1 or use `whileInView` with `initial={false}` below the fold |
-| P2-5 | Arcade star ratings identical (3★) for all games — meaningless | T | Real difficulty/rating data or remove |
-| P2-6 | "1 Children" grammar; "0/1 profiles used (Spark Free)" contradicts "1 Children" stat | T | pluralization + single source of child count |
+| P2-4 | Homepage scroll sections invisible until IntersectionObserver fires (blank 3,600px in static render; fast scrollers see empty page; SEO/social preview sees nothing) | U | ✅ Reveals now trigger 25% before entering the viewport (fast scrollers never see blank sections); full SSR-visible rendering remains a Phase 2 item |
+| P2-5 | Arcade star ratings identical (3★) for all games — meaningless | T | ✅ Removed — the 1–3 stars restated tier but read as quality scores (standard games looked like 1-star duds); tier badge remains |
+| P2-6 | "1 Children" grammar; "0/1 profiles used (Spark Free)" contradicts "1 Children" stat | T | ✅ Label pluralizes; add-child modal now counts via React Query (same source as the parent stat) |
 | P2-7 | GPU stalls (ReadPixels warnings) + deprecated THREE.Clock on homepage hero | — | Phase 2 replaces hero canvas |
-| P2-8 | Demo card on login: "Try SparkForge Free" gradient text invisible on white; feature icons render blank | C | restyle demo card |
-| P2-9 | 404 resource error on every logged-in page (missing asset) | T | trace + fix in Phase 1 |
+| P2-8 | Demo card on login: "Try SparkForge Free" gradient text invisible on white; feature icons render blank | C | ✅ Dark-base metallic text + readable chip colors; MetallicPaint mid-stop no longer hard-coded white |
+| P2-9 | 404 resource error on every logged-in page (missing asset) | T | ⚠ Not reproducible after the middleware asset fixes — likely an expired-session API call during the audit; monitor in Sentry |
 | P2-10 | Sparky on dashboard is a static PNG in the corner, partially clipped, overlaps cookie banner; zero interactivity despite "floats around the app, ready to help" promise | U/T | Mascot system (Phase 3) |
 
 ### P3 — polish backlog
 
-- Nav includes Privacy/Terms as primary items (should be footer-only); Search + notification-dot in TopBar do nothing visible; "Most Popular" sort with no popularity data; Seasons/Mastery/Buddies pages are skeletal ("coming soon" energy without saying so); marketing `<h1>` contains a `<style>` tag (metallicSweep keyframes leak into accessibility tree); `Do not have an account?` copy (✅ fixed); Remember-me checkbox unstyled native; hero MP4 fallback absent.
+- ✅ Nav Privacy/Terms moved to footer-only; ✅ `<style>`-in-`<h1>` fixed (MetallicPaint keyframes now injected in document.head). Remaining: Search + notification-dot in TopBar do nothing visible; "Most Popular" sort with no popularity data; Seasons/Mastery/Buddies pages are skeletal; Remember-me checkbox unstyled native; hero MP4 fallback absent.
 
 ---
 

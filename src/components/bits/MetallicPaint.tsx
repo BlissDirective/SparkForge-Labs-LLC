@@ -25,6 +25,21 @@ export default function MetallicPaint({
   const textRef = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
+    // Inject the keyframes once at the document level. The old inline
+    // <style> rendered as a child of whatever heading wrapped this
+    // component, leaking "@keyframes metallicSweep …" into the
+    // accessible name / textContent of the heading (P3).
+    const STYLE_ID = 'sf-metallic-sweep-keyframes';
+    if (!document.getElementById(STYLE_ID)) {
+      const style = document.createElement('style');
+      style.id = STYLE_ID;
+      style.textContent =
+        '@keyframes metallicSweep { 0% { background-position: 200% center; } 100% { background-position: -200% center; } }';
+      document.head.appendChild(style);
+    }
+  }, []);
+
+  useEffect(() => {
     const el = textRef.current;
     if (!el) return;
 
@@ -35,27 +50,21 @@ export default function MetallicPaint({
   }, [speed, children]);
 
   return (
-    <>
-      <span
-        ref={textRef}
-        className={`inline-block ${className}`}
-        style={{
-          background: `linear-gradient(90deg, ${baseColor} 0%, ${shimmerColor} 25%, #FFFFFF 50%, ${shimmerColor} 75%, ${baseColor} 100%)`,
-          backgroundSize: '200% 100%',
-          WebkitBackgroundClip: 'text',
-          WebkitTextFillColor: 'transparent',
-          backgroundClip: 'text',
-          filter: `drop-shadow(0 0 8px ${shimmerColor}40) drop-shadow(0 0 24px ${shimmerColor}20)`,
-        }}
-      >
-        {children}
-      </span>
-      <style>{`
-        @keyframes metallicSweep {
-          0% { background-position: 200% center; }
-          100% { background-position: -200% center; }
-        }
-      `}</style>
-    </>
+    <span
+      ref={textRef}
+      className={`inline-block ${className}`}
+      style={{
+        // Mid-stop follows the base color: the old fixed #FFFFFF made
+        // dark-base text vanish mid-sweep on white cards (P2-8).
+        background: `linear-gradient(90deg, ${baseColor} 0%, ${shimmerColor} 25%, ${baseColor} 50%, ${shimmerColor} 75%, ${baseColor} 100%)`,
+        backgroundSize: '200% 100%',
+        WebkitBackgroundClip: 'text',
+        WebkitTextFillColor: 'transparent',
+        backgroundClip: 'text',
+        filter: `drop-shadow(0 0 8px ${shimmerColor}40) drop-shadow(0 0 24px ${shimmerColor}20)`,
+      }}
+    >
+      {children}
+    </span>
   );
 }
