@@ -59,7 +59,7 @@ test.describe('Core flow smoke — Phase 1 ship gate', () => {
 
     // HeroContent's <h1>: "Learn AI. / Build the Future."
     await expect(
-      page.getByRole('heading', { name: /learn ai/i }),
+      page.getByRole('heading', { level: 1, name: /learn ai/i }),
     ).toBeVisible({ timeout: 30_000 });
   });
 
@@ -67,11 +67,26 @@ test.describe('Core flow smoke — Phase 1 ship gate', () => {
     await test.step('login → start demo session → /home', async () => {
       await page.goto('/login', { waitUntil: 'domcontentloaded', timeout: 60_000 });
 
+      // The demo endpoint is deliberately rate-limited (AUTH-HIGH-003);
+      // repeated local runs exhaust the window. Capture the API status
+      // so a 429 skips the journey instead of blind-timing-out.
+      const demoResponse = page.waitForResponse(
+        (r) => r.url().includes('/api/auth/demo'),
+        { timeout: 60_000 },
+      );
+
       await page
         .getByRole('button', { name: /start demo session/i })
         .click({ timeout: 40_000 });
 
-      // POST /api/auth/demo → session refresh → window.location = /home
+      const status = (await demoResponse).status();
+      test.skip(
+        status === 429,
+        'demo endpoint rate-limited (expected after repeated runs) — rerun later',
+      );
+      expect(status, 'demo session should be created').toBe(200);
+
+      // Session refresh → window.location = /home
       await page.waitForURL(/\/home/, { timeout: 90_000 });
     });
 
@@ -139,7 +154,7 @@ test.describe('Core flow smoke — Phase 1 ship gate', () => {
       await page.goto('/parent', { waitUntil: 'domcontentloaded', timeout: 60_000 });
 
       await expect(
-        page.getByRole('heading', { name: /parent dashboard/i }),
+        page.getByRole('main').getByRole('heading', { name: /parent dashboard/i }),
       ).toBeVisible({ timeout: 40_000 });
     });
   });
