@@ -1,112 +1,51 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
-import { motion, useTransform, type MotionValue } from 'motion/react';
+// ════════════════════════════════════════════════════════════════════════════
+// HERO CONTENT — Hologram Reveal composition (Part III.2.1)
+// ════════════════════════════════════════════════════════════════════════════
+// Owner decisions (July 2):
+//  - The holographic "Welcome to SparkForge Labs" banner (HeroHologram)
+//    REPLACES the old "Learn AI. Build the Future." headline.
+//  - Brand subtitle below the animation: "Sparking Curiosity, and Forging
+//    Skills with AI" — matches the design scheme, deliberately NOT
+//    holographic; gets a react-bits ShinyText treatment so it pops.
+//  - Full sequence on every visit; reduced-motion renders the finished
+//    composition instantly (handled inside HeroHologram).
+
+import { motion } from 'motion/react';
 import { Sparkles, Play, Shield, Gamepad2, Zap } from 'lucide-react';
-import { SparkyStatic } from '@/components/sparky/SparkyStatic';
-import type { SparkyExpression } from '@/components/sparky/SparkyCore';
+import { HeroHologram } from './HeroHologram';
+import ShinyText from '@/components/bits/ShinyText';
 
-export interface HeroContentProps {
-  /** Spring-smoothed pointer offset (px) supplied by HeroSection. */
-  sparkyX: MotionValue<number>;
-  sparkyY: MotionValue<number>;
-  reducedMotion: boolean;
-}
-
-export function HeroContent({ sparkyX, sparkyY, reducedMotion }: HeroContentProps) {
-  // Sparky reacts to the primary CTA: 'happy' on hover/focus,
-  // a brief 'excited' burst on click, otherwise 'idle'.
-  const [expression, setExpression] = useState<SparkyExpression>('idle');
-  const excitedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(() => {
-    return () => {
-      if (excitedTimer.current) clearTimeout(excitedTimer.current);
-    };
-  }, []);
-
-  // Gentle tilt derived from the horizontal spring — a few degrees max.
-  const sparkyRotate = useTransform(sparkyX, [-16, 16], [-5, 5]);
-
-  const handleCtaEnter = () => setExpression('happy');
-  const handleCtaLeave = () => setExpression('idle');
-  const handleCtaClick = () => {
-    setExpression('excited');
-    if (excitedTimer.current) clearTimeout(excitedTimer.current);
-    excitedTimer.current = setTimeout(() => setExpression('happy'), 900);
-  };
-
+export function HeroContent() {
   return (
-    <div className="space-y-8">
-      {/* Sparky — canonical mascot, cursor-reactive on desktop */}
-      <motion.div
-        initial={{ opacity: 0, scale: 0.85, y: 10 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 0.1 }}
-        className="flex justify-center"
-      >
-        <motion.div
-          aria-hidden="true"
-          style={
-            reducedMotion
-              ? undefined
-              : { x: sparkyX, y: sparkyY, rotate: sparkyRotate }
-          }
-        >
-          <SparkyStatic
-            expression={reducedMotion ? 'happy' : expression}
-            size="lg"
-            showAura
-          />
-        </motion.div>
-      </motion.div>
+    <div className="space-y-7">
+      {/* ── Hologram title sequence: Sparky + puck + cone + banner ── */}
+      <HeroHologram />
 
-      {/* Badge */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 0.2 }}
-        className="inline-flex items-center gap-2 px-4 py-2 rounded-full border"
-        style={{
-          backgroundColor: 'rgba(255, 255, 255, 0.1)',
-          backdropFilter: 'blur(8px)',
-          borderColor: 'rgba(255, 255, 255, 0.2)',
-        }}
-      >
-        <Sparkles className="w-4 h-4" style={{ color: '#E945F5' }} />
-        <span className="text-sm font-medium" style={{ color: 'rgba(255, 255, 255, 0.9)' }}>
-          AI Learning for Kids Ages 7–16
-        </span>
-      </motion.div>
-
-      {/* Headline */}
-      <motion.h1
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, delay: 0.4 }}
-        className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight text-white leading-[1.1]"
-        style={{ textShadow: '0 4px 30px rgba(233, 69, 245, 0.3)' }}
-      >
-        Learn AI.
-        <br />
-        <span
-          className="bg-clip-text text-transparent"
-          style={{
-            backgroundImage: 'linear-gradient(135deg, #E945F5, #2F4BC0, #FFFFFF)',
-          }}
-        >
-          Build the Future.
-        </span>
-      </motion.h1>
-
-      {/* Subheadline */}
+      {/* ── Brand subtitle — solid, non-holographic, ShinyText pop ── */}
       <motion.p
-        initial={{ opacity: 0, y: 30 }}
+        initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, delay: 0.6 }}
-        className="text-lg sm:text-xl max-w-2xl mx-auto leading-relaxed"
+        transition={{ duration: 0.7, delay: 2.5 }}
+        className="text-xl sm:text-2xl font-semibold"
+        style={{ fontFamily: 'var(--font-display)' }}
+      >
+        <ShinyText
+          text="Sparking Curiosity, and Forging Skills with AI"
+          speed={3.5}
+          color="#F0F2F8"
+        />
+      </motion.p>
+
+      {/* ── Supporting line ── */}
+      <motion.p
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.7, delay: 2.7 }}
+        className="text-base sm:text-lg max-w-2xl mx-auto leading-relaxed"
         style={{
-          color: 'rgba(255, 255, 255, 0.88)',
+          color: 'rgba(255, 255, 255, 0.85)',
           textShadow: '0 1px 12px rgba(10, 15, 30, 0.8)',
         }}
       >
@@ -114,20 +53,15 @@ export function HeroContent({ sparkyX, sparkyY, reducedMotion }: HeroContentProp
         No experience needed — just curiosity.
       </motion.p>
 
-      {/* CTA Buttons */}
+      {/* ── CTA Buttons ── */}
       <motion.div
-        initial={{ opacity: 0, y: 30 }}
+        initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, delay: 0.8 }}
-        className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4"
+        transition={{ duration: 0.7, delay: 2.9 }}
+        className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2"
       >
         <a
           href="/signup"
-          onMouseEnter={handleCtaEnter}
-          onMouseLeave={handleCtaLeave}
-          onFocus={handleCtaEnter}
-          onBlur={handleCtaLeave}
-          onClick={handleCtaClick}
           className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-4 rounded-full font-semibold text-white text-base transition-all hover:opacity-90 hover:scale-[1.02] active:scale-[0.98]"
           style={{
             background: 'linear-gradient(135deg, #E945F5, #2F4BC0)',
@@ -152,12 +86,12 @@ export function HeroContent({ sparkyX, sparkyY, reducedMotion }: HeroContentProp
         </a>
       </motion.div>
 
-      {/* Trust Indicators */}
+      {/* ── Trust Indicators ── */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ duration: 1, delay: 1.2 }}
-        className="pt-12 flex flex-wrap items-center justify-center gap-6"
+        transition={{ duration: 1, delay: 3.2 }}
+        className="pt-8 flex flex-wrap items-center justify-center gap-6"
         style={{
           color: 'rgba(255, 255, 255, 0.75)',
           fontSize: '0.875rem',

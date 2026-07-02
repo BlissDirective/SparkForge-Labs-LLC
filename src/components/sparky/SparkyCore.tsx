@@ -41,6 +41,12 @@ export type SparkySize = 'sm' | 'md' | 'lg' | 'xl';
 export interface SparkyCoreProps {
   expression?: SparkyExpression;
   size?: SparkySize;
+  /**
+   * Fluid override for marketing surfaces: exact px (number) or any CSS
+   * width expression (e.g. `clamp(96px, 18vw, 280px)`). Height follows
+   * via aspect-ratio. Takes precedence over `size`.
+   */
+  pixelSize?: number | string;
   isAnimated?: boolean;
   glowColor?: string;
   showAura?: boolean;
@@ -364,6 +370,7 @@ function SparkyRobot({
 export function SparkyCore({
   expression = 'idle',
   size = 'md',
+  pixelSize,
   isAnimated = true,
   glowColor: glowColorProp,
   showAura = true,
@@ -371,8 +378,7 @@ export function SparkyCore({
 }: SparkyCoreProps) {
   const cfg = EXPRESSIONS[expression] ?? EXPRESSIONS.idle;
   const glowColor = glowColorProp || cfg.glowColor;
-  const width = SIZE_MAP[size];
-  const height = Math.round(width * ASPECT);
+  const width = pixelSize ?? SIZE_MAP[size];
 
   // Floating bob animation
   const bobAnimation = useMemo(
@@ -403,7 +409,7 @@ export function SparkyCore({
   return (
     <div
       className={`relative inline-flex items-center justify-center ${className}`}
-      style={{ width, height }}
+      style={{ width, aspectRatio: `1 / ${ASPECT}` }}
     >
       {/* ── Ambient Aura Glow ── */}
       {showAura && (

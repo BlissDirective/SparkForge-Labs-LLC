@@ -723,12 +723,14 @@ Building on the shipped v1 (Sparky hero + micro-game), the DESIGN.md-powered v2:
 
 **Tech:** pure SVG + Framer Motion (no new deps). The hologram replaces the FloatingLines WebGL background as the hero's light source — first react-bits removal. SparkyCore gains a fluid size mode (exact px or CSS clamp()) so the mascot scales proportionally to the viewport on marketing surfaces while dashboard/game placements keep fixed sizes.
 
-**Open questions for the owner (answer in chat):**
-1. Banner copy exactly "Welcome to SparkForge Labs"? Does it replace "Learn AI. Build the Future." or does that become the subtitle? (Lean: banner headline + tagline subtitle.)
-2. Sequence every visit (~3s) or first visit only? (Lean: every visit, fast, instant-on for reduced motion.)
-3. Hologram color: canonical Sparky cyan (lean) or magenta→blue brand gradient?
-4. Mobile: scaled full sequence (lean, simplified cone) or static composition?
-5. Build now as Hero v3, or after DESIGN.md? (Lean: build now — it defines the design language.)
+**Owner decisions (July 2 — LOCKED, implemented):**
+1. Hologram title "Welcome to SparkForge Labs" REPLACES the old headline. New brand subtitle below the animation: **"Sparking Curiosity, and Forging Skills with AI"** — solid design-scheme color, NOT holographic, with a react-bits ShinyText treatment to make it pop.
+2. Full sequence on **every visit** (~3s) — "a staple of the entire web app site." Reduced-motion renders the finished composition instantly.
+3. Hologram color: **cyan gradient matching Sparky** (#4DE9FF family).
+4. Mobile: same sequence, **simplified cone effects** (no flicker/scanline animation).
+5. **Built now** (`HeroHologram.tsx`) and specced into DESIGN.md §3 for reference/future edits.
+
+**Additional owner direction:** react-bits are NOT removed wholesale — the set gets re-curated during the DESIGN.md authoring session for more advanced, coherent, visually stunning components on par with the new system. SparkyCore gained the fluid `pixelSize` prop (CSS clamp) so the mascot scales proportionally per screen on marketing surfaces.
 
 ## III.3 App-wide rollout — page-by-page phases (post-DESIGN.md)
 
