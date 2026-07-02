@@ -699,6 +699,8 @@ Repo-guard suite is fully green for the first time (817/817 — the stale DESIGN
 
 **Deliverable gate:** DESIGN.md reviewed/approved by owner → becomes the contract for III.2/III.3.
 
+**Status (July 2):** DESIGN.md v1.0 AUTHORED — grounded in the reference-site decomposition (Sentry: text-forward promise hero, progressive-disclosure rhythm, product-frame proof, motion restraint · iris yirei hu: specimen pages, handcrafted warmth, image-first storytelling · Ciao: product-object hero, variant accent recoloring, bookended nav · AbvTek: poetic microcopy, numbered galleries, size-contrast type, whitespace shell), the 2026 trend survey (CSS animation-timeline, View Transitions, springs-default, grainient backgrounds, kinetic type ×1/page, bento ≤2/page, glassmorphism-lite; avoid-list: preloaders, scroll-jacking, glitch-text-as-primary, custom cursors), and the react-bits curation (6 KEEP, 3 RESTYLE, 1 REPLACE, 2 RETIRE + 8 vetted additions incl. LightRays as the hologram backdrop and AnimatedBeam for Lab-11 agent graphs). Resolves the live Exo 2/Sora vs Nunito/Inter font conflict in favor of Exo 2 + Sora. **Awaiting owner approval → unlocks R1.**
+
 ## III.2 Homepage: "visually stunning interactive hero page"
 
 Building on the shipped v1 (Sparky hero + micro-game), the DESIGN.md-powered v2:
