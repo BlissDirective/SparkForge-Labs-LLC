@@ -20,6 +20,8 @@ import {
 } from 'lucide-react';
 import { useActiveChild } from '@/hooks/useChildren';
 import { useCompleteAndReward } from '@/hooks/useGamification';
+import { useGameAccess } from '@/hooks/useTierAccess';
+import { GameLockedNotice } from '@/components/subscription/TierUpsell';
 import { getGameBySlug } from '@/config/gameRegistry';
 import { LAB_COLORS, LAB_NAMES } from '@/config/labs';
 import { GAME_LOADERS } from './game-loaders';
@@ -91,6 +93,11 @@ export default function GamePlayPage() {
   const gameConfig = useMemo(() => getGameBySlug(gameSlug), [gameSlug]);
   const childBand = activeChild?.age_band || 'B';
 
+  // P1-4 tier gating: preview labs get their first game free, the rest
+  // are locked on the free tier. While the tier loads, `locked` is false
+  // (never lock content during load).
+  const { locked } = useGameAccess(gameSlug);
+
   // Dynamic game component
   const GameComponent = useMemo(() => {
     const loader = GAME_LOADERS[gameSlug];
@@ -130,6 +137,20 @@ export default function GamePlayPage() {
 
   if (!GameComponent || !gameConfig) {
     return <GameNotFound />;
+  }
+
+  // P1-4 tier gating: locked games never render — show the friendly,
+  // parent-gated upsell instead. Only gate outside active gameplay so an
+  // in-flight session is never interrupted by an upsell (spec rule:
+  // no upsells DURING gameplay).
+  if (locked && gameState === 'selecting') {
+    return (
+      <GameLockedNotice
+        gameName={gameConfig.name}
+        backHref={`/labs/${gameConfig.lab}`}
+        backLabel={`Back to ${gameConfig.labName}`}
+      />
+    );
   }
 
   const labColor = LAB_COLORS[gameConfig.lab] || '#4F6EF7';

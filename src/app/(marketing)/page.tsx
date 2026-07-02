@@ -5,6 +5,7 @@
 // CTA. Enhanced with React Bits throughout for visual depth.
 
 import { HeroSection } from '@/components/landing/HeroSection';
+import { LandingMicroGame } from '@/components/landing/LandingMicroGame';
 import { LandingFeatures } from '@/components/landing/LandingFeatures';
 import { LandingAITutor } from '@/components/landing/LandingAITutor';
 import { LandingCTA } from '@/components/landing/LandingCTA';
@@ -15,6 +16,9 @@ export default function LandingPage() {
     <>
       {/* Hero with FloatingLines interactive background */}
       <HeroSection />
+
+      {/* "Teach Sparky to Sort" — 20-second playable classifier demo */}
+      <LandingMicroGame />
 
       {/* AI Tutor Feature Showcase */}
       <LandingAITutor />

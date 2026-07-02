@@ -1,11 +1,66 @@
 'use client';
 
-import { motion } from 'motion/react';
-import { Sparkles, ArrowRight, Play, Shield, Gamepad2, Zap } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { motion, useTransform, type MotionValue } from 'motion/react';
+import { Sparkles, Play, Shield, Gamepad2, Zap } from 'lucide-react';
+import { SparkyStatic } from '@/components/sparky/SparkyStatic';
+import type { SparkyExpression } from '@/components/sparky/SparkyCore';
 
-export function HeroContent() {
+export interface HeroContentProps {
+  /** Spring-smoothed pointer offset (px) supplied by HeroSection. */
+  sparkyX: MotionValue<number>;
+  sparkyY: MotionValue<number>;
+  reducedMotion: boolean;
+}
+
+export function HeroContent({ sparkyX, sparkyY, reducedMotion }: HeroContentProps) {
+  // Sparky reacts to the primary CTA: 'happy' on hover/focus,
+  // a brief 'excited' burst on click, otherwise 'idle'.
+  const [expression, setExpression] = useState<SparkyExpression>('idle');
+  const excitedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (excitedTimer.current) clearTimeout(excitedTimer.current);
+    };
+  }, []);
+
+  // Gentle tilt derived from the horizontal spring — a few degrees max.
+  const sparkyRotate = useTransform(sparkyX, [-16, 16], [-5, 5]);
+
+  const handleCtaEnter = () => setExpression('happy');
+  const handleCtaLeave = () => setExpression('idle');
+  const handleCtaClick = () => {
+    setExpression('excited');
+    if (excitedTimer.current) clearTimeout(excitedTimer.current);
+    excitedTimer.current = setTimeout(() => setExpression('happy'), 900);
+  };
+
   return (
     <div className="space-y-8">
+      {/* Sparky — canonical mascot, cursor-reactive on desktop */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.85, y: 10 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.1 }}
+        className="flex justify-center"
+      >
+        <motion.div
+          aria-hidden="true"
+          style={
+            reducedMotion
+              ? undefined
+              : { x: sparkyX, y: sparkyY, rotate: sparkyRotate }
+          }
+        >
+          <SparkyStatic
+            expression={reducedMotion ? 'happy' : expression}
+            size="lg"
+            showAura
+          />
+        </motion.div>
+      </motion.div>
+
       {/* Badge */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -68,6 +123,11 @@ export function HeroContent() {
       >
         <a
           href="/signup"
+          onMouseEnter={handleCtaEnter}
+          onMouseLeave={handleCtaLeave}
+          onFocus={handleCtaEnter}
+          onBlur={handleCtaLeave}
+          onClick={handleCtaClick}
           className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-4 rounded-full font-semibold text-white text-base transition-all hover:opacity-90 hover:scale-[1.02] active:scale-[0.98]"
           style={{
             background: 'linear-gradient(135deg, #E945F5, #2F4BC0)',

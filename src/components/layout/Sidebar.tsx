@@ -20,10 +20,16 @@ import {
   BookOpen,
 } from 'lucide-react';
 
-const NAV_ITEMS = [
+// `tour` renders a stable data-tour attribute used by DashboardTour anchors.
+const NAV_ITEMS: Array<{
+  href: string;
+  label: string;
+  icon: typeof Home;
+  tour?: string;
+}> = [
   { href: '/home', label: 'Home', icon: Home },
-  { href: '/arcade', label: 'Arcade', icon: Gamepad2 },
-  { href: '/labs', label: 'Labs', icon: FlaskConical },
+  { href: '/arcade', label: 'Arcade', icon: Gamepad2, tour: 'nav-arcade' },
+  { href: '/labs', label: 'Labs', icon: FlaskConical, tour: 'nav-labs' },
   { href: '/story', label: 'Story', icon: BookOpen },
   { href: '/buddies', label: 'Buddies', icon: Users },
   { href: '/seasons', label: 'Seasons', icon: CalendarDays },
@@ -31,7 +37,7 @@ const NAV_ITEMS = [
   { href: '/create', label: 'Create', icon: Wand2 },
   { href: '/progress', label: 'Progress', icon: TrendingUp },
   { href: '/achievements', label: 'Rewards', icon: Trophy },
-  { href: '/parent', label: 'Parent', icon: Shield },
+  { href: '/parent', label: 'Parent', icon: Shield, tour: 'nav-parent' },
   { href: '/settings', label: 'Settings', icon: Settings },
   { href: '/help', label: 'Help', icon: CircleHelp },
 ];
@@ -80,6 +86,7 @@ export function Sidebar() {
             <Link
               key={item.href}
               href={item.href}
+              data-tour={item.tour}
               aria-current={isActive ? 'page' : undefined}
               className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all"
               style={{

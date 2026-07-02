@@ -661,3 +661,75 @@ Ship NEW-1..5; add "publish to arcade" (kid-built quizzes/prompts/agents shared 
 Invisible adaptive difficulty from recent accuracy; UNESCO 12-competency map published on the marketing site; parent weekly "what your kid learned about AI" digest with conversation starters; per-game learning-outcome telemetry so future content decisions use data.
 
 *Sources for §II.5–II.6: UNESCO AI Competency Framework for Students (2026 update); AI4K12/CSTA 2025 priorities; "Agentic Literacy Debt" (arXiv 2605.27396); Common Sense Media June 2026 AI census + AI-companions research; APA Senate testimony; UNICEF "When AI becomes a friend" (2026); WEF/Fortune deepfake outlooks; FBI IC3 2025; Cybernews AI Overviews accuracy study; The Agent Report "State of AI Agents" (May 2026); Trophy.so & Deconstructor of Fun Duolingo analyses; Common Sense Media reviews of codeSpark/Toca Boca; Scratch LPP study (arXiv 2211.04046); Fairplay/NBC Prodigy FTC complaint; Khan Academy help center.*
+
+
+---
+---
+
+# PART III — Full App Redesign Plan (July 2, 2026)
+
+**Directive (owner's decisions, July 2):** Mascot = code-based now, Rive-ready — owner will submit a reference image for the interim look; every mascot instance site-wide must be uniform. Homepage = full redesign + playable micro-game, then **change and enhance nearly every aspect of the app**: first author a canonical **`DESIGN.md`** (built from the owner's reference sites + fresh research into trending animation/front-end/graphics styles), then rebuild the homepage as a visually stunning interactive hero page, then roll every other app page onto the new system phase by phase. Tier gating enforced exactly as pricing states. All four retention mechanics shipped.
+
+## III.0 Status of Phases 1–4 (shipped this session)
+
+| Phase | Item | Status |
+|---|---|---|
+| 1 | Core-flow e2e smoke spec (`tests/e2e/core-flow-smoke.spec.ts`: marketing → demo login → home → arcade → game → labs → parent) | ✅ |
+| 2 | Hero v1: canonical Sparky in hero, cursor-tracking springs (desktop, reduced-motion safe), reacts to CTA hover/click | ✅ |
+| 2 | **"Teach Sparky to Sort" playable micro-game** on the homepage (3 rounds, no-fail, Sparky reactions, "you just trained a classifier" payoff → signup CTA) | ✅ |
+| 3 | `/dev/sparky` showcase (all 9 expressions, sizes, floating/presenter/Rive-fallback demos with interactive triggers) | ✅ |
+| 3 | SparkyRive verified mounted in every game via JuiceProvider (combo/celebrate/encourage signals live; `thinking` signal TODO) | ✅ |
+| 3 | `docs/SPARKY-RIVE-SPEC.md` — authoring spec for the future .riv (exact colors, 9 poses, SparkyMachine inputs, verify on /dev/sparky) | ✅ |
+| 4 | **Tier gating** (`useTierAccess`): Free = Labs 1–3 full, first game of Labs 4–11, locked cards + parent-addressed upsell dialog, game page never mounts locked games, no upsells mid-gameplay. Tier read from the existing `/api/auth/me` cache. Games-per-week needs server tracking (TODO) | ✅ |
+| 4 | Dashboard onboarding tour (react-joyride, 6 steps, once per child, desktop) | ✅ |
+| 4 | Streak shields — verified already surfaced (StreakCounter shield icon + count) | ✅ |
+| 4 | Parent weekly digest cron (`/api/cron/weekly-digest`, Resend, per-child week stats + rotating AI conversation starter, double-gated on `ENABLE_WEEKLY_DIGEST` + `RESEND_API_KEY`) | ✅ |
+| — | Daily challenge + continue card | ✅ already existed (DailyMissionCard/QuickStatsBar/ActivityFeed) — was hidden behind the now-fixed no-profile dead-end |
+
+Repo-guard suite is fully green for the first time (817/817 — the stale DESIGN_COMPLIANCE_MATRIX was regenerated).
+
+## III.1 The `DESIGN.md` — how we author it (next working session)
+
+`DESIGN.md` becomes the single source of truth for the new visual system; every page PR after it must cite the tokens/patterns it uses. Authoring process:
+
+1. **Reference decomposition.** Extract the *transferable mechanics* (not the look) from the owner's reference set: **sentry.io** (product-first hero, live UI frames, confident dev-brand typography), **irisyireihu.com** (scroll-driven storytelling, oversized type, art direction courage), **ciaoenergy.com** (physical scroll feel, pinned chapters, playful color), **abvtek.com** (bold single-idea sections, motion restraint). Each contributes a named pattern to the system.
+2. **Trend scout.** Survey current (2026) front-end motion/design: scroll-driven animations via native CSS `animation-timeline` where possible, View Transitions API for page-to-page morphs, spring physics (motion/react), grain/gradient-mesh backgrounds, oversized kinetic type, cursor-aware components, bento grids, glassmorphism-lite on light surfaces. GitHub scouting: shadcn patterns, motion.dev examples, Framer templates, awwwards winners — extract only what serves a kids-product (joyful, legible, fast) and passes the repo's contrast/spacing guards.
+3. **Owner inputs.** The mascot reference image (incoming) defines Sparky's interim look — SparkyCore's SVG gets re-skinned to match it ONCE, and every surface (marketing hero, micro-game, dashboard floating buddy, game reactions, presenter, tour) inherits automatically since all already consume the same component. Uniformity is enforced by a repo guard: no new mascot drawings outside `src/components/sparky/`.
+4. **The document itself** (target ≤ 400 lines): brand personality (3 adjectives + anti-adjectives); color system (the existing `--sf-*` tokens extended — one light app surface + one dark marketing surface, both already guard-tested); type scale (display/body, kinetic-type rules); motion vocabulary (durations/springs/stagger constants, reduced-motion contract); component canon (SFButton/SFCard/SFInput + the new patterns: bento stat cards, chapter sections, cursor-aware cards); mascot placement contract; per-page-archetype layout recipes (marketing chapter page, dashboard page, game shell, settings/form page); accessibility floor (AA contrast, focus, touch targets ≥44px).
+
+**Deliverable gate:** DESIGN.md reviewed/approved by owner → becomes the contract for III.2/III.3.
+
+## III.2 Homepage: "visually stunning interactive hero page"
+
+Building on the shipped v1 (Sparky hero + micro-game), the DESIGN.md-powered v2:
+
+- **Hero:** full-bleed animated gradient-mesh/aurora tuned to the new palette; kinetic headline (staggered per-word spring reveal); Sparky (re-skinned) tracks cursor, blinks on idle, waves on load; live product frame (real dashboard screenshot in a floating tilted card, Sentry-style) under the fold.
+- **Micro-game grows up:** the sort demo gets the DESIGN.md skin + a shareable end-card ("I trained an AI!" with Sparky) — the page's conversion engine.
+- **Chapter scroll narrative** (ciaoenergy pattern): Build → Learn → Earn pinned chapters with scroll-scrubbed progress, each ending in one oversized stat.
+- **Labs bento** (abvtek pattern): 11 labs as a bento grid, each tile lab-colored with icon + one-line kid outcome; hover = tile grows + Sparky peeks.
+- **Trust chapter for parents:** COPPA/no-ads/no-tracking with links (all legal pages now reachable), UNESCO competency mapping (Part II).
+- Performance budget: hero LCP < 2.5s, no canvas on mobile, `prefers-reduced-motion` = full static integrity.
+
+## III.3 App-wide rollout — page-by-page phases (post-DESIGN.md)
+
+Each phase = one PR, one visual checkpoint, guards must stay green. Order chosen by user exposure:
+
+| Phase | Pages | Scope |
+|---|---|---|
+| R1 | Dashboard shell (Sidebar/TopBar/BottomNav) + Home | New tokens/type/motion; Home becomes the "mission control" (daily mission hero card, continue strip, goal ring) per DESIGN.md recipes |
+| R2 | Labs index + Lab detail | Bento lab grid, lab-colored themed detail headers, game cards with per-game art direction (kills the grey-tile feel) |
+| R3 | Arcade + game detail + GameShell chrome | Game cards with art, filter chips, GameShell frame/celebration ritual restyle (feeds Part II G3 juice work) |
+| R4 | Auth (login/signup/forgot) + onboarding/add-child | One dark-surface recipe, kinetic Sparky welcome, wizard polish |
+| R5 | Progress/Achievements/Mastery/Seasons/Story/Buddies/Create | Data-viz styling pass, honest empty states with Sparky, skeletal pages get real "coming soon" identity |
+| R6 | Parent suite + Settings + subscription/pricing | Parent-calm variant of the system (denser, quieter), pricing page restyle |
+| R7 | Marketing rest: pricing, legal, 404/offline, emails | Digest email template matches brand; error pages get Sparky |
+
+Rules for every R-phase: mascot only via `components/sparky`; tokens only via DESIGN.md; contrast/spacing guard tests must pass; screenshot before/after into the PR; mobile first-class.
+
+## III.4 Dependencies & owner actions
+
+- **Mascot reference image** (owner, incoming) → unlocks the SparkyCore re-skin at the start of R1.
+- **DESIGN.md approval** (owner) → unlocks III.2/III.3.
+- Optional later: author `public/rive/sparky.riv` per `docs/SPARKY-RIVE-SPEC.md` (Rive web editor, desktop browser) — drops in with zero code changes.
+- Production env: set `ENABLE_WEEKLY_DIGEST=true` + `RESEND_API_KEY` when ready to send digests; add a `vercel.json` cron entry (`0 16 * * 0` → `/api/cron/weekly-digest`) since none exists yet.
+- Server-side follow-ups logged: games-per-week free-tier tracking; `thinking` signal for SparkyRive.

@@ -19,7 +19,7 @@
 // dashboard component (Lab11HolographicDashboard) instead of the
 // standard game-list template.
 
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useParams, notFound } from 'next/navigation';
 import { motion } from 'motion/react';
 import dynamic from 'next/dynamic';
@@ -29,10 +29,12 @@ import { useUIStore } from '@/stores/uiStore';
 import { useCockpitStore } from '@/stores/cockpitStore';
 import { useLabProgress } from '@/hooks/useProgress';
 import { useCockpitBroadcast } from '@/stores/cockpitBroadcastStore';
+import { useLabAccess } from '@/hooks/useTierAccess';
+import { LabUpsellDialog } from '@/components/subscription/TierUpsell';
 import { staggerContainer, staggerItem } from '@/lib/animations';
 import { getGamesByLab } from '@/config/gameRegistry';
 import { LABS } from '@/types';
-import { ArrowLeft, Play } from 'lucide-react';
+import { ArrowLeft, Lock, Play } from 'lucide-react';
 
 const Lab11HolographicDashboard = dynamic(
   () => import('@/components/lab11/Lab11HolographicDashboard'),
@@ -56,6 +58,11 @@ export default function LabDetailPage() {
   const focusLab = useCockpitStore((s) => s.focusLab);
   const broadcast = useCockpitBroadcast((s) => s.broadcast);
   const childId = activeChild?.id || '';
+
+  // P1-4 tier gating: lab access level for the parent's subscription.
+  // While loading, access is 'full' — never flash locks at paying users.
+  const { access } = useLabAccess(labId);
+  const [upsellOpen, setUpsellOpen] = useState(false);
 
   // Resolve lab metadata from the canonical LABS array (Lab-11-aware).
   // notFound() is called below after all hooks have been registered to
@@ -173,6 +180,15 @@ export default function LabDetailPage() {
           >
             LAB {labId}
           </span>
+          {access === 'preview' && (
+            <span
+              className="font-mono font-bold px-2 py-0.5 rounded-full border border-white/20 bg-white/10 text-white/80"
+              style={{ fontSize: '9px' }}
+              aria-label="Preview lab — first game is free"
+            >
+              PREVIEW
+            </span>
+          )}
           <div className="h-px flex-1" style={{ background: `linear-gradient(90deg, ${color}40, transparent)` }} />
         </div>
         <h1
@@ -209,72 +225,111 @@ export default function LabDetailPage() {
           {games.map((game, index) => {
             const tier = TIER_BADGES[game.tier] || TIER_BADGES.standard;
 
+            // P1-4 tier gating: in a 'preview' lab only the FIRST game
+            // (registry order) is free; 'locked' labs lock every game.
+            const isGameLocked =
+              access === 'locked' || (access === 'preview' && index > 0);
+
+            const cardInner = (
+              <>
+                {/* Game number */}
+                <div
+                  className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 font-data text-xs font-bold"
+                  style={{
+                    background: `${color}15`,
+                    border: `1px solid ${color}25`,
+                    color,
+                  }}
+                >
+                  {index + 1}
+                </div>
+
+                {/* Game info */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <p className="font-display font-bold text-white text-sm truncate">
+                      {game.name}
+                    </p>
+                    {/* Tier badge */}
+                    <span
+                      className="font-mono text-[8px] font-bold px-1.5 py-0.5 rounded-full border"
+                      style={{
+                        color: tier.color,
+                        borderColor: `${tier.color}40`,
+                        background: `${tier.color}10`,
+                      }}
+                    >
+                      {tier.label}
+                    </span>
+                    {isGameLocked && (
+                      <span
+                        className="inline-flex items-center gap-1 font-mono font-bold px-1.5 py-0.5 rounded-full border border-white/25 bg-white/10 text-white/70"
+                        style={{ fontSize: '8px' }}
+                      >
+                        <Lock className="w-2.5 h-2.5" aria-hidden="true" />
+                        LOCKED
+                      </span>
+                    )}
+                  </div>
+                  {/* Age bands */}
+                  <div className="flex items-center gap-1 mt-0.5">
+                    {game.ageBands.map((band: string) => (
+                      <span
+                        key={band}
+                        className="font-mono text-[8px] text-white/25"
+                      >
+                        {band === 'A' ? '7-10' : band === 'B' ? '11-13' : '14-16'}
+                      </span>
+                    ))}
+                    {game.has3D && (
+                      <span className="font-mono text-[8px] text-neon-blue/40 ml-1">
+                        3D
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Play / lock affordance */}
+                <div
+                  className="w-8 h-8 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
+                  style={{ background: `${color}20`, border: `1px solid ${color}40` }}
+                >
+                  {isGameLocked ? (
+                    <Lock className="w-3.5 h-3.5" style={{ color }} />
+                  ) : (
+                    <Play className="w-3.5 h-3.5" style={{ color }} />
+                  )}
+                </div>
+              </>
+            );
+
             return (
               <motion.div key={game.slug} variants={staggerItem} role="listitem">
-                <Link
-                  href={`/arcade/${game.slug}`}
-                  className="group flex items-center gap-3 rounded-xl p-3 backdrop-blur-md border border-white/[0.06] bg-surface-card/40 hover:bg-surface-card/70 transition-all"
-                  style={{
-                    borderColor: `${color}15`,
-                  }}
-                  aria-label={`Play ${game.name} — ${tier.label} tier`}
-                >
-                  {/* Game number */}
-                  <div
-                    className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 font-data text-xs font-bold"
+                {isGameLocked ? (
+                  <button
+                    type="button"
+                    onClick={() => setUpsellOpen(true)}
+                    className="group w-full text-left flex items-center gap-3 rounded-xl p-3 backdrop-blur-md border border-white/[0.06] bg-surface-card/40 hover:bg-surface-card/70 transition-all opacity-60"
                     style={{
-                      background: `${color}15`,
-                      border: `1px solid ${color}25`,
-                      color,
+                      borderColor: `${color}15`,
                     }}
+                    aria-label={`${game.name} is locked — see how to unlock it`}
+                    aria-haspopup="dialog"
                   >
-                    {index + 1}
-                  </div>
-
-                  {/* Game info */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <p className="font-display font-bold text-white text-sm truncate">
-                        {game.name}
-                      </p>
-                      {/* Tier badge */}
-                      <span
-                        className="font-mono text-[8px] font-bold px-1.5 py-0.5 rounded-full border"
-                        style={{
-                          color: tier.color,
-                          borderColor: `${tier.color}40`,
-                          background: `${tier.color}10`,
-                        }}
-                      >
-                        {tier.label}
-                      </span>
-                    </div>
-                    {/* Age bands */}
-                    <div className="flex items-center gap-1 mt-0.5">
-                      {game.ageBands.map((band: string) => (
-                        <span
-                          key={band}
-                          className="font-mono text-[8px] text-white/25"
-                        >
-                          {band === 'A' ? '7-10' : band === 'B' ? '11-13' : '14-16'}
-                        </span>
-                      ))}
-                      {game.has3D && (
-                        <span className="font-mono text-[8px] text-neon-blue/40 ml-1">
-                          3D
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Play button */}
-                  <div
-                    className="w-8 h-8 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
-                    style={{ background: `${color}20`, border: `1px solid ${color}40` }}
+                    {cardInner}
+                  </button>
+                ) : (
+                  <Link
+                    href={`/arcade/${game.slug}`}
+                    className="group flex items-center gap-3 rounded-xl p-3 backdrop-blur-md border border-white/[0.06] bg-surface-card/40 hover:bg-surface-card/70 transition-all"
+                    style={{
+                      borderColor: `${color}15`,
+                    }}
+                    aria-label={`Play ${game.name} — ${tier.label} tier`}
                   >
-                    <Play className="w-3.5 h-3.5" style={{ color }} />
-                  </div>
-                </Link>
+                    {cardInner}
+                  </Link>
+                )}
               </motion.div>
             );
           })}
@@ -286,6 +341,13 @@ export default function LabDetailPage() {
         Lab {labId}: {name}. {games.length} games available.
         {isLoading ? ' Loading progress...' : ` ${Math.round(progressPercent)}% complete.`}
       </div>
+
+      {/* P1-4: parent-gated upsell for locked games */}
+      <LabUpsellDialog
+        isOpen={upsellOpen}
+        onClose={() => setUpsellOpen(false)}
+        labName={name}
+      />
     </motion.div>
   );
 }

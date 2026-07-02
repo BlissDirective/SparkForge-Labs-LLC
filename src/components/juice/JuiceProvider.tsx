@@ -231,12 +231,18 @@ export function JuiceProvider({ children }: { children: React.ReactNode }) {
           )}
         </AnimatePresence>
 
-        {/* Persistent reactive mascot (Rive + procedural fallback) */}
-        <div className="absolute bottom-3 left-3 z-[55] pointer-events-none">
+        {/* Persistent reactive mascot (Rive + procedural fallback).
+            Docked bottom-left — bottom-right belongs to SparkyGameReaction.
+            TODO(SPARKY-RIVE-THINKING): wire the `thinking` input once the
+            juice engine exposes a question-on-screen signal. Games do not
+            report "prompt shown" today (JuiceState has no such flag), so we
+            deliberately do NOT invent a parallel event system here. */}
+        <div className="absolute bottom-3 left-3 z-[55] pointer-events-none" aria-hidden>
           <SparkyMascot
             comboTier={comboTierNum}
             celebrate={celebrate}
             encourage={encourage}
+            size={72}
           />
         </div>
       </div>

@@ -36,6 +36,7 @@ import { SFCard } from '@/components/ui/SFCard';
 import { SFBadge } from '@/components/ui/SFBadge';
 import { SFCircularProgress } from '@/components/ui/SFCircularProgress';
 import { DailyMissionCard } from '@/components/mission/DailyMissionCard';
+import { DashboardTour } from '@/components/onboarding/DashboardTour';
 import { QuickStatsBar } from '@/components/home/QuickStatsBar';
 import { ActivityFeed } from '@/components/home/ActivityFeed';
 import { LeaderboardPanel } from '@/components/leaderboard/LeaderboardPanel';
@@ -209,6 +210,9 @@ export default function HomePage() {
 
   return (
     <div className="space-y-5 max-w-7xl mx-auto pb-20 lg:pb-6">
+      {/* ═══ First-Login Onboarding Tour (runs once per child) ═══ */}
+      <DashboardTour />
+
       {/* ═══ Welcome Header ═══ */}
       <motion.section
         initial={{ opacity: 0, y: 15 }}
@@ -229,6 +233,7 @@ export default function HomePage() {
       </motion.section>
 
       {/* ═══ Quick Stats Bar (Phase 2 Integration) ═══ */}
+      <div data-tour="quick-stats">
       <QuickStatsBar
         stats={{
           streakCount,
@@ -248,9 +253,11 @@ export default function HomePage() {
         onClaimDaily={claimDaily}
         onOpenStreakDetails={() => {}}
       />
+      </div>
 
       {/* ═══ Daily Mission (Phase 3 Centerpiece) ═══ */}
       <motion.section
+        data-tour="daily-mission"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.15 }}

@@ -2,6 +2,7 @@
 
 import dynamic from 'next/dynamic';
 import { Suspense } from 'react';
+import { useMotionValue, useSpring } from 'motion/react';
 import { HeroContent } from './HeroContent';
 import { FloatingLinesFallback } from './FloatingLinesFallback';
 import { useWebGLSupport } from '@/hooks/useWebGLSupport';
@@ -21,10 +22,35 @@ export function HeroSection() {
 
   const showAnimated = !reducedMotion && webgl.supported;
 
+  // ── Sparky cursor-reactivity (desktop only) ──
+  // Raw pointer offset (px) from the hero center, smoothed with springs
+  // so the orb lags gently behind the cursor instead of snapping.
+  const pointerX = useMotionValue(0);
+  const pointerY = useMotionValue(0);
+  const sparkyX = useSpring(pointerX, { stiffness: 80, damping: 18, mass: 0.6 });
+  const sparkyY = useSpring(pointerY, { stiffness: 80, damping: 18, mass: 0.6 });
+
+  const handlePointerMove = (e: React.PointerEvent<HTMLElement>) => {
+    // Reduced motion: no tracking. Touch/pen: no hover concept, keep static.
+    if (reducedMotion || e.pointerType !== 'mouse') return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const nx = (e.clientX - rect.left) / rect.width - 0.5;
+    const ny = (e.clientY - rect.top) / rect.height - 0.5;
+    pointerX.set(nx * 16);
+    pointerY.set(ny * 12);
+  };
+
+  const handlePointerLeave = () => {
+    pointerX.set(0);
+    pointerY.set(0);
+  };
+
   return (
     <section
       className="relative w-full min-h-[100dvh] flex items-center justify-center overflow-hidden"
       style={{ backgroundColor: '#0A0F1E' }}
+      onPointerMove={handlePointerMove}
+      onPointerLeave={handlePointerLeave}
     >
       {/* Background Layer */}
       <div className="absolute inset-0 z-0">
@@ -65,7 +91,11 @@ export function HeroSection() {
 
       {/* Content Overlay */}
       <div className="relative z-10 w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        <HeroContent />
+        <HeroContent
+          sparkyX={sparkyX}
+          sparkyY={sparkyY}
+          reducedMotion={reducedMotion}
+        />
       </div>
     </section>
   );
