@@ -1,17 +1,24 @@
 // ════════════════════════════════════════════════════════════════════════════
-// SPARKY CORE — Canonical AI Tutor Avatar Component
+// SPARKY CORE — Canonical AI Tutor Avatar Component (v2 — owner reference)
 // ════════════════════════════════════════════════════════════════════════════
-// The ONE and ONLY Sparky face implementation in the entire codebase.
+// The ONE and ONLY Sparky implementation in the entire codebase.
 // All Sparky instances across the app (landing, dashboard, home, games)
-// render this exact same face and body.
+// render this exact same character.
 //
-// Architecture: SVG face (expressions) + CSS 3D chrome body (orb)
-// Animations: Framer Motion (already in project)
-// NO WebGL, NO canvas — pure SVG + CSS for crisp rendering at any size.
+// v2 (July 2026): re-skinned to the owner's canonical reference
+// (public/branding/sparky-reference.jpeg) — a full-body chibi chrome
+// robot: polished dome head with a glowing lightning-bolt emblem,
+// dark visor screen with scanline LED eyes, glowing ear pods, chunky
+// chrome torso with neon trim, stubby arms and rounded boots. Neon
+// accent is cyan (#4DE9FF); per-expression glow tints only the face
+// LEDs so the character stays uniform site-wide while emotions read.
+//
+// Architecture: single SVG (crisp at any size) + Framer Motion.
+// NO WebGL, NO canvas. Public API is unchanged from v1.
 
 'use client';
 
-import { useMemo } from 'react';
+import { useId, useMemo } from 'react';
 import { motion } from 'motion/react';
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -42,6 +49,8 @@ export interface SparkyCoreProps {
 
 // ════════════════════════════════════════════════════════════════════════════
 // EXPRESSION CONFIGURATION
+// Mouth paths live in the visor coordinate space (visor: x 16–64, y 27–53;
+// eyes at (30,38) and (50,38); mouth baseline ~y 48).
 // ════════════════════════════════════════════════════════════════════════════
 
 interface ExpressionConfig {
@@ -57,23 +66,23 @@ const EXPRESSIONS: Record<SparkyExpression, ExpressionConfig> = {
   idle: {
     eyeScale: 1,
     eyeYOffset: 0,
-    mouthPath: 'M 32 58 Q 40 62 48 58',
-    glowColor: '#00D2FF',
-    eyeRingOpacity: 0.8,
+    mouthPath: 'M 35 47.5 Q 40 50.5 45 47.5',
+    glowColor: '#4DE9FF',
+    eyeRingOpacity: 0.85,
     antennaGlowIntensity: 0.6,
   },
   happy: {
     eyeScale: 1.1,
-    eyeYOffset: -1,
-    mouthPath: 'M 30 56 Q 40 66 50 56',
-    glowColor: '#00FF88',
+    eyeYOffset: -0.6,
+    mouthPath: 'M 33.5 46.5 Q 40 52.5 46.5 46.5',
+    glowColor: '#34F5C0',
     eyeRingOpacity: 1,
     antennaGlowIntensity: 0.9,
   },
   thinking: {
     eyeScale: 0.7,
-    eyeYOffset: 2,
-    mouthPath: 'M 35 58 Q 40 55 45 58',
+    eyeYOffset: 1.2,
+    mouthPath: 'M 36.5 48.5 Q 40 46.5 43.5 48.5',
     glowColor: '#FFD93D',
     eyeRingOpacity: 0.6,
     antennaGlowIntensity: 0.5,
@@ -81,55 +90,60 @@ const EXPRESSIONS: Record<SparkyExpression, ExpressionConfig> = {
   speaking: {
     eyeScale: 1,
     eyeYOffset: 0,
-    mouthPath: 'M 32 57 Q 40 63 48 57',
+    mouthPath: 'M 35 47 Q 40 51 45 47',
     glowColor: '#E945F5',
     eyeRingOpacity: 0.9,
     antennaGlowIntensity: 0.8,
   },
   excited: {
     eyeScale: 1.2,
-    eyeYOffset: -2,
-    mouthPath: 'M 28 54 Q 40 70 52 54',
-    glowColor: '#FF6B35',
+    eyeYOffset: -1.2,
+    mouthPath: 'M 32.5 45.5 Q 40 54.5 47.5 45.5',
+    glowColor: '#FF8A5C',
     eyeRingOpacity: 1,
     antennaGlowIntensity: 1,
   },
   sleepy: {
     eyeScale: 0.5,
-    eyeYOffset: 3,
-    mouthPath: 'M 35 59 Q 40 60 45 59',
+    eyeYOffset: 1.8,
+    mouthPath: 'M 36.5 49 Q 40 49.8 43.5 49',
     glowColor: '#8B9FFF',
     eyeRingOpacity: 0.4,
     antennaGlowIntensity: 0.3,
   },
   sad: {
-    eyeScale: 0.6,
-    eyeYOffset: 1,
-    mouthPath: 'M 32 60 Q 40 56 48 60',
+    eyeScale: 0.65,
+    eyeYOffset: 0.8,
+    mouthPath: 'M 35 49.5 Q 40 46.8 45 49.5',
     glowColor: '#5B7FFF',
     eyeRingOpacity: 0.5,
     antennaGlowIntensity: 0.3,
   },
   celebrating: {
     eyeScale: 1.3,
-    eyeYOffset: -3,
-    mouthPath: 'M 28 52 Q 40 72 52 52',
-    glowColor: '#FFD93D',
+    eyeYOffset: -1.6,
+    mouthPath: 'M 32 44.5 Q 40 55.5 48 44.5',
+    glowColor: '#FFE066',
     eyeRingOpacity: 1,
     antennaGlowIntensity: 1,
   },
   surprised: {
-    eyeScale: 1.4,
-    eyeYOffset: -1,
-    mouthPath: 'M 37 59 A 3 3 0 1 1 37 65 A 3 3 0 1 1 37 59',
-    glowColor: '#FF6B35',
+    eyeScale: 1.35,
+    eyeYOffset: -0.6,
+    mouthPath: 'M 38.4 48 A 1.9 1.9 0 1 1 38.4 51.4 A 1.9 1.9 0 1 1 38.4 48',
+    glowColor: '#FF6B9C',
     eyeRingOpacity: 1,
     antennaGlowIntensity: 0.9,
   },
 };
 
+// The character's constant chrome/neon identity — expressions tint the
+// face LEDs, but trim, bolt emblem, and ear pods stay canonical cyan so
+// Sparky reads as the same robot everywhere.
+const NEON = '#4DE9FF';
+
 // ════════════════════════════════════════════════════════════════════════════
-// SIZE MAP
+// SIZE MAP — width in px; the full-body robot is ~1.22× taller than wide.
 // ════════════════════════════════════════════════════════════════════════════
 
 const SIZE_MAP: Record<SparkySize, number> = {
@@ -139,254 +153,207 @@ const SIZE_MAP: Record<SparkySize, number> = {
   xl: 192,
 };
 
-// ════════════════════════════════════════════════════════════════════════════
-// SVG DEFS COMPONENT (gradient definitions — rendered once)
-// ════════════════════════════════════════════════════════════════════════════
-
-function SparkyDefs({ glowColor }: { glowColor: string }) {
-  return (
-    <defs>
-      {/* Eye ring gradient — bright inner, soft outer */}
-      <radialGradient id="sc-eyeGrad" cx="50%" cy="50%" r="50%">
-        <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.9" />
-        <stop offset="40%" stopColor={glowColor} stopOpacity="0.95" />
-        <stop offset="100%" stopColor={glowColor} stopOpacity="0.25" />
-      </radialGradient>
-
-      {/* Inner eye dark center */}
-      <radialGradient id="sc-eyeCenter" cx="50%" cy="50%" r="50%">
-        <stop offset="0%" stopColor="#0A1628" stopOpacity="1" />
-        <stop offset="70%" stopColor="#0A1628" stopOpacity="1" />
-        <stop offset="100%" stopColor={glowColor} stopOpacity="0.45" />
-      </radialGradient>
-
-      {/* Face screen subtle gradient */}
-      <radialGradient id="sc-faceScreen" cx="50%" cy="45%" r="55%">
-        <stop offset="0%" stopColor="#0D1B2A" />
-        <stop offset="100%" stopColor="#050A12" />
-      </radialGradient>
-
-      {/* Glow filter for eyes */}
-      <filter id="sc-eyeGlow" x="-50%" y="-50%" width="200%" height="200%">
-        <feGaussianBlur stdDeviation="2.5" result="blur" />
-        <feMerge>
-          <feMergeNode in="blur" />
-          <feMergeNode in="SourceGraphic" />
-        </feMerge>
-      </filter>
-    </defs>
-  );
-}
+const ASPECT = 1.22; // viewBox 80 × 98
 
 // ════════════════════════════════════════════════════════════════════════════
-// FACE COMPONENT (SVG — the soul of Sparky)
+// FULL-BODY ROBOT (single SVG)
 // ════════════════════════════════════════════════════════════════════════════
 
-function SparkyFace({
+function SparkyRobot({
   expression,
-  isHovered,
+  glowColor: glowOverride,
 }: {
   expression: SparkyExpression;
-  isHovered: boolean;
+  glowColor?: string;
 }) {
   // The AI-tutor API can return expression strings outside the union
   // (server prompt drift); an unknown key made cfg undefined and
   // rendered <path d="undefined"> (P1-6). Fall back to idle.
   const cfg = EXPRESSIONS[expression] ?? EXPRESSIONS.idle;
+  const glow = glowOverride || cfg.glowColor;
 
-  // Unique gradient IDs per expression to prevent caching issues
-  const uid = expression.charAt(0) + expression.charAt(expression.length - 1);
+  // Unique gradient/pattern IDs per instance so multiple Sparkys on one
+  // page (e.g. /dev/sparky) never fight over defs.
+  const uid = useId().replace(/[:]/g, '');
+  const id = (name: string) => `sk-${name}-${uid}`;
 
   return (
     <svg
-      viewBox="0 0 80 80"
+      viewBox="0 0 80 98"
       className="w-full h-full"
-      style={{ filter: `drop-shadow(0 0 6px ${cfg.glowColor}60)` }}
+      style={{ filter: `drop-shadow(0 0 6px ${glow}50)` }}
       aria-hidden="true"
     >
-      <SparkyDefs glowColor={cfg.glowColor} />
+      <defs>
+        {/* Chrome — cool polished steel with a warm kiss, per reference */}
+        <linearGradient id={id('chrome')} x1="20%" y1="0%" x2="80%" y2="100%">
+          <stop offset="0%" stopColor="#F7F9FE" />
+          <stop offset="30%" stopColor="#D9DFEC" />
+          <stop offset="55%" stopColor="#AEB8CE" />
+          <stop offset="78%" stopColor="#7C88A6" />
+          <stop offset="100%" stopColor="#525E7C" />
+        </linearGradient>
+        <linearGradient id={id('chromeDark')} x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#C6CEDF" />
+          <stop offset="55%" stopColor="#8792AE" />
+          <stop offset="100%" stopColor="#3E4A66" />
+        </linearGradient>
+        {/* Visor screen */}
+        <radialGradient id={id('screen')} cx="50%" cy="42%" r="65%">
+          <stop offset="0%" stopColor="#0D1B2A" />
+          <stop offset="100%" stopColor="#04080F" />
+        </radialGradient>
+        {/* LED eye — bright core fading out */}
+        <radialGradient id={id('eye')} cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.95" />
+          <stop offset="35%" stopColor={glow} stopOpacity="0.95" />
+          <stop offset="80%" stopColor={glow} stopOpacity="0.55" />
+          <stop offset="100%" stopColor={glow} stopOpacity="0.15" />
+        </radialGradient>
+        {/* Horizontal scanlines masked into the eye discs (reference look) */}
+        <pattern id={id('scan')} width="4" height="2.2" patternUnits="userSpaceOnUse">
+          <rect width="4" height="1.3" fill="#04080F" opacity="0.35" />
+        </pattern>
+        <filter id={id('neonGlow')} x="-60%" y="-60%" width="220%" height="220%">
+          <feGaussianBlur stdDeviation="1.6" result="blur" />
+          <feMerge>
+            <feMergeNode in="blur" />
+            <feMergeNode in="SourceGraphic" />
+          </feMerge>
+        </filter>
+      </defs>
 
-      {/* ── Face Screen (black rounded rectangle) ── */}
-      <rect
-        x="10"
-        y="18"
-        width="60"
-        height="44"
-        rx="20"
-        fill="url(#sc-faceScreen)"
-        stroke={cfg.glowColor}
-        strokeWidth="0.5"
-        strokeOpacity="0.3"
-      />
+      {/* ══ BOOTS ══ */}
+      <g>
+        <rect x="21" y="86" width="16" height="9" rx="4.2" fill={`url(#${id('chromeDark')})`} />
+        <rect x="43" y="86" width="16" height="9" rx="4.2" fill={`url(#${id('chromeDark')})`} />
+        {/* Neon boot trim */}
+        <path d="M 23 90 H 35" stroke={NEON} strokeWidth="1" strokeLinecap="round" opacity="0.85" filter={`url(#${id('neonGlow')})`} />
+        <path d="M 45 90 H 57" stroke={NEON} strokeWidth="1" strokeLinecap="round" opacity="0.85" filter={`url(#${id('neonGlow')})`} />
+      </g>
 
-      {/* ── Left Eye ── */}
-      <motion.g
-        animate={{
-          scale: cfg.eyeScale,
-          y: cfg.eyeYOffset,
-        }}
-        transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-        style={{ transformOrigin: '28px 38px' }}
-      >
-        <g transform="translate(28, 38)">
-          {/* Outer ring glow */}
-          <circle
-            cx="0"
-            cy="0"
-            r="9"
-            fill="none"
-            stroke={cfg.glowColor}
-            strokeWidth="2.5"
-            opacity={cfg.eyeRingOpacity}
-            filter="url(#sc-eyeGlow)"
-          />
-          {/* Ring fill gradient */}
-          <circle
-            cx="0"
-            cy="0"
-            r="9"
-            fill="none"
-            stroke="url(#sc-eyeGrad)"
-            strokeWidth="2"
-            opacity={cfg.eyeRingOpacity}
-          />
-          {/* Dark center */}
-          <circle cx="0" cy="0" r="5.5" fill="url(#sc-eyeCenter)" />
-          {/* Highlight dot */}
-          <circle cx="-2" cy="-2" r="1.8" fill="#FFFFFF" opacity="0.9" />
-        </g>
-      </motion.g>
+      {/* ══ ARMS (behind torso) ══ */}
+      <g>
+        <ellipse cx="16.5" cy="72" rx="6" ry="8.5" fill={`url(#${id('chromeDark')})`} transform="rotate(14 16.5 72)" />
+        <ellipse cx="63.5" cy="72" rx="6" ry="8.5" fill={`url(#${id('chromeDark')})`} transform="rotate(-14 63.5 72)" />
+        {/* Arm neon rings */}
+        <path d="M 12.5 68.5 Q 16.5 66.5 20.5 68.5" stroke={NEON} strokeWidth="0.9" fill="none" opacity="0.8" filter={`url(#${id('neonGlow')})`} />
+        <path d="M 59.5 68.5 Q 63.5 66.5 67.5 68.5" stroke={NEON} strokeWidth="0.9" fill="none" opacity="0.8" filter={`url(#${id('neonGlow')})`} />
+      </g>
 
-      {/* ── Right Eye ── */}
-      <motion.g
-        animate={{
-          scale: cfg.eyeScale,
-          y: cfg.eyeYOffset,
-        }}
-        transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-        style={{ transformOrigin: '52px 38px' }}
-      >
-        <g transform="translate(52, 38)">
-          <circle
-            cx="0"
-            cy="0"
-            r="9"
-            fill="none"
-            stroke={cfg.glowColor}
-            strokeWidth="2.5"
-            opacity={cfg.eyeRingOpacity}
-            filter="url(#sc-eyeGlow)"
-          />
-          <circle
-            cx="0"
-            cy="0"
-            r="9"
-            fill="none"
-            stroke="url(#sc-eyeGrad)"
-            strokeWidth="2"
-            opacity={cfg.eyeRingOpacity}
-          />
-          <circle cx="0" cy="0" r="5.5" fill="url(#sc-eyeCenter)" />
-          <circle cx="-2" cy="-2" r="1.8" fill="#FFFFFF" opacity="0.9" />
-        </g>
-      </motion.g>
-
-      {/* ── Mouth ── */}
-      <motion.path
-        d={cfg.mouthPath}
-        fill={expression === 'surprised' ? `${cfg.glowColor}40` : 'none'}
-        stroke={cfg.glowColor}
-        strokeWidth="1.8"
-        strokeLinecap="round"
-        opacity="0.85"
-        animate={{ d: cfg.mouthPath }}
-        transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-      />
-
-      {/* ── Scanline (subtle animated line across face) ── */}
-      {isHovered && (
-        <motion.line
-          x1="10"
-          y1="20"
-          x2="70"
-          y2="20"
-          stroke={cfg.glowColor}
-          strokeWidth="0.3"
-          opacity="0.15"
-          animate={{ y1: [20, 62, 20], y2: [20, 62, 20] }}
-          transition={{ repeat: Infinity, duration: 4, ease: 'linear' }}
+      {/* ══ TORSO ══ */}
+      <g>
+        <path
+          d="M 24 60 Q 24 56 29 56 L 51 56 Q 56 56 56 60 L 57.5 80 Q 57.5 86 51 86 L 29 86 Q 22.5 86 22.5 80 Z"
+          fill={`url(#${id('chrome')})`}
         />
-      )}
+        {/* Torso neon trim following the silhouette */}
+        <path
+          d="M 25.8 61 L 24.6 79.5 Q 24.6 84 29.5 84 L 50.5 84 Q 55.4 84 55.4 79.5 L 54.2 61"
+          stroke={NEON}
+          strokeWidth="1.1"
+          fill="none"
+          opacity="0.9"
+          filter={`url(#${id('neonGlow')})`}
+        />
+        {/* Chest core panel */}
+        <rect x="34.5" y="63.5" width="11" height="9.5" rx="2.4" fill={`url(#${id('screen')})`} stroke={NEON} strokeWidth="0.9" strokeOpacity="0.9" filter={`url(#${id('neonGlow')})`} />
+        <path d="M 37 66 H 43 M 37 68.2 H 43 M 37 70.4 H 43" stroke={NEON} strokeWidth="0.8" opacity="0.75" />
+        {/* Belly seam + rivets */}
+        <circle cx="29" cy="78" r="0.8" fill="#46506B" />
+        <circle cx="51" cy="78" r="0.8" fill="#46506B" />
+      </g>
+
+      {/* ══ EAR PODS ══ */}
+      <g>
+        <circle cx="9.5" cy="38" r="7.2" fill={`url(#${id('chromeDark')})`} />
+        <circle cx="70.5" cy="38" r="7.2" fill={`url(#${id('chromeDark')})`} />
+        {/* Glowing pod rings */}
+        <circle cx="9.5" cy="38" r="5.4" fill="none" stroke={NEON} strokeWidth="1.1" opacity="0.9" filter={`url(#${id('neonGlow')})`} />
+        <circle cx="70.5" cy="38" r="5.4" fill="none" stroke={NEON} strokeWidth="1.1" opacity="0.9" filter={`url(#${id('neonGlow')})`} />
+        <circle cx="9.5" cy="38" r="2.6" fill="#111A2C" />
+        <circle cx="70.5" cy="38" r="2.6" fill="#111A2C" />
+      </g>
+
+      {/* ══ HEAD DOME ══ */}
+      <g>
+        {/* Antenna cap */}
+        <rect x="33" y="1.5" width="14" height="5.5" rx="2.4" fill={`url(#${id('chromeDark')})`} />
+        {/* Dome */}
+        <ellipse cx="40" cy="34" rx="30" ry="29" fill={`url(#${id('chrome')})`} />
+        {/* Dome specular highlight */}
+        <ellipse cx="29" cy="17" rx="12" ry="6.5" fill="#FFFFFF" opacity="0.55" transform="rotate(-18 29 17)" />
+        {/* Panel seam over the brow with rivets */}
+        <path d="M 12.5 27.5 Q 40 15.5 67.5 27.5" stroke="#5D6883" strokeWidth="0.9" fill="none" opacity="0.7" />
+        <path d="M 13.5 30 Q 40 18 66.5 30" stroke={NEON} strokeWidth="0.9" fill="none" opacity="0.75" filter={`url(#${id('neonGlow')})`} />
+        <circle cx="20" cy="24.7" r="0.75" fill="#46506B" />
+        <circle cx="60" cy="24.7" r="0.75" fill="#46506B" />
+        <circle cx="40" cy="17.8" r="0.75" fill="#46506B" />
+
+        {/* Lightning-bolt emblem (canonical, always neon) */}
+        <motion.path
+          d="M 41.8 8.5 L 36.8 16.8 L 40 16.8 L 38.2 22.5 L 43.6 14.4 L 40.4 14.4 Z"
+          fill={NEON}
+          filter={`url(#${id('neonGlow')})`}
+          animate={{ opacity: [0.75, 1, 0.75] }}
+          transition={{ repeat: Infinity, duration: 2.4, ease: 'easeInOut' }}
+        />
+      </g>
+
+      {/* ══ VISOR SCREEN ══ */}
+      <g>
+        {/* rx=20 is load-bearing: Sparky.test.tsx asserts the visor rect */}
+        <rect
+          x="16"
+          y="27"
+          width="48"
+          height="26"
+          rx="20"
+          ry="12"
+          fill={`url(#${id('screen')})`}
+          stroke={NEON}
+          strokeWidth="1"
+          strokeOpacity="0.8"
+          filter={`url(#${id('neonGlow')})`}
+        />
+
+        {/* ── Eyes: LED discs with scanlines ── */}
+        {[30, 50].map((cx) => (
+          <motion.g
+            key={cx}
+            animate={{ scale: cfg.eyeScale, y: cfg.eyeYOffset }}
+            transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+            style={{ transformOrigin: `${cx}px 38px` }}
+          >
+            <g transform={`translate(${cx}, 38)`}>
+              {/* Soft halo */}
+              <circle cx="0" cy="0" r="7.6" fill={glow} opacity={0.22 * cfg.eyeRingOpacity} filter={`url(#${id('neonGlow')})`} />
+              {/* LED disc */}
+              <circle cx="0" cy="0" r="6.2" fill={`url(#${id('eye')})`} opacity={cfg.eyeRingOpacity} />
+              {/* Scanline texture */}
+              <circle cx="0" cy="0" r="6.2" fill={`url(#${id('scan')})`} opacity="0.9" />
+              {/* Rim */}
+              <circle cx="0" cy="0" r="6.2" fill="none" stroke={glow} strokeWidth="0.8" opacity={cfg.eyeRingOpacity} />
+              {/* Highlight dot */}
+              <circle cx="-2" cy="-2.2" r="1.3" fill="#FFFFFF" opacity="0.85" />
+            </g>
+          </motion.g>
+        ))}
+
+        {/* ── Mouth ── */}
+        <motion.path
+          d={cfg.mouthPath}
+          fill={expression === 'surprised' ? `${glow}40` : 'none'}
+          stroke={glow}
+          strokeWidth="1.6"
+          strokeLinecap="round"
+          opacity="0.9"
+          filter={`url(#${id('neonGlow')})`}
+          animate={{ d: cfg.mouthPath }}
+          transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+        />
+      </g>
     </svg>
-  );
-}
-
-// ════════════════════════════════════════════════════════════════════════════
-// CHROME BODY COMPONENT (CSS 3D sphere)
-// ════════════════════════════════════════════════════════════════════════════
-
-function SparkyBody({
-  glowColor,
-  isHovered,
-  size,
-  children,
-}: {
-  glowColor: string;
-  isHovered: boolean;
-  size: number;
-  children: React.ReactNode;
-}) {
-  return (
-    <div
-      className="relative rounded-full overflow-hidden"
-      style={{
-        width: size,
-        height: size,
-        background: `
-          radial-gradient(circle at 32% 22%, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.3) 8%, transparent 18%),
-          radial-gradient(circle at 70% 75%, ${glowColor}15 0%, transparent 35%),
-          linear-gradient(160deg, #F0F2F8 0%, #D8DDE8 25%, #B8C0D4 50%, #98A2BC 75%, #7884A4 100%)
-        `,
-        boxShadow: isHovered
-          ? `0 0 0 1px rgba(255,255,255,0.3) inset, 0 0 20px ${glowColor}40, 0 6px 24px rgba(0,0,0,0.25)`
-          : `0 0 0 1px rgba(255,255,255,0.2) inset, 0 4px 16px rgba(0,0,0,0.18)`,
-        transform: isHovered ? 'rotateX(-6deg) rotateY(8deg) scale(1.02)' : undefined,
-        transition: 'transform 0.35s ease, box-shadow 0.35s ease',
-        transformStyle: 'preserve-3d',
-      }}
-    >
-      {/* Rim light (bottom arc — expression glow reflection) */}
-      <div
-        className="absolute bottom-0 left-[10%] right-[10%] h-[35%] rounded-b-full pointer-events-none"
-        style={{
-          background: `radial-gradient(ellipse at 50% 100%, ${glowColor}25, transparent 65%)`,
-          filter: 'blur(3px)',
-        }}
-      />
-
-      {/* Secondary specular highlight */}
-      <div
-        className="absolute top-[8%] left-[15%] w-[25%] h-[18%] rounded-full pointer-events-none"
-        style={{
-          background: 'radial-gradient(ellipse, rgba(255,255,255,0.5), transparent 70%)',
-          filter: 'blur(1px)',
-        }}
-      />
-
-      {/* Face container */}
-      <div className="absolute inset-[8%] rounded-full overflow-hidden flex items-center justify-center">
-        {children}
-      </div>
-
-      {/* Chrome seam ring */}
-      <div
-        className="absolute inset-0 rounded-full pointer-events-none"
-        style={{
-          boxShadow:
-            'inset 0 1px 2px rgba(255,255,255,0.4), inset 0 -2px 4px rgba(0,0,0,0.15)',
-        }}
-      />
-    </div>
   );
 }
 
@@ -402,52 +369,33 @@ export function SparkyCore({
   showAura = true,
   className = '',
 }: SparkyCoreProps) {
-  const cfg = EXPRESSIONS[expression];
+  const cfg = EXPRESSIONS[expression] ?? EXPRESSIONS.idle;
   const glowColor = glowColorProp || cfg.glowColor;
-  const pixelSize = SIZE_MAP[size];
+  const width = SIZE_MAP[size];
+  const height = Math.round(width * ASPECT);
 
   // Floating bob animation
   const bobAnimation = useMemo(
-    () =>
-      isAnimated
-        ? {
-            y: [0, -5, 0],
-          }
-        : {},
+    () => (isAnimated ? { y: [0, -5, 0] } : {}),
     [isAnimated]
   );
-
   const bobTransition = useMemo(
     () =>
       isAnimated
-        ? {
-            repeat: Infinity,
-            duration: 3,
-            ease: 'easeInOut' as const,
-          }
+        ? { repeat: Infinity, duration: 3, ease: 'easeInOut' as const }
         : {},
     [isAnimated]
   );
 
   // Breathing scale animation
   const breatheAnimation = useMemo(
-    () =>
-      isAnimated
-        ? {
-            scale: [1, 1.015, 1],
-          }
-        : {},
+    () => (isAnimated ? { scale: [1, 1.015, 1] } : {}),
     [isAnimated]
   );
-
   const breatheTransition = useMemo(
     () =>
       isAnimated
-        ? {
-            repeat: Infinity,
-            duration: 4,
-            ease: 'easeInOut' as const,
-          }
+        ? { repeat: Infinity, duration: 4, ease: 'easeInOut' as const }
         : {},
     [isAnimated]
   );
@@ -455,56 +403,33 @@ export function SparkyCore({
   return (
     <div
       className={`relative inline-flex items-center justify-center ${className}`}
-      style={{ width: pixelSize, height: pixelSize + 6 }}
+      style={{ width, height }}
     >
-      {/* ── Ambient Aura Glow (behind the orb) ── */}
+      {/* ── Ambient Aura Glow ── */}
       {showAura && (
         <div
           className="absolute inset-0 rounded-full pointer-events-none"
           style={{
             background: `radial-gradient(circle, ${glowColor}18 0%, ${glowColor}08 40%, transparent 70%)`,
-            transform: 'scale(1.6)',
+            transform: 'scale(1.45)',
             filter: 'blur(8px)',
           }}
         />
       )}
 
-      {/* ── Main Orb with Animations ── */}
+      {/* ── Robot with float + breathe ── */}
       <motion.div
         animate={bobAnimation}
         transition={bobTransition}
-        className="relative w-full"
-        style={{ transformStyle: 'preserve-3d' }}
+        className="relative w-full h-full"
       >
-        {/* Breathing scale wrapper */}
         <motion.div
           animate={breatheAnimation}
           transition={breatheTransition}
-          className="relative"
+          className="relative w-full h-full"
         >
-          <SparkyBody glowColor={glowColor} isHovered={false} size={pixelSize}>
-            <SparkyFace expression={expression} isHovered={false} />
-          </SparkyBody>
+          <SparkyRobot expression={expression} glowColor={glowColorProp} />
         </motion.div>
-
-        {/* ── Antenna ── */}
-        <div
-          className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-[3px] rounded-full"
-          style={{
-            height: Math.max(4, pixelSize * 0.08),
-            background: 'linear-gradient(180deg, #A0A8C0, #707890)',
-          }}
-        >
-          <div
-            className="absolute -top-[3px] left-1/2 -translate-x-1/2 rounded-full"
-            style={{
-              width: Math.max(4, pixelSize * 0.065),
-              height: Math.max(4, pixelSize * 0.065),
-              background: glowColor,
-              boxShadow: `0 0 ${pixelSize * 0.08}px ${glowColor}, 0 0 ${pixelSize * 0.15}px ${glowColor}60`,
-            }}
-          />
-        </div>
       </motion.div>
     </div>
   );
