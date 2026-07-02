@@ -1,9 +1,10 @@
-# SparkForge DESIGN.md — v1.0 (July 2, 2026)
+# SparkForge DESIGN.md — v1.1 (July 2, 2026) — OWNER-APPROVED
 
 The canonical design system for the SparkForge redesign (Fable-5 rebuild,
 Part III). Every R-phase PR must cite the tokens and patterns here.
-**LOCKED** sections are owner-approved and in production. Everything else is
-v1 draft — the owner reviews this document as the gate to the R1–R7 rollout.
+Approved by the owner on July 2, 2026 with curation amendments (§7.1).
+Typography canon (Exo 2 + Sora) confirmed; Nunito/Inter cleanup is an R1
+task. R1 is unlocked.
 
 Grounding research: decomposition of the owner's four reference sites
 (sentry.io, irisyireihu.com, ciaoenergy.com, abvtek.com), a 2026 front-end
@@ -124,33 +125,35 @@ consume §4 tokens. New structural patterns:
 - **Glassmorphism-lite**: low-blur frosted panels with real borders for
   dashboard overlays + game HUDs only; always AA text.
 
-### 7.1 react-bits curation (owner directive: re-curate, don't remove)
+### 7.1 react-bits curation (owner-amended, July 2 — APPROVED)
 
-| Current | Verdict |
+| Current | Verdict (owner decision) |
 |---|---|
-| ClickSpark | KEEP — kid feedback; recolor per lab |
 | CountUp | KEEP — XP/score/streak counters |
-| GradientText | KEEP — headings only, brand or cyan→lab gradients |
-| OrbitalRing | KEEP — loading/"thinking" indicator (on-brand AI motif) |
 | StarBorder | KEEP — badges, streaks, premium CTAs |
-| TiltedCard | KEEP — game cards; tilt ≤ 6°, off for touch/reduced-motion |
-| FloatingLines | RESTYLE — dark marketing only; tint #4DE9FF, lower density |
-| MetallicPaint | RESTYLE — exclusively Sparky chrome + brand wordmark |
-| SpotlightCard | RESTYLE — dark marketing only; light dashboard uses soft border-glow hover |
-| GalaxyBackground | REPLACE → reactbits `soft-aurora`/`grainient` (calmer, cheaper) |
-| ShinyText | RETIRE — one text-effect system (GradientText + SplitText); currently used on the hero tagline → swap during R-marketing pass |
-| AmbientParticles | RETIRE — confirmed (Decision 20.0) |
+| ClickSpark | RETIRE → replaced by MagicUI **Cool Mode** (tap particle burst — more visually unique kid feedback, per-lab colored) |
+| GradientText | RETIRE → text system becomes **SplitText + BlurText**; gradient type is reserved for the hero hologram only |
+| OrbitalRing | RETIRE → replaced by reactbits **Orb** as the loading/"thinking" indicator (matches Sparky's orb identity) |
+| TiltedCard | RETIRE → replaced by **GlareHover** cards (chrome glare sweep — on-brand with Sparky's finish) + **CardSwap** for galleries |
+| FloatingLines | RESTYLE — dark marketing only; tint #4DE9FF, lower density (confirmed) |
+| MetallicPaint | RESTYLE — exclusively Sparky chrome + brand wordmark (confirmed) |
+| SpotlightCard | RESTYLE — dark marketing only; light dashboard uses soft border-glow hover (confirmed) |
+| GalaxyBackground | **MERGE with Aurora** → one "Aurora-Galaxy" background: aurora waves + a sparse star field, cyan-tinted, marketing-dark only |
+| ShinyText | RETIRE (confirmed) — hero tagline swaps to SplitText in R1 |
+| AmbientParticles | RETIRE (confirmed, Decision 20.0) |
 
-**Additions (licenses verified):** SplitText, MagicBento, StickerPeel,
-ElectricBorder, LightRays (reactbits — MIT+Commons Clause, fine for product
-use); Confetti, AnimatedBeam, Marquee (MagicUI — MIT). AnimatedBeam doubles
-as the Lab-11 agent-graph visual. LightRays becomes the hologram hero's
-backdrop light source. 21st.dev components require per-component license
-checks — prefer the MIT sources above.
+**Additions (owner-approved, licenses verified):** SplitText, BlurText, Orb,
+GlareHover, CardSwap, MagicBento, StickerPeel, ElectricBorder, LightRays
+(reactbits — MIT+Commons Clause, fine for product use); Confetti,
+AnimatedBeam, Marquee, Cool Mode (MagicUI — MIT). Highlights: **LightRays**
+as the literal light source behind the hologram hero; **AnimatedBeam** for
+Lab-11 agent-graph visuals; **StickerPeel** for badge reveals; **Confetti**
+for earned wins only. 21st.dev requires per-component license checks —
+prefer the MIT sources above.
 
-**Coherence rules:** one background system per surface (aurora/grainient on
+**Coherence rules:** one background system per surface (Aurora-Galaxy on
 marketing-dark; flat + subtle grain on dashboard-light) · one text-effect
-system · celebrations only for earned moments.
+system (SplitText + BlurText) · celebrations only for earned moments.
 
 ## 8. Page archetype recipes
 
