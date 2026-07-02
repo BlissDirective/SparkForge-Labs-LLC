@@ -20,6 +20,7 @@
 import { useEffect, useState } from 'react';
 import { motion, useReducedMotion } from 'motion/react';
 import { SparkyCore } from '@/components/sparky/SparkyCore';
+import LightRays from '@/components/bits/LightRays';
 
 const CYAN = '#4DE9FF';
 
@@ -52,6 +53,11 @@ export function HeroHologram() {
 
   return (
     <div className="relative mx-auto w-full" style={{ maxWidth: 'min(96vw, 1080px)' }}>
+      {/* ══ Volumetric light rays — the hologram's light source, behind the
+          cone + banner (LightRays root is absolute inset-0 + aria-hidden;
+          reduced motion renders static rays inside the component) ══ */}
+      <LightRays origin="bottom-center" intensity={0.55} className="z-0" />
+
       {/* ══ Light cone — spans the WHOLE container, title included ══ */}
       <motion.div
         aria-hidden="true"
@@ -112,20 +118,24 @@ export function HeroHologram() {
             fontFamily: 'var(--font-display)',
             fontSize: 'clamp(2rem, 7vw, 5.6rem)',
             // Banded, semi-translucent gradient — light, not paint (owner
-            // revision: "more gradient-like, more hologram").
+            // revision: "more gradient-like, more hologram"). Brightened
+            // (July 2, R1): darker stops lifted toward #7FEFFF/#4DE9FF with
+            // higher alpha so the title pops against the ray-lit scene,
+            // while keeping the banded contrast.
             backgroundImage: `linear-gradient(180deg,
               rgba(240, 255, 255, 0.98) 0%,
-              rgba(159, 244, 255, 0.92) 16%,
-              rgba(77, 233, 255, 0.95) 34%,
-              rgba(0, 184, 224, 0.62) 50%,
-              rgba(127, 239, 255, 0.9) 62%,
-              rgba(77, 233, 255, 0.85) 78%,
-              rgba(0, 150, 200, 0.55) 100%)`,
+              rgba(159, 244, 255, 0.94) 16%,
+              rgba(127, 239, 255, 0.96) 34%,
+              rgba(77, 233, 255, 0.78) 50%,
+              rgba(159, 244, 255, 0.94) 62%,
+              rgba(127, 239, 255, 0.9) 78%,
+              rgba(77, 233, 255, 0.72) 100%)`,
             backgroundSize: '100% 200%',
             WebkitBackgroundClip: 'text',
             backgroundClip: 'text',
             color: 'transparent',
-            filter: `drop-shadow(0 0 20px ${CYAN}66) drop-shadow(0 0 52px ${CYAN}33)`,
+            // Glow strengthened ~20% (0x66→0x7A, 0x33→0x3D).
+            filter: `drop-shadow(0 0 20px ${CYAN}7A) drop-shadow(0 0 52px ${CYAN}3D)`,
             ...(instant || simplified
               ? {}
               : { animation: 'sf-holo-drift 5s ease-in-out infinite alternate' }),
@@ -212,12 +222,16 @@ export function HeroHologram() {
           animate={{ opacity: 1, x: 0, y: 0 }}
           transition={{ delay: d(T.sparkyIn), duration: instant ? 0 : 0.7, ease: 'easeOut' }}
         >
-          <SparkyCore
-            expression="happy"
-            pixelSize="clamp(72px, 13vw, 150px)"
-            isAnimated={!instant}
-            showAura
-          />
+          {/* Brightness wrapper (July 2, R1): lifts Sparky against the
+              ray-lit scene without touching SparkyCore (uniformity rule). */}
+          <div style={{ filter: 'brightness(1.12) saturate(1.05)' }}>
+            <SparkyCore
+              expression="happy"
+              pixelSize="clamp(72px, 13vw, 150px)"
+              isAnimated={!instant}
+              showAura
+            />
+          </div>
         </motion.div>
       </div>
     </div>

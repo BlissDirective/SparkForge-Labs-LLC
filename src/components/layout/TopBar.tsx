@@ -10,6 +10,13 @@ import {
   X,
 } from 'lucide-react';
 
+// ── R1 "Bolder atmosphere" ──────────────────────────────────────────────
+// Very light SVG fractal noise (feTurbulence) baked at 3% opacity —
+// combined with the 2-3% cyan/violet aurora gradient it gives the TopBar
+// a faint grain band without touching text contrast (all text sits on
+// what is effectively still the plain light surface).
+const NOISE_TEXTURE_URI = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='96'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='96' height='96' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E")`;
+
 const PAGE_TITLES: Record<string, string> = {
   '/home': 'Dashboard',
   '/arcade': 'Game Arcade',
@@ -36,8 +43,17 @@ export function TopBar() {
         borderColor: 'rgb(var(--sf-border) / 1)',
       }}
     >
+      {/* Aurora-grain atmosphere band — 2-3% cyan/violet tint + faint noise */}
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          backgroundImage: `linear-gradient(90deg, transparent 0%, rgb(var(--sf-accent-cyan) / 0.03) 22%, rgb(var(--sf-accent-purple) / 0.03) 55%, rgb(var(--sf-primary) / 0.02) 78%, transparent 100%), ${NOISE_TEXTURE_URI}`,
+        }}
+      />
+
       {/* Left: Mobile menu + Page title */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 relative">
         {/* Mobile hamburger */}
         <button
           className="lg:hidden p-2 rounded-lg transition-colors"
@@ -71,7 +87,7 @@ export function TopBar() {
       </div>
 
       {/* Right: Search + Notifications + Profile */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 relative">
         {/* Search */}
         <button
           className="p-2 rounded-xl transition-all hover:scale-105"

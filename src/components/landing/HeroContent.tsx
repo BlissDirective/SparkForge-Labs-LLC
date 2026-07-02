@@ -8,14 +8,15 @@
 //    REPLACES the old "Learn AI. Build the Future." headline.
 //  - Brand subtitle below the animation: "Sparking Curiosity, and Forging
 //    Skills with AI" — matches the design scheme, deliberately NOT
-//    holographic; gets a react-bits ShinyText treatment so it pops.
+//    holographic; solid #F0F2F8 with a SplitText word-stagger reveal
+//    (DESIGN.md §3/§7.1 — ShinyText retired).
 //  - Full sequence on every visit; reduced-motion renders the finished
-//    composition instantly (handled inside HeroHologram).
+//    composition instantly (handled inside HeroHologram / SplitText).
 
 import { motion } from 'motion/react';
 import { Sparkles, Play, Shield, Gamepad2, Zap } from 'lucide-react';
 import { HeroHologram } from './HeroHologram';
-import ShinyText from '@/components/bits/ShinyText';
+import SplitText from '@/components/bits/SplitText';
 
 export function HeroContent() {
   return (
@@ -23,20 +24,18 @@ export function HeroContent() {
       {/* ── Hologram title sequence: Sparky + puck + cone + banner ── */}
       <HeroHologram />
 
-      {/* ── Brand subtitle — solid, non-holographic, ShinyText pop ── */}
-      <motion.p
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.7, delay: 2.5 }}
+      {/* ── Brand subtitle — solid #F0F2F8, word-staggered SplitText ── */}
+      <p
         className="text-xl sm:text-2xl font-semibold"
-        style={{ fontFamily: 'var(--font-display)' }}
+        style={{ fontFamily: 'var(--font-display)', color: '#F0F2F8' }}
       >
-        <ShinyText
+        <SplitText
           text="Sparking Curiosity, and Forging Skills with AI"
-          speed={3.5}
-          color="#F0F2F8"
+          by="word"
+          stagger={0.05}
+          delay={2.5}
         />
-      </motion.p>
+      </p>
 
       {/* ── Supporting line ── */}
       <motion.p

@@ -42,8 +42,7 @@ import { ActivityFeed } from '@/components/home/ActivityFeed';
 import { LeaderboardPanel } from '@/components/leaderboard/LeaderboardPanel';
 import { PetWidget } from '@/components/pet/PetWidget';
 import SpotlightCard from '@/components/bits/SpotlightCard';
-import ShinyText from '@/components/bits/ShinyText';
-import GradientText from '@/components/bits/GradientText';
+import BlurText from '@/components/bits/BlurText';
 import { getTodaysChallenge } from '@/lib/dailyChallenge';
 import type { ActivityItem } from '@/components/home/ActivityFeed';
 
@@ -222,7 +221,7 @@ export default function HomePage() {
         <div className="flex items-center gap-3 mb-1">
           <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight" style={{ fontFamily: 'var(--font-display)' }}>
             <span className="text-white">Hey </span>
-            <GradientText from="#E945F5" to="#4F6EF7">{childName}</GradientText>
+            <BlurText className="text-white">{childName}</BlurText>
             <span className="text-white">! </span>
             <span className="inline-block animate-bounce">&#128075;</span>
           </h1>
@@ -230,6 +229,61 @@ export default function HomePage() {
         <p className="text-sm text-slate-400">
           Ready to continue your AI learning adventure today?
         </p>
+      </motion.section>
+
+      {/* ═══ Daily Mission (Phase 3 Centerpiece) — FIRST content block ═══ */}
+      <motion.section
+        data-tour="daily-mission"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.1 }}
+      >
+        <DailyMissionCard
+          childName={childName}
+          childId={childId}
+          onStartMission={handleStartMission}
+        />
+      </motion.section>
+
+      {/* ═══ Continue Playing — recent games strip ═══ */}
+      <motion.section
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.2 }}
+      >
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-base font-bold text-white flex items-center gap-2" style={{ fontFamily: 'var(--font-display)' }}>
+            <BlurText text="Continue Playing" />
+          </h2>
+          <Link href="/arcade" className="text-xs font-semibold text-indigo-400 hover:text-indigo-300 flex items-center gap-1 transition-colors">
+            See All <ChevronRight className="w-3 h-3" />
+          </Link>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          {(recentGames.length > 0 ? recentGames : featuredGames.slice(0, 3)).map((game, i) => (
+            <motion.div
+              key={game.slug}
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.25 + i * 0.08 }}
+            >
+              <Link href={`/arcade/${game.slug}`}>
+                <SFCard variant="interactive" padding="sm" className="h-full group">
+                  <div
+                    className="w-10 h-10 rounded-lg flex items-center justify-center text-xl mb-3 transition-transform group-hover:scale-110"
+                    style={{ backgroundColor: `${LAB_COLORS[game.lab]}20` }}
+                  >
+                    {game.icon}
+                  </div>
+                  <h3 className="text-sm font-bold text-white mb-1 group-hover:text-indigo-400 transition-colors">{game.name}</h3>
+                  <p className="text-xs line-clamp-2 mb-2 text-slate-400">{game.description}</p>
+                  <SFBadge variant="primary" size="sm">{game.labName}</SFBadge>
+                </SFCard>
+              </Link>
+            </motion.div>
+          ))}
+        </div>
       </motion.section>
 
       {/* ═══ Quick Stats Bar (Phase 2 Integration) ═══ */}
@@ -255,65 +309,10 @@ export default function HomePage() {
       />
       </div>
 
-      {/* ═══ Daily Mission (Phase 3 Centerpiece) ═══ */}
-      <motion.section
-        data-tour="daily-mission"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.15 }}
-      >
-        <DailyMissionCard
-          childName={childName}
-          childId={childId}
-          onStartMission={handleStartMission}
-        />
-      </motion.section>
-
       {/* ═══ Main Content Grid ═══ */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-        {/* Left Column: Continue Playing + Progress */}
+        {/* Left Column: Progress + Featured Games */}
         <div className="lg:col-span-2 space-y-5">
-          {/* Continue Playing */}
-          <motion.section
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.25 }}
-          >
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="text-base font-bold text-white flex items-center gap-2" style={{ fontFamily: 'var(--font-display)' }}>
-                <ShinyText text="Continue Playing" speed={5} />
-              </h2>
-              <Link href="/arcade" className="text-xs font-semibold text-indigo-400 hover:text-indigo-300 flex items-center gap-1 transition-colors">
-                See All <ChevronRight className="w-3 h-3" />
-              </Link>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              {(recentGames.length > 0 ? recentGames : featuredGames.slice(0, 3)).map((game, i) => (
-                <motion.div
-                  key={game.slug}
-                  initial={{ opacity: 0, y: 15 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.3 + i * 0.08 }}
-                >
-                  <Link href={`/arcade/${game.slug}`}>
-                    <SFCard variant="interactive" padding="sm" className="h-full group">
-                      <div
-                        className="w-10 h-10 rounded-lg flex items-center justify-center text-xl mb-3 transition-transform group-hover:scale-110"
-                        style={{ backgroundColor: `${LAB_COLORS[game.lab]}20` }}
-                      >
-                        {game.icon}
-                      </div>
-                      <h3 className="text-sm font-bold text-white mb-1 group-hover:text-indigo-400 transition-colors">{game.name}</h3>
-                      <p className="text-xs line-clamp-2 mb-2 text-slate-400">{game.description}</p>
-                      <SFBadge variant="primary" size="sm">{game.labName}</SFBadge>
-                    </SFCard>
-                  </Link>
-                </motion.div>
-              ))}
-            </div>
-          </motion.section>
-
           {/* Overall Progress */}
           <motion.section
             initial={{ opacity: 0, y: 20 }}

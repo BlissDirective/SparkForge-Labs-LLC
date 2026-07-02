@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useReducedMotion } from '@/hooks/useReducedMotion';
 import {
   Home,
   Gamepad2,
@@ -18,8 +19,31 @@ const TABS = [
   { href: '/profile', label: 'Profile', icon: User },
 ];
 
+// ── R1 "Bolder atmosphere" ──────────────────────────────────────────────
+// Same soft breathing primary glow as the sidebar active item (no texture
+// on this small surface). Own keyframe name so it never collides with the
+// sidebar's when both are mounted. Static shadow under reduced motion.
+const TAB_GLOW_KEYFRAMES = `
+@keyframes sfTabGlow {
+  0%, 100% {
+    box-shadow:
+      0 0 0 1px rgb(var(--sf-primary) / 0.16),
+      0 2px 10px 0 rgb(var(--sf-primary) / 0.14);
+  }
+  50% {
+    box-shadow:
+      0 0 0 1px rgb(var(--sf-primary) / 0.3),
+      0 2px 16px 2px rgb(var(--sf-primary) / 0.26);
+  }
+}
+`;
+
+const TAB_GLOW_STATIC =
+  '0 0 0 1px rgb(var(--sf-primary) / 0.22), 0 2px 12px 1px rgb(var(--sf-primary) / 0.18)';
+
 export function BottomNav() {
   const pathname = usePathname() ?? '';
+  const reducedMotion = useReducedMotion();
 
   return (
     <nav
@@ -31,6 +55,7 @@ export function BottomNav() {
         paddingBottom: 'env(safe-area-inset-bottom)',
       }}
     >
+      <style>{TAB_GLOW_KEYFRAMES}</style>
       <div className="flex items-center justify-around h-16">
         {TABS.map((tab) => {
           const isActive = pathname.startsWith(tab.href);
@@ -43,6 +68,16 @@ export function BottomNav() {
               className="flex flex-col items-center gap-1 py-2 px-3 rounded-xl transition-all active:scale-95"
               aria-label={tab.label}
               aria-current={isActive ? 'page' : undefined}
+              style={
+                isActive
+                  ? {
+                      backgroundColor: 'rgb(var(--sf-primary) / 0.08)',
+                      ...(reducedMotion
+                        ? { boxShadow: TAB_GLOW_STATIC }
+                        : { animation: 'sfTabGlow 2.8s ease-in-out infinite' }),
+                    }
+                  : undefined
+              }
             >
               <Icon
                 className="w-5 h-5 transition-colors"
