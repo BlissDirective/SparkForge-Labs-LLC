@@ -74,8 +74,10 @@
     --transition-bounce: 500ms cubic-bezier(0.34, 1.56, 0.64, 1);
 
     /* ── Typography Scale ── */
-    --font-display: 'Nunito', 'Nunito Fallback', system-ui, sans-serif;
-    --font-body: 'Inter', 'Inter Fallback', system-ui, sans-serif;
+    /* DESIGN.md §5 (R1): canon is Exo 2 + Sora — these previously said
+       Nunito/Inter and silently lost to globals.css by load order. */
+    --font-display: 'Exo 2', 'Exo 2 Fallback', system-ui, sans-serif;
+    --font-body: 'Sora', 'Sora Fallback', system-ui, sans-serif;
     --font-mono: 'JetBrains Mono', monospace;
 
     /* ── Z-Index Scale ── */
@@ -109,21 +111,24 @@
   }
 }
 
-/* ── Font Fallback Metrics ── */
+/* ── Font Fallback Metrics (DESIGN.md §5) ──
+   Metric-adjusted system fallbacks for the canonical pairing so text
+   doesn't shift when the webfonts arrive. Stale Nunito/Inter faces
+   removed in R1. */
 @font-face {
-  font-family: 'Nunito Fallback';
-  src: local('Arial Rounded MT Bold'), local('Arial');
-  size-adjust: 105%;
-  ascent-override: 95%;
-  descent-override: 25%;
+  font-family: 'Exo 2 Fallback';
+  src: local('Arial'), local('Helvetica Neue');
+  size-adjust: 102%;
+  ascent-override: 96%;
+  descent-override: 24%;
 }
 
 @font-face {
-  font-family: 'Inter Fallback';
+  font-family: 'Sora Fallback';
   src: local('Segoe UI'), local('Helvetica Neue'), local('Arial');
-  size-adjust: 98%;
-  ascent-override: 95%;
-  descent-override: 25%;
+  size-adjust: 104%;
+  ascent-override: 98%;
+  descent-override: 26%;
 }
 
 /* ── Reduced Motion ── */
