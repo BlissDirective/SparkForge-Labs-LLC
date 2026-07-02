@@ -699,7 +699,7 @@ Repo-guard suite is fully green for the first time (817/817 — the stale DESIGN
 
 **Deliverable gate:** DESIGN.md reviewed/approved by owner → becomes the contract for III.2/III.3.
 
-**Status (July 2):** DESIGN.md v1.0 AUTHORED — grounded in the reference-site decomposition (Sentry: text-forward promise hero, progressive-disclosure rhythm, product-frame proof, motion restraint · iris yirei hu: specimen pages, handcrafted warmth, image-first storytelling · Ciao: product-object hero, variant accent recoloring, bookended nav · AbvTek: poetic microcopy, numbered galleries, size-contrast type, whitespace shell), the 2026 trend survey (CSS animation-timeline, View Transitions, springs-default, grainient backgrounds, kinetic type ×1/page, bento ≤2/page, glassmorphism-lite; avoid-list: preloaders, scroll-jacking, glitch-text-as-primary, custom cursors), and the react-bits curation (6 KEEP, 3 RESTYLE, 1 REPLACE, 2 RETIRE + 8 vetted additions incl. LightRays as the hologram backdrop and AnimatedBeam for Lab-11 agent graphs). Resolves the live Exo 2/Sora vs Nunito/Inter font conflict in favor of Exo 2 + Sora. **Awaiting owner approval → unlocks R1.**
+**Status (July 2):** DESIGN.md v1.0 AUTHORED — grounded in the reference-site decomposition (Sentry: text-forward promise hero, progressive-disclosure rhythm, product-frame proof, motion restraint · iris yirei hu: specimen pages, handcrafted warmth, image-first storytelling · Ciao: product-object hero, variant accent recoloring, bookended nav · AbvTek: poetic microcopy, numbered galleries, size-contrast type, whitespace shell), the 2026 trend survey (CSS animation-timeline, View Transitions, springs-default, grainient backgrounds, kinetic type ×1/page, bento ≤2/page, glassmorphism-lite; avoid-list: preloaders, scroll-jacking, glitch-text-as-primary, custom cursors), and the react-bits curation (6 KEEP, 3 RESTYLE, 1 REPLACE, 2 RETIRE + 8 vetted additions incl. LightRays as the hologram backdrop and AnimatedBeam for Lab-11 agent graphs). Resolves the live Exo 2/Sora vs Nunito/Inter font conflict in favor of Exo 2 + Sora. **APPROVED July 2 (v1.1) with owner amendments:** ClickSpark/GradientText/OrbitalRing/TiltedCard retired in favor of Cool Mode / SplitText+BlurText / Orb / GlareHover+CardSwap; GalaxyBackground MERGED with Aurora into one "Aurora-Galaxy" marketing background; restyles and retires confirmed; 13 vetted additions. Exo 2 + Sora canon confirmed. **R1 unlocked.**
 
 ## III.2 Homepage: "visually stunning interactive hero page"
 
@@ -757,3 +757,36 @@ Rules for every R-phase: mascot only via `components/sparky`; tokens only via DE
 - Optional later: author `public/rive/sparky.riv` per `docs/SPARKY-RIVE-SPEC.md` (Rive web editor, desktop browser) — drops in with zero code changes.
 - Production env: set `ENABLE_WEEKLY_DIGEST=true` + `RESEND_API_KEY` when ready to send digests; add a `vercel.json` cron entry (`0 16 * * 0` → `/api/cron/weekly-digest`) since none exists yet.
 - Server-side follow-ups logged: games-per-week free-tier tracking; `thinking` signal for SparkyRive.
+
+
+---
+---
+
+# PART IV — Total App Experience Redesign (exploration — scheduled AFTER Part III + game redesign)
+
+**Owner direction (July 2):** the current app, outside the new hero, reads as "AI-generated, common, boring, plain, minimal." After Part III (R1–R7) and the full game redesign (Part II G1–G5) ship, Part IV explores a ground-up, uniquely-SparkForge brand experience across the entire app — more unique and animated, still shippable and functional.
+
+**Agreed sequencing rationale:** Part III first gives every page a coherent, guard-tested baseline (cheap, fast, de-risks the brand); the game redesign is the retention core and must not wait on experimental navigation. Part IV then builds its ambition on top of healthy pages and engines rather than replacing broken ones. (History note: the pre-2026 3D-cockpit era shows the failure mode — a 37M-triangle spatial UI that had to be abandoned for HTML-first. Part IV must not repeat it.)
+
+## IV.1 North star: "A living laboratory, not a website"
+
+The differentiator competitors can't copy is coherence between the story and the software: SparkForge IS Sparky's lab. The app becomes a place, not a set of pages — without regressing to heavyweight 3D:
+
+- **2.5D illustrated world:** each of the 11 labs is a hand-art-directed diorama (layered SVG/Pixi, parallax depth, living idle details — bubbling flasks, blinking consoles) rather than a card grid. The lab map is a walkable floor plan; entering a lab is an "airlock" View-Transition morph.
+- **Diegetic UI moments:** progress = the lab physically powering up (lights, machines waking); badges are forged in a visible ceremony (StickerPeel + Confetti); the daily challenge arrives as a hologram from Sparky's puck — the hero motif reused as a system-wide language.
+- **Character ecosystem:** Sparky remains THE mascot; each lab may get one silent "apparatus creature" (a lab-colored gadget with an idle loop, not a competing character) so rooms feel inhabited. All drawn in the SparkyCore vector style.
+- **Sound identity:** one Tone.js palette (power-up hum, hologram chirp, forge clink) mapped to the celebration hierarchy; mutable, off by default for parents.
+- **Signature moments budget:** every page gets exactly one (the hologram is the marketing hero's; lab entry, badge forge, level-up are the app's). Everything else stays calm — that contrast is what reads as "crafted."
+
+## IV.2 Shippability guardrails (non-negotiable, learned from the cockpit era)
+
+Progressive enhancement everywhere (HTML-first skeleton always works) · per-page perf budget (LCP < 2.5s, no WebGL on the dashboard critical path) · guards stay green (contrast/spacing/design-matrix) · reduced-motion instant-on states · mobile is a first-class diorama, not a cut-down one · each IV increment ships behind a flag and can be reverted alone.
+
+## IV.3 Exploration workplan (when unlocked)
+
+1. **IV-A Art-direction sprint:** 3 visual directions for one lab diorama (moodboards → one coded prototype each), owner picks.
+2. **IV-B Navigation-as-world prototype:** lab map floor plan + airlock transitions behind a feature flag; measure perf + comprehension against the current nav with the e2e suite.
+3. **IV-C System rollout:** winning direction codified into DESIGN.md v2 (diorama recipes, sound palette, signature-moment registry), then labs converted in batches with per-lab art.
+4. **IV-D Marketing alignment:** homepage chapters become windows into the same world (real dioramas as product frames).
+
+**Unlock condition:** Part III R1–R7 complete + Part II G1–G3 shipped (games honest and de-cloned) + owner go.
