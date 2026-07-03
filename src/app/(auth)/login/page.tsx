@@ -4,15 +4,15 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { motion } from 'motion/react';
 import {
-  Sparkles, Mail, Lock, ArrowRight, Eye, EyeOff,
+  Mail, Lock, ArrowRight, Eye, EyeOff,
   Play, Clock, Gamepad2, AlertCircle,
 } from 'lucide-react';
 import { SFButton } from '@/components/ui/SFButton';
 import { SFInput } from '@/components/ui/SFInput';
-import GradientText from '@/components/bits/GradientText';
 import MetallicPaint from '@/components/bits/MetallicPaint';
-import AmbientParticles from '@/components/bits/AmbientParticles';
+import AuroraGalaxy from '@/components/bits/AuroraGalaxy';
 import SpotlightCard from '@/components/bits/SpotlightCard';
+import { SparkyCore } from '@/components/sparky';
 import { csrfHeader } from '@/lib/api';
 
 export default function LoginPage() {
@@ -99,33 +99,23 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 py-12 relative overflow-hidden"
-         style={{ background: 'linear-gradient(135deg, #0D0F1A 0%, #141628 50%, #0D0F1A 100%)' }}>
+         style={{ background: '#0A0F1E' }}>
 
-      {/* Ambient floating particles */}
-      <AmbientParticles count={30} color="#4F6EF7" className="opacity-60" />
-      <AmbientParticles count={15} color="#E945F5" className="opacity-40" />
-
-      {/* Radial glow behind form */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full pointer-events-none"
-           style={{ background: 'radial-gradient(circle, rgba(79,110,247,0.06) 0%, transparent 60%)' }} />
+      {/* Dark-surface auth recipe — one background system (DESIGN §7.1) */}
+      <AuroraGalaxy intensity={0.55} />
 
       <div className="w-full max-w-md relative z-10">
-        {/* Logo */}
+        {/* Kinetic Sparky welcome */}
         <motion.div
           className="text-center mb-8"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
         >
-          <motion.div
-            className="w-16 h-16 mx-auto mb-4 rounded-2xl flex items-center justify-center"
-            style={{ background: 'linear-gradient(135deg, #E945F5, #4F6EF7)' }}
-            whileHover={{ scale: 1.05, rotate: 5 }}
-            transition={{ type: 'spring', stiffness: 300 }}
-          >
-            <Sparkles className="w-8 h-8 text-white" />
-          </motion.div>
+          <div aria-hidden="true" className="flex justify-center mb-3">
+            <SparkyCore expression="happy" pixelSize={84} isAnimated={false} />
+          </div>
 
-          {/* Metallic Paint title */}
+          {/* Metallic Paint title — brand-title usage (DESIGN §7.1) */}
           <h1 className="text-2xl font-extrabold mb-1" style={{ fontFamily: 'var(--font-display)' }}>
             <MetallicPaint baseColor="#FFFFFF" shimmerColor="#E945F5" speed={3.5}>
               Welcome Back!
@@ -234,12 +224,10 @@ export default function LoginPage() {
                 <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #E945F525, #E945F510)' }}>
                   <Play className="w-4 h-4" style={{ color: '#E945F5' }} />
                 </div>
-                {/* P2-8: the card surface is white — the old white
-                    MetallicPaint text was invisible on it. */}
+                {/* R4: plain text — MetallicPaint is reserved for Sparky
+                    chrome + brand wordmark only (DESIGN §7.1). */}
                 <h3 className="text-sm font-bold" style={{ color: '#1A1D2B' }}>
-                  <MetallicPaint baseColor="#1A1D2B" shimmerColor="#E945F5" speed={4}>
-                    Try SparkForge Free
-                  </MetallicPaint>
+                  Try SparkForge Free
                 </h3>
               </div>
               <p className="text-xs mb-4 leading-relaxed" style={{ color: '#8C94AC' }}>
@@ -277,7 +265,7 @@ export default function LoginPage() {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5 }}
           className="text-center text-xs mt-6"
-          style={{ color: 'rgba(248,250,255,0.3)' }}
+          style={{ color: '#8C94AC' }}
         >
           COPPA Compliant &middot; No credit card required &middot; Free to start
         </motion.p>

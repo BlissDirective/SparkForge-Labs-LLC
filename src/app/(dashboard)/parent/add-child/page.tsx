@@ -17,6 +17,9 @@ import { useChildren, useCreateChild } from '@/hooks/useChildren';
 import { useParentStore } from '@/stores/parentStore';
 import { getTierLimits, TIER_DISPLAY } from '@/lib/tier-config';
 import { SFButton } from '@/components/ui/SFButton';
+import BlurText from '@/components/bits/BlurText';
+import GlareHover from '@/components/bits/GlareHover';
+import { SparkyCore } from '@/components/sparky';
 
 const AGE_OPTIONS = Array.from({ length: 10 }, (_, i) => i + 7);
 
@@ -166,13 +169,17 @@ export default function AddChildPage() {
           </div>
           <div>
             <h1 className="font-display text-xl font-bold" style={{ color: '#1A1D2B' }}>
-              Add Child Profile
+              <BlurText text="Add Child Profile" />
             </h1>
             <p className="font-body text-xs" style={{ color: '#8C94AC' }}>
               {childrenLoading
                 ? 'Checking your profiles…'
                 : `${childCount}/${limits.maxChildren} profiles used (${TIER_DISPLAY[tier].name})`}
             </p>
+          </div>
+          {/* R4: Sparky beside the header (light surface — no aura glow) */}
+          <div aria-hidden="true" className="ml-auto">
+            <SparkyCore expression="excited" pixelSize={64} isAnimated={false} showAura={false} />
           </div>
         </div>
 
@@ -264,21 +271,23 @@ export default function AddChildPage() {
               </div>
             </div>
 
-            {/* Age band preview */}
-            <div
-              className="flex items-center gap-3 p-3 rounded-xl"
-              style={{ background: '#F6F8FD', border: '1px solid #E6E9F4' }}
-            >
-              <span className="text-2xl">{bandInfo.emoji}</span>
-              <div>
-                <p className="font-body text-xs" style={{ color: '#8C94AC' }}>
-                  Age Band
-                </p>
-                <p className="font-display text-sm font-bold" style={{ color: bandInfo.color }}>
-                  {bandInfo.label}
-                </p>
+            {/* Age band preview — GlareHover chrome sweep (DESIGN §7.1) */}
+            <GlareHover glowColor={bandInfo.color} radius={12}>
+              <div
+                className="flex items-center gap-3 p-3 rounded-xl"
+                style={{ background: '#F6F8FD', border: '1px solid #E6E9F4' }}
+              >
+                <span className="text-2xl">{bandInfo.emoji}</span>
+                <div>
+                  <p className="font-body text-xs" style={{ color: '#8C94AC' }}>
+                    Age Band
+                  </p>
+                  <p className="font-display text-sm font-bold" style={{ color: bandInfo.color }}>
+                    {bandInfo.label}
+                  </p>
+                </div>
               </div>
-            </div>
+            </GlareHover>
 
             {/* Error display */}
             {error && (
