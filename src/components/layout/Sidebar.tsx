@@ -126,10 +126,11 @@ export function Sidebar() {
         {NAV_ITEMS.map((item) => {
           const isActive = pathname?.startsWith(item.href) ?? false;
           const Icon = item.icon;
-          // Lab-flask accent: /labs (and lab detail routes) keep the
-          // primary tint in R1 — per-lab colors arrive in R2 via
-          // --sf-nav-glow-rgb.
-          const glowRgb = 'var(--sf-primary)';
+          // R2 per-lab tint seam: --sf-nav-glow-rgb is set on
+          // document.documentElement by the lab detail page and cascades
+          // into the glow keyframes' var() fallback chain here. No local
+          // value is set — an inline value on this element would shadow
+          // the root-level one; the keyframes fall back to --sf-primary.
 
           return (
             <Link
@@ -148,12 +149,9 @@ export function Sidebar() {
                     : 'transparent',
                   fontFamily: 'var(--font-body)',
                   ...(isActive
-                    ? {
-                        '--sf-nav-glow-rgb': glowRgb,
-                        ...(reducedMotion
-                          ? { boxShadow: NAV_GLOW_STATIC }
-                          : { animation: 'sfNavGlow 2.8s ease-in-out infinite' }),
-                      }
+                    ? reducedMotion
+                      ? { boxShadow: NAV_GLOW_STATIC }
+                      : { animation: 'sfNavGlow 2.8s ease-in-out infinite' }
                     : {}),
                 } as React.CSSProperties
               }

@@ -26,7 +26,7 @@
 // Removed (redesign): sceneStore/cockpitStore/GameHUD3D/broadcast +
 //   all WebGPU/Three.js cockpit wiring.
 
-import { useEffect, useRef, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import FocusTrap from 'focus-trap-react';
 import { useReducedMotion } from 'motion/react';
 import { useGameStore } from '@/stores/gameStore';
@@ -37,6 +37,7 @@ import { useGameSounds } from '@/hooks/useGameSounds';
 import { XPPopupProvider } from '@/components/game/XPPopup';
 import { GameErrorBoundary } from '@/components/game/GameErrorBoundary';
 import { JuiceProvider } from '@/components/juice/JuiceProvider';
+import ConfettiBurst from '@/components/bits/Confetti';
 import { publishGameSnapshot, clearGameSnapshot } from '@/lib/dev/gameInspector';
 
 interface GameShellProps {
@@ -164,6 +165,23 @@ export function GameShell({
     hasRewarded.current = false;
   }, [gameId]);
 
+  // R3 celebration ritual (DESIGN §6/§8): ConfettiBurst on the ONE shared
+  // completion moment every game hits — gameStore.isComplete flipping true
+  // (redesign games via completeGame(), legacy games via the round loop).
+  // Earned wins only: fires exactly once per completion, lab-colored.
+  const [confettiTrigger, setConfettiTrigger] = useState(0);
+  const wasCompleteRef = useRef(false);
+  useEffect(() => {
+    if (isComplete && !wasCompleteRef.current) {
+      setConfettiTrigger((t) => t + 1);
+    }
+    wasCompleteRef.current = isComplete;
+  }, [isComplete]);
+  const confettiColors = useMemo(
+    () => [accentColor, '#4DE9FF', '#E945F5', '#4F6EF7', '#FFD93D', '#2ECC71'],
+    [accentColor],
+  );
+
   const safeGameId = gameId ?? title.toLowerCase().replace(/\s+/g, '-');
 
   // Dev-only inspector hook (Fable Phase A item 3 / §2.3): mirror shell
@@ -198,7 +216,8 @@ export function GameShell({
             }}
           >
             <div
-              className="h-full w-full"
+              className="relative h-full w-full rounded-sf-xl"
+              style={{ border: `1px solid ${accentColor}40` }}
               data-game-id={safeGameId}
               data-world={labNumber}
               data-world-color={accentColor}
@@ -207,9 +226,19 @@ export function GameShell({
               aria-label={`${title} game`}
               tabIndex={-1}
             >
+              {/* R3 lab-colored chrome: soft top accent bar (DESIGN §8) */}
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-x-0 top-0 h-1 rounded-t-sf-xl"
+                style={{
+                  background: `linear-gradient(90deg, transparent, ${accentColor}, transparent)`,
+                  opacity: 0.7,
+                }}
+              />
               {children}
             </div>
           </FocusTrap>
+          <ConfettiBurst trigger={confettiTrigger} colors={confettiColors} originY={0.35} />
         </GameErrorBoundary>
       </JuiceProvider>
     </XPPopupProvider>

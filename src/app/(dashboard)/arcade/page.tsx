@@ -2,7 +2,8 @@
 // ARCADE — Game Browser with React Bits & Full Backend Integration
 // ════════════════════════════════════════════════════════════════
 // Kid-friendly game discovery with filters, search, categories,
-// and React Bits visual effects (SpotlightCard, GradientText).
+// and React Bits visual effects (R3: GlareHover art cards, BlurText,
+// ElectricBorder featured banner).
 
 'use client';
 
@@ -29,12 +30,55 @@ import { LAB_COLORS } from '@/config/labs';
 import { SFInput } from '@/components/ui/SFInput';
 import { SFBadge } from '@/components/ui/SFBadge';
 import { SFProgressBar } from '@/components/ui/SFProgressBar';
-import SpotlightCard from '@/components/bits/SpotlightCard';
-import GradientText from '@/components/bits/GradientText';
-import TiltedCard from '@/components/bits/TiltedCard';
+import BlurText from '@/components/bits/BlurText';
+import GlareHover from '@/components/bits/GlareHover';
+import ElectricBorder from '@/components/bits/ElectricBorder';
 import { useActiveChild } from '@/hooks/useChildren';
 import { useAllLabsProgress } from '@/hooks/useProgress';
 import { GameDetailModal } from '@/components/arcade';
+
+// ── Deterministic game-art helpers (R3) ──
+// Each card gets a lab-color gradient art panel with a subtle per-slug
+// hue variation, so every game reads as its own "cover" while staying
+// inside the lab's color family (DESIGN §4 lab recoloring).
+
+function slugHash(slug: string): number {
+  let h = 0;
+  for (let i = 0; i < slug.length; i++) h = (h * 31 + slug.charCodeAt(i)) >>> 0;
+  return h;
+}
+
+/** Rotate a hex color's hue by `deg` and optionally lift lightness. */
+function shiftHue(hex: string, deg: number, lightnessBoost = 0): string {
+  const r = parseInt(hex.slice(1, 3), 16) / 255;
+  const g = parseInt(hex.slice(3, 5), 16) / 255;
+  const b = parseInt(hex.slice(5, 7), 16) / 255;
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const l = (max + min) / 2;
+  const d = max - min;
+  let h = 0;
+  const s = d === 0 ? 0 : d / (1 - Math.abs(2 * l - 1));
+  if (d !== 0) {
+    if (max === r) h = ((g - b) / d) % 6;
+    else if (max === g) h = (b - r) / d + 2;
+    else h = (r - g) / d + 4;
+    h *= 60;
+  }
+  const hue = (((h + deg) % 360) + 360) % 360;
+  const lit = Math.min(0.92, l + lightnessBoost);
+  return `hsl(${hue.toFixed(0)} ${(s * 100).toFixed(0)}% ${(lit * 100).toFixed(0)}%)`;
+}
+
+/** Lab-color gradient with a deterministic hue-shifted second stop. */
+function gameArtGradient(slug: string, labColor: string): string {
+  const shift = (slugHash(slug) % 41) - 20; // −20°..+20°, stable per slug
+  return `linear-gradient(135deg, ${labColor} 0%, ${shiftHue(labColor, shift, 0.08)} 100%)`;
+}
+
+/** Soft top-left highlight overlay for depth on art panels. */
+const ART_HIGHLIGHT =
+  'radial-gradient(120% 90% at 25% 15%, rgba(255,255,255,0.42), transparent 55%)';
 
 // ── Category filters ──
 const CATEGORIES = [
@@ -153,9 +197,7 @@ export default function ArcadePage() {
           className="text-2xl sm:text-3xl font-extrabold mb-1"
           style={{ fontFamily: 'var(--font-display)', color: '#1A1D2B' }}
         >
-          <GradientText from="#E945F5" to="#4F6EF7">
-            Game Arcade
-          </GradientText>
+          <BlurText text="Game Arcade" />
         </h1>
         <p className="text-sm" style={{ color: '#8C94AC' }}>
           {GAME_REGISTRY.length} games to explore, learn, and master AI
@@ -224,15 +266,19 @@ export default function ArcadePage() {
             <button
               key={cat.id}
               onClick={() => setActiveCategory(cat.id)}
+              aria-pressed={isActive}
               className={`
                 flex items-center gap-2 px-4 py-2.5 rounded-sf-full text-sm font-semibold
                 whitespace-nowrap transition-all shrink-0
-                ${isActive ? 'text-white shadow-sf-md' : 'hover:bg-sf-surface-muted'}
+                ${isActive ? 'text-white' : 'hover:bg-sf-surface-muted'}
               `}
               style={{
-                backgroundColor: isActive ? cat.color : 'transparent',
+                backgroundColor: isActive ? cat.color : '#FFFFFF',
                 color: isActive ? '#FFFFFF' : '#52586E',
-                border: isActive ? 'none' : '1px solid #DAE0F0',
+                border: isActive ? '1px solid transparent' : '1px solid #DAE0F0',
+                boxShadow: isActive
+                  ? `0 0 0 1px ${cat.color}66, 0 4px 14px ${cat.color}40`
+                  : 'none',
               }}
             >
               <cat.icon className="w-4 h-4" />
@@ -256,22 +302,33 @@ export default function ArcadePage() {
             exit={{ opacity: 0 }}
           >
             <Link href={`/arcade/${featuredGame.slug}`}>
-              <SpotlightCard
-                spotlightColor={`${LAB_COLORS[featuredGame.lab]}20`}
-                className="relative overflow-hidden cursor-pointer transition-all hover:shadow-sf-lg"
+              <ElectricBorder
+                color={LAB_COLORS[featuredGame.lab]}
+                radius={24}
+                active
+                className="cursor-pointer transition-all hover:shadow-sf-lg"
               >
+                <div
+                  className="relative overflow-hidden rounded-sf-xl"
+                  style={{ background: 'linear-gradient(180deg, #FFFFFF 0%, #F8FAFF 100%)' }}
+                >
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 p-6 sm:p-8">
-                  {/* Icon */}
+                  {/* Art panel */}
                   <motion.div
                     whileHover={{ rotate: [0, -5, 5, 0], scale: 1.1 }}
                     transition={{ duration: 0.5 }}
-                    className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl flex items-center justify-center text-5xl shrink-0"
+                    className="relative overflow-hidden w-20 h-20 sm:w-24 sm:h-24 rounded-2xl flex items-center justify-center text-5xl shrink-0"
                     style={{
-                      background: `linear-gradient(135deg, ${LAB_COLORS[featuredGame.lab]}, #4F6EF7)`,
+                      background: gameArtGradient(featuredGame.slug, LAB_COLORS[featuredGame.lab]),
                       boxShadow: `0 8px 24px ${LAB_COLORS[featuredGame.lab]}40`,
                     }}
                   >
-                    {featuredGame.icon}
+                    <div
+                      aria-hidden="true"
+                      className="pointer-events-none absolute inset-0"
+                      style={{ background: ART_HIGHLIGHT }}
+                    />
+                    <span className="relative">{featuredGame.icon}</span>
                   </motion.div>
 
                   <div className="flex-1 min-w-0">
@@ -309,7 +366,8 @@ export default function ArcadePage() {
                     </div>
                   </div>
                 </div>
-              </SpotlightCard>
+                </div>
+              </ElectricBorder>
             </Link>
           </motion.div>
         )}
@@ -352,24 +410,40 @@ export default function ArcadePage() {
                     exit={{ opacity: 0, scale: 0.9 }}
                     transition={{ delay: i * 0.03 }}
                   >
-                    <div onClick={() => openDetailModal(game)} role="button" tabIndex={0}>
-                      <TiltedCard tiltAmount={6} className="h-full cursor-pointer">
+                    <div
+                      onClick={() => openDetailModal(game)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          openDetailModal(game);
+                        }
+                      }}
+                      role="button"
+                      tabIndex={0}
+                      aria-label={`${game.name} — details`}
+                      className="h-full"
+                    >
+                      <GlareHover glowColor={labColor} radius={16} className="h-full cursor-pointer">
                         <div
                           className="rounded-sf-lg overflow-hidden h-full"
                           style={{
                             background: 'linear-gradient(180deg, #FFFFFF 0%, #F8FAFF 100%)',
-                            border: `1px solid ${labColor}15`,
+                            border: `1px solid ${labColor}26`,
                           }}
                         >
-                          {/* Game header with gradient */}
+                          {/* Art panel — deterministic lab-color composition */}
                           <div
-                            className="relative h-28 sm:h-32 flex items-center justify-center"
-                            style={{
-                              background: `linear-gradient(135deg, ${labColor}20, ${labColor}08)`,
-                            }}
+                            className="relative h-28 sm:h-32 flex items-center justify-center overflow-hidden"
+                            style={{ background: gameArtGradient(game.slug, labColor) }}
                           >
+                            <div
+                              aria-hidden="true"
+                              className="pointer-events-none absolute inset-0"
+                              style={{ background: ART_HIGHLIGHT }}
+                            />
                             <motion.span
-                              className="text-5xl sm:text-6xl"
+                              className="relative text-5xl sm:text-6xl"
+                              style={{ textShadow: '0 4px 14px rgba(0,0,0,0.22)' }}
                               whileHover={{ scale: 1.15, rotate: 5 }}
                               transition={{ type: 'spring', stiffness: 300 }}
                             >
@@ -388,7 +462,7 @@ export default function ArcadePage() {
                             {/* Info icon for modal */}
                             <div
                               className="absolute top-3 left-3 w-6 h-6 rounded-full flex items-center justify-center
-                                         bg-white/80 shadow-sm"
+                                         bg-white/90 shadow-sm"
                             >
                               <Info className="w-3.5 h-3.5" style={{ color: labColor }} />
                             </div>
@@ -397,7 +471,7 @@ export default function ArcadePage() {
                               variant="primary"
                               size="sm"
                               className="absolute bottom-3 right-3"
-                              style={{ backgroundColor: `${labColor}20`, color: labColor }}
+                              style={{ backgroundColor: 'rgba(255,255,255,0.92)', color: labColor }}
                             >
                               {game.labName}
                             </SFBadge>
@@ -435,7 +509,7 @@ export default function ArcadePage() {
                             </div>
                           </div>
                         </div>
-                      </TiltedCard>
+                      </GlareHover>
                     </div>
                   </motion.div>
                 );

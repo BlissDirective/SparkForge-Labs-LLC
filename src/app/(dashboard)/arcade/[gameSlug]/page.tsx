@@ -30,11 +30,8 @@ import { SFBadge } from '@/components/ui/SFBadge';
 import { SFButton } from '@/components/ui/SFButton';
 import { SFSkeleton } from '@/components/ui/SFSkeleton';
 import { CelebrationOverlay } from '@/components/celebrations/CelebrationOverlay';
-import SpotlightCard from '@/components/bits/SpotlightCard';
-import GradientText from '@/components/bits/GradientText';
-import ShinyText from '@/components/bits/ShinyText';
-import StarBorder from '@/components/bits/StarBorder';
-import TiltedCard from '@/components/bits/TiltedCard';
+import BlurText from '@/components/bits/BlurText';
+import GlareHover from '@/components/bits/GlareHover';
 import type { GameResult } from '@/types/game';
 import type { ComponentType } from 'react';
 
@@ -177,8 +174,13 @@ export default function GamePlayPage() {
               <ArrowLeft className="w-4 h-4" /> Back to Arcade
             </Link>
 
-            {/* Game Hero */}
-            <div className="text-center">
+            {/* Game Hero — lab-colored header wash (R3, DESIGN §4) */}
+            <div
+              className="text-center rounded-sf-xl px-6 pt-8 pb-6"
+              style={{
+                background: `linear-gradient(180deg, ${labColor}1F 0%, ${labColor}08 65%, transparent 100%)`,
+              }}
+            >
               <motion.div
                 initial={{ scale: 0.8, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
@@ -196,9 +198,7 @@ export default function GamePlayPage() {
                 className="text-2xl sm:text-3xl font-extrabold mb-2"
                 style={{ fontFamily: 'var(--font-display)', color: '#1A1D2B' }}
               >
-                <GradientText from={labColor} to="#4F6EF7">
-                  {gameConfig.name}
-                </GradientText>
+                <BlurText text={gameConfig.name} />
               </h1>
 
               <div className="flex items-center justify-center gap-2 mb-3">
@@ -250,25 +250,30 @@ export default function GamePlayPage() {
                 className="text-lg font-bold text-center mb-5"
                 style={{ fontFamily: 'var(--font-display)', color: '#1A1D2B' }}
               >
-                <ShinyText text="Choose Your Challenge" speed={4} />
+                <BlurText text="Choose Your Challenge" />
               </h2>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-2xl mx-auto">
                 {DIFFICULTIES.map((d, i) => (
-                  <motion.button
+                  <motion.div
                     key={d.id}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.5 + i * 0.1 }}
-                    whileHover={{ scale: 1.03, y: -4 }}
-                    whileTap={{ scale: 0.97 }}
+                    whileHover={{ y: -4 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                  <GlareHover glowColor={d.color} radius={16} className="h-full">
+                  <button
                     onClick={() => setSelectedDifficulty(d.id)}
-                    className={`relative p-5 rounded-sf-xl text-left transition-all border-2 ${selectedDifficulty === d.id ? 'ring-2' : ''}`}
+                    aria-pressed={selectedDifficulty === d.id}
+                    className="relative w-full h-full p-5 rounded-sf-lg text-left transition-all border-2"
                     style={{
-                      backgroundColor: selectedDifficulty === d.id ? `${d.color}08` : '#FFFFFF',
+                      backgroundColor: selectedDifficulty === d.id ? `${d.color}12` : '#FFFFFF',
                       borderColor: selectedDifficulty === d.id ? d.color : '#EEF2FA',
-                      boxShadow: selectedDifficulty === d.id ? `0 4px 20px ${d.color}20` : 'var(--shadow-sm)',
-                      ['--tw-ring-color' as string]: d.color,
+                      boxShadow: selectedDifficulty === d.id
+                        ? `0 0 0 3px ${d.color}33, 0 4px 20px ${d.color}26`
+                        : 'var(--shadow-sm)',
                     }}
                   >
                     {/* Star indicators */}
@@ -304,12 +309,14 @@ export default function GamePlayPage() {
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
                         className="absolute top-3 right-3 w-6 h-6 rounded-full flex items-center justify-center"
-                        style={{ backgroundColor: d.color }}
+                        style={{ backgroundColor: d.color, boxShadow: `0 2px 8px ${d.color}66` }}
                       >
                         <Sparkles className="w-3 h-3 text-white" />
                       </motion.div>
                     )}
-                  </motion.button>
+                  </button>
+                  </GlareHover>
+                  </motion.div>
                 ))}
               </div>
 
@@ -343,7 +350,15 @@ export default function GamePlayPage() {
               transition={{ delay: 0.7 }}
               className="max-w-lg mx-auto"
             >
-              <SpotlightCard spotlightColor={`${labColor}10`} className="p-5">
+              <GlareHover glowColor={labColor} radius={16}>
+              <div
+                className="p-5 rounded-sf-lg"
+                style={{
+                  backgroundColor: '#FFFFFF',
+                  border: `1px solid ${labColor}26`,
+                  boxShadow: 'var(--shadow-sm)',
+                }}
+              >
                 <h3 className="text-sm font-bold mb-3" style={{ color: '#1A1D2B' }}>
                   <Target className="w-4 h-4 inline mr-1" style={{ color: labColor }} />
                   How to Play
@@ -362,7 +377,8 @@ export default function GamePlayPage() {
                     Earn XP and stars based on your performance
                   </li>
                 </ul>
-              </SpotlightCard>
+              </div>
+              </GlareHover>
             </motion.div>
           </motion.div>
         )}
