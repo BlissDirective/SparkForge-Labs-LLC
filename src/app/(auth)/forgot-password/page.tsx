@@ -3,9 +3,13 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { motion } from 'motion/react';
-import { Sparkles, Mail, ArrowLeft, Check, ArrowRight } from 'lucide-react';
+import { Mail, ArrowLeft, Check, ArrowRight } from 'lucide-react';
 import { SFButton } from '@/components/ui/SFButton';
-import GradientText from '@/components/bits/GradientText';
+import { SFInput } from '@/components/ui/SFInput';
+import AuroraGalaxy from '@/components/bits/AuroraGalaxy';
+import BlurText from '@/components/bits/BlurText';
+import SpotlightCard from '@/components/bits/SpotlightCard';
+import { SparkyCore } from '@/components/sparky';
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
@@ -41,15 +45,21 @@ export default function ForgotPasswordPage() {
 
   if (submitted) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-6" style={{ backgroundColor: '#0F1123' }}>
-        <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="text-center max-w-sm">
-          <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-5" style={{ background: 'linear-gradient(135deg, #2ECC71, #00D2FF)' }}>
-            <Check className="w-8 h-8 text-white" />
+      <div className="min-h-screen flex items-center justify-center p-6 relative overflow-hidden" style={{ background: '#0A0F1E' }}>
+        <AuroraGalaxy intensity={0.55} />
+        <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="text-center max-w-sm relative z-10">
+          <div aria-hidden="true" className="flex justify-center mb-3">
+            <SparkyCore expression="happy" pixelSize={84} isAnimated={false} />
           </div>
-          <h1 className="text-xl font-extrabold text-white mb-2" style={{ fontFamily: 'var(--font-display)' }}>Check Your Email</h1>
-          <p className="text-sm mb-6" style={{ color: 'rgba(248,250,255,0.5)' }}>We sent a password reset link to {email}</p>
+          <div className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4" style={{ background: 'rgba(46,204,113,0.18)' }}>
+            <Check className="w-6 h-6" style={{ color: '#2ECC71' }} />
+          </div>
+          <h1 className="text-xl font-extrabold text-white mb-2" style={{ fontFamily: 'var(--font-display)' }}>
+            <BlurText text="Check Your Email" />
+          </h1>
+          <p className="text-sm mb-6" style={{ color: '#8C94AC' }}>We sent a password reset link to {email}</p>
           <Link href="/login">
-            <SFButton variant="primary" fullWidth style={{ background: 'linear-gradient(135deg, #4F6EF7, #E945F5)' }}>Back to Sign In</SFButton>
+            <SFButton variant="primary" fullWidth>Back to Sign In</SFButton>
           </Link>
         </motion.div>
       </div>
@@ -57,42 +67,50 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-6" style={{ backgroundColor: '#0F1123' }}>
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-sm">
+    <div className="min-h-screen flex items-center justify-center p-6 relative overflow-hidden" style={{ background: '#0A0F1E' }}>
+      <AuroraGalaxy intensity={0.55} />
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-sm relative z-10">
         <div className="text-center mb-8">
-          <div className="w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-4" style={{ background: 'linear-gradient(135deg, #E945F5, #4F6EF7)' }}>
-            <Sparkles className="w-6 h-6 text-white" />
+          {/* Kinetic Sparky welcome */}
+          <div aria-hidden="true" className="flex items-center justify-center gap-3 mb-3">
+            <SparkyCore expression="thinking" pixelSize={84} isAnimated={false} />
+            <div className="rounded-2xl rounded-bl-sm px-3 py-1.5 text-xs font-semibold"
+                 style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(77,233,255,0.35)', color: '#F0F2F8' }}>
+              Happens to everyone!
+            </div>
           </div>
           <h1 className="text-2xl font-extrabold text-white mb-1" style={{ fontFamily: 'var(--font-display)' }}>
-            <GradientText from="#E945F5" to="#4F6EF7">Reset Password</GradientText>
+            <BlurText text="Reset Password" />
           </h1>
-          <p className="text-xs" style={{ color: 'rgba(248,250,255,0.4)' }}>Enter your email and we'll send you a reset link</p>
+          <p className="text-sm" style={{ color: '#8C94AC' }}>Enter your email and we'll send you a reset link</p>
         </div>
 
-        <div className="space-y-4">
-          {error && (
-            <div className="p-3 rounded-xl text-xs font-medium"
-                 style={{ background: '#EF444415', color: '#EF4444', border: '1px solid #EF444430' }}>
-              {error}
-            </div>
-          )}
-          <div>
-            <label className="block text-xs font-medium mb-1.5" style={{ color: 'rgba(248,250,255,0.6)' }}>Email</label>
-            <div className="relative">
-              <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: '#8C94AC' }} />
-              <input type="email" value={email} onChange={e => setEmail(e.target.value)} required placeholder="you@example.com"
-                className="w-full pl-10 pr-4 py-3 rounded-xl text-sm text-white placeholder-gray-500 border transition-all focus:outline-none focus:ring-2 focus:ring-sf-primary/30"
-                style={{ backgroundColor: 'rgba(255,255,255,0.05)', borderColor: 'rgba(255,255,255,0.1)' }} />
-            </div>
+        {/* White card on dark surface (DESIGN §8 form recipe) */}
+        <SpotlightCard spotlightColor="rgba(79,110,247,0.08)" className="rounded-2xl">
+          <div className="p-6 space-y-4">
+            {error && (
+              <div className="p-3 rounded-xl text-xs font-medium"
+                   style={{ background: '#EF444412', color: '#DC2626', border: '1px solid #EF444430' }}>
+                {error}
+              </div>
+            )}
+            <SFInput
+              label="Email"
+              type="email"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              required
+              placeholder="you@example.com"
+              leftIcon={<Mail className="w-4 h-4" style={{ color: '#8C94AC' }} />}
+            />
+            <SFButton variant="primary" size="lg" fullWidth onClick={handleSubmit} loading={isLoading}>
+              Send Reset Link <ArrowRight className="w-4 h-4" />
+            </SFButton>
+            <Link href="/login" className="flex items-center justify-center gap-1 text-sm font-medium" style={{ color: '#4F6EF7' }}>
+              <ArrowLeft className="w-3 h-3" /> Back to Sign In
+            </Link>
           </div>
-          <SFButton variant="primary" size="lg" fullWidth onClick={handleSubmit} loading={isLoading}
-            style={{ background: 'linear-gradient(135deg, #4F6EF7, #E945F5)' }}>
-            Send Reset Link <ArrowRight className="w-4 h-4" />
-          </SFButton>
-          <Link href="/login" className="flex items-center justify-center gap-1 text-xs font-medium mt-3" style={{ color: '#4F6EF7' }}>
-            <ArrowLeft className="w-3 h-3" /> Back to Sign In
-          </Link>
-        </div>
+        </SpotlightCard>
       </motion.div>
     </div>
   );
