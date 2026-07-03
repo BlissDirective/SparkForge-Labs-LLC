@@ -1,6 +1,6 @@
 # SparkForge — Design Compliance Matrix
 
-**Generated:** 2026-07-02 · **Source:** `src/lib/3d/cockpitDesignTokens.ts`
+**Generated:** 2026-07-03 · **Source:** `src/lib/3d/cockpitDesignTokens.ts`
 
 This table is auto-generated. Edit the source token file, then rerun
 `node scripts/generate-design-matrix.mjs --write`.

@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import { motion } from 'motion/react';
-import { Sparkles, Gift, Lock, Check, ShoppingBag, CalendarDays } from 'lucide-react';
+import { Sparkles, Gift, Lock, Check, ShoppingBag } from 'lucide-react';
+import { SparkyCore } from '@/components/sparky';
 import { SFCard } from '@/components/ui/SFCard';
 import { SFButton } from '@/components/ui/SFButton';
 import { SFProgressBar } from '@/components/ui/SFProgressBar';
@@ -32,9 +33,13 @@ export function SeasonHub({ childId }: SeasonHubProps) {
   if (!active || !season || !progress) {
     return (
       <SFCard variant="elevated" className="p-8 text-center">
-        <CalendarDays className="w-12 h-12 mx-auto mb-3" style={{ color: '#DAE0F0' }} aria-hidden />
-        <h3 className="text-lg font-bold mb-1" style={{ color: '#1A1D2B' }}>No event running</h3>
-        <p className="text-sm" style={{ color: '#8C94AC' }}>{getSeasonGreeting(null, 0)}</p>
+        <div className="flex justify-center mb-3" aria-hidden="true">
+          <SparkyCore expression="sleepy" pixelSize={72} showAura={false} />
+        </div>
+        <h3 className="text-lg font-bold mb-1" style={{ fontFamily: 'var(--font-display)', color: '#1A1D2B' }}>
+          No event running right now
+        </h3>
+        <p className="text-sm" style={{ color: '#52586E' }}>{getSeasonGreeting(null, 0)}</p>
       </SFCard>
     );
   }

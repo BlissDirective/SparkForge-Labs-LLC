@@ -241,7 +241,7 @@ export default function ProgressCharts({
         {/* Overall completion donut */}
         <div
           className="rounded-2xl p-5 flex flex-col items-center"
-          style={{ background: '#FFFFFF', border: '1px solid #EEF0F8' }}
+          style={{ background: '#FFFFFF', border: '1px solid #E6E9F4', boxShadow: '0 8px 30px rgba(26,29,43,0.08)' }}
         >
           <h3 className="text-sm font-bold mb-3 self-start flex items-center gap-2" style={{ color: '#1A1D2B' }}>
             <TrendingUp className="w-4 h-4" style={{ color: '#4F6EF7' }} />
@@ -269,7 +269,7 @@ export default function ProgressCharts({
         {/* Weekly activity sparkline */}
         <div
           className="rounded-2xl p-5"
-          style={{ background: '#FFFFFF', border: '1px solid #EEF0F8' }}
+          style={{ background: '#FFFFFF', border: '1px solid #E6E9F4', boxShadow: '0 8px 30px rgba(26,29,43,0.08)' }}
         >
           <h3 className="text-sm font-bold mb-3 flex items-center gap-2" style={{ color: '#1A1D2B' }}>
             <Calendar className="w-4 h-4" style={{ color: '#2ECC71' }} />
@@ -294,7 +294,7 @@ export default function ProgressCharts({
       {/* Lab breakdown bar chart */}
       <div
         className="rounded-2xl p-5"
-        style={{ background: '#FFFFFF', border: '1px solid #EEF0F8' }}
+        style={{ background: '#FFFFFF', border: '1px solid #E6E9F4', boxShadow: '0 8px 30px rgba(26,29,43,0.08)' }}
       >
         <h3 className="text-sm font-bold mb-4 flex items-center gap-2" style={{ color: '#1A1D2B' }}>
           <BarChart3 className="w-4 h-4" style={{ color: '#E945F5' }} />
