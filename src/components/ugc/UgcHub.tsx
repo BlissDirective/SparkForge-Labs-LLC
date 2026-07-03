@@ -69,13 +69,13 @@ export function UgcHub({ childId }: { childId: string }) {
         <p className="text-xs font-medium mb-1" style={{ color: '#8C94AC' }}>Pick a title</p>
         <div className="flex flex-wrap gap-1.5 mb-2">
           {TITLE_PREFIXES.map((p) => (
-            <button key={p} onClick={() => setPrefix(p)} className="px-2.5 py-1 rounded-full text-xs font-bold"
+            <button key={p} onClick={() => setPrefix(p)} aria-pressed={prefix === p} className="px-2.5 py-1 rounded-full text-xs font-bold"
               style={{ background: prefix === p ? '#E945F5' : 'rgba(233,69,245,0.08)', color: prefix === p ? '#FFF' : '#E945F5' }}>{p}</button>
           ))}
         </div>
         <div className="flex flex-wrap gap-1.5 mb-3">
           {TITLE_NOUNS.map((n) => (
-            <button key={n} onClick={() => setNoun(n)} className="px-2.5 py-1 rounded-full text-xs font-bold"
+            <button key={n} onClick={() => setNoun(n)} aria-pressed={noun === n} className="px-2.5 py-1 rounded-full text-xs font-bold"
               style={{ background: noun === n ? '#4F6EF7' : 'rgba(79,110,247,0.08)', color: noun === n ? '#FFF' : '#4F6EF7' }}>{n}</button>
           ))}
         </div>
@@ -89,7 +89,7 @@ export function UgcHub({ childId }: { childId: string }) {
           {QUESTION_BANK.map((q) => {
             const on = selected.includes(q.id);
             return (
-              <button key={q.id} onClick={() => toggle(q.id)} className="w-full text-left flex items-center gap-2 p-2.5 rounded-xl transition-all"
+              <button key={q.id} onClick={() => toggle(q.id)} aria-pressed={on} className="w-full text-left flex items-center gap-2 p-2.5 rounded-xl transition-all"
                 style={{ background: on ? 'rgba(46,204,113,0.1)' : '#F7F8FC', border: `1px solid ${on ? '#2ECC71' : 'transparent'}` }}>
                 <div className="w-5 h-5 rounded-md flex items-center justify-center shrink-0" style={{ background: on ? '#2ECC71' : '#EEF0F8' }}>
                   {on && <Check className="w-3.5 h-3.5 text-white" />}

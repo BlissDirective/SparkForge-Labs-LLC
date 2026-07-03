@@ -1,8 +1,10 @@
 // ════════════════════════════════════════════════════════════════
 // ACHIEVEMENTS — Rewards & Badges Page (Phase 3)
 // ════════════════════════════════════════════════════════════════
-// Gamified achievement showcase with React Bits StarBorder,
-// ShinyText, and animated progress tracking.
+// Gamified achievement showcase. R5: DESIGN.md §6 celebration
+// hierarchy — CountUp for numbers, GlareHover sweep on EARNED badges
+// only; locked badges stay flat/desaturated. BlurText h1 (GradientText
+// and ShinyText retired per §7.1). StarBorder kept (badges/streaks).
 
 'use client';
 
@@ -15,8 +17,10 @@ import { SFCard } from '@/components/ui/SFCard';
 import { SFBadge } from '@/components/ui/SFBadge';
 import { SFCircularProgress } from '@/components/ui/SFCircularProgress';
 import StarBorder from '@/components/bits/StarBorder';
-import ShinyText from '@/components/bits/ShinyText';
-import GradientText from '@/components/bits/GradientText';
+import BlurText from '@/components/bits/BlurText';
+import CountUp from '@/components/bits/CountUp';
+import GlareHover from '@/components/bits/GlareHover';
+import { SparkyCore } from '@/components/sparky';
 
 const CATEGORIES = [
   { id: 'all', label: 'All', icon: Trophy },
@@ -57,14 +61,14 @@ export default function AchievementsPage() {
     <div className="space-y-6 max-w-6xl mx-auto pb-20 lg:pb-0">
       {/* Header */}
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
-        <h1 className="text-2xl sm:text-3xl font-extrabold mb-1" style={{ fontFamily: 'var(--font-display)', color: '#1A1D2B' }}>
-          <GradientText from="#FFD93D" to="#FF6B35">
-            <Star className="w-7 h-7 inline mr-2" style={{ color: '#FFD93D', fill: '#FFD93D' }} />
-            Rewards
-          </GradientText>
-        </h1>
-        <p className="text-sm" style={{ color: '#8C94AC' }}>
-          Collect badges by playing games and completing challenges
+        <div className="flex items-center gap-2 mb-1">
+          <Star className="w-7 h-7" style={{ color: '#FFD93D', fill: '#FFD93D' }} aria-hidden="true" />
+          <h1 className="text-2xl sm:text-3xl font-extrabold" style={{ fontFamily: 'var(--font-display)', color: '#1A1D2B' }}>
+            <BlurText text="Rewards" />
+          </h1>
+        </div>
+        <p className="text-sm" style={{ color: '#52586E' }}>
+          Every badge tells a story you earned.
         </p>
       </motion.div>
 
@@ -81,7 +85,7 @@ export default function AchievementsPage() {
             </SFCircularProgress>
             <div className="text-center sm:text-left">
               <p className="text-2xl font-extrabold" style={{ fontFamily: 'var(--font-display)', color: '#1A1D2B' }}>
-                <ShinyText text={`${earnedCount} / ${totalCount}`} speed={3} />
+                <CountUp to={earnedCount} /> / {totalCount}
               </p>
               <p className="text-sm" style={{ color: '#8C94AC' }}>
                 badges earned &middot; {completionPct}% completion
@@ -112,6 +116,8 @@ export default function AchievementsPage() {
           <button
             key={cat.id}
             onClick={() => setActiveCategory(cat.id)}
+            aria-pressed={activeCategory === cat.id}
+            aria-label={`Show ${cat.label} badges`}
             className={`flex items-center gap-1.5 px-4 py-2 rounded-sf-full text-sm font-semibold whitespace-nowrap transition-all shrink-0 ${activeCategory === cat.id ? 'text-white' : ''}`}
             style={{
               backgroundColor: activeCategory === cat.id ? '#4F6EF7' : 'transparent',
@@ -129,17 +135,13 @@ export default function AchievementsPage() {
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
         {filteredBadges.map((badge: { id: string; name: string; description: string; icon: string; rarity: string; earned: boolean; category: string }, i: number) => {
           const rarity = getRarityColor(badge.rarity);
-          return (
-            <motion.div
-              key={badge.id}
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: i * 0.03 }}
-            >
+          // DESIGN §6 celebration hierarchy: the chrome glare sweep is
+          // an EARNED celebration — locked badges stay flat/desaturated.
+          const card = (
               <SFCard
                 variant={badge.earned ? 'elevated' : 'outlined'}
                 padding="md"
-                className={`text-center transition-all ${badge.earned ? 'hover:shadow-sf-md hover:-translate-y-0.5' : 'opacity-60 grayscale'}`}
+                className={`text-center h-full transition-all ${badge.earned ? 'hover:-translate-y-0.5' : 'opacity-60 grayscale'}`}
               >
                 {/* Badge Icon */}
                 <motion.div
@@ -180,6 +182,21 @@ export default function AchievementsPage() {
                   </div>
                 )}
               </SFCard>
+          );
+          return (
+            <motion.div
+              key={badge.id}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: i * 0.03, type: 'spring', stiffness: 300, damping: 20 }}
+            >
+              {badge.earned ? (
+                <GlareHover glowColor={rarity.bg} radius={16} className="h-full">
+                  {card}
+                </GlareHover>
+              ) : (
+                card
+              )}
             </motion.div>
           );
         })}
@@ -187,8 +204,10 @@ export default function AchievementsPage() {
 
       {filteredBadges.length === 0 && (
         <div className="text-center py-16">
-          <Trophy className="w-12 h-12 mx-auto mb-3" style={{ color: '#DAE0F0' }} />
-          <p className="text-sm" style={{ color: '#8C94AC' }}>No badges in this category yet. Keep playing!</p>
+          <div className="flex justify-center mb-3" aria-hidden="true">
+            <SparkyCore expression="thinking" pixelSize={72} showAura={false} />
+          </div>
+          <p className="text-sm" style={{ color: '#52586E' }}>No badges in this category yet. Keep playing!</p>
         </div>
       )}
     </div>

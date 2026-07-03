@@ -40,7 +40,7 @@ export function MasteryTree({ childId }: MasteryTreeProps) {
           <GraduationCap className="w-7 h-7 text-white" />
         </div>
         <div className="flex-1">
-          <h2 className="text-lg font-bold" style={{ color: '#1A1D2B' }}>Mastery Paths</h2>
+          <h2 className="text-lg font-bold" style={{ fontFamily: 'var(--font-display)', color: '#1A1D2B' }}>Your Journey So Far</h2>
           <p className="text-sm" style={{ color: '#8C94AC' }}>{getMasteryGreeting(masteredCount, total)}</p>
         </div>
         <div className="text-right">

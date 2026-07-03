@@ -10,18 +10,18 @@ import { useMemo } from 'react';
 import Link from 'next/link';
 import { motion } from 'motion/react';
 import {
-  TrendingUp, Gamepad2, Clock, Star, Zap, ChevronRight,
+  Gamepad2, Clock, Zap, ChevronRight,
   Trophy, Target, Flame,
 } from 'lucide-react';
 import { useActiveChild } from '@/hooks/useChildren';
 import { useAllLabsProgress } from '@/hooks/useProgress';
 import { useParentDashboard } from '@/hooks/useParentDashboard';
-import { GAME_REGISTRY } from '@/config/gameRegistry';
 import { LAB_COLORS, LAB_NAMES, LAB_ICONS } from '@/config/labs';
 import { SFCard } from '@/components/ui/SFCard';
 import { SFProgressBar } from '@/components/ui/SFProgressBar';
-import GradientText from '@/components/bits/GradientText';
+import BlurText from '@/components/bits/BlurText';
 import CountUp from '@/components/bits/CountUp';
+import { SparkyCore } from '@/components/sparky';
 import { ProgressCharts } from '@/components/progress';
 
 export default function ProgressPage() {
@@ -74,10 +74,10 @@ export default function ProgressPage() {
       {/* Header */}
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
         <h1 className="text-2xl sm:text-3xl font-extrabold mb-1" style={{ fontFamily: 'var(--font-display)', color: '#1A1D2B' }}>
-          <GradientText from="#2ECC71" to="#4F6EF7">Your Progress</GradientText>
+          <BlurText text="Your Progress" />
         </h1>
-        <p className="text-sm" style={{ color: '#8C94AC' }}>
-          Track your learning journey across all AI labs
+        <p className="text-sm" style={{ color: '#52586E' }}>
+          See how far your curiosity has taken you.
         </p>
       </motion.div>
 
@@ -138,7 +138,7 @@ export default function ProgressPage() {
             <div>
               <p className="text-sm" style={{ color: '#8C94AC' }}>Current Streak</p>
               <p className="text-3xl font-extrabold" style={{ fontFamily: 'var(--font-display)', color: '#FF6B35' }}>
-                {child?.streak_count ?? 0} days
+                <CountUp to={child?.streak_count ?? 0} /> days
               </p>
               <p className="text-xs" style={{ color: '#8C94AC' }}>
                 Keep playing daily to maintain your streak!
@@ -157,16 +157,20 @@ export default function ProgressPage() {
 
         <div className="space-y-3">
           {labBreakdown.length === 0 && !isLoading && (
-            <SFCard variant="default" padding="sm" className="text-center py-6">
+            <SFCard variant="default" className="text-center py-8">
+              <div className="flex justify-center mb-3" aria-hidden="true">
+                <SparkyCore expression="thinking" pixelSize={72} showAura={false} />
+              </div>
               <p className="text-sm" style={{ color: '#52586E' }}>
                 No lab progress yet — play any game to start filling this in!
               </p>
               <Link
                 href="/labs"
-                className="inline-block mt-2 text-sm font-semibold"
+                className="inline-flex items-center gap-1 mt-2 text-sm font-semibold"
                 style={{ color: '#4F6EF7' }}
+                aria-label="Explore the Labs"
               >
-                Explore the Labs →
+                Explore the Labs <ChevronRight className="w-4 h-4" />
               </Link>
             </SFCard>
           )}
@@ -190,16 +194,6 @@ export default function ProgressPage() {
               </span>
             </SFCard>
           ))}
-
-          {labBreakdown.length === 0 && !isLoading && (
-            <div className="text-center py-12">
-              <Gamepad2 className="w-12 h-12 mx-auto mb-3" style={{ color: '#DAE0F0' }} />
-              <p className="text-sm" style={{ color: '#8C94AC' }}>Start playing games to see your progress!</p>
-              <Link href="/arcade" className="inline-flex items-center gap-1 mt-3 text-sm font-semibold" style={{ color: '#4F6EF7' }}>
-                Go to Arcade <ChevronRight className="w-4 h-4" />
-              </Link>
-            </div>
-          )}
         </div>
       </motion.div>
     </div>
