@@ -1,6 +1,7 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
 import { Shield, Eye, Lock, Heart, Sparkles, HelpCircle } from 'lucide-react';
+import BlurText from '@/components/bits/BlurText';
 
 export const metadata: Metadata = {
   title: "Your Privacy — SparkForge for Kids",
@@ -25,8 +26,8 @@ export default function ChildrensPrivacyPage() {
           <div className="inline-block px-3 py-1 rounded-full bg-spark-purple/10 border border-spark-purple/20 text-spark-purple text-xs font-data uppercase tracking-wider mb-4">
             For Kids &middot; Ages 7&ndash;16
           </div>
-          <h1 className="font-display text-4xl font-bold mb-3 bg-gradient-to-r from-spark-blue to-spark-purple bg-clip-text text-transparent">
-            Your Privacy, Explained
+          <h1 className="font-display text-4xl font-bold mb-3 text-white">
+            <BlurText text="Your Privacy, Explained" />
           </h1>
           <p className="text-white/70 font-body leading-relaxed">
             Hey! This page tells you, in plain words, what SparkForge knows about you and what we do with it.

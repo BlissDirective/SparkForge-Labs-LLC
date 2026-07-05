@@ -1,5 +1,6 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
+import BlurText from '@/components/bits/BlurText';
 
 export const metadata: Metadata = {
   title: 'Terms of Service — SparkForge',
@@ -23,13 +24,51 @@ export default function TermsPage() {
           <div className="inline-block px-3 py-1 rounded-full bg-spark-purple/10 border border-spark-purple/20 text-spark-purple text-xs font-data uppercase tracking-wider mb-4">
             Platform Agreement
           </div>
-          <h1 className="font-display text-4xl font-bold mb-3 bg-gradient-to-r from-spark-blue to-spark-purple bg-clip-text text-transparent">
-            Terms of Service
+          <h1 className="font-display text-4xl font-bold mb-3 text-white">
+            <BlurText text="Terms of Service" />
           </h1>
           <p className="text-white/70 font-body">
             Effective Date: March 30, 2026 &middot; Last Updated: March 30, 2026
           </p>
         </div>
+
+        {/* Table of contents — jump-links to existing section ids */}
+        <nav
+          aria-label="On this page"
+          className="mb-12 p-5 rounded-xl bg-white/[0.03] border border-white/[0.06]"
+        >
+          <p className="font-data text-xs uppercase tracking-wider text-white/70 mb-3">
+            On this page
+          </p>
+          <ol className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 font-body text-sm">
+            {[
+              { href: '#acceptance', label: '1. Acceptance of Terms' },
+              { href: '#eligibility', label: '2. Eligibility & Age Requirements' },
+              { href: '#accounts', label: '3. Account Terms' },
+              { href: '#subscriptions', label: '4. Subscriptions & Payments' },
+              { href: '#demo', label: '5. Demo Mode' },
+              { href: '#acceptable-use', label: '6. Acceptable Use Policy' },
+              { href: '#ai-content', label: '7. AI-Generated Content & Disclosures' },
+              { href: '#advertising', label: '8. Advertising & Monetization' },
+              { href: '#ip', label: '9. Intellectual Property' },
+              { href: '#termination', label: '10. Termination' },
+              { href: '#disclaimers', label: '11. Disclaimers & Limitation of Liability' },
+              { href: '#disputes', label: '12. Dispute Resolution & Governing Law' },
+              { href: '#changes', label: '13. Changes to These Terms' },
+              { href: '#contact', label: '14. Contact' },
+              { href: '#miscellaneous', label: '15. Miscellaneous' },
+            ].map((item) => (
+              <li key={item.href}>
+                <a
+                  href={item.href}
+                  className="text-white/70 hover:text-white hover:underline underline-offset-4 transition-colors"
+                >
+                  {item.label}
+                </a>
+              </li>
+            ))}
+          </ol>
+        </nav>
 
         <div className="space-y-10 font-body text-white/70 leading-relaxed">
           {/* ═══ Section 1: Acceptance ═══ */}
@@ -58,7 +97,7 @@ export default function TermsPage() {
               SparkForge is designed for children ages 7&ndash;16 and their parents/guardians. The following eligibility
               requirements apply:
             </p>
-            <ul className="list-disc list-inside space-y-2 text-white/60">
+            <ul className="list-disc list-inside space-y-2 text-white/70">
               <li>
                 <strong className="text-white/80">Parent/guardian accounts:</strong> You must be at least 18 years old
                 to create a parent account. By creating an account, you represent and warrant that you are at least 18 years of age.
@@ -84,7 +123,7 @@ export default function TermsPage() {
             <h2 className="font-display text-xl font-semibold text-white mb-3">
               3. Account Terms
             </h2>
-            <ul className="list-disc list-inside space-y-2 text-white/60">
+            <ul className="list-disc list-inside space-y-2 text-white/70">
               <li>You are responsible for maintaining the confidentiality and security of your account credentials.</li>
               <li>You must provide accurate and complete information during registration.</li>
               <li>You are responsible for all activity that occurs under your account, including actions taken by child users on profiles you created.</li>
@@ -111,14 +150,14 @@ export default function TermsPage() {
               ].map((t) => (
                 <div key={t.tier} className="p-3 rounded-lg bg-white/[0.02] border border-white/[0.06]">
                   <p className="text-sm"><strong className="text-white/80">{t.tier}:</strong>{' '}
-                    <span className="text-white/50">{t.desc}</span>
+                    <span className="text-white/70">{t.desc}</span>
                   </p>
                 </div>
               ))}
             </div>
 
             <h3 className="font-display text-lg font-medium text-white/90 mb-2">4b. Billing &amp; Payment</h3>
-            <ul className="list-disc list-inside space-y-1.5 text-white/60 mb-4">
+            <ul className="list-disc list-inside space-y-1.5 text-white/70 mb-4">
               <li>Paid subscriptions (Plus, Forge) are billed monthly or annually via Stripe.</li>
               <li>All payments are processed by <strong className="text-white/80">Stripe</strong>, a PCI DSS Level 1 compliant payment processor. SparkForge never stores your credit card number.</li>
               <li>Subscriptions automatically renew at the end of each billing period unless canceled.</li>
@@ -126,39 +165,39 @@ export default function TermsPage() {
             </ul>
 
             <h3 className="font-display text-lg font-medium text-white/90 mb-2">4c. Parental Gate for Purchases</h3>
-            <p className="text-white/60">
+            <p className="text-white/70">
               All subscription purchases, upgrades, and payment method changes require parent account authentication.
               Children cannot initiate, modify, or complete any financial transaction on SparkForge. The subscription
               management interface is accessible only through the authenticated Parent Dashboard.
             </p>
 
             <h3 className="font-display text-lg font-medium text-white/90 mt-4 mb-2">4d. Refunds &amp; Cancellation</h3>
-            <p className="text-white/60 mb-3">
+            <p className="text-white/70 mb-3">
               You can cancel any subscription at any time from your parent dashboard.
               Cancellation stops auto-renewal immediately and your access continues
               until the end of the current billing period. There are no cancellation fees.
             </p>
-            <p className="text-white/60 mb-3">
+            <p className="text-white/70 mb-3">
               <strong className="text-white/80">30-day money-back guarantee.</strong> We refund the first paid period in full
               (monthly or annual) when requested within 30 days of that initial charge.
               Email{' '}
               <a href="mailto:support@sparkforge-labs.com" className="text-spark-blue hover:underline">support@sparkforge-labs.com</a>{' '}
               from the parent account on file.
             </p>
-            <p className="text-white/60 mb-3">
+            <p className="text-white/70 mb-3">
               <strong className="text-white/80">Annual cancellations after the 30-day window.</strong> After 30 days,
               annual plans are not refundable in cash. If you cancel mid-year, we will credit
               your SparkForge account for the unused months at the monthly-equivalent rate.
               The credit applies to any future SparkForge charge on your account and never
               expires.
             </p>
-            <p className="text-white/60 mb-3">
+            <p className="text-white/70 mb-3">
               <strong className="text-white/80">Plan changes.</strong> Switching tiers
               (e.g. Forge &rarr; Plus) or cadence (monthly &rarr; annual) is pro-rated automatically by Stripe.
               Unused time on the old plan is credited toward the new one. No refund is issued
               because the subscription continues.
             </p>
-            <p className="text-white/60">
+            <p className="text-white/70">
               <strong className="text-white/80">Goodwill exceptions.</strong> We will always refund: (a) duplicate
               charges, (b) charges that occur after a successful cancellation, (c) charges
               during a documented platform outage longer than 24 hours, (d) charges to a card
@@ -169,13 +208,13 @@ export default function TermsPage() {
             <h3 className="font-display text-lg font-medium text-white/90 mt-6 mb-2">
               4e. Automatic Renewal Disclosures (ROSCA &amp; California ARL)
             </h3>
-            <p className="text-white/60 mb-3">
+            <p className="text-white/70 mb-3">
               This section is provided to satisfy the federal Restore Online Shoppers&apos; Confidence Act (ROSCA,
               15 U.S.C. &sect; 8403), the California Automatic Renewal Law as amended by AB 2863 effective July 1, 2025
               (Cal. Bus. &amp; Prof. Code &sect;&sect; 17600&ndash;17606), and substantially similar laws in New York,
               Oregon, Connecticut, Vermont, North Carolina, Illinois, Virginia, Colorado, and Tennessee.
             </p>
-            <ul className="list-disc list-inside space-y-2 text-white/60 mb-3">
+            <ul className="list-disc list-inside space-y-2 text-white/70 mb-3">
               <li>
                 <strong className="text-white/80">Auto-renewal.</strong> Paid subscriptions (Plus and Forge, monthly and yearly) automatically renew at the end of each billing period and continue to renew indefinitely until you cancel. Each renewal charge uses the payment method on file.
               </li>
@@ -205,12 +244,12 @@ export default function TermsPage() {
             <h3 className="font-display text-lg font-medium text-white/90 mt-6 mb-2">
               4f. Free Trial Terms (Free-to-Pay Conversions)
             </h3>
-            <p className="text-white/60 mb-3">
+            <p className="text-white/70 mb-3">
               Plus and Forge tiers may be offered with a seven (7) day free trial on first subscription only. Free trials
               are subject to the following additional disclosures required by CA ARL AB 2863 for &quot;free-to-pay
               conversions&quot;:
             </p>
-            <ul className="list-disc list-inside space-y-2 text-white/60">
+            <ul className="list-disc list-inside space-y-2 text-white/70">
               <li>
                 <strong className="text-white/80">Before the trial begins.</strong> Before we collect your payment method, we clearly and conspicuously disclose (on the Pricing page and again at the Stripe checkout step): the length of the trial, that the trial will convert to a paid subscription at the end, the amount that will be charged at conversion, the billing cadence thereafter, and how to cancel before conversion.
               </li>
@@ -228,13 +267,13 @@ export default function TermsPage() {
             <h3 className="font-display text-lg font-medium text-white/90 mt-6 mb-2">
               4g. Merchant-Initiated Transactions &amp; Continuous Authority
             </h3>
-            <p className="text-white/60 mb-3">
+            <p className="text-white/70 mb-3">
               The following provisions apply to the recurring charges authorized in &sect;&sect; 4e and 4f and are required
               to comply with the Visa Merchant Rules, Mastercard Recurring Billing Framework, and (for European cards) the
               Strong Customer Authentication requirements of Directive (EU) 2015/2366 (PSD2) and the EBA Regulatory
               Technical Standards on SCA.
             </p>
-            <ul className="list-disc list-inside space-y-1.5 text-white/60">
+            <ul className="list-disc list-inside space-y-1.5 text-white/70">
               <li>
                 <strong className="text-white/80">Continuous authority.</strong> By providing a payment method and completing the affirmative checkbox at checkout, you grant SparkForge LLC (and our payment processor Stripe) continuous authority to initiate recurring merchant-initiated transactions (MITs) against that payment method on each billing date for as long as your subscription remains active.
               </li>
@@ -261,7 +300,7 @@ export default function TermsPage() {
             <p>
               SparkForge offers a demo mode that allows exploration without account creation, subject to the following terms:
             </p>
-            <ul className="list-disc list-inside space-y-1.5 text-white/60 mt-3">
+            <ul className="list-disc list-inside space-y-1.5 text-white/70 mt-3">
               <li>Demo sessions are limited to <strong className="text-white/80">1 hour maximum</strong>.</li>
               <li>No personal information is collected during demo sessions.</li>
               <li>All game progress, XP, and achievements earned during a demo are <strong className="text-white/80">not saved</strong> and are discarded when the session expires.</li>
@@ -277,7 +316,7 @@ export default function TermsPage() {
               6. Acceptable Use Policy
             </h2>
             <p className="mb-3">You and any child users under your account agree not to:</p>
-            <ul className="list-disc list-inside space-y-1.5 text-white/60">
+            <ul className="list-disc list-inside space-y-1.5 text-white/70">
               <li>Attempt to bypass authentication, security measures, rate limits, or parental controls</li>
               <li>Use the Platform for any purpose other than educational learning</li>
               <li>Submit harmful, abusive, threatening, obscene, or otherwise inappropriate content through AI prompts or any input field</li>
@@ -289,7 +328,7 @@ export default function TermsPage() {
               <li>Upload or transmit malware, viruses, or other malicious code</li>
               <li>Interfere with the operation, performance, or availability of the Platform</li>
             </ul>
-            <p className="mt-3 text-sm text-white/50">
+            <p className="mt-3 text-sm text-white/70">
               Violations of this Acceptable Use Policy may result in temporary suspension or permanent termination of
               your account, at our sole discretion. We will notify the parent account holder before taking action, except
               in cases involving immediate safety risks.
@@ -305,7 +344,7 @@ export default function TermsPage() {
               SparkForge uses artificial intelligence powered by the <strong className="text-white/80">Anthropic Claude API</strong> to
               generate educational content. The following disclosures apply:
             </p>
-            <ul className="list-disc list-inside space-y-2 text-white/60">
+            <ul className="list-disc list-inside space-y-2 text-white/70">
               <li>
                 <strong className="text-white/80">What data is sent to AI:</strong> Only text prompts submitted by the user
                 in the Prompt Lab game (available to age band C / ages 14&ndash;16 only). No child profile data, names,
@@ -364,7 +403,7 @@ export default function TermsPage() {
             <h2 className="font-display text-xl font-semibold text-white mb-3">
               9. Intellectual Property
             </h2>
-            <ul className="list-disc list-inside space-y-2 text-white/60">
+            <ul className="list-disc list-inside space-y-2 text-white/70">
               <li>
                 All content, design, code, graphics, game mechanics, educational curriculum, 3D assets, and audio on
                 SparkForge are owned by SparkForge LLC or its licensors and are protected by copyright and other
@@ -394,7 +433,7 @@ export default function TermsPage() {
               10. Termination
             </h2>
             <h3 className="font-display text-lg font-medium text-white/90 mb-2">10a. By You</h3>
-            <p className="text-white/60 mb-3">
+            <p className="text-white/70 mb-3">
               You may delete your account and all associated child profiles at any time through the Parent Dashboard
               or by contacting <a href="mailto:support@sparkforge-labs.com" className="text-spark-blue hover:underline">support@sparkforge-labs.com</a>.
               Upon account deletion, all associated data is permanently removed in accordance with our{' '}
@@ -402,7 +441,7 @@ export default function TermsPage() {
             </p>
 
             <h3 className="font-display text-lg font-medium text-white/90 mb-2">10b. By Us</h3>
-            <p className="text-white/60">
+            <p className="text-white/70">
               We reserve the right to suspend or terminate accounts that violate these Terms, engage in prohibited activity,
               or pose a safety risk to other users. Where practicable, we will provide notice before termination and offer
               an opportunity to export data. In cases of immediate safety risk, we may act without prior notice.
@@ -414,17 +453,17 @@ export default function TermsPage() {
             <h2 className="font-display text-xl font-semibold text-white mb-3">
               11. Disclaimers &amp; Limitation of Liability
             </h2>
-            <p className="text-white/60 mb-3">
+            <p className="text-white/70 mb-3">
               SparkForge is provided &quot;as is&quot; and &quot;as available&quot; without warranties of any kind, either express or
               implied, including but not limited to implied warranties of merchantability, fitness for a particular
               purpose, and non-infringement.
             </p>
-            <ul className="list-disc list-inside space-y-1.5 text-white/60 mb-3">
+            <ul className="list-disc list-inside space-y-1.5 text-white/70 mb-3">
               <li>SparkForge is an educational supplement, not a substitute for formal education, tutoring, or professional academic guidance.</li>
               <li>We do not guarantee uninterrupted or error-free operation of the Platform.</li>
               <li>AI-generated content may contain inaccuracies and should not be relied upon as authoritative.</li>
             </ul>
-            <p className="text-white/60">
+            <p className="text-white/70">
               To the maximum extent permitted by applicable law, SparkForge LLC shall not be liable for any indirect,
               incidental, special, consequential, or punitive damages arising out of or relating to your use of SparkForge.
               Our total aggregate liability shall not exceed the amount paid by you in the 12 months preceding any claim.
@@ -447,7 +486,7 @@ export default function TermsPage() {
             </div>
 
             <h3 className="font-display text-lg font-medium text-white/90 mb-2">12a. Governing Law</h3>
-            <p className="text-white/60 mb-3">
+            <p className="text-white/70 mb-3">
               These Terms are governed by and construed in accordance with the laws of the State of Illinois, United
               States, without regard to conflict-of-law provisions. SparkForge LLC is organized as an Illinois limited
               liability company. This choice of law does not deprive you of the protection of any provision of the
@@ -455,7 +494,7 @@ export default function TermsPage() {
             </p>
 
             <h3 className="font-display text-lg font-medium text-white/90 mb-2 mt-5">12b. Informal Resolution First</h3>
-            <p className="text-white/60 mb-3">
+            <p className="text-white/70 mb-3">
               Before initiating arbitration or a small-claims action, you agree to contact us at{' '}
               <a href="mailto:legal@sparkforge-labs.com" className="text-spark-blue hover:underline">legal@sparkforge-labs.com</a>{' '}
               with a written description of the dispute, your contact information, and the relief sought. We will attempt
@@ -464,7 +503,7 @@ export default function TermsPage() {
             </p>
 
             <h3 className="font-display text-lg font-medium text-white/90 mb-2 mt-5">12c. Binding Individual Arbitration</h3>
-            <p className="text-white/60 mb-3">
+            <p className="text-white/70 mb-3">
               Except as provided in &sect;&sect; 12e (small-claims carve-out) and 12g (McGill exception), any dispute,
               claim, or controversy arising out of or relating to these Terms or your use of SparkForge &mdash; including
               the interpretation, formation, performance, breach, or termination of these Terms &mdash; shall be resolved
@@ -475,7 +514,7 @@ export default function TermsPage() {
             </p>
 
             <h3 className="font-display text-lg font-medium text-white/90 mb-2 mt-5">12d. 30-Day Opt-Out</h3>
-            <p className="text-white/60 mb-3">
+            <p className="text-white/70 mb-3">
               You may opt out of the arbitration agreement in &sect; 12c (and the class-action waiver in &sect; 12f) by
               emailing{' '}
               <a href="mailto:legal@sparkforge-labs.com" className="text-spark-blue hover:underline">legal@sparkforge-labs.com</a>{' '}
@@ -486,14 +525,14 @@ export default function TermsPage() {
             </p>
 
             <h3 className="font-display text-lg font-medium text-white/90 mb-2 mt-5">12e. Small-Claims Carve-Out</h3>
-            <p className="text-white/60 mb-3">
+            <p className="text-white/70 mb-3">
               Either party may bring an individual action in small-claims court (or the equivalent in your state) for any
               dispute that qualifies under that court&apos;s monetary jurisdictional limit, provided the action remains in
               small-claims court and is not removed or appealed into a court of general jurisdiction.
             </p>
 
             <h3 className="font-display text-lg font-medium text-white/90 mb-2 mt-5">12f. Class-Action Waiver</h3>
-            <p className="text-white/60 mb-3">
+            <p className="text-white/70 mb-3">
               You and SparkForge LLC agree that each party may bring claims against the other only in an individual
               capacity, not as a plaintiff or class member in any purported class, collective, representative, or private
               attorney general proceeding. No arbitrator has the authority to preside over any form of class, collective,
@@ -503,7 +542,7 @@ export default function TermsPage() {
             </p>
 
             <h3 className="font-display text-lg font-medium text-white/90 mb-2 mt-5">12g. California Public Injunctive Relief (McGill)</h3>
-            <p className="text-white/60 mb-3">
+            <p className="text-white/70 mb-3">
               Pursuant to <em>McGill v. Citibank, N.A.</em>, 2 Cal. 5th 945 (2017), if you are a California resident, any
               claim for public injunctive relief under the California Unfair Competition Law, False Advertising Law, or
               Consumers Legal Remedies Act that is determined by a court of competent jurisdiction to be non-arbitrable
@@ -512,7 +551,7 @@ export default function TermsPage() {
             </p>
 
             <h3 className="font-display text-lg font-medium text-white/90 mb-2 mt-5">12h. Mass Arbitration Protocol</h3>
-            <p className="text-white/60 mb-3">
+            <p className="text-white/70 mb-3">
               If twenty-five (25) or more arbitration demands of a substantially similar nature are filed against
               SparkForge LLC within a sixty-day (60) period by or on behalf of claimants represented by the same or
               coordinated counsel, the following procedure applies in lieu of simultaneously processing all demands:
@@ -525,7 +564,7 @@ export default function TermsPage() {
             </p>
 
             <h3 className="font-display text-lg font-medium text-white/90 mb-2 mt-5">12i. Carve-Outs for Non-Waivable Rights</h3>
-            <p className="text-white/60 mb-3">
+            <p className="text-white/70 mb-3">
               Nothing in this &sect; 12 (or in &sect; 11 Limitation of Liability) waives or limits a right that applicable
               law does not permit to be waived or limited, including &mdash; without limitation &mdash; rights under
               California Civil Code &sect; 1668 (no pre-dispute waiver of liability for fraud, willful injury, or
@@ -548,15 +587,15 @@ export default function TermsPage() {
             <h2 className="font-display text-xl font-semibold text-white mb-3">
               13. Changes to These Terms
             </h2>
-            <p className="text-white/60">
+            <p className="text-white/70">
               We may update these Terms from time to time. If we make material changes, we will:
             </p>
-            <ul className="list-disc list-inside space-y-1.5 text-white/60 mt-3">
+            <ul className="list-disc list-inside space-y-1.5 text-white/70 mt-3">
               <li>Post the updated Terms on this page with a new effective date</li>
               <li>Send email notification to all registered parent accounts</li>
               <li>Where changes materially affect children&apos;s data practices, obtain new parental consent before applying changes</li>
             </ul>
-            <p className="mt-3 text-white/60">
+            <p className="mt-3 text-white/70">
               Continued use of SparkForge after changes take effect constitutes acceptance of the revised Terms.
             </p>
           </section>
@@ -567,8 +606,8 @@ export default function TermsPage() {
               14. Contact
             </h2>
             <div className="p-4 rounded-lg bg-white/[0.03] border border-white/[0.06]">
-              <p className="text-sm text-white/60">
-                <strong className="text-white/80">SparkForge LLC</strong> <span className="text-white/60">(an Illinois limited liability company)</span><br />
+              <p className="text-sm text-white/70">
+                <strong className="text-white/80">SparkForge LLC</strong> <span className="text-white/70">(an Illinois limited liability company)</span><br />
                 Mailing address: <span className="text-white/70">[MAILING ADDRESS &mdash; to be finalized before production launch]</span><br />
                 Telephone: <a href="tel:+17736292320" className="text-spark-blue hover:underline">(773) 629-2320</a><br />
                 General inquiries: <a href="mailto:support@sparkforge-labs.com" className="text-spark-blue hover:underline">support@sparkforge-labs.com</a><br />
@@ -585,7 +624,7 @@ export default function TermsPage() {
             </h2>
 
             <h3 className="font-display text-lg font-medium text-white/90 mb-2">15a. Severability</h3>
-            <p className="text-white/60 mb-3">
+            <p className="text-white/70 mb-3">
               If any provision of these Terms is held invalid or unenforceable by a court of competent jurisdiction, that
               provision shall be enforced to the maximum extent permissible and the remaining provisions shall remain in
               full force and effect. A finding that a particular provision is invalid or unenforceable shall not affect the
@@ -593,7 +632,7 @@ export default function TermsPage() {
             </p>
 
             <h3 className="font-display text-lg font-medium text-white/90 mb-2 mt-5">15b. Entire Agreement</h3>
-            <p className="text-white/60 mb-3">
+            <p className="text-white/70 mb-3">
               These Terms, together with our{' '}
               <Link href="/privacy" className="text-spark-blue hover:underline">Privacy Policy</Link>,{' '}
               <Link href="/privacy/children" className="text-spark-blue hover:underline">Children&apos;s Privacy Notice</Link>,{' '}
@@ -604,7 +643,7 @@ export default function TermsPage() {
             </p>
 
             <h3 className="font-display text-lg font-medium text-white/90 mb-2 mt-5">15c. Assignment</h3>
-            <p className="text-white/60 mb-3">
+            <p className="text-white/70 mb-3">
               You may not assign or transfer these Terms, by operation of law or otherwise, without our prior written
               consent; any attempted assignment without consent is void. SparkForge LLC may assign these Terms, in whole
               or in part, to any affiliate or to any successor in interest by merger, acquisition, reorganization, or sale
@@ -612,7 +651,7 @@ export default function TermsPage() {
             </p>
 
             <h3 className="font-display text-lg font-medium text-white/90 mb-2 mt-5">15d. Force Majeure</h3>
-            <p className="text-white/60 mb-3">
+            <p className="text-white/70 mb-3">
               Neither party will be liable for any failure or delay in performance due to causes beyond its reasonable
               control, including acts of God, natural disasters, epidemics or pandemics, war, terrorism, civil unrest,
               labor disputes, fire, flood, power or telecommunications failure, the acts or omissions of upstream service
@@ -622,7 +661,7 @@ export default function TermsPage() {
             </p>
 
             <h3 className="font-display text-lg font-medium text-white/90 mb-2 mt-5">15e. Export Controls &amp; Sanctions</h3>
-            <p className="text-white/60 mb-3">
+            <p className="text-white/70 mb-3">
               You represent and warrant that you are not located in, and will not access the Platform from, any country
               subject to comprehensive U.S. economic sanctions (currently Cuba, Iran, North Korea, Syria, and the
               Russia-occupied regions of Ukraine (including Crimea, Donetsk, Luhansk, Kherson, and Zaporizhzhia)), and
@@ -633,7 +672,7 @@ export default function TermsPage() {
             </p>
 
             <h3 className="font-display text-lg font-medium text-white/90 mb-2 mt-5">15f. App Store Purchases</h3>
-            <p className="text-white/60 mb-3">
+            <p className="text-white/70 mb-3">
               SparkForge is currently offered as a web application. If in the future SparkForge is distributed through the
               Apple App Store or the Google Play Store and you purchase a subscription through one of those channels: (i)
               the subscription is additionally governed by the Apple Media Services Terms and Conditions or the Google
@@ -644,7 +683,7 @@ export default function TermsPage() {
             </p>
 
             <h3 className="font-display text-lg font-medium text-white/90 mb-2 mt-5">15g. Notices</h3>
-            <p className="text-white/60 mb-3">
+            <p className="text-white/70 mb-3">
               We may give notice to you by email to the address on your account, by an in-app banner, or by posting to
               the Platform. Notices to SparkForge LLC must be in writing and sent to{' '}
               <a href="mailto:legal@sparkforge-labs.com" className="text-spark-blue hover:underline">legal@sparkforge-labs.com</a>{' '}
@@ -653,7 +692,7 @@ export default function TermsPage() {
             </p>
 
             <h3 className="font-display text-lg font-medium text-white/90 mb-2 mt-5">15h. No Waiver; Headings</h3>
-            <p className="text-white/60">
+            <p className="text-white/70">
               Our failure to enforce any right or provision of these Terms shall not constitute a waiver of that right or
               provision. Section headings are provided for convenience only and do not affect interpretation.
             </p>

@@ -1,6 +1,7 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
 import { FileSearch, Trash2, ShieldOff, KeyRound, SlidersHorizontal, Mail } from 'lucide-react';
+import BlurText from '@/components/bits/BlurText';
 
 export const metadata: Metadata = {
   title: 'Parental Rights — SparkForge',
@@ -103,8 +104,8 @@ export default function ParentalRightsPage() {
           <div className="inline-block px-3 py-1 rounded-full bg-spark-blue/10 border border-spark-blue/20 text-spark-blue text-xs font-data uppercase tracking-wider mb-4">
             COPPA 16 CFR &sect; 312.6
           </div>
-          <h1 className="font-display text-4xl font-bold mb-3 bg-gradient-to-r from-spark-blue to-spark-purple bg-clip-text text-transparent">
-            Parental Rights
+          <h1 className="font-display text-4xl font-bold mb-3 text-white">
+            <BlurText text="Parental Rights" />
           </h1>
           <p className="text-white/70 font-body leading-relaxed">
             Parents and legal guardians have real, statutory rights over their child&apos;s personal information.
@@ -139,7 +140,7 @@ export default function ParentalRightsPage() {
                           <h3 className="font-display text-lg font-semibold text-white">
                             {r.title}
                           </h3>
-                          <span className="text-[11px] font-data uppercase tracking-wider text-white/60">
+                          <span className="text-[11px] font-data uppercase tracking-wider text-white/70">
                             {r.statute}
                           </span>
                         </div>
@@ -147,13 +148,13 @@ export default function ParentalRightsPage() {
 
                         <div className="grid grid-cols-1 gap-3 text-sm">
                           <div className="p-3 rounded-lg bg-white/[0.02] border border-white/[0.06]">
-                            <p className="text-xs font-data uppercase tracking-wider text-white/50 mb-1.5">
+                            <p className="text-xs font-data uppercase tracking-wider text-white/70 mb-1.5">
                               Self-service
                             </p>
                             <p className="text-white/70">{r.howSelfService}</p>
                           </div>
                           <div className="p-3 rounded-lg bg-white/[0.02] border border-white/[0.06]">
-                            <p className="text-xs font-data uppercase tracking-wider text-white/50 mb-1.5">
+                            <p className="text-xs font-data uppercase tracking-wider text-white/70 mb-1.5">
                               By written request
                             </p>
                             <p className="text-white/70">{r.howContact}</p>
@@ -203,7 +204,7 @@ export default function ParentalRightsPage() {
                 registered child display name) that only the account holder would know.
               </li>
             </ul>
-            <p className="mt-3 text-sm text-white/60">
+            <p className="mt-3 text-sm text-white/70">
               We will never ask you for a photograph of a government-issued identification document to exercise these rights.
               If you receive such a request claiming to be from SparkForge, report it to{' '}
               <a href="mailto:privacy@sparkforge-labs.com" className="text-spark-blue hover:underline">privacy@sparkforge-labs.com</a>.
@@ -222,9 +223,9 @@ export default function ParentalRightsPage() {
                 { t: 'Fulfill request', d: 'Within 10 business days', note: 'Review exports, deletions, or other actions completed.' },
               ].map((s) => (
                 <div key={s.t} className="p-3 rounded-lg bg-white/[0.03] border border-white/[0.06]">
-                  <p className="font-data uppercase text-xs tracking-wider text-white/50 mb-1">{s.t}</p>
+                  <p className="font-data uppercase text-xs tracking-wider text-white/70 mb-1">{s.t}</p>
                   <p className="text-white font-semibold">{s.d}</p>
-                  <p className="text-xs text-white/60 mt-1.5">{s.note}</p>
+                  <p className="text-xs text-white/70 mt-1.5">{s.note}</p>
                 </div>
               ))}
             </div>
@@ -276,14 +277,14 @@ export default function ParentalRightsPage() {
             </div>
             <div className="p-4 rounded-lg bg-white/[0.03] border border-white/[0.06]">
               <p className="text-sm text-white/70">
-                <strong className="text-white">SparkForge LLC &mdash; Privacy Team</strong> <span className="text-white/60">(an Illinois limited liability company)</span><br />
+                <strong className="text-white">SparkForge LLC &mdash; Privacy Team</strong> <span className="text-white/70">(an Illinois limited liability company)</span><br />
                 Mailing address: <span className="text-white/70">[MAILING ADDRESS &mdash; to be finalized before production launch]</span><br />
                 Telephone: <a href="tel:+17736292320" className="text-spark-blue hover:underline">(773) 629-2320</a><br />
                 Email: <a href="mailto:privacy@sparkforge-labs.com" className="text-spark-blue hover:underline">privacy@sparkforge-labs.com</a><br />
                 Preferred subject lines: &quot;COPPA Review Request&quot;, &quot;COPPA Deletion Request&quot;, &quot;Refuse Further Collection&quot;, &quot;Revoke COPPA Consent&quot;.
               </p>
             </div>
-            <p className="mt-3 text-sm text-white/60">
+            <p className="mt-3 text-sm text-white/70">
               See also the full{' '}
               <Link href="/privacy" className="text-spark-blue hover:underline">Privacy Policy</Link>{' '}
               and the{' '}

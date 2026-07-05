@@ -4,7 +4,7 @@ import { motion } from 'motion/react';
 import { Gamepad2, FlaskConical, Trophy, Shield, Zap, Brain } from 'lucide-react';
 import SpotlightCard from '@/components/bits/SpotlightCard';
 import StarBorder from '@/components/bits/StarBorder';
-import GradientText from '@/components/bits/GradientText';
+import BlurText from '@/components/bits/BlurText';
 
 const FEATURES = [
   {
@@ -17,7 +17,7 @@ const FEATURES = [
     icon: Brain,
     title: 'AI Tutor: Sparky',
     description: 'Your personal 3D chrome robot tutor that floats around the app, ready to help with games, explain concepts, and make learning fun.',
-    color: '#00D2FF',
+    color: '#4DE9FF',
   },
   {
     icon: FlaskConical,
@@ -73,7 +73,9 @@ export function LandingFeatures() {
             style={{ fontFamily: 'var(--font-display)', color: TEXT_HEADING }}
           >
             Everything you need to{' '}
-            <GradientText from="#4F6EF7" to="#E945F5">master AI</GradientText>
+            <span style={{ color: '#4DE9FF' }}>
+              <BlurText text="master AI" />
+            </span>
           </h2>
           <p className="text-base sm:text-lg max-w-2xl mx-auto" style={{ color: TEXT_MUTED }}>
             A complete learning platform designed specifically for young minds

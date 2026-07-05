@@ -11,7 +11,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Gamepad2, RotateCcw, Sparkles } from 'lucide-react';
-import GradientText from '@/components/bits/GradientText';
+import BlurText from '@/components/bits/BlurText';
 import { SparkyStatic } from '@/components/sparky/SparkyStatic';
 import type { SparkyExpression } from '@/components/sparky/SparkyCore';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
@@ -211,7 +211,9 @@ export function LandingMicroGame() {
             style={{ fontFamily: 'var(--font-display)' }}
           >
             <span className="text-white">Try it </span>
-            <GradientText from="#E945F5" to="#4F6EF7">right now</GradientText>
+            <span style={{ color: '#E945F5' }}>
+              <BlurText text="right now" />
+            </span>
             <span className="text-white"> — no signup</span>
           </h2>
           <p className="text-base sm:text-lg max-w-xl mx-auto" style={{ color: 'rgba(248,250,255,0.5)' }}>
@@ -321,7 +323,7 @@ export function LandingMicroGame() {
                   style={{ fontFamily: 'var(--font-display)' }}
                 >
                   <span className="text-white">You just trained an </span>
-                  <GradientText from="#E945F5" to="#4F6EF7">AI classifier</GradientText>
+                  <span style={{ color: '#E945F5' }}>AI classifier</span>
                   <span className="text-white"> — that&apos;s machine learning!</span>
                 </p>
                 <a

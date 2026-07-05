@@ -29,6 +29,7 @@ import { verifyCronBearer } from '@/lib/cron-auth';
 import { createAdminClient } from '@/lib/supabase/server';
 import { sendEmail, isEmailConfigured } from '@/lib/email';
 import { LAB_NAMES } from '@/config/labs';
+import { renderWeeklyDigest, type ChildDigest } from '@/lib/email-templates/weekly-digest';
 
 export const runtime = 'nodejs';
 
@@ -64,24 +65,6 @@ interface ProgressRow {
   content: { world: number | null; xp_reward: number | null } | null;
 }
 
-interface ChildDigest {
-  displayName: string;
-  gamesPlayed: number;
-  minutes: number;
-  xp: number;
-  topLab: string | null;
-}
-
-/** Minimal HTML escaping for user-supplied strings (child display names). */
-function escapeHtml(s: string): string {
-  return s
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
-}
-
 /** Aggregate one child's week from their completed progress rows. */
 function buildChildDigest(displayName: string, rows: ProgressRow[]): ChildDigest {
   let seconds = 0;
@@ -113,64 +96,6 @@ function buildChildDigest(displayName: string, rows: ProgressRow[]): ChildDigest
     xp,
     topLab,
   };
-}
-
-function renderDigestHtml(
-  parentName: string | null,
-  digests: ChildDigest[],
-  starter: string,
-): { subject: string; html: string; text: string } {
-  const greeting = parentName ? `Hi ${escapeHtml(parentName.split(' ')[0])}` : 'Hi there';
-  const subject = 'Your SparkForge weekly recap';
-
-  const childBlocks = digests
-    .map((d) => {
-      const name = escapeHtml(d.displayName);
-      const stats =
-        d.gamesPlayed > 0
-          ? `<li>Games played: <strong>${d.gamesPlayed}</strong></li>
-             <li>Time learning: <strong>${d.minutes} min</strong></li>
-             <li>XP earned: <strong>${d.xp}</strong></li>` +
-            (d.topLab ? `<li>Top lab: <strong>${escapeHtml(d.topLab)}</strong></li>` : '')
-          : `<li>No games completed this week — a great excuse to explore a new lab together!</li>`;
-      return `
-        <div style="background:#111118;border-radius:12px;padding:16px 20px;margin:12px 0;">
-          <h3 style="margin:0 0 8px;color:#FFFFFF;font-size:16px;">${name}</h3>
-          <ul style="margin:0;padding-left:18px;color:rgba(255,255,255,0.65);font-size:14px;line-height:1.7;">
-            ${stats}
-          </ul>
-        </div>`;
-    })
-    .join('');
-
-  const html = `
-    <div style="background:#0A0E16;padding:32px 24px;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
-      <div style="max-width:520px;margin:0 auto;">
-        <h1 style="color:#00BBFF;font-size:20px;margin:0 0 4px;">SparkForge Weekly Digest</h1>
-        <p style="color:rgba(255,255,255,0.65);font-size:14px;margin:0 0 20px;">
-          ${greeting} — here's what your explorers were up to this week.
-        </p>
-        ${childBlocks}
-        <div style="background:#111118;border-left:3px solid #00BBFF;border-radius:8px;padding:14px 18px;margin:20px 0;">
-          <p style="margin:0;color:#FFFFFF;font-size:14px;">
-            <strong>This week's AI conversation starter:</strong><br/>
-            <span style="color:rgba(255,255,255,0.65);">${escapeHtml(starter)}</span>
-          </p>
-        </div>
-        <p style="color:rgba(255,255,255,0.4);font-size:12px;margin-top:24px;">
-          You're receiving this because weekly digests are enabled for your SparkForge account.
-        </p>
-      </div>
-    </div>`;
-
-  const textLines = digests.map((d) =>
-    d.gamesPlayed > 0
-      ? `${d.displayName}: ${d.gamesPlayed} games, ${d.minutes} min, ${d.xp} XP${d.topLab ? `, top lab: ${d.topLab}` : ''}`
-      : `${d.displayName}: no games completed this week`,
-  );
-  const text = `${greeting} — your SparkForge weekly recap:\n\n${textLines.join('\n')}\n\nConversation starter: ${starter}\n`;
-
-  return { subject, html, text };
 }
 
 export async function GET(req: NextRequest) {
@@ -286,7 +211,7 @@ export async function GET(req: NextRequest) {
         const digests = parentChildren.map((c) =>
           buildChildDigest(c.display_name, progressByChild.get(c.id) ?? []),
         );
-        const rendered = renderDigestHtml(parent.full_name, digests, starter);
+        const rendered = renderWeeklyDigest(parent.full_name, digests, starter);
 
         const result = await sendEmail({
           to: parent.email,

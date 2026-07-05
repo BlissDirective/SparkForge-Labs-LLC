@@ -351,7 +351,7 @@ export default function PricingPage() {
         <motion.div variants={safeStaggerItem} className="mb-8">
           <Link
             href="/"
-            className="inline-flex items-center gap-1.5 text-white/60 hover:text-white/60 transition-colors font-body text-sm"
+            className="inline-flex items-center gap-1.5 text-white/60 hover:text-white transition-colors font-body text-sm"
           >
             <ArrowLeft className="w-4 h-4" /> Back to SparkForge
           </Link>
@@ -383,7 +383,7 @@ export default function PricingPage() {
             className={`px-5 py-2 rounded-xl font-display text-sm font-bold transition-all ${
               billing === 'monthly'
                 ? 'bg-[#3B82F6]/15 text-[#3B82F6] border border-[#3B82F6]/25'
-                : 'text-white/70 hover:text-white/60'
+                : 'text-white/70 hover:text-white'
             }`}
             aria-pressed={billing === 'monthly'}
           >
@@ -394,7 +394,7 @@ export default function PricingPage() {
             className={`px-5 py-2 rounded-xl font-display text-sm font-bold relative transition-all ${
               billing === 'yearly'
                 ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/25'
-                : 'text-white/70 hover:text-white/60'
+                : 'text-white/70 hover:text-white'
             }`}
             aria-pressed={billing === 'yearly'}
           >

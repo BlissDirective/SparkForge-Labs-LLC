@@ -2,7 +2,6 @@
 
 import { motion } from 'motion/react';
 import { LogIn, Sparkles, ArrowRight } from 'lucide-react';
-import GradientText from '@/components/bits/GradientText';
 
 // Unified dark background for the entire landing page
 const BG_DARK = '#0A0F1E';
@@ -87,12 +86,12 @@ export function LandingCTA() {
               className="decrypted-text"
             />
           </span>
-          <GradientText from="#E945F5" to="#4F6EF7">
+          <span className="block" style={{ color: '#4DE9FF' }}>
             <DecryptedText
               text="Agentic AI Lab and Games?"
               className="decrypted-text"
             />
-          </GradientText>
+          </span>
         </h2>
 
         <p className="text-base sm:text-lg mb-8 max-w-xl mx-auto" style={{ color: TEXT_MUTED }}>

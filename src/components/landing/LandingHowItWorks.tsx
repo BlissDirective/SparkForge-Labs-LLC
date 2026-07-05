@@ -7,8 +7,7 @@ import {
 } from 'lucide-react';
 import SpotlightCard from '@/components/bits/SpotlightCard';
 import StarBorder from '@/components/bits/StarBorder';
-import GradientText from '@/components/bits/GradientText';
-import ShinyText from '@/components/bits/ShinyText';
+import BlurText from '@/components/bits/BlurText';
 import CountUp from '@/components/bits/CountUp';
 
 // ── Steps ──
@@ -32,7 +31,7 @@ const STEPS = [
     title: 'Learn by Doing',
     description: 'Games teach real AI concepts through play. Build neural networks, train virtual pets, detect bias, and write your first AI code.',
     icon: Brain,
-    color: '#00D2FF',
+    color: '#4DE9FF',
   },
   {
     num: '04',
@@ -47,7 +46,7 @@ const STEPS = [
 const AI_STATS = [
   { value: 42, suffix: '', label: 'AI Learning Games', icon: Gamepad2, color: '#4F6EF7' },
   { value: 11, suffix: '', label: 'Learning Labs', icon: Star, color: '#E945F5' },
-  { value: 1200, suffix: '+', label: 'Quiz Questions', icon: Brain, color: '#00D2FF' },
+  { value: 1200, suffix: '+', label: 'Quiz Questions', icon: Brain, color: '#4DE9FF' },
   // Honest stat only — the old "97% Kids Love It" had no source (P1-5).
   { value: 0, suffix: '', label: 'Ads or Trackers', icon: Sparkles, color: '#FFD93D' },
 ];
@@ -94,7 +93,7 @@ const FUN_FACTS = [
     title: 'Real AI Concepts',
     stat: '42',
     detail: 'games covering neural networks, NLP, computer vision, ethics, agents, and more.',
-    color: '#00D2FF',
+    color: '#4DE9FF',
   },
 ];
 
@@ -130,7 +129,9 @@ export function LandingHowItWorks() {
           </div>
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold mb-4" style={{ fontFamily: 'var(--font-display)' }}>
             <span className="text-white">How </span>
-            <GradientText from="#4F6EF7" to="#E945F5">SparkForge</GradientText>
+            <span style={{ color: '#4DE9FF' }}>
+              <BlurText text="SparkForge" />
+            </span>
             <span className="text-white"> Works</span>
           </h2>
           <p className="text-base sm:text-lg max-w-2xl mx-auto" style={{ color: 'rgba(248,250,255,0.5)' }}>
@@ -227,7 +228,9 @@ export function LandingHowItWorks() {
         >
           <h3 className="text-2xl sm:text-3xl font-extrabold mb-3" style={{ fontFamily: 'var(--font-display)' }}>
             <span className="text-white">Why </span>
-            <ShinyText text="Learn AI Now?" speed={4} color="#FFD93D" />
+            <span style={{ color: '#FFD93D' }}>
+              <BlurText text="Learn AI Now?" />
+            </span>
           </h3>
           <p className="text-sm sm:text-base max-w-xl mx-auto" style={{ color: 'rgba(248,250,255,0.5)' }}>
             The future belongs to kids who understand AI. Here is why starting early matters.
@@ -251,7 +254,7 @@ export function LandingHowItWorks() {
                       <fact.icon className="w-5 h-5" style={{ color: fact.color }} />
                     </div>
                     <div>
-                      <p className="text-xs font-medium" style={{ color: 'rgba(248,250,255,0.4)' }}>{fact.title}</p>
+                      <p className="text-xs font-medium" style={{ color: 'rgba(248,250,255,0.6)' }}>{fact.title}</p>
                       <p className="text-xl font-extrabold" style={{ fontFamily: 'var(--font-display)', color: fact.color }}>
                         {fact.stat}
                       </p>
@@ -274,11 +277,14 @@ export function LandingHowItWorks() {
           className="text-center"
         >
           <h3 className="text-xl sm:text-2xl font-extrabold mb-6" style={{ fontFamily: 'var(--font-display)', color: '#FFFFFF' }}>
-            What Kids <GradientText from="#2ECC71" to="#4F6EF7">Actually Learn</GradientText>
+            What Kids{' '}
+            <span style={{ color: '#2ECC71' }}>
+              <BlurText text="Actually Learn" />
+            </span>
           </h3>
           <div className="flex flex-wrap justify-center gap-2 max-w-3xl mx-auto">
             {SKILLS.map((skill, i) => {
-              const colors = ['#4F6EF7', '#E945F5', '#00D2FF', '#2ECC71', '#FFD93D', '#FF6B35'];
+              const colors = ['#4F6EF7', '#E945F5', '#4DE9FF', '#2ECC71', '#FFD93D', '#FF6B35'];
               const c = colors[i % colors.length];
               return (
                 <motion.span

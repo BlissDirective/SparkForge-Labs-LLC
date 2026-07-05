@@ -1,5 +1,6 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
+import BlurText from '@/components/bits/BlurText';
 
 export const metadata: Metadata = {
   title: 'COPPA Notice — SparkForge',
@@ -25,8 +26,8 @@ export default function CoppaNoticePage() {
           <div className="inline-block px-3 py-1 rounded-full bg-spark-blue/10 border border-spark-blue/20 text-spark-blue text-xs font-data uppercase tracking-wider mb-4">
             For Parents &amp; Guardians
           </div>
-          <h1 className="font-display text-4xl font-bold mb-3 bg-gradient-to-r from-spark-blue to-spark-purple bg-clip-text text-transparent">
-            COPPA Notice
+          <h1 className="font-display text-4xl font-bold mb-3 text-white">
+            <BlurText text="COPPA Notice" />
           </h1>
           <p className="text-white/70 font-body">
             Effective Date: April 25, 2026 &middot; Last Updated: April 25, 2026
@@ -73,7 +74,7 @@ export default function CoppaNoticePage() {
               under COPPA.
             </p>
             <div className="mt-4 p-4 rounded-lg bg-white/[0.03] border border-white/[0.06]">
-              <p className="text-sm text-white/60">
+              <p className="text-sm text-white/70">
                 <strong className="text-white/80">BlissDirective</strong>
                 <br />
                 Privacy contact:{' '}
@@ -100,7 +101,7 @@ export default function CoppaNoticePage() {
               experience. A child cannot be required to disclose more than is
               reasonably necessary to participate.
             </p>
-            <ul className="list-disc list-inside space-y-1.5 text-white/60">
+            <ul className="list-disc list-inside space-y-1.5 text-white/70">
               <li>
                 A child display name or nickname you choose during profile setup
                 (no last names required)
@@ -135,7 +136,7 @@ export default function CoppaNoticePage() {
             <h2 className="font-display text-xl font-semibold text-white mb-3">
               3. How We Use Your Child&apos;s Information
             </h2>
-            <ul className="list-disc list-inside space-y-1.5 text-white/60">
+            <ul className="list-disc list-inside space-y-1.5 text-white/70">
               <li>To deliver lessons, games, and the Prompt Lab</li>
               <li>To save progress and unlock badges</li>
               <li>To show you, the parent, your child&apos;s activity</li>
@@ -167,7 +168,7 @@ export default function CoppaNoticePage() {
               Before any personal information is collected from a child under 13,
               we obtain verifiable parental consent. Our consent process:
             </p>
-            <ol className="list-decimal list-inside space-y-1.5 text-white/60">
+            <ol className="list-decimal list-inside space-y-1.5 text-white/70">
               <li>
                 The parent or guardian creates a SparkForge account using their
                 own email address.
@@ -200,7 +201,7 @@ export default function CoppaNoticePage() {
             <p className="mb-4">
               At any time, and at no charge, you may:
             </p>
-            <ul className="list-disc list-inside space-y-1.5 text-white/60">
+            <ul className="list-disc list-inside space-y-1.5 text-white/70">
               <li>
                 <strong className="text-white/80">Review</strong> the personal
                 information we have collected from your child, from the parent
@@ -277,7 +278,7 @@ export default function CoppaNoticePage() {
               withdraw consent:
             </p>
             <div className="mt-4 p-4 rounded-lg bg-white/[0.03] border border-white/[0.06]">
-              <p className="text-sm text-white/60">
+              <p className="text-sm text-white/70">
                 <strong className="text-white/80">BlissDirective &mdash; SparkForge Privacy</strong>
                 <br />
                 <a
@@ -288,7 +289,7 @@ export default function CoppaNoticePage() {
                 </a>
               </p>
             </div>
-            <p className="mt-6 text-sm text-white/50">
+            <p className="mt-6 text-sm text-white/70">
               You may also contact the U.S. Federal Trade Commission at{' '}
               <a
                 href="https://www.ftc.gov/"

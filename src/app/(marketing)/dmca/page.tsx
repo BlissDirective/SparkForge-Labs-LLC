@@ -1,6 +1,7 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
 import { ScrollText, AlertTriangle, Reply, UserMinus } from 'lucide-react';
+import BlurText from '@/components/bits/BlurText';
 
 export const metadata: Metadata = {
   title: 'DMCA Policy — SparkForge',
@@ -25,8 +26,8 @@ export default function DMCAPage() {
           <div className="inline-block px-3 py-1 rounded-full bg-spark-amber/10 border border-spark-amber/20 text-spark-amber text-xs font-data uppercase tracking-wider mb-4">
             17 U.S.C. &sect; 512 &middot; Safe Harbor
           </div>
-          <h1 className="font-display text-4xl font-bold mb-3 bg-gradient-to-r from-spark-blue to-spark-purple bg-clip-text text-transparent">
-            DMCA Policy
+          <h1 className="font-display text-4xl font-bold mb-3 text-white">
+            <BlurText text="DMCA Policy" />
           </h1>
           <p className="text-white/70 font-body">
             Effective Date: April 23, 2026 &middot; Last Updated: April 23, 2026
@@ -43,7 +44,7 @@ export default function DMCAPage() {
               requirements, how to file a counter-notice if your content was removed in error, and how we handle repeat
               infringers.
             </p>
-            <p className="mt-3 text-sm text-white/60">
+            <p className="mt-3 text-sm text-white/70">
               SparkForge is an educational platform that allows users (under parental supervision) to submit short text
               prompts to an AI learning game (Prompt Lab) and receive AI-generated responses. These submissions and
               responses are the principal user-generated content on the platform.
@@ -67,12 +68,12 @@ export default function DMCAPage() {
             <div className="p-4 rounded-lg bg-white/[0.03] border border-white/[0.08]">
               <p className="text-sm text-white/80">
                 <strong className="text-white">Conrad Steinmeyer, Owner</strong><br />
-                SparkForge LLC <span className="text-white/60">(an Illinois limited liability company)</span><br />
+                SparkForge LLC <span className="text-white/70">(an Illinois limited liability company)</span><br />
                 Mailing address: <span className="text-white/70">[MAILING ADDRESS &mdash; to be finalized before production launch]</span><br />
                 Telephone: <a href="tel:+17736292320" className="text-spark-blue hover:underline">(773) 629-2320</a><br />
                 Email: <a href="mailto:admin@sparkforge-labs.com" className="text-spark-blue hover:underline">admin@sparkforge-labs.com</a>
               </p>
-              <p className="mt-3 text-xs text-white/50">
+              <p className="mt-3 text-xs text-white/70">
                 Registration with the U.S. Copyright Office DMCA Directory is required for the safe harbor.
                 Verify the current public record at{' '}
                 <a href="https://www.copyright.gov/dmca-directory/" target="_blank" rel="noopener noreferrer" className="text-spark-blue hover:underline">
@@ -104,7 +105,7 @@ export default function DMCAPage() {
               <li>A statement that the complaining party has a good-faith belief that use of the material in the manner complained of is not authorized by the copyright owner, its agent, or the law.</li>
               <li>A statement that the information in the notification is accurate, and <strong className="text-white">under penalty of perjury</strong>, that the complaining party is authorized to act on behalf of the owner of an exclusive right that is allegedly infringed.</li>
             </ol>
-            <p className="mt-3 text-sm text-white/60">
+            <p className="mt-3 text-sm text-white/70">
               Notices that do not include all six elements may not be effective and may result in delayed action or no action at all.
               Materially misrepresenting that material is infringing exposes the sender to liability for damages under
               17 U.S.C. &sect; 512(f).
