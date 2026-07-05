@@ -1,168 +1,1008 @@
 // ════════════════════════════════════════════════════════════════════════
-// PIXEL WITNESS v4 — Lab 7 Flagship (Redesigned)
+// PIXEL WITNESS — Lab 7 Flagship (Stage 11C, C4) — Computer Vision
 // ════════════════════════════════════════════════════════════════════════
-// Advanced image forensics quiz: PRNU, noise analysis, manipulation
-// detection, deepfake identification. 10 levels from basic concepts
-// to professional forensic analysis.
+// The child reviews a short scene, sees what a multimodal AI "says" about it,
+// toggles which senses (modalities) the AI is allowed to use, and catches the
+// spots where the AI is confidently wrong (hallucinations).
+//
+// This UI drives the REAL engine in `usePixelWitnessStore` (clip + Q/A
+// library, sense model, judging + grade engine). No quiz stub — the store
+// owns all logic; this file is the presentational layer + state→view /
+// controls→action wiring.
+//
+// HONESTY NOTE: there is no real video file. The engine represents each clip
+// as authored metadata + pre-recorded AI answers (no /videos/*.mp4 shipped).
+// The UI is deliberately truthful about this — every scene is shown as a
+// *represented / described* clip card, never a fake video player.
+//
+// Phase machine (from pixelWitnessStore.PixelWitnessPhase):
+//   welcome → learn-modal → learn-fusion → learn-hallucinate → tutorial
+//   → (mode select) → watch-A/B/C · hallucination-hunt · sense-builder
+//     · creative-sandbox → report → completeGame
+// ════════════════════════════════════════════════════════════════════════
 
 'use client';
-import { useCallback } from 'react';
+
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameActions } from '@/stores/gameStore';
-import GameLevelSystem, { type LevelResult } from '@/components/games/shared/GameLevelSystem';
-import QuizLevelRenderer, { type QuizQuestion } from '@/components/games/shared/QuizLevelRenderer';
+import { useActiveChild } from '@/hooks/useChildren';
+import {
+  usePixelWitnessStore,
+  expectedClipCountForMode,
+  type PixelWitnessPhase,
+} from '@/stores/pixelWitnessStore';
+import {
+  SENSE_META,
+  senseSatisfies,
+  senseCost,
+  senseLevelLabel,
+} from '@/lib/pixelwitness/judgeEngine';
+import {
+  THEME_META,
+  clipsForBand,
+  getClip,
+  questionsForClip,
+} from '@/lib/pixelwitness/clipLibrary';
+import type {
+  PixelMode,
+  SenseConfig,
+  SenseLevel,
+  PixelClip,
+  ClipQuestion,
+} from '@/types/pixelWitness';
 
-const LEVELS = [
-  { id: 1, name: 'Pixels 101', description: 'How digital images store information!', emoji: '🖼️', difficulty: 'easy' as const, starThresholds: [60,80,95], xpReward: 50 },
-  { id: 2, name: 'Compression', description: 'How compression leaves traces!', emoji: '📉', difficulty: 'easy' as const, starThresholds: [60,80,95], xpReward: 60 },
-  { id: 3, name: 'Copy-Move', description: 'Detect cloned parts of images!', emoji: '👯', difficulty: 'easy' as const, starThresholds: [60,80,95], xpReward: 70 },
-  { id: 4, name: 'Noise Analysis', description: 'Use noise patterns as fingerprints!', emoji: '🌨️', difficulty: 'medium' as const, starThresholds: [60,80,90], xpReward: 80 },
-  { id: 5, name: 'PRNU', description: 'Photo Response Non-Uniformity!', emoji: '🔬', difficulty: 'medium' as const, starThresholds: [60,80,90], xpReward: 90 },
-  { id: 6, name: 'Deepfakes', description: 'Spot AI-generated faces!', emoji: '🎭', difficulty: 'medium' as const, starThresholds: [50,75,90], xpReward: 100 },
-  { id: 7, name: 'GAN Artifacts', description: 'Find telltale GAN fingerprints!', emoji: '👣', difficulty: 'hard' as const, starThresholds: [50,75,85], xpReward: 120 },
-  { id: 8, name: 'Video Forensics', description: 'Analyze temporal inconsistencies!', emoji: '🎬', difficulty: 'hard' as const, starThresholds: [50,75,85], xpReward: 130 },
-  { id: 9, name: 'Splicing', description: 'Detect images made from multiple sources!', emoji: '🔗', difficulty: 'expert' as const, starThresholds: [50,70,85], xpReward: 150 },
-  { id: 10, name: 'Forensic Master', description: 'The ultimate image forensics test!', emoji: '👑', difficulty: 'expert' as const, starThresholds: [50,70,85], xpReward: 200, isBonus: true },
+const LAB = '#10BAD2';
+type Band = 'A' | 'B' | 'C';
+type Rating = 'correct' | 'partial' | 'hallucination';
+
+// ─── Inline style helpers (no arbitrary Tailwind classes) ─────────────────
+const panel: CSSProperties = {
+  background: 'rgba(255,255,255,0.04)',
+  border: '1px solid rgba(255,255,255,0.10)',
+  borderRadius: 16,
+};
+const primaryBtn: CSSProperties = {
+  background: LAB,
+  color: '#04191d',
+  fontWeight: 700,
+  borderRadius: 12,
+  padding: '12px 24px',
+};
+const ghostBtn: CSSProperties = {
+  background: 'rgba(255,255,255,0.06)',
+  color: 'rgba(255,255,255,0.85)',
+  border: '1px solid rgba(255,255,255,0.14)',
+  borderRadius: 12,
+  padding: '10px 20px',
+};
+
+const SENSE_ORDER: (keyof SenseConfig)[] = ['caption', 'oneFrame', 'allFrames', 'audio'];
+
+const SENSE_LEVEL_EMOJI: Record<SenseLevel, string> = {
+  'caption-only': '📝',
+  'one-frame': '🖼️',
+  'all-frames': '🎞️',
+  audio: '🔊',
+};
+
+const RATING_META: Record<Rating, { label: string; emoji: string; hint: string; hex: string }> = {
+  correct: { label: 'Correct', emoji: '✅', hint: 'The AI got it right', hex: '#00D17A' },
+  partial: { label: 'Partly right', emoji: '🟡', hint: 'Right idea, missed details', hex: '#D9A430' },
+  hallucination: { label: 'Made-up!', emoji: '🚨', hint: 'The AI invented something', hex: '#FF7050' },
+};
+
+// ─── Tutorial (learn-card) content ────────────────────────────────────────
+const LEARN: {
+  phase: Extract<PixelWitnessPhase, 'learn-modal' | 'learn-fusion' | 'learn-hallucinate'>;
+  key: 'modal' | 'fusion' | 'hallucinate';
+  next: PixelWitnessPhase;
+  emoji: string;
+  title: string;
+  body: string[];
+}[] = [
+  {
+    phase: 'learn-modal',
+    key: 'modal',
+    next: 'learn-fusion',
+    emoji: '👁️',
+    title: 'An AI has senses too',
+    body: [
+      'A multimodal AI can take in different kinds of information — a text caption, a single picture, a whole video, or sound.',
+      'Each one is like a different sense. The more senses it uses, the more it can figure out.',
+    ],
+  },
+  {
+    phase: 'learn-fusion',
+    key: 'fusion',
+    next: 'learn-hallucinate',
+    emoji: '🔀',
+    title: 'More senses, better answers',
+    body: [
+      'With only a short caption, the AI has to guess a lot.',
+      'Give it the full scene and the sound, and it can actually check what happened. Combining senses is called fusion.',
+    ],
+  },
+  {
+    phase: 'learn-hallucinate',
+    key: 'hallucinate',
+    next: 'tutorial',
+    emoji: '🕵️',
+    title: 'Catch the made-up details',
+    body: [
+      'Sometimes an AI sounds totally sure but invents a detail that was never there. That is a hallucination.',
+      'Your job, detective: read each answer and decide if it is correct, partly right, or made-up.',
+    ],
+  },
 ];
 
-function getQuestions(levelId: number): QuizQuestion[] {
-  const q: Record<number, QuizQuestion[]> = {
-    1: [
-      { question: "What is a pixel?", options: ["A tiny insect","The smallest unit of a digital image","A type of camera","A file format"], correctIndex: 1, explanation: "A pixel (picture element) is the smallest controllable unit of a digital image. Each pixel has a color value, and millions of them together form an image.", band: 'A' },
-      { question: "What does RGB stand for?", options: ["Red, Green, Blue","Really Good Band","Royal Green Brown","Radio Graphic Base"], correctIndex: 0, explanation: "RGB = Red, Green, Blue. These are the three primary colors of light. Mixing them in different proportions creates all the colors you see on screens.", band: 'A' },
-      { question: "How many color values does each pixel in a standard RGB image have?", options: ["1","2","3","4"], correctIndex: 2, explanation: "Each RGB pixel has 3 values: one for Red intensity, one for Green, and one for Blue. Each value is typically 0-255 (8 bits per channel).", band: 'A' },
-      { question: "What is image resolution?", options: ["The image's quality rating","The number of pixels (width × height)","The file size","The color depth"], correctIndex: 1, explanation: "Resolution is the total number of pixels in an image, calculated as width × height. A 1920×1080 image has about 2 million pixels (2 megapixels).", band: 'A' },
-      { question: "What is the difference between a bitmap and a vector image?", options: ["No difference","Bitmap uses pixels; vector uses mathematical shapes","Bitmap is always bigger","Vector is only for photos"], correctIndex: 1, explanation: "Bitmap (raster) images store pixel data. Vector images store mathematical descriptions of shapes, making them infinitely scalable without quality loss.", band: 'B' },
-      { question: "What does 'color depth' mean?", options: ["How deep the colors look","The number of bits used to represent each pixel's color","The image file size","The emotional impact of colors"], correctIndex: 1, explanation: "Color depth (bit depth) is the number of bits used per pixel. 8-bit = 256 colors, 24-bit = 16.7 million colors, 32-bit adds an alpha (transparency) channel.", band: 'B' },
-      { question: "What is a histogram in image analysis?", options: ["A type of graph showing the distribution of pixel values","A medical chart","A type of camera","A social media post"], correctIndex: 0, explanation: "An image histogram graphs the distribution of pixel brightness values. It shows how many pixels are at each brightness level, from pure black to pure white.", band: 'A' },
-      { question: "What happens when you zoom in too far on a bitmap image?", options: ["It gets sharper","You see individual square pixels","It becomes a vector","It changes color"], correctIndex: 1, explanation: "Bitmap images are made of discrete pixels. Zooming in beyond 100% reveals the individual square pixels — the image appears blocky or 'pixelated.'", band: 'A' },
-    ],
-    2: [
-      { question: "What is JPEG compression?", options: ["Lossless compression","Lossy compression that discards some data","A file renaming tool","A camera setting"], correctIndex: 1, explanation: "JPEG uses lossy compression — it permanently discards some image data to reduce file size. High compression = smaller files but visible artifacts.", band: 'A' },
-      { question: "What are JPEG artifacts?", options: ["Art created by JPEGs","Visible distortions caused by lossy compression","File metadata","A type of camera lens"], correctIndex: 1, explanation: "JPEG artifacts are visible distortions like blocky edges, mosquito noise around high-contrast areas, and color banding. They're telltale signs of compression.", band: 'B' },
-      { question: "Why does saving a JPEG multiple times degrade quality?", options: ["It doesn't","Each save re-applies lossy compression, compounding artifacts","The file gets bored","Computers make mistakes"], correctIndex: 1, explanation: "Each JPEG save re-compresses already-compressed data. Artifacts from the first compression become 'real' image data that gets compressed again, compounding degradation.", band: 'B' },
-      { question: "What compression is lossless (no quality loss)?", options: ["JPEG always","PNG uses lossless compression","Both are lossy","Neither"], correctIndex: 1, explanation: "PNG uses lossless compression — every pixel is preserved exactly. The file may be larger, but there's no quality degradation regardless of how many times you save.", band: 'A' },
-      { question: "What are DCT coefficients in JPEG?", options: ["A type of battery","Discrete Cosine Transform values that represent image frequency data","A camera brand","A file format"], correctIndex: 1, explanation: "JPEG converts image blocks (8×8 pixels) into frequency data using the Discrete Cosine Transform (DCT). Low frequencies = smooth areas, high frequencies = fine details.", band: 'C' },
-      { question: "What is 'blocking artifact' in JPEG?", options: ["Blocks the image from opening","Visible 8×8 pixel grid boundaries from DCT block processing","A type of encryption","Removing blocks from the image"], correctIndex: 1, explanation: "Blocking artifacts appear as visible 8×8 grid boundaries in heavily compressed JPEGs. Each DCT block is processed independently, creating discontinuities at block edges.", band: 'C' },
-      { question: "How can compression artifacts help detect manipulation?", options: ["They can't","Inconsistencies in artifact patterns across an image suggest different compression histories","They always indicate manipulation","They prove an image is real"], correctIndex: 1, explanation: "When parts of an image have different compression artifact patterns, it suggests they came from different sources or were added after the original compression.", band: 'B' },
-      { question: "What is 'double JPEG compression' detection?", options: ["Detecting two JPEG files","Identifying when an image was saved as JPEG twice with different quality settings","Compressing twice for better quality","A camera feature"], correctIndex: 1, explanation: "Double JPEG detection analyzes DCT coefficient histograms for telltale periodic patterns that emerge when an image is compressed, decompressed, and re-compressed with different settings.", band: 'C' },
-    ],
-    3: [
-      { question: "What is copy-move forgery?", options: ["Copying a file","Copying part of an image and pasting it elsewhere in the same image","Moving files between folders","A type of printing"], correctIndex: 1, explanation: "Copy-move forgery copies a region from an image and pastes it elsewhere in the same image to hide or duplicate objects. It's one of the most common image manipulation techniques.", band: 'B' },
-      { question: "How can copy-move forgery be detected?", options: ["It can't be","Finding similar blocks of pixels that shouldn't be identical","By asking the photographer","By file size alone"], correctIndex: 1, explanation: "Copy-move detection algorithms find matching pixel blocks that are statistically unlikely to occur naturally. Identical or near-identical regions in different parts of an image are suspicious.", band: 'B' },
-      { question: "Why might copy-move detection fail?", options: ["It always works","If the copied region is rotated, scaled, blurred, or heavily compressed","If the image is too large","If it's a PNG file"], correctIndex: 1, explanation: "Post-processing the copied region (rotation, scaling, blurring, color adjustment, or re-compression) can make the duplicate harder to detect by changing pixel values.", band: 'B' },
-      { question: "What is 'block matching' in copy-move detection?", options: ["Matching puzzle blocks","Dividing the image into blocks and finding matching pairs","A video game","A type of filter"], correctIndex: 1, explanation: "Block matching divides the image into small overlapping blocks and searches for matching pairs. Identical blocks at different locations suggest copy-move manipulation.", band: 'C' },
-      { question: "What is 'keypoint-based' copy-move detection?", options: ["Typing on a keyboard","Finding distinctive features (keypoints) and matching them across the image","A type of password","Encrypting images"], correctIndex: 1, explanation: "Keypoint-based methods find distinctive features (corners, textures) and match them. SIFT and SURF keypoints are robust to rotation, scaling, and minor edits.", band: 'C' },
-      { question: "What visual clue might reveal a sloppy copy-move?", options: ["Nothing","Repeated patterns, identical textures, or misaligned edges","Better color quality","Larger file size"], correctIndex: 1, explanation: "Sloppy copy-moves may leave visible repeated patterns, identical textures in different locations, misaligned edges at the pasted boundary, or inconsistent shadows.", band: 'A' },
-      { question: "What is 'noise inconsistency' as a manipulation clue?", options: ["Loud images","Different noise patterns across the image suggesting parts came from different sources","A camera malfunction","Image brightness differences"], correctIndex: 1, explanation: "Different parts of a manipulated image may have different noise characteristics because they came from different cameras, ISO settings, or compression histories.", band: 'B' },
-      { question: "What post-processing trick makes copy-move harder to detect?", options: ["Making the image smaller","Adding noise, blurring edges, or adjusting colors to hide matching patterns","Converting to black and white","Renaming the file"], correctIndex: 1, explanation: "Adding noise, feathering edges, adjusting brightness/contrast, or applying filters can obscure the telltale matching patterns that detection algorithms look for.", band: 'B' },
-    ],
-    4: [
-      { question: "What is image noise?", options: ["Loud pictures","Random variations in pixel values that form a pattern","A type of camera","Digital distortion only"], correctIndex: 1, explanation: "Image noise is random variation in pixel values. Every camera sensor produces characteristic noise patterns that act like a fingerprint for that specific device.", band: 'B' },
-      { question: "Why is noise useful for forensics?", options: ["It isn't","Each camera has a unique noise 'fingerprint' that can identify the device","It makes images clearer","It reduces file size"], correctIndex: 1, explanation: "Each camera sensor has unique noise characteristics due to manufacturing variations. This Photo Response Non-Uniformity (PRNU) acts like a fingerprint.", band: 'B' },
-      { question: "What is 'Gaussian noise'?", options: ["Noise from Germany","Random noise following a normal (bell curve) distribution","A camera brand","A type of music"], correctIndex: 1, explanation: "Gaussian noise has random values following a normal distribution (bell curve). It's the most common model for sensor noise in digital cameras.", band: 'C' },
-      { question: "How can noise analysis detect splicing?", options: ["It can't","Different source images have different noise patterns; spliced regions show noise inconsistencies","Noise always proves an image is real","Only in dark images"], correctIndex: 1, explanation: "When two images from different cameras are spliced together, their noise patterns differ. Forensic analysts can detect these noise inconsistencies across the composite image.", band: 'C' },
-      { question: "What is 'noise residual'?", options: ["Leftover noise after filtering","The difference between the original image and a denoised version","A type of echo","A camera setting"], correctIndex: 1, explanation: "The noise residual is what remains when you subtract a denoised version of the image from the original. This residual contains the camera's noise fingerprint.", band: 'C' },
-      { question: "What is wavelet-based noise analysis?", options: ["Sound wave analysis","Decomposing the image into frequency bands to analyze noise at different scales","A type of camera","A file format"], correctIndex: 1, explanation: "Wavelet transforms decompose images into different frequency bands. Noise characteristics vary across frequencies, enabling sophisticated forensic analysis.", band: 'C' },
-      { question: "Can AI-generated images have 'noise fingerprints'?", options: ["No — they're perfect","Sometimes — GANs have characteristic artifacts that act like fingerprints","Only real photos have noise","AI images have no patterns"], correctIndex: 1, explanation: "AI-generated images often have characteristic patterns and artifacts (like checkerboard artifacts, specific noise spectra) that can act as generative model fingerprints.", band: 'C' },
-      { question: "What is 'noise equalization' in anti-forensics?", options: ["Making images quieter","Adding matching noise to spliced regions to hide inconsistencies","A type of filter","Balancing audio"], correctIndex: 1, explanation: "Anti-forensic techniques like noise equalization add consistent noise across a composite image to hide the noise inconsistencies that would reveal splicing.", band: 'C' },
-    ],
-    5: [
-      { question: "What does PRNU stand for?", options: ["Perfect Resolution Neutral Unit","Photo Response Non-Uniformity","Pixel Registration Number Unknown","Primary Resolution Network Unit"], correctIndex: 1, explanation: "PRNU = Photo Response Non-Uniformity. It's the unique pattern of sensitivity variation across a camera sensor, caused by manufacturing differences. Like a fingerprint.", band: 'B' },
-      { question: "Why is PRNU unique to each camera?", options: ["It's programmed that way","Tiny manufacturing variations in sensor pixels create a unique sensitivity pattern","Each camera has a different software version","It's randomly generated"], correctIndex: 1, explanation: "Manufacturing can't make every pixel identical. Some pixels are slightly more or less sensitive to light. This pattern is unique, stable, and consistent across all photos from that camera.", band: 'C' },
-      { question: "How is a camera's PRNU 'fingerprint' extracted?", options: ["From the serial number","By averaging noise residuals from many photos taken by that camera","With a special device","From EXIF metadata"], correctIndex: 1, explanation: "PRNU extraction involves taking many photos with a camera, computing noise residuals for each, and averaging them. This isolates the sensor's consistent PRNU pattern from random noise.", band: 'C' },
-      { question: "How is PRNU used to identify the source camera?", options: ["By reading metadata","By correlating the image's noise residual with known camera PRNU fingerprints","By file size","By image dimensions"], correctIndex: 1, explanation: "Forensic analysts compare the noise residual of a suspect image against a database of known camera PRNU fingerprints. High correlation identifies the source device.", band: 'C' },
-      { question: "What can make PRNU identification fail?", options: ["It never fails","Heavy compression, resizing, or social media processing can degrade the PRNU signal","High-resolution images","Using a flash"], correctIndex: 1, explanation: "Heavy JPEG compression, image resizing, social media filtering, and aggressive denoising can degrade or alter the PRNU pattern, making camera identification harder.", band: 'C' },
-      { question: "Can PRNU prove a photo is unedited?", options: ["Yes, always","PRNU consistency across the image suggests no splicing; inconsistency reveals manipulation","Only for professional cameras","No, it's useless"], correctIndex: 1, explanation: "If the PRNU pattern is consistent across the entire image, it suggests the photo came from a single camera without splicing. Inconsistencies indicate tampering.", band: 'C' },
-      { question: "What is sensor pattern noise (SPN)?", options: ["A music genre","The combination of PRNU and fixed pattern noise from a sensor","A camera brand","A type of image filter"], correctIndex: 1, explanation: "SPN = Sensor Pattern Noise, combining PRNU (light sensitivity variation) and FPN (Fixed Pattern Noise, present even in dark frames). Together they form the sensor fingerprint.", band: 'C' },
-      { question: "What is the main limitation of PRNU-based forensics?", options: ["It doesn't work","Requires access to the suspect camera or many photos from it; computationally expensive","Only works on JPEGs","Only works in daylight"], correctIndex: 1, explanation: "PRNU forensics requires either physical access to the suspect camera or a sufficient number of known photos from it. It's also computationally intensive for large databases.", band: 'C' },
-    ],
-    6: [
-      { question: "What is a deepfake?", options: ["A very dark photo","AI-generated media that replaces a person's face or voice with someone else's","A type of camera","A professional photo"], correctIndex: 1, explanation: "Deepfakes use deep learning (typically autoencoders or GANs) to swap faces, synthesize voices, or create realistic fake videos of people saying or doing things they never did.", band: 'A' },
-      { question: "What visual artifact often appears in deepfake faces?", options: ["No artifacts exist","Blurred boundaries around face edges, inconsistent lighting, unnatural blinking","Better quality than real photos","Only watermark artifacts"], correctIndex: 1, explanation: "Deepfake faces often show: blurred boundaries at the face mask edge, inconsistent lighting between face and background, unnatural eye movement or blinking, and asymmetrical features.", band: 'B' },
-      { question: "Why are deepfake eyes often a giveaway?", options: ["They're always closed","GANs struggle with accurate eye reflections, gaze direction, and natural blinking","They're too bright","They're always red"], correctIndex: 1, explanation: "Eyes are challenging for GANs. Telltale signs include: inconsistent reflections in left vs. right eye, unnatural gaze direction, and irregular or missing blinking patterns.", band: 'B' },
-      { question: "What is 'face warping artifact' in deepfakes?", options: ["A broken face","Visible distortion around the face region where the generated face meets the original background","A smile","A camera effect"], correctIndex: 1, explanation: "Face warping artifacts appear as visible distortion, blurriness, or resolution differences around the boundaries of the swapped face region where it meets the original image.", band: 'B' },
-      { question: "How can AI detect deepfakes?", options: ["It can't","Specialized neural networks trained to identify synthetic media artifacts","Only humans can detect them","By file size alone"], correctIndex: 1, explanation: "Deepfake detection networks are trained on large datasets of real and fake media. They learn to identify subtle artifacts invisible to the human eye.", band: 'B' },
-      { question: "What is the 'arms race' in deepfake technology?", options: ["A video game","As detection improves, generation methods evolve to evade detection","A literal race","A military exercise"], correctIndex: 1, explanation: "Deepfake creation and detection are in constant competition. Better detectors push creators to improve their methods, which drives better detectors — an ongoing cycle.", band: 'B' },
-      { question: "What temporal inconsistency can reveal deepfake videos?", options: ["None — they're perfect","Frame-to-frame artifacts: flickering, inconsistent face geometry across frames","The audio is always wrong","They're always low resolution"], correctIndex: 1, explanation: "Deepfake videos may show frame-to-frame inconsistencies: flickering facial features, geometry that shifts between frames, or inconsistent skin tones across the video.", band: 'C' },
-      { question: "Why might deepfake detection fail?", options: ["It always works","High-quality deepfakes, unknown generation methods, or heavy compression can evade detection","Detection is illegal","Deepfakes don't exist anymore"], correctIndex: 1, explanation: "As deepfake quality improves and new generation methods emerge, detectors trained on older fakes may fail. Adversarial examples can also be crafted to evade detection.", band: 'B' },
-    ],
-    7: [
-      { question: "What are 'GAN fingerprints'?", options: ["Marks on the camera","Characteristic artifacts left by specific generative model architectures","A type of watermark","A file format"], correctIndex: 1, explanation: "Different GAN architectures leave characteristic fingerprints — specific patterns in the image frequency spectrum or statistical distributions that reveal which model generated the image.", band: 'C' },
-      { question: "What is the 'checkerboard artifact' in GAN images?", options: ["A chess board","A grid-like pattern caused by deconvolution layers in the generator","A visual effect","A type of compression"], correctIndex: 1, explanation: "Checkerboard artifacts appear as subtle grid patterns in GAN-generated images. They're caused by uneven overlap in transposed convolution (deconvolution) layers during image generation.", band: 'C' },
-      { question: "How can frequency spectrum analysis detect GAN images?", options: ["It can't","GAN images often have unusual frequency distributions compared to real photos","Only in sound","By counting pixels"], correctIndex: 1, explanation: "Real photos have characteristic frequency distributions. GAN-generated images often deviate in their frequency spectra, particularly in high-frequency components (fine details).", band: 'C' },
-      { question: "What is 'up-sampling' artifact in generated images?", options: ["Making images larger","Telltale patterns from how the GAN increases image resolution during generation","A camera zoom","A type of compression"], correctIndex: 1, explanation: "GANs generate images through progressive up-sampling. The specific interpolation method (nearest neighbor, bilinear) can leave characteristic patterns that forensic analysis can detect.", band: 'C' },
-      { question: "What is 'image attribution' in forensics?", options: ["Giving credit to photographers","Identifying which specific generative model created an image","A type of watermark","Tracking image shares"], correctIndex: 1, explanation: "Image attribution aims to identify the specific model (StyleGAN, BigGAN, DALL-E, etc.) that generated an image, based on architecture-specific artifacts.", band: 'C' },
-      { question: "What color space analysis can reveal GAN images?", options: ["None","GANs sometimes struggle with realistic color distributions in LAB or HSV color spaces","Only RGB matters","Color analysis doesn't work"], correctIndex: 1, explanation: "GAN-generated images may have unrealistic color distributions or correlations between color channels that differ from natural photographs, detectable in LAB or HSV color spaces.", band: 'C' },
-      { question: "What is 'consistency of physics' checking?", options: ["A physics test","Verifying that lighting, shadows, and reflections are physically consistent","A camera setting","Only for science photos"], correctIndex: 1, explanation: "AI-generated images may have physically inconsistent lighting directions, impossible shadows, or incorrect reflections. These physics violations can reveal manipulation.", band: 'C' },
-      { question: "What are 'semantic artifacts' in generated images?", options: ["Grammar mistakes","Nonsensical or physically impossible object arrangements","Text in images","A type of filter"], correctIndex: 1, explanation: "Semantic artifacts are logical inconsistencies: impossible anatomy, mismatched object relationships, or nonsensical scene compositions that don't occur in real photos.", band: 'C' },
-    ],
-    8: [
-      { question: "How is video forensics different from image forensics?", options: ["It's the same","Video adds temporal dimension — frame-to-frame consistency must be analyzed","Video is easier","Only resolution differs"], correctIndex: 1, explanation: "Video forensics must analyze both spatial (within each frame) AND temporal (between frames) consistency. Temporal artifacts are unique to video manipulation.", band: 'B' },
-      { question: "What is 'frame interpolation' artifact?", options: ["A painting technique","Unnatural motion between frames when fake frames are inserted","A camera feature","A type of compression"], correctIndex: 1, explanation: "When frames are duplicated or inserted in manipulated video, the motion flow between frames becomes unnatural. Interpolation detection analyzes optical flow consistency.", band: 'C' },
-      { question: "What is 'double quantization' in video?", options: ["Quantifying twice","When video frames are compressed with different quantization parameters, revealing editing points","A camera setting","A math operation"], correctIndex: 1, explanation: "Video consists of keyframes (I-frames) and predicted frames (P/B-frames). Spliced video may show inconsistent quantization patterns at edit points.", band: 'C' },
-      { question: "What is 'copy-move' in video?", options: ["Copying a video file","Duplicating a segment of video to hide or extend content","A camera movement","A file transfer"], correctIndex: 1, explanation: "Video copy-move duplicates a segment (e.g., 10 frames) and inserts it elsewhere. Detection finds repeated temporal patterns that shouldn't exist in natural video.", band: 'C' },
-      { question: "How can audio-visual synchronization detect deepfake videos?", options: ["It can't","Mismatches between lip movements and speech (lip-sync errors) reveal manipulation","Audio doesn't matter","Only visual analysis works"], correctIndex: 1, explanation: "Deepfake videos may have imperfect audio-visual synchronization. Analyzing lip movement patterns against speech phonemes can detect when a face has been manipulated.", band: 'C' },
-      { question: "What is 'optical flow' in video analysis?", options: ["Water flow","The pattern of apparent motion of objects between consecutive frames","A camera lens type","A type of lighting"], correctIndex: 1, explanation: "Optical flow estimates pixel movement between frames. In manipulated video, the optical flow may be inconsistent at edit boundaries or in spliced regions.", band: 'C' },
-      { question: "What is 'frame deletion' detection?", options: ["Removing frames from storage","Detecting when frames were removed from a video to hide content","A compression technique","A camera setting"], correctIndex: 1, explanation: "Frame deletion removes frames to hide content. Detection analyzes temporal consistency — abrupt jumps in motion or timestamp irregularities reveal missing frames.", band: 'C' },
-      { question: "What metadata can reveal video manipulation?", options: ["None — metadata is always reliable","Inconsistent timestamps, codec changes, or missing frames in the GOP structure","Only the file name","Metadata can't be trusted"], correctIndex: 1, explanation: "Video metadata including timestamps, Group of Pictures (GOP) structure, and codec parameters can reveal inconsistencies introduced by editing and re-encoding.", band: 'C' },
-    ],
-    9: [
-      { question: "What is image splicing?", options: ["Cutting paper","Combining parts from multiple images into one composite","A type of glue","A camera technique"], correctIndex: 1, explanation: "Image splicing combines regions from two or more source images into a single composite. It's one of the most common and difficult-to-detect manipulation techniques.", band: 'B' },
-      { question: "What is the 'boundary artifact' in spliced images?", options: ["A frame","Visible or statistical differences along the boundary where two images meet","A type of edge","A natural phenomenon"], correctIndex: 1, explanation: "Boundary artifacts appear as visible edges, color differences, noise inconsistencies, or compression mismatches along the seam where two images are joined.", band: 'B' },
-      { question: "How can illumination analysis detect splicing?", options: ["By brightness","Different source images may have inconsistent lighting direction, color temperature, or shadow patterns","Only at night","By flash detection"], correctIndex: 1, explanation: "Spliced images often have inconsistent illumination: different light directions, mismatched color temperatures, or shadows that don't align with the scene's light source.", band: 'C' },
-      { question: "What is 'CFA interpolation' analysis?", options: ["A type of camera","Color Filter Array pattern analysis — each camera demosaics RAW data differently","A photo editing tool","A file format"], correctIndex: 1, explanation: "Digital cameras use a Color Filter Array (typically Bayer). Each camera model has unique demosaicing (CFA interpolation) patterns. Inconsistencies reveal splicing from different cameras.", band: 'C' },
-      { question: "What is 'chromatic aberration' and how does it help forensics?", options: ["A type of paint","Color fringing at edges; inconsistent aberration patterns across an image suggest splicing","A camera setting","Only in artistic photos"], correctIndex: 1, explanation: "Chromatic aberration causes color fringing at high-contrast edges. Each lens has unique aberration characteristics. Inconsistent patterns across an image suggest different source lenses.", band: 'C' },
-      { question: "What is 'JPEG ghost' analysis?", options: ["A haunted image","Detecting regions that were previously compressed with different JPEG quality settings","A type of watermark","A visual effect"], correctIndex: 1, explanation: "JPEG ghost analysis re-compresses an image at various quality levels. Regions that match a particular quality level strongly suggest they were previously saved at that quality.", band: 'C' },
-      { question: "What is 'error level analysis' (ELA)?", options: ["Counting mistakes","Re-saving the image and comparing error levels — manipulated regions show different error patterns","A type of test","A grading system"], correctIndex: 1, explanation: "ELA re-saves an image at a known quality and highlights differences. Regions that were previously compressed differently (or manipulated) show up with different error levels.", band: 'C' },
-      { question: "What is the ultimate challenge in image forensics?", options: ["Detecting all manipulations","The arms race between increasingly sophisticated manipulation and detection techniques","Finding the camera","Compressing images"], correctIndex: 1, explanation: "Image forensics faces an ongoing challenge: as manipulation techniques improve, detection must evolve. No single technique catches everything — comprehensive analysis requires multiple methods.", band: 'C' },
-    ],
-    10: [
-      { question: "What is 'multi-modal' forensics?", options: ["Using multiple monitors","Analyzing images, video, audio, and metadata together for comprehensive authenticity verification","A type of camera","A file format"], correctIndex: 1, explanation: "Multi-modal forensics analyzes multiple signal types simultaneously. Cross-modal inconsistencies (e.g., between audio and video) can reveal sophisticated manipulations.", band: 'C' },
-      { question: "What is 'adversarial attack' on forensic detectors?", options: ["A military attack","Subtle perturbations designed to fool AI forensic detectors while looking normal to humans","A type of virus","A camera malfunction"], correctIndex: 1, explanation: "Adversarial attacks add imperceptible perturbations to images that cause forensic AI detectors to misclassify them, even though the image looks unchanged to humans.", band: 'C' },
-      { question: "What is 'provenance analysis' in media forensics?", options: ["Art history","Tracing the complete history and chain of custody of a media file","A camera brand","A type of watermark"], correctIndex: 1, explanation: "Provenance analysis traces a media file's complete history: where it originated, what processing it underwent, how it was shared. This chain of custody helps establish authenticity.", band: 'C' },
-      { question: "What role does blockchain play in image authentication?", options: ["None","Immutable timestamping and attribution records can establish image provenance","It stores images","It compresses files"], correctIndex: 1, explanation: "Blockchain can provide immutable records of image creation time, ownership, and any edits. This creates a tamper-evident provenance trail for digital media.", band: 'C' },
-      { question: "What is 'content authenticity initiative' (CAI)?", options: ["A TV show","Industry standards for embedding cryptographically signed metadata verifying image provenance","A camera setting","A file format"], correctIndex: 1, explanation: "The Content Authenticity Initiative (by Adobe, BBC, Truepic, etc.) develops standards for Content Credentials — cryptographically signed metadata that proves image origin and editing history.", band: 'C' },
-      { question: "What is the 'uncanny valley' in synthetic media detection?", options: ["A geographic location","The eerie feeling when synthetic faces are almost but not quite realistic","A type of filter","A camera angle"], correctIndex: 1, explanation: "The uncanny valley describes the discomfort when synthetic faces are nearly perfect but have subtle flaws. These near-perfect fakes are both convincing and detectable.", band: 'C' },
-      { question: "What is 'ensemble detection' in forensics?", options: ["A musical group","Combining multiple detection methods for more robust manipulation identification","A type of camera","A file format"], correctIndex: 1, explanation: "Ensemble detection combines multiple forensic techniques (PRNU, noise analysis, deep learning detectors, etc.) for more robust and reliable manipulation identification.", band: 'C' },
-      { question: "What is the future of image forensics?", options: ["It will become obsolete","Continuous evolution: real-time detection, watermarking standards, and provenance tracking","Perfect detection is coming soon","Only manual analysis will work"], correctIndex: 1, explanation: "Image forensics will continuously evolve with real-time detection, industry-standard provenance systems (like CAI), and multi-modal analysis. It's an ongoing arms race requiring constant innovation.", band: 'C' },
-    ],
-  };
+// ─── Modes offered on the mode-select board ───────────────────────────────
+const MODES: { mode: PixelMode; emoji: string; title: string; blurb: string; star?: boolean }[] = [
+  { mode: 'watch-A', emoji: '🌱', title: 'Warm-Up Watch', blurb: 'Easy scenes to get your eye in.' },
+  { mode: 'watch-B', emoji: '🔎', title: 'Detective Watch', blurb: 'Trickier scenes — read carefully.' },
+  { mode: 'watch-C', emoji: '🧠', title: 'Expert Watch', blurb: 'The hardest, sneakiest answers.' },
+  { mode: 'hallucination-hunt', emoji: '🚨', title: 'Hallucination Hunt', blurb: 'Boss round: only made-up-detail traps. Catch them all.' },
+  { mode: 'sense-builder', emoji: '🎛️', title: 'Sense Builder', blurb: 'Flip the AI’s senses on and off — watch its answer change!', star: true },
+  { mode: 'creative-sandbox', emoji: '🧭', title: 'Free Explore', blurb: 'Browse any scene and peek at the truth. No scoring.' },
+];
 
-  const base = q[levelId] || q[1];
-  const extra: QuizQuestion[] = levelId >= 4 ? [
-    { question: "What is 'steganalysis'?", options: ["Analyzing stairs","Detecting hidden data embedded in images (steganography)","A type of photography","Analyzing star patterns"], correctIndex: 1, explanation: "Steganalysis detects hidden information embedded in images through steganography. Statistical analysis can reveal anomalies that suggest secret data is present.", band: 'C' },
-    { question: "What is EXIF metadata and how is it useful in forensics?", options: ["A file format","Embedded metadata: camera model, GPS, timestamp — can verify or contradict claims about a photo","A type of compression","A camera brand"], correctIndex: 1, explanation: "EXIF metadata records camera settings, GPS location, timestamp, and device info. It can verify authenticity but can also be forged or stripped.", band: 'B' },
-  ] : [];
-  const extra2: QuizQuestion[] = levelId >= 7 ? [
-    { question: "What is 'contrastive learning' in deepfake detection?", options: ["Learning about contrast","Training a model to distinguish between real and fake by learning discriminative features","A type of photography","A lighting technique"], correctIndex: 1, explanation: "Contrastive learning trains models to maximize distance between real and fake samples in embedding space. It learns features that best distinguish authentic from synthetic.", band: 'C' },
-    { question: "What is 'frequency domain analysis' in image forensics?", options: ["Analyzing sound frequencies","Examining image frequency components (DCT, DFT) to detect manipulation artifacts","A type of filter","A camera setting"], correctIndex: 1, explanation: "Frequency domain analysis transforms images from spatial (pixels) to frequency representation. Manipulations often leave detectable traces in the frequency spectrum.", band: 'C' },
-  ] : [];
+function Stars({ n, size = 30 }: { n: number; size?: number }) {
+  return (
+    <span aria-label={`${n} out of 3 stars`} style={{ fontSize: size, letterSpacing: 2 }}>
+      {[0, 1, 2].map((i) => (
+        <span key={i} style={{ opacity: i < n ? 1 : 0.22 }}>
+          ⭐
+        </span>
+      ))}
+    </span>
+  );
+}
 
-  return [...base, ...extra, ...extra2].slice(0, 10);
+function Centered({ children }: { children: React.ReactNode }) {
+  return (
+    <div
+      className="flex flex-col items-center justify-center gap-4 py-8 text-center"
+      style={{ minHeight: '55vh' }}
+    >
+      {children}
+    </div>
+  );
+}
+
+// A represented scene card — honest stand-in for a short clip (no video file).
+function SceneCard({ clip, compact = false }: { clip: PixelClip; compact?: boolean }) {
+  const theme = THEME_META[clip.theme];
+  return (
+    <div
+      style={{
+        ...panel,
+        padding: compact ? 14 : 18,
+        borderColor: 'rgba(16,186,210,0.28)',
+        background: 'linear-gradient(180deg, rgba(16,186,210,0.10), rgba(255,255,255,0.03))',
+      }}
+    >
+      <div className="flex items-center gap-3">
+        <div style={{ fontSize: compact ? 40 : 52 }} aria-hidden>
+          {clip.emoji}
+        </div>
+        <div className="min-w-0">
+          <div className="font-black text-white" style={{ fontSize: compact ? 16 : 20 }}>
+            {clip.title}
+          </div>
+          <div className="flex flex-wrap items-center gap-2" style={{ marginTop: 4 }}>
+            <span
+              style={{
+                fontSize: 12,
+                padding: '2px 10px',
+                borderRadius: 999,
+                background: 'rgba(255,255,255,0.07)',
+                color: theme.color,
+                fontWeight: 700,
+              }}
+            >
+              {theme.emoji} {theme.label}
+            </span>
+            <span className="text-white/70" style={{ fontSize: 12 }}>
+              ≈ {clip.durationSec}s scene
+            </span>
+            {clip.hasAudio && (
+              <span className="text-white/70" style={{ fontSize: 12 }}>
+                🔊 has sound
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+      <p
+        className="text-white/60"
+        style={{ fontSize: 12, marginTop: 12, lineHeight: 1.5 }}
+      >
+        🎞️ This is a <strong className="text-white/75">represented scene</strong> — there is no real
+        video here. The card stands in for a short clip the AI &ldquo;watched.&rdquo; Your detective
+        work is judging what the AI <em>said</em> about it.
+      </p>
+    </div>
+  );
 }
 
 export default function PixelWitnessGame() {
   const { awardXP, completeGame } = useGameActions();
-  const handleComplete = useCallback((results: LevelResult[]) => {
-    const totalXP = results.reduce((s, r) => s + r.xpEarned, 0);
-    const totalStars = results.reduce((s, r) => s + r.stars, 0);
-    awardXP(Math.round(totalXP));
-    completeGame('pixel-witness', totalStars >= 25 ? 3 : totalStars >= 15 ? 2 : 1);
-  }, [awardXP, completeGame]);
+  const child = useActiveChild();
+  const band = (child?.age_band || 'B') as Band;
+
+  // ─── Store: state ──────────────────────────────────────────────────────
+  const phase = usePixelWitnessStore((s) => s.phase);
+  const mode = usePixelWitnessStore((s) => s.mode);
+  const modeClips = usePixelWitnessStore((s) => s.modeClips);
+  const clipIndex = usePixelWitnessStore((s) => s.clipIndex);
+  const currentClip = usePixelWitnessStore((s) => s.currentClip);
+  const currentQuestions = usePixelWitnessStore((s) => s.currentQuestions);
+  const questionIndex = usePixelWitnessStore((s) => s.questionIndex);
+  const currentQuestion = usePixelWitnessStore((s) => s.currentQuestion);
+  const ratings = usePixelWitnessStore((s) => s.ratings);
+  const senseConfig = usePixelWitnessStore((s) => s.senseConfig);
+  const hasRatedCurrent = usePixelWitnessStore((s) => s.hasRatedCurrent);
+
+  // ─── Store: actions ────────────────────────────────────────────────────
+  const setPhase = usePixelWitnessStore((s) => s.setPhase);
+  const beginGame = usePixelWitnessStore((s) => s.beginGame);
+  const reset = usePixelWitnessStore((s) => s.reset);
+  const markTutorialSeen = usePixelWitnessStore((s) => s.markTutorialSeen);
+  const startMode = usePixelWitnessStore((s) => s.startMode);
+  const nextQuestion = usePixelWitnessStore((s) => s.nextQuestion);
+  const toggleSense = usePixelWitnessStore((s) => s.toggleSense);
+  const getDisplayedAnswer = usePixelWitnessStore((s) => s.getDisplayedAnswer);
+  const rateAnswer = usePixelWitnessStore((s) => s.rateAnswer);
+  const getGrade = usePixelWitnessStore((s) => s.getGrade);
+
+  // ─── Local UI state ────────────────────────────────────────────────────
+  const [welcomeGate, setWelcomeGate] = useState(true);
+  const [modeChosen, setModeChosen] = useState(false);
+  const [sandboxClipId, setSandboxClipId] = useState<string | null>(null);
+  const [sandboxReveals, setSandboxReveals] = useState<Record<string, boolean>>({});
+  const firedRef = useRef(false);
+
+  // ─── Mount: reset + enter the store's intended flow. Clean up on exit. ──
+  useEffect(() => {
+    reset();
+    beginGame();
+    return () => reset();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // ─── Completion: fire exactly once when the graded report is reached. ───
+  useEffect(() => {
+    if (phase === 'report' && !firedRef.current) {
+      firedRef.current = true;
+      const grade = getGrade();
+      const xp = 40 + Math.round(grade.accuracy * 50) + grade.hallucinationsCaught * 6;
+      awardXP(xp);
+      const stars = Math.max(1, grade.stars) as 1 | 2 | 3;
+      completeGame('pixel-witness', stars);
+    }
+  }, [phase, getGrade, awardXP, completeGame]);
+
+  const returnToModeSelect = () => {
+    firedRef.current = false;
+    setModeChosen(false);
+    setSandboxClipId(null);
+    setSandboxReveals({});
+    reset();
+    beginGame();
+  };
+
+  const chooseMode = (m: PixelMode) => {
+    setModeChosen(true);
+    startMode(m, band);
+  };
+
+  // The rating the child gave for the current question (for the reveal panel).
+  const currentRating = useMemo(
+    () => (currentQuestion ? ratings.find((r) => r.questionId === currentQuestion.id) : undefined),
+    [ratings, currentQuestion],
+  );
+
+  // ══════════════════════════════════════════════════════════════════════
+  // PHASE VIEWS
+  // ══════════════════════════════════════════════════════════════════════
+
+  function WelcomeView() {
+    return (
+      <Centered>
+        <div style={{ fontSize: 64 }} aria-hidden>
+          🎬🕵️
+        </div>
+        <h1 className="text-3xl font-black" style={{ color: LAB }}>
+          Pixel Witness
+        </h1>
+        <p className="max-w-lg text-lg text-white/80">
+          An AI just watched a bunch of short scenes and told us what it saw. But AIs sometimes make
+          things up! Your job is to <strong style={{ color: LAB }}>catch the mistakes</strong>.
+        </p>
+        <p className="max-w-md text-sm text-white/60">
+          Heads up: the scenes are shown as described cards, not real videos. You judge what the AI{' '}
+          <em>said</em> about each one.
+        </p>
+        <button style={primaryBtn} onClick={() => setWelcomeGate(false)} aria-label="Start investigating">
+          Start investigating →
+        </button>
+      </Centered>
+    );
+  }
+
+  function LearnView() {
+    const card = LEARN.find((l) => l.phase === phase);
+    if (!card) return null;
+    const idx = LEARN.findIndex((l) => l.phase === phase);
+    return (
+      <Centered>
+        <div className="flex items-center gap-2" role="presentation">
+          {LEARN.map((l, i) => (
+            <span
+              key={l.key}
+              aria-hidden
+              style={{
+                width: 28,
+                height: 6,
+                borderRadius: 3,
+                background: i <= idx ? LAB : 'rgba(255,255,255,0.18)',
+              }}
+            />
+          ))}
+        </div>
+        <div style={{ ...panel, padding: 28, maxWidth: 560 }} className="text-center">
+          <div style={{ fontSize: 52 }} aria-hidden>
+            {card.emoji}
+          </div>
+          <h2 className="mb-3 text-2xl font-black" style={{ color: LAB }}>
+            {card.title}
+          </h2>
+          <div className="space-y-3">
+            {card.body.map((line, i) => (
+              <p key={i} className="text-white/80">
+                {line}
+              </p>
+            ))}
+          </div>
+        </div>
+        <button
+          style={primaryBtn}
+          onClick={() => {
+            markTutorialSeen(card.key);
+            setPhase(card.next);
+          }}
+          aria-label={idx < LEARN.length - 1 ? 'Next lesson' : 'How to play'}
+        >
+          {idx < LEARN.length - 1 ? 'Got it — next' : 'How to play →'}
+        </button>
+      </Centered>
+    );
+  }
+
+  function HowToView() {
+    return (
+      <Centered>
+        <div style={{ fontSize: 52 }} aria-hidden>
+          🎯
+        </div>
+        <h2 className="text-2xl font-black" style={{ color: LAB }}>
+          How to play
+        </h2>
+        <div style={{ ...panel, padding: 24, maxWidth: 560 }} className="text-left">
+          <ul className="space-y-3 text-white/80">
+            <li>
+              <strong className="text-white">1.</strong> Read the scene and the AI&apos;s answer.
+            </li>
+            <li>
+              <strong className="text-white">2.</strong> Decide: is it{' '}
+              <span style={{ color: RATING_META.correct.hex }}>Correct</span>,{' '}
+              <span style={{ color: RATING_META.partial.hex }}>Partly right</span>, or{' '}
+              <span style={{ color: RATING_META.hallucination.hex }}>Made-up</span>?
+            </li>
+            <li>
+              <strong className="text-white">3.</strong> In <strong style={{ color: LAB }}>Sense Builder</strong>{' '}
+              you can flip the AI&apos;s senses on and off and watch its answer change.
+            </li>
+          </ul>
+        </div>
+        <button
+          style={primaryBtn}
+          onClick={() => {
+            markTutorialSeen('tutorial');
+            setPhase('watch-A');
+          }}
+          aria-label="Pick a mode"
+        >
+          Pick a mode →
+        </button>
+      </Centered>
+    );
+  }
+
+  function ModeSelectView() {
+    return (
+      <div className="mx-auto w-full max-w-3xl space-y-5 py-6">
+        <div className="text-center">
+          <h2 className="text-2xl font-black" style={{ color: LAB }}>
+            Choose your case
+          </h2>
+          <p className="text-white/70">Pick how you want to investigate the AI today.</p>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2">
+          {MODES.map((m) => {
+            const count = expectedClipCountForMode(m.mode, band);
+            const isSandbox = m.mode === 'creative-sandbox';
+            return (
+              <button
+                key={m.mode}
+                onClick={() => chooseMode(m.mode)}
+                aria-label={`Start ${m.title}. ${m.blurb}`}
+                style={{
+                  ...panel,
+                  padding: 18,
+                  textAlign: 'left',
+                  cursor: 'pointer',
+                  borderColor: m.star ? LAB : 'rgba(255,255,255,0.10)',
+                  background: m.star
+                    ? 'rgba(16,186,210,0.08)'
+                    : 'rgba(255,255,255,0.04)',
+                }}
+                className="flex flex-col gap-2 transition hover:brightness-125"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="flex items-center gap-2 text-lg font-bold text-white">
+                    <span aria-hidden>{m.emoji}</span> {m.title}
+                  </span>
+                  {m.star && (
+                    <span
+                      style={{
+                        fontSize: 11,
+                        fontWeight: 700,
+                        padding: '2px 10px',
+                        borderRadius: 999,
+                        background: 'rgba(16,186,210,0.2)',
+                        color: LAB,
+                      }}
+                    >
+                      ★ try me
+                    </span>
+                  )}
+                </div>
+                <p className="text-sm text-white/70">{m.blurb}</p>
+                <p className="text-xs text-white/60">
+                  {isSandbox ? 'Browse freely' : `${count} scene${count === 1 ? '' : 's'} · earns stars`}
+                </p>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
+
+  // ─── Shared: the rating strip + reveal used by watch modes & sense-builder ─
+  function JudgePanel({ question }: { question: ClipQuestion }) {
+    if (!hasRatedCurrent) {
+      return (
+        <div className="space-y-3">
+          <p className="text-center text-sm font-semibold text-white/75">
+            Detective, what&apos;s your call on the AI&apos;s answer?
+          </p>
+          <div className="grid gap-3 sm:grid-cols-3" role="group" aria-label="Rate the AI's answer">
+            {(Object.keys(RATING_META) as Rating[]).map((r) => {
+              const meta = RATING_META[r];
+              return (
+                <button
+                  key={r}
+                  onClick={() => rateAnswer(r)}
+                  aria-label={`${meta.label} — ${meta.hint}`}
+                  style={{
+                    ...panel,
+                    padding: 14,
+                    cursor: 'pointer',
+                    borderColor: `${meta.hex}66`,
+                  }}
+                  className="flex flex-col items-center gap-1 transition hover:brightness-125"
+                >
+                  <span style={{ fontSize: 28 }} aria-hidden>
+                    {meta.emoji}
+                  </span>
+                  <span className="font-bold" style={{ color: meta.hex }}>
+                    {meta.label}
+                  </span>
+                  <span className="text-xs text-white/60">{meta.hint}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      );
+    }
+
+    // Reveal after rating.
+    const truthMeta = RATING_META[question.truth];
+    const matched = currentRating?.matched ?? false;
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        style={{
+          ...panel,
+          padding: 18,
+          borderColor: matched ? 'rgba(0,209,122,0.5)' : 'rgba(255,112,80,0.5)',
+          background: matched ? 'rgba(0,209,122,0.08)' : 'rgba(255,112,80,0.08)',
+        }}
+        className="space-y-2"
+      >
+        <div className="flex items-center gap-2">
+          <span style={{ fontSize: 26 }} aria-hidden>
+            {matched ? '🎉' : '🤔'}
+          </span>
+          <span className="font-black text-white">
+            {matched ? 'Great call!' : 'Not quite.'}
+          </span>
+        </div>
+        <p className="text-sm text-white/80">
+          The answer was actually{' '}
+          <strong style={{ color: truthMeta.hex }}>
+            {truthMeta.emoji} {truthMeta.label.toLowerCase()}
+          </strong>
+          {currentRating && (
+            <>
+              {' '}— you said{' '}
+              <strong style={{ color: RATING_META[currentRating.rating as Rating].hex }}>
+                {RATING_META[currentRating.rating as Rating].label.toLowerCase()}
+              </strong>
+              .
+            </>
+          )}
+        </p>
+        <p className="text-sm text-white/70">{question.explanation}</p>
+        <div className="flex justify-end pt-1">
+          <button style={primaryBtn} onClick={() => nextQuestion()} aria-label="Next question">
+            Next →
+          </button>
+        </div>
+      </motion.div>
+    );
+  }
+
+  function ClipReviewView() {
+    if (!currentClip || !currentQuestion) {
+      return (
+        <Centered>
+          <p className="text-white/70">No scenes available for this mode yet.</p>
+          <button style={ghostBtn} onClick={returnToModeSelect} aria-label="Back to modes">
+            ← Back to modes
+          </button>
+        </Centered>
+      );
+    }
+    const q = currentQuestion;
+    const total = modeClips.length;
+    const modeMeta = MODES.find((m) => m.mode === mode);
+    const judgedForClip = questionIndex; // questions already answered on this clip
+    const answer = getDisplayedAnswer();
+
+    return (
+      <div className="mx-auto w-full max-w-2xl space-y-4 py-4">
+        <header className="flex items-center justify-between">
+          <h2 className="flex items-center gap-2 text-xl font-black" style={{ color: LAB }}>
+            <span aria-hidden>{modeMeta?.emoji}</span> {modeMeta?.title ?? 'Watch'}
+          </h2>
+          <span className="text-sm text-white/60">
+            Scene {clipIndex + 1}/{total} · Q {questionIndex + 1}/{currentQuestions.length}
+          </span>
+        </header>
+
+        <SceneCard clip={currentClip} />
+
+        {/* What the AI was allowed to use for this question (read-only context). */}
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-white/60">The AI looked at:</span>
+          <span
+            style={{
+              fontSize: 12,
+              padding: '3px 12px',
+              borderRadius: 999,
+              background: 'rgba(255,255,255,0.06)',
+              color: 'rgba(255,255,255,0.85)',
+              fontWeight: 600,
+            }}
+          >
+            {SENSE_LEVEL_EMOJI[q.minimumSense]} {senseLevelLabel(q.minimumSense)}
+          </span>
+        </div>
+
+        <div style={{ ...panel, padding: 18 }} className="space-y-3">
+          <div>
+            <div className="mb-1 text-xs font-bold uppercase tracking-wide text-white/60">Question</div>
+            <p className="text-lg text-white">{q.text}</p>
+          </div>
+          <div
+            style={{
+              borderRadius: 12,
+              padding: 14,
+              background: 'rgba(16,186,210,0.08)',
+              border: '1px solid rgba(16,186,210,0.25)',
+            }}
+          >
+            <div className="mb-1 flex items-center gap-2 text-xs font-bold uppercase tracking-wide" style={{ color: LAB }}>
+              🤖 The AI says
+            </div>
+            <p className="text-white/90">{answer}</p>
+          </div>
+        </div>
+
+        <JudgePanel question={q} />
+
+        {judgedForClip === 0 && questionIndex === 0 && clipIndex === 0 && !hasRatedCurrent && (
+          <div className="flex justify-center">
+            <button
+              style={{ ...ghostBtn, fontSize: 13, padding: '6px 14px' }}
+              onClick={returnToModeSelect}
+              aria-label="Quit to mode select"
+            >
+              Quit case
+            </button>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  function SenseBuilderView() {
+    if (!currentClip || !currentQuestion) {
+      return (
+        <Centered>
+          <p className="text-white/70">No scenes available yet.</p>
+          <button style={ghostBtn} onClick={returnToModeSelect} aria-label="Back to modes">
+            ← Back to modes
+          </button>
+        </Centered>
+      );
+    }
+    const q = currentQuestion;
+    const satisfied = senseSatisfies(senseConfig, q.minimumSense);
+    const cost = senseCost(senseConfig);
+    const answer = getDisplayedAnswer();
+
+    return (
+      <div className="mx-auto w-full max-w-2xl space-y-4 py-4">
+        <header className="flex items-center justify-between">
+          <h2 className="flex items-center gap-2 text-xl font-black" style={{ color: LAB }}>
+            🎛️ Sense Builder
+          </h2>
+          <span className="text-sm text-white/60">
+            Scene {clipIndex + 1}/{modeClips.length} · Q {questionIndex + 1}/{currentQuestions.length}
+          </span>
+        </header>
+
+        <SceneCard clip={currentClip} compact />
+
+        <div style={{ ...panel, padding: 16 }} className="space-y-2">
+          <p className="text-lg text-white">{q.text}</p>
+          <p className="text-xs text-white/60">
+            To answer this well, the AI needs at least:{' '}
+            <strong className="text-white/80">
+              {SENSE_LEVEL_EMOJI[q.minimumSense]} {senseLevelLabel(q.minimumSense)}
+            </strong>
+          </p>
+        </div>
+
+        {/* The star mechanic: flip senses and watch the answer change. */}
+        <div style={{ ...panel, padding: 16 }} className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-bold uppercase tracking-wide text-white/70">
+              Give the AI its senses
+            </h3>
+            <span className="text-xs text-white/60">Token cost: {cost}×</span>
+          </div>
+          <div className="grid gap-2 sm:grid-cols-2">
+            {SENSE_ORDER.map((key) => {
+              const meta = SENSE_META[key];
+              const on = senseConfig[key];
+              return (
+                <button
+                  key={key}
+                  role="switch"
+                  aria-checked={on}
+                  onClick={() => toggleSense(key)}
+                  aria-label={`${meta.label}. ${meta.hint} Costs ${meta.costMultiplier} times. Currently ${on ? 'on' : 'off'}.`}
+                  style={{
+                    borderRadius: 12,
+                    padding: 12,
+                    textAlign: 'left',
+                    cursor: 'pointer',
+                    background: on ? 'rgba(16,186,210,0.16)' : 'rgba(255,255,255,0.04)',
+                    border: `1px solid ${on ? LAB : 'rgba(255,255,255,0.12)'}`,
+                  }}
+                  className="flex items-start gap-2 transition"
+                >
+                  <span style={{ fontSize: 22 }} aria-hidden>
+                    {meta.emoji}
+                  </span>
+                  <span className="min-w-0">
+                    <span className="flex items-center gap-2">
+                      <span className="font-bold text-white">{meta.label}</span>
+                      <span
+                        aria-hidden
+                        style={{
+                          fontSize: 10,
+                          fontWeight: 700,
+                          padding: '1px 8px',
+                          borderRadius: 999,
+                          background: on ? LAB : 'rgba(255,255,255,0.12)',
+                          color: on ? '#04191d' : 'rgba(255,255,255,0.7)',
+                        }}
+                      >
+                        {on ? 'ON' : 'OFF'}
+                      </span>
+                      <span className="text-white/50" style={{ fontSize: 11 }}>
+                        {meta.costMultiplier}×
+                      </span>
+                    </span>
+                    <span className="block text-white/60" style={{ fontSize: 11, marginTop: 2 }}>
+                      {meta.hint}
+                    </span>
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Live perception status + answer. */}
+        <div
+          style={{
+            ...panel,
+            padding: 16,
+            borderColor: satisfied ? 'rgba(0,209,122,0.4)' : 'rgba(255,112,80,0.4)',
+            background: satisfied ? 'rgba(0,209,122,0.06)' : 'rgba(255,112,80,0.06)',
+          }}
+          className="space-y-2"
+        >
+          <div className="flex items-center gap-2 text-sm font-bold" aria-live="polite">
+            {satisfied ? (
+              <span style={{ color: '#5be6a8' }}>✅ The AI can really perceive this</span>
+            ) : (
+              <span style={{ color: '#ff9b82' }}>🙈 The AI is guessing blind — not enough senses</span>
+            )}
+          </div>
+          <div className="mb-1 flex items-center gap-2 text-xs font-bold uppercase tracking-wide" style={{ color: LAB }}>
+            🤖 The AI says
+          </div>
+          <AnimatePresence mode="wait">
+            <motion.p
+              key={answer}
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6 }}
+              transition={{ duration: 0.2 }}
+              className="text-white/90"
+            >
+              {answer}
+            </motion.p>
+          </AnimatePresence>
+          {!hasRatedCurrent && (
+            <p className="text-xs text-white/60">
+              Flip senses on and off and watch the answer change. When you&apos;re ready, judge it.
+            </p>
+          )}
+        </div>
+
+        <JudgePanel question={q} />
+      </div>
+    );
+  }
+
+  function SandboxView() {
+    const clips = clipsForBand(band);
+    if (sandboxClipId) {
+      const clip = getClip(sandboxClipId);
+      const qs = questionsForClip(sandboxClipId);
+      return (
+        <div className="mx-auto w-full max-w-2xl space-y-4 py-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-black" style={{ color: LAB }}>
+              🧭 Free Explore
+            </h2>
+            <button
+              style={{ ...ghostBtn, fontSize: 13, padding: '6px 14px' }}
+              onClick={() => setSandboxClipId(null)}
+              aria-label="Back to scene list"
+            >
+              ← Scenes
+            </button>
+          </div>
+          {clip && <SceneCard clip={clip} />}
+          <div className="space-y-3">
+            {qs.map((q) => {
+              const revealed = sandboxReveals[q.id];
+              const truthMeta = RATING_META[q.truth];
+              return (
+                <div key={q.id} style={{ ...panel, padding: 16 }} className="space-y-2">
+                  <p className="font-semibold text-white">{q.text}</p>
+                  <div
+                    style={{
+                      borderRadius: 10,
+                      padding: 12,
+                      background: 'rgba(16,186,210,0.07)',
+                      border: '1px solid rgba(16,186,210,0.22)',
+                    }}
+                  >
+                    <span className="text-xs font-bold uppercase tracking-wide" style={{ color: LAB }}>
+                      🤖 AI answer
+                    </span>
+                    <p className="text-white/90" style={{ marginTop: 4 }}>
+                      {q.aiAnswer}
+                    </p>
+                  </div>
+                  {revealed ? (
+                    <p className="text-sm text-white/70">
+                      <strong style={{ color: truthMeta.hex }}>
+                        {truthMeta.emoji} {truthMeta.label}
+                      </strong>{' '}
+                      — {q.explanation}
+                    </p>
+                  ) : (
+                    <button
+                      style={{ ...ghostBtn, fontSize: 13, padding: '6px 14px' }}
+                      onClick={() => setSandboxReveals((r) => ({ ...r, [q.id]: true }))}
+                      aria-label={`Reveal the truth for: ${q.text}`}
+                    >
+                      🔍 Show the truth
+                    </button>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+          <div className="flex justify-center pt-2">
+            <button style={ghostBtn} onClick={returnToModeSelect} aria-label="Back to modes">
+              Done exploring
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="mx-auto w-full max-w-3xl space-y-4 py-4">
+        <div className="text-center">
+          <h2 className="text-2xl font-black" style={{ color: LAB }}>
+            🧭 Free Explore
+          </h2>
+          <p className="text-white/70">Pick any scene to read the AI&apos;s answers and peek at the truth. No scoring here.</p>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {clips.map((c) => {
+            const theme = THEME_META[c.theme];
+            return (
+              <button
+                key={c.id}
+                onClick={() => {
+                  setSandboxClipId(c.id);
+                  setSandboxReveals({});
+                }}
+                aria-label={`Explore scene: ${c.title}`}
+                style={{ ...panel, padding: 14, cursor: 'pointer', textAlign: 'left' }}
+                className="flex items-center gap-3 transition hover:brightness-125"
+              >
+                <span style={{ fontSize: 34 }} aria-hidden>
+                  {c.emoji}
+                </span>
+                <span className="min-w-0">
+                  <span className="block truncate font-bold text-white">{c.title}</span>
+                  <span className="text-xs" style={{ color: theme.color }}>
+                    {theme.emoji} {theme.label}
+                  </span>
+                </span>
+              </button>
+            );
+          })}
+        </div>
+        <div className="flex justify-center">
+          <button style={ghostBtn} onClick={returnToModeSelect} aria-label="Back to modes">
+            ← Back to modes
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  function ReportView() {
+    const grade = getGrade();
+    const pct = Math.round(grade.accuracy * 100);
+    const win = grade.stars >= 2;
+    return (
+      <div className="mx-auto w-full max-w-2xl space-y-5 py-6">
+        <motion.div initial={{ scale: 0.85, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="text-center">
+          <div style={{ fontSize: 52 }} aria-hidden>
+            {win ? '🏆' : '🔍'}
+          </div>
+          <h2 className="text-2xl font-black" style={{ color: LAB }}>
+            {win ? 'Sharp eyes, detective!' : 'Case closed'}
+          </h2>
+          <div className="my-2">
+            <Stars n={grade.stars} size={38} />
+          </div>
+          <p className="text-white/80">
+            Accuracy: <strong style={{ color: LAB }}>{pct}%</strong> ({grade.matched}/{grade.totalRated} calls right)
+          </p>
+        </motion.div>
+
+        <div style={{ ...panel, padding: 18 }} className="space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-white/80">🚨 Hallucinations caught</span>
+            <span className="font-bold" style={{ color: '#5be6a8' }}>{grade.hallucinationsCaught}</span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-white/80">😴 Hallucinations missed</span>
+            <span className="font-bold" style={{ color: '#ff9b82' }}>{grade.hallucinationsMissed}</span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-white/80">🚧 False alarms</span>
+            <span className="font-bold" style={{ color: '#e6c46b' }}>{grade.falseAlarms}</span>
+          </div>
+        </div>
+
+        <p className="text-center text-white/75">{grade.summary}</p>
+
+        <div className="flex justify-center">
+          <button style={primaryBtn} onClick={returnToModeSelect} aria-label="Play another case">
+            ↺ Play another case
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Called as plain functions (not JSX elements) so markup inlines into this
+  // component's tree — no remount-per-render, so toggles/inputs keep state.
+  function view() {
+    if (welcomeGate) return WelcomeView();
+    switch (phase) {
+      case 'welcome':
+        return WelcomeView();
+      case 'learn-modal':
+      case 'learn-fusion':
+      case 'learn-hallucinate':
+        return LearnView();
+      case 'tutorial':
+        return HowToView();
+      case 'report':
+        return ReportView();
+      case 'creative-sandbox':
+        return modeChosen ? SandboxView() : ModeSelectView();
+      case 'sense-builder':
+        return modeChosen ? SenseBuilderView() : ModeSelectView();
+      case 'watch-A':
+      case 'watch-B':
+      case 'watch-C':
+      case 'hallucination-hunt':
+        return modeChosen ? ClipReviewView() : ModeSelectView();
+      default:
+        return ModeSelectView();
+    }
+  }
 
   return (
-    <GameShell title="Pixel Witness" color="#10BAD2" labNum={7}>
-      <GameLevelSystem gameTitle="Pixel Witness" gameEmoji="🔍" labColor="#10BAD2" levels={LEVELS}
-        onComplete={handleComplete}
-        renderLevel={(level, onComplete, onExit) => (
-          <QuizLevelRenderer
-            level={level} onComplete={onComplete} onExit={onExit}
-            questions={getQuestions(level.id)} labColor="#10BAD2" gameEmoji="🔍"
-            timePerQuestion={level.difficulty === 'expert' ? 15 : level.difficulty === 'hard' ? 20 : 25}
-          />
-        )}
-      />
+    <GameShell title="Pixel Witness" color={LAB} labNum={7}>
+      <div className="w-full px-4" style={{ minHeight: '60vh' }}>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={welcomeGate ? 'welcome-gate' : phase + (modeChosen ? '-active' : '-select')}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -12 }}
+            transition={{ duration: 0.22 }}
+          >
+            {view()}
+          </motion.div>
+        </AnimatePresence>
+      </div>
     </GameShell>
   );
 }
