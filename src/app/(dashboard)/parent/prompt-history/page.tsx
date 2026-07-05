@@ -6,14 +6,24 @@
 'use client';
 
 import { useState, useMemo, useCallback, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence, type Variants } from 'motion/react';
 import { useParentDashboard } from '@/hooks/useParentDashboard';
-import { staggerContainer, staggerItem } from '@/lib/animations';
 import {
   ArrowLeft, Search, Download, MessageSquare, Clock,
   User, Filter, ChevronLeft, ChevronRight, FileText,
 } from 'lucide-react';
 import Link from 'next/link';
+import BlurText from '@/components/bits/BlurText';
+
+// Parent-calm motion (DESIGN §8): quiet fades, no spring/scale pops.
+const calmContainer: Variants = {
+  initial: {},
+  animate: { transition: { staggerChildren: 0.05, delayChildren: 0.05 } },
+};
+const calmItem: Variants = {
+  initial: { opacity: 0, y: 8 },
+  animate: { opacity: 1, y: 0, transition: { duration: 0.25, ease: 'easeOut' } },
+};
 
 // ═══ Types ═══
 
@@ -171,15 +181,15 @@ export default function PromptHistoryPage() {
   if (isLoading) {
     return (
       <div className="p-6 max-w-5xl mx-auto space-y-4">
-        <div className="h-8 w-40 rounded-lg bg-white/5 animate-pulse" />
-        <div className="h-10 w-full rounded-xl bg-white/5 animate-pulse" />
+        <div className="h-8 w-40 rounded-lg animate-pulse" style={{ background: '#EEF2FA' }} />
+        <div className="h-10 w-full rounded-xl animate-pulse" style={{ background: '#EEF2FA' }} />
         <div className="grid grid-cols-3 gap-3">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="h-10 rounded-xl bg-white/5 animate-pulse" />
+            <div key={i} className="h-10 rounded-xl animate-pulse" style={{ background: '#EEF2FA' }} />
           ))}
         </div>
         {[1, 2, 3, 4, 5].map((i) => (
-          <div key={i} className="h-20 rounded-xl bg-white/5 animate-pulse" />
+          <div key={i} className="h-20 rounded-xl animate-pulse" style={{ background: '#EEF2FA' }} />
         ))}
       </div>
     );
@@ -188,55 +198,63 @@ export default function PromptHistoryPage() {
   return (
     <motion.div
       className="min-h-screen p-6 max-w-5xl mx-auto"
-      variants={staggerContainer}
+      variants={calmContainer}
       initial="initial"
       animate="animate"
     >
       {/* Header */}
-      <motion.div variants={staggerItem} className="flex items-center justify-between mb-8">
-        <div className="flex items-center gap-4">
+      <motion.div variants={calmItem} className="flex items-center justify-between gap-4 mb-8">
+        <div className="flex items-center gap-4 min-w-0">
           <Link
             href="/parent"
-            className="p-2 rounded-xl bg-white/5 border border-white/10 text-white/60 hover:border-white/20 hover:text-white transition-all"
+            className="p-2 rounded-xl transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4F6EF7]/40"
+            style={{ background: '#FFFFFF', border: '1px solid #E6E9F4', color: '#52586E' }}
             aria-label="Back to Parent Dashboard"
           >
             <ArrowLeft className="w-5 h-5" />
           </Link>
-          <div>
-            <h1 className="font-display text-2xl font-bold text-white">Prompt History</h1>
-            <p className="font-body text-sm text-white/70">
+          <div className="min-w-0">
+            <h1 className="text-2xl sm:text-3xl font-extrabold" style={{ fontFamily: 'var(--font-display)', color: '#1A1D2B' }}>
+              <BlurText text="Prompt History" />
+            </h1>
+            <p className="text-sm" style={{ color: '#52586E' }}>
               Review your children&apos;s AI interactions in Prompt Lab
             </p>
           </div>
         </div>
-        <motion.button
+        <button
           onClick={exportCSV}
           disabled={filtered.length === 0}
-          className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white/60 font-body text-sm hover:border-spark-blue/30 hover:text-spark-blue transition-all inline-flex items-center gap-2 disabled:opacity-30 disabled:cursor-not-allowed"
-          whileTap={{ scale: 0.97 }}
+          className="px-4 py-2 rounded-xl text-sm transition-colors inline-flex items-center gap-2 shrink-0 disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4F6EF7]/40"
+          style={{ background: '#FFFFFF', border: '1px solid #E6E9F4', color: '#52586E' }}
           aria-label="Export prompt history as CSV"
         >
           <Download className="w-4 h-4" /> Export CSV
-        </motion.button>
+        </button>
       </motion.div>
 
       {/* Filters */}
-      <motion.div variants={staggerItem} className="bg-[var(--surface-card)] border border-[var(--surface-border)] rounded-xl p-4 mb-6">
+      <motion.div
+        variants={calmItem}
+        className="rounded-xl p-4 mb-6"
+        style={{ background: '#FFFFFF', border: '1px solid #E6E9F4', boxShadow: '0 8px 30px rgba(26,29,43,0.08)' }}
+      >
         <div className="flex items-center gap-2 mb-3">
-          <Filter className="w-4 h-4 text-spark-blue" />
-          <span className="font-display text-sm font-bold text-white">Filters</span>
+          <Filter className="w-4 h-4" style={{ color: '#4F6EF7' }} />
+          <span className="text-sm font-bold" style={{ fontFamily: 'var(--font-display)', color: '#1A1D2B' }}>Filters</span>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
           {/* Child filter */}
           <div>
-            <label htmlFor="filter-child" className="font-body text-xs text-white/60 mb-1 block">
+            <label htmlFor="filter-child" className="text-xs mb-1 block" style={{ color: '#52586E' }}>
               Child
             </label>
             <select
               id="filter-child"
               value={filterChildId}
               onChange={(e) => setFilterChildId(e.target.value)}
-              className="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white font-body text-sm focus:border-spark-blue/50 focus:outline-none appearance-none cursor-pointer"
+              className="w-full px-3 py-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#4F6EF7]/30 appearance-none cursor-pointer"
+              style={{ background: '#F6F8FD', border: '1px solid #E6E9F4', color: '#1A1D2B' }}
               aria-label="Filter by child"
             >
               <option value="all">All Children</option>
@@ -250,18 +268,19 @@ export default function PromptHistoryPage() {
 
           {/* Search */}
           <div>
-            <label htmlFor="filter-search" className="font-body text-xs text-white/60 mb-1 block">
+            <label htmlFor="filter-search" className="text-xs mb-1 block" style={{ color: '#52586E' }}>
               Search
             </label>
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/60" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: '#8C94AC' }} />
               <input
                 id="filter-search"
                 type="text"
                 value={searchText}
                 onChange={(e) => setSearchText(e.target.value)}
                 placeholder="Search prompts..."
-                className="w-full pl-9 pr-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white font-body text-sm placeholder:text-white/55 focus:border-spark-blue/50 focus:outline-none"
+                className="w-full pl-9 pr-3 py-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#4F6EF7]/30"
+                style={{ background: '#F6F8FD', border: '1px solid #E6E9F4', color: '#1A1D2B' }}
                 aria-label="Search prompt text"
               />
             </div>
@@ -269,7 +288,7 @@ export default function PromptHistoryPage() {
 
           {/* Date from */}
           <div>
-            <label htmlFor="filter-date-from" className="font-body text-xs text-white/60 mb-1 block">
+            <label htmlFor="filter-date-from" className="text-xs mb-1 block" style={{ color: '#52586E' }}>
               From
             </label>
             <input
@@ -277,14 +296,15 @@ export default function PromptHistoryPage() {
               type="date"
               value={dateFrom}
               onChange={(e) => setDateFrom(e.target.value)}
-              className="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white font-body text-sm focus:border-spark-blue/50 focus:outline-none [color-scheme:dark]"
+              className="w-full px-3 py-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#4F6EF7]/30"
+              style={{ background: '#F6F8FD', border: '1px solid #E6E9F4', color: '#1A1D2B' }}
               aria-label="Filter from date"
             />
           </div>
 
           {/* Date to */}
           <div>
-            <label htmlFor="filter-date-to" className="font-body text-xs text-white/60 mb-1 block">
+            <label htmlFor="filter-date-to" className="text-xs mb-1 block" style={{ color: '#52586E' }}>
               To
             </label>
             <input
@@ -292,7 +312,8 @@ export default function PromptHistoryPage() {
               type="date"
               value={dateTo}
               onChange={(e) => setDateTo(e.target.value)}
-              className="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white font-body text-sm focus:border-spark-blue/50 focus:outline-none [color-scheme:dark]"
+              className="w-full px-3 py-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#4F6EF7]/30"
+              style={{ background: '#F6F8FD', border: '1px solid #E6E9F4', color: '#1A1D2B' }}
               aria-label="Filter to date"
             />
           </div>
@@ -300,9 +321,9 @@ export default function PromptHistoryPage() {
       </motion.div>
 
       {/* Results count */}
-      <motion.div variants={staggerItem} className="flex items-center justify-between mb-4">
-        <p className="font-body text-sm text-white/70">
-          <span className="font-data text-spark-blue">{filtered.length}</span> prompt{filtered.length !== 1 ? 's' : ''} found
+      <motion.div variants={calmItem} className="flex items-center justify-between mb-4">
+        <p className="text-sm" style={{ color: '#52586E' }}>
+          <span className="font-data" style={{ color: '#4F6EF7' }}>{filtered.length}</span> prompt{filtered.length !== 1 ? 's' : ''} found
         </p>
       </motion.div>
 
@@ -311,15 +332,15 @@ export default function PromptHistoryPage() {
         {paginated.length === 0 ? (
           <motion.div
             key="empty"
-            variants={staggerItem}
+            variants={calmItem}
             initial="initial"
             animate="animate"
             exit="initial"
             className="text-center py-16"
           >
-            <MessageSquare className="w-12 h-12 text-white/55 mx-auto mb-4" />
-            <h2 className="font-display text-lg font-bold text-white mb-2">No prompts found</h2>
-            <p className="font-body text-sm text-white/70">
+            <MessageSquare className="w-12 h-12 mx-auto mb-4" style={{ color: '#C3C9DB' }} />
+            <h2 className="text-lg font-bold mb-2" style={{ fontFamily: 'var(--font-display)', color: '#1A1D2B' }}>No prompts found</h2>
+            <p className="text-sm" style={{ color: '#52586E' }}>
               {children.length === 0
                 ? 'Add a child profile to start tracking prompt history'
                 : 'Try adjusting your filters or date range'}
@@ -330,35 +351,36 @@ export default function PromptHistoryPage() {
             {paginated.map((entry, _idx) => (
               <motion.div
                 key={entry.id}
-                variants={staggerItem}
+                variants={calmItem}
                 initial="initial"
                 animate="animate"
-                className="bg-[var(--surface-card)] border border-[var(--surface-border)] rounded-xl overflow-hidden"
+                className="rounded-xl overflow-hidden"
+                style={{ background: '#FFFFFF', border: '1px solid #E6E9F4', boxShadow: '0 8px 30px rgba(26,29,43,0.08)' }}
               >
                 <button
                   onClick={() => setExpandedId(expandedId === entry.id ? null : entry.id)}
-                  className="w-full p-4 text-left hover:bg-white/[0.02] transition-colors"
+                  className="w-full p-4 text-left transition-colors hover:bg-[#F8FAFF] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#4F6EF7]/30"
                   aria-expanded={expandedId === entry.id}
                   aria-label={`Prompt: ${entry.prompt}. Click to ${expandedId === entry.id ? 'collapse' : 'expand'} response`}
                 >
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1.5">
-                        <User className="w-3.5 h-3.5 text-spark-purple flex-shrink-0" />
-                        <span className="font-body text-xs text-spark-purple font-semibold">
+                        <User className="w-3.5 h-3.5 flex-shrink-0" style={{ color: '#E945F5' }} />
+                        <span className="text-xs font-semibold" style={{ color: '#B217C0' }}>
                           {entry.childName}
                         </span>
-                        <span className="font-body text-xs text-white/55">|</span>
-                        <span className="font-body text-xs text-white/60">
+                        <span className="text-xs" style={{ color: '#C3C9DB' }}>|</span>
+                        <span className="text-xs" style={{ color: '#52586E' }}>
                           {entry.labName}
                         </span>
                       </div>
-                      <p className="font-body text-sm text-white truncate">
+                      <p className="text-sm truncate" style={{ color: '#1A1D2B' }}>
                         {entry.prompt}
                       </p>
                     </div>
                     <div className="flex flex-col items-end gap-1 flex-shrink-0">
-                      <div className="flex items-center gap-1.5 text-white/60">
+                      <div className="flex items-center gap-1.5" style={{ color: '#8C94AC' }}>
                         <Clock className="w-3 h-3" />
                         <span className="font-data text-xs">
                           {new Date(entry.timestamp).toLocaleDateString('en-US', {
@@ -367,7 +389,7 @@ export default function PromptHistoryPage() {
                           })}
                         </span>
                       </div>
-                      <div className="flex items-center gap-1.5 text-white/55">
+                      <div className="flex items-center gap-1.5" style={{ color: '#8C94AC' }}>
                         <FileText className="w-3 h-3" />
                         <span className="font-data text-xs">{entry.wordCount} words</span>
                       </div>
@@ -385,13 +407,13 @@ export default function PromptHistoryPage() {
                       className="overflow-hidden"
                     >
                       <div className="px-4 pb-4 pt-0">
-                        <div className="border-t border-white/5 pt-3">
-                          <p className="font-body text-xs text-white/60 mb-1.5">AI Response:</p>
-                          <p className="font-body text-sm text-white/70 leading-relaxed">
+                        <div className="pt-3" style={{ borderTop: '1px solid #EEF2FA' }}>
+                          <p className="text-xs mb-1.5" style={{ color: '#8C94AC' }}>AI Response:</p>
+                          <p className="text-sm leading-relaxed" style={{ color: '#52586E' }}>
                             {entry.response}
                           </p>
                           <div className="flex items-center gap-4 mt-3">
-                            <span className="font-data text-xs text-white/55">
+                            <span className="font-data text-xs" style={{ color: '#8C94AC' }}>
                               {new Date(entry.timestamp).toLocaleString('en-US', {
                                 month: 'short',
                                 day: 'numeric',
@@ -400,7 +422,7 @@ export default function PromptHistoryPage() {
                                 minute: '2-digit',
                               })}
                             </span>
-                            <span className="font-data text-xs text-white/55">
+                            <span className="font-data text-xs" style={{ color: '#8C94AC' }}>
                               Lab {entry.labId}: {entry.labName}
                             </span>
                           </div>
@@ -418,18 +440,18 @@ export default function PromptHistoryPage() {
       {/* Pagination */}
       {totalPages > 1 && (
         <motion.div
-          variants={staggerItem}
+          variants={calmItem}
           className="flex items-center justify-center gap-3 mt-8"
         >
-          <motion.button
+          <button
             onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
             disabled={currentPage === 1}
-            className="p-2 rounded-lg bg-white/5 border border-white/10 text-white/60 hover:border-white/20 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
-            whileTap={{ scale: 0.95 }}
+            className="p-2 rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4F6EF7]/40"
+            style={{ background: '#FFFFFF', border: '1px solid #E6E9F4', color: '#52586E' }}
             aria-label="Previous page"
           >
             <ChevronLeft className="w-4 h-4" />
-          </motion.button>
+          </button>
 
           <div className="flex items-center gap-1">
             {Array.from({ length: totalPages }, (_, i) => i + 1)
@@ -441,20 +463,22 @@ export default function PromptHistoryPage() {
               })
               .map((page, idx, arr) => {
                 const showEllipsis = idx > 0 && page - arr[idx - 1] > 1;
+                const isCurrent = currentPage === page;
                 return (
                   <span key={page} className="flex items-center">
                     {showEllipsis && (
-                      <span className="px-1 text-white/55 font-data text-xs">...</span>
+                      <span className="px-1 font-data text-xs" style={{ color: '#8C94AC' }}>...</span>
                     )}
                     <button
                       onClick={() => setCurrentPage(page)}
-                      className={`w-8 h-8 rounded-lg font-data text-xs transition-all ${
-                        currentPage === page
-                          ? 'bg-spark-blue/20 border border-spark-blue/30 text-spark-blue font-bold'
-                          : 'bg-white/5 border border-white/10 text-white/70 hover:border-white/20'
-                      }`}
+                      className="w-8 h-8 rounded-lg font-data text-xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4F6EF7]/40"
+                      style={
+                        isCurrent
+                          ? { background: 'rgba(79,110,247,0.12)', border: '1px solid rgba(79,110,247,0.3)', color: '#3B54D6', fontWeight: 700 }
+                          : { background: '#FFFFFF', border: '1px solid #E6E9F4', color: '#52586E' }
+                      }
                       aria-label={`Page ${page}`}
-                      aria-current={currentPage === page ? 'page' : undefined}
+                      aria-current={isCurrent ? 'page' : undefined}
                     >
                       {page}
                     </button>
@@ -463,15 +487,15 @@ export default function PromptHistoryPage() {
               })}
           </div>
 
-          <motion.button
+          <button
             onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
             disabled={currentPage === totalPages}
-            className="p-2 rounded-lg bg-white/5 border border-white/10 text-white/60 hover:border-white/20 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
-            whileTap={{ scale: 0.95 }}
+            className="p-2 rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4F6EF7]/40"
+            style={{ background: '#FFFFFF', border: '1px solid #E6E9F4', color: '#52586E' }}
             aria-label="Next page"
           >
             <ChevronRight className="w-4 h-4" />
-          </motion.button>
+          </button>
         </motion.div>
       )}
     </motion.div>

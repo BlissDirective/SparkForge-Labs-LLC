@@ -6,14 +6,25 @@
 'use client';
 
 import { useState, useMemo, useCallback } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence, type Variants } from 'motion/react';
 import { useParentDashboard } from '@/hooks/useParentDashboard';
-import { staggerContainer, staggerItem } from '@/lib/animations';
 import {
   ArrowLeft, Download, FileSpreadsheet, Trophy, Gamepad2,
   BarChart3, Calendar, CheckSquare, Square, Info, Loader2,
 } from 'lucide-react';
 import Link from 'next/link';
+import BlurText from '@/components/bits/BlurText';
+
+// Parent-calm motion (DESIGN §8 parent surfaces): quiet fades, no
+// spring bounce, no scale pops. Tween easeOut ≤0.25s.
+const calmContainer: Variants = {
+  initial: {},
+  animate: { transition: { staggerChildren: 0.05, delayChildren: 0.05 } },
+};
+const calmItem: Variants = {
+  initial: { opacity: 0, y: 8 },
+  animate: { opacity: 1, y: 0, transition: { duration: 0.25, ease: 'easeOut' } },
+};
 
 // ═══ Types ═══
 
@@ -36,7 +47,7 @@ const EXPORT_OPTIONS: ExportOption[] = [
     label: 'Progress Report',
     description: 'XP, level, streaks, time spent, and lab completion across all learning areas',
     icon: BarChart3,
-    color: '#00BBFF',
+    color: '#4F6EF7',
     columns: ['Child', 'Level', 'Total XP', 'Streak', 'Lessons Done', 'Quizzes Passed', 'Time (min)', 'Labs Done', 'Last Active'],
   },
   {
@@ -44,7 +55,7 @@ const EXPORT_OPTIONS: ExportOption[] = [
     label: 'Activity Log',
     description: 'Timestamped log of sessions, games played, and daily engagement patterns',
     icon: FileSpreadsheet,
-    color: '#00FF88',
+    color: '#2ECC71',
     columns: ['Date', 'Child', 'Activity', 'Duration (min)', 'XP Earned', 'Lab'],
   },
   {
@@ -52,7 +63,7 @@ const EXPORT_OPTIONS: ExportOption[] = [
     label: 'Badge Collection',
     description: 'All earned badges with categories, rarity, and the date each was unlocked',
     icon: Trophy,
-    color: '#FFAA44',
+    color: '#FF6B35',
     columns: ['Child', 'Badge Name', 'Category', 'Rarity', 'Earned Date'],
   },
   {
@@ -60,7 +71,7 @@ const EXPORT_OPTIONS: ExportOption[] = [
     label: 'Game Scores',
     description: 'Scores, attempts, and completion status for every game played',
     icon: Gamepad2,
-    color: '#AA66FF',
+    color: '#E945F5',
     columns: ['Child', 'Game', 'Lab', 'Score', 'Attempts', 'Best Time (s)', 'Completed', 'Last Played'],
   },
 ];
@@ -324,13 +335,13 @@ export default function ExportPage() {
   if (isLoading) {
     return (
       <div className="p-6 max-w-5xl mx-auto space-y-4">
-        <div className="h-8 w-40 rounded-lg bg-white/5 animate-pulse" />
+        <div className="h-8 w-40 rounded-lg animate-pulse" style={{ background: '#EEF2FA' }} />
         <div className="grid grid-cols-2 gap-4">
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="h-28 rounded-xl bg-white/5 animate-pulse" />
+            <div key={i} className="h-28 rounded-xl animate-pulse" style={{ background: '#EEF2FA' }} />
           ))}
         </div>
-        <div className="h-40 rounded-xl bg-white/5 animate-pulse" />
+        <div className="h-40 rounded-xl animate-pulse" style={{ background: '#EEF2FA' }} />
       </div>
     );
   }
@@ -338,22 +349,25 @@ export default function ExportPage() {
   return (
     <motion.div
       className="min-h-screen p-6 max-w-5xl mx-auto"
-      variants={staggerContainer}
+      variants={calmContainer}
       initial="initial"
       animate="animate"
     >
       {/* Header */}
-      <motion.div variants={staggerItem} className="flex items-center gap-4 mb-8">
+      <motion.div variants={calmItem} className="flex items-center gap-4 mb-8">
         <Link
           href="/parent"
-          className="p-2 rounded-xl bg-white/5 border border-white/10 text-white/60 hover:border-white/20 hover:text-white transition-all"
+          className="p-2 rounded-xl transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4F6EF7]/40"
+          style={{ background: '#FFFFFF', border: '1px solid #E6E9F4', color: '#52586E' }}
           aria-label="Back to Parent Dashboard"
         >
           <ArrowLeft className="w-5 h-5" />
         </Link>
         <div>
-          <h1 className="font-display text-2xl font-bold text-white">Export Data</h1>
-          <p className="font-body text-sm text-white/70">
+          <h1 className="text-2xl sm:text-3xl font-extrabold" style={{ fontFamily: 'var(--font-display)', color: '#1A1D2B' }}>
+            <BlurText text="Export Data" />
+          </h1>
+          <p className="text-sm" style={{ color: '#52586E' }}>
             Download your children&apos;s learning data (COPPA compliant)
           </p>
         </div>
@@ -361,14 +375,15 @@ export default function ExportPage() {
 
       {/* COPPA notice */}
       <motion.div
-        variants={staggerItem}
-        className="bg-[var(--surface-card)] border border-[var(--surface-border)] rounded-xl p-4 mb-6 border-l-2 border-l-spark-blue/40"
+        variants={calmItem}
+        className="rounded-xl p-4 mb-6"
+        style={{ background: '#F8FAFF', border: '1px solid #E6E9F4', borderLeft: '3px solid rgba(79,110,247,0.5)' }}
       >
         <div className="flex items-start gap-3">
-          <Info className="w-4 h-4 text-spark-blue flex-shrink-0 mt-0.5" />
+          <Info className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: '#4F6EF7' }} />
           <div>
-            <p className="font-display text-sm font-bold text-white mb-1">Your Data, Your Rights</p>
-            <p className="font-body text-xs text-white/70">
+            <p className="text-sm font-bold mb-1" style={{ fontFamily: 'var(--font-display)', color: '#1A1D2B' }}>Your Data, Your Rights</p>
+            <p className="text-xs" style={{ color: '#52586E' }}>
               Under COPPA, you have the right to access and export all data collected about your children.
               All exports are generated locally in your browser. No data leaves the platform during export.
             </p>
@@ -377,59 +392,63 @@ export default function ExportPage() {
       </motion.div>
 
       {/* Step 1: Select children */}
-      <motion.div variants={staggerItem} className="bg-[var(--surface-card)] border border-[var(--surface-border)] rounded-xl p-5 mb-6">
-        <h2 className="font-display text-sm font-bold text-white mb-3 flex items-center gap-2">
-          <span className="w-5 h-5 rounded-full bg-spark-blue/20 text-spark-blue font-data text-xs flex items-center justify-center">1</span>
+      <motion.div
+        variants={calmItem}
+        className="rounded-xl p-5 mb-6"
+        style={{ background: '#FFFFFF', border: '1px solid #E6E9F4', boxShadow: '0 8px 30px rgba(26,29,43,0.08)' }}
+      >
+        <h2 className="text-sm font-bold mb-3 flex items-center gap-2" style={{ fontFamily: 'var(--font-display)', color: '#1A1D2B' }}>
+          <span className="w-5 h-5 rounded-full text-xs flex items-center justify-center" style={{ background: 'rgba(79,110,247,0.14)', color: '#3B54D6' }}>1</span>
           Select Children
         </h2>
 
         {children.length === 0 ? (
-          <p className="font-body text-sm text-white/70">No child profiles found.</p>
+          <p className="text-sm" style={{ color: '#52586E' }}>No child profiles found.</p>
         ) : (
           <>
-            <motion.button
+            <button
               onClick={toggleAllChildren}
-              className="flex items-center gap-2 mb-3 text-white/50 hover:text-white/80 transition-colors"
-              whileTap={{ scale: 0.97 }}
+              className="flex items-center gap-2 mb-3 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4F6EF7]/40 rounded"
+              style={{ color: '#52586E' }}
               aria-label={selectedChildren.size === children.length ? 'Deselect all children' : 'Select all children'}
             >
               {selectedChildren.size === children.length ? (
-                <CheckSquare className="w-4 h-4 text-spark-blue" />
+                <CheckSquare className="w-4 h-4" style={{ color: '#4F6EF7' }} />
               ) : (
-                <Square className="w-4 h-4" />
+                <Square className="w-4 h-4" style={{ color: '#8C94AC' }} />
               )}
-              <span className="font-body text-xs">
+              <span className="text-xs">
                 {selectedChildren.size === children.length ? 'Deselect All' : 'Select All'}
               </span>
-            </motion.button>
+            </button>
             <div className="flex flex-wrap gap-3">
               {children.map((child) => {
                 const isSelected = selectedChildren.has(child.id);
                 return (
-                  <motion.button
+                  <button
                     key={child.id}
                     onClick={() => toggleChild(child.id)}
-                    className={`px-4 py-2.5 rounded-xl border-2 transition-all inline-flex items-center gap-2 ${
+                    className="px-4 py-2.5 rounded-xl transition-colors inline-flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4F6EF7]/40"
+                    style={
                       isSelected
-                        ? 'border-spark-blue bg-spark-blue/10'
-                        : 'border-white/10 bg-white/5 hover:border-white/20'
-                    }`}
-                    whileTap={{ scale: 0.97 }}
+                        ? { border: '2px solid #4F6EF7', background: 'rgba(79,110,247,0.1)' }
+                        : { border: '2px solid #E6E9F4', background: '#F6F8FD' }
+                    }
                     aria-pressed={isSelected}
                     aria-label={`${isSelected ? 'Deselect' : 'Select'} ${child.display_name}`}
                   >
                     {isSelected ? (
-                      <CheckSquare className="w-4 h-4 text-spark-blue" />
+                      <CheckSquare className="w-4 h-4" style={{ color: '#4F6EF7' }} />
                     ) : (
-                      <Square className="w-4 h-4 text-white/70" />
+                      <Square className="w-4 h-4" style={{ color: '#8C94AC' }} />
                     )}
-                    <span className="font-display text-sm font-bold text-white">
+                    <span className="text-sm font-bold" style={{ fontFamily: 'var(--font-display)', color: '#1A1D2B' }}>
                       {child.display_name}
                     </span>
-                    <span className="font-body text-xs text-white/60">
+                    <span className="text-xs" style={{ color: '#52586E' }}>
                       Band {child.age_band}
                     </span>
-                  </motion.button>
+                  </button>
                 );
               })}
             </div>
@@ -438,9 +457,13 @@ export default function ExportPage() {
       </motion.div>
 
       {/* Step 2: Select export types */}
-      <motion.div variants={staggerItem} className="bg-[var(--surface-card)] border border-[var(--surface-border)] rounded-xl p-5 mb-6">
-        <h2 className="font-display text-sm font-bold text-white mb-4 flex items-center gap-2">
-          <span className="w-5 h-5 rounded-full bg-spark-green/20 text-spark-green font-data text-xs flex items-center justify-center">2</span>
+      <motion.div
+        variants={calmItem}
+        className="rounded-xl p-5 mb-6"
+        style={{ background: '#FFFFFF', border: '1px solid #E6E9F4', boxShadow: '0 8px 30px rgba(26,29,43,0.08)' }}
+      >
+        <h2 className="text-sm font-bold mb-4 flex items-center gap-2" style={{ fontFamily: 'var(--font-display)', color: '#1A1D2B' }}>
+          <span className="w-5 h-5 rounded-full text-xs flex items-center justify-center" style={{ background: 'rgba(46,204,113,0.16)', color: '#1B8F4E' }}>2</span>
           Choose Export Types
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -448,15 +471,15 @@ export default function ExportPage() {
             const isSelected = selectedExports.has(option.id);
             const Icon = option.icon;
             return (
-              <motion.button
+              <button
                 key={option.id}
                 onClick={() => toggleExport(option.id)}
-                className={`p-4 rounded-xl border-2 text-left transition-all ${
+                className="p-4 rounded-xl text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4F6EF7]/40"
+                style={
                   isSelected
-                    ? 'border-white/20 bg-white/[0.04]'
-                    : 'border-white/10 bg-white/[0.02] hover:border-white/15'
-                }`}
-                whileTap={{ scale: 0.98 }}
+                    ? { border: '2px solid #4F6EF7', background: 'rgba(79,110,247,0.06)' }
+                    : { border: '2px solid #E6E9F4', background: '#F6F8FD' }
+                }
                 aria-pressed={isSelected}
                 aria-label={`${isSelected ? 'Deselect' : 'Select'} ${option.label} export`}
               >
@@ -470,73 +493,83 @@ export default function ExportPage() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       {isSelected ? (
-                        <CheckSquare className="w-4 h-4 text-spark-blue flex-shrink-0" />
+                        <CheckSquare className="w-4 h-4 flex-shrink-0" style={{ color: '#4F6EF7' }} />
                       ) : (
-                        <Square className="w-4 h-4 text-white/60 flex-shrink-0" />
+                        <Square className="w-4 h-4 flex-shrink-0" style={{ color: '#8C94AC' }} />
                       )}
-                      <p className="font-display text-sm font-bold text-white">{option.label}</p>
+                      <p className="text-sm font-bold" style={{ fontFamily: 'var(--font-display)', color: '#1A1D2B' }}>{option.label}</p>
                     </div>
-                    <p className="font-body text-xs text-white/60 mt-1 leading-relaxed">
+                    <p className="text-xs mt-1 leading-relaxed" style={{ color: '#52586E' }}>
                       {option.description}
                     </p>
                   </div>
                 </div>
-              </motion.button>
+              </button>
             );
           })}
         </div>
       </motion.div>
 
       {/* Step 3: Date range (optional) */}
-      <motion.div variants={staggerItem} className="bg-[var(--surface-card)] border border-[var(--surface-border)] rounded-xl p-5 mb-6">
-        <h2 className="font-display text-sm font-bold text-white mb-3 flex items-center gap-2">
-          <span className="w-5 h-5 rounded-full bg-spark-orange/20 text-spark-orange font-data text-xs flex items-center justify-center">3</span>
+      <motion.div
+        variants={calmItem}
+        className="rounded-xl p-5 mb-6"
+        style={{ background: '#FFFFFF', border: '1px solid #E6E9F4', boxShadow: '0 8px 30px rgba(26,29,43,0.08)' }}
+      >
+        <h2 className="text-sm font-bold mb-3 flex items-center gap-2" style={{ fontFamily: 'var(--font-display)', color: '#1A1D2B' }}>
+          <span className="w-5 h-5 rounded-full text-xs flex items-center justify-center" style={{ background: 'rgba(255,107,53,0.16)', color: '#C2410C' }}>3</span>
           Date Range
-          <span className="font-body text-xs text-white/55 font-normal">(optional)</span>
+          <span className="text-xs font-normal" style={{ color: '#8C94AC' }}>(optional)</span>
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div>
-            <label htmlFor="export-date-from" className="font-body text-xs text-white/60 mb-1 block">
+            <label htmlFor="export-date-from" className="text-xs mb-1 block" style={{ color: '#52586E' }}>
               From
             </label>
             <div className="relative">
-              <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/60" />
+              <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: '#8C94AC' }} />
               <input
                 id="export-date-from"
                 type="date"
                 value={dateFrom}
                 onChange={(e) => setDateFrom(e.target.value)}
-                className="w-full pl-9 pr-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white font-body text-sm focus:border-spark-blue/50 focus:outline-none [color-scheme:dark]"
+                className="w-full pl-9 pr-3 py-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#4F6EF7]/30"
+                style={{ background: '#F6F8FD', border: '1px solid #E6E9F4', color: '#1A1D2B' }}
                 aria-label="Export data from date"
               />
             </div>
           </div>
           <div>
-            <label htmlFor="export-date-to" className="font-body text-xs text-white/60 mb-1 block">
+            <label htmlFor="export-date-to" className="text-xs mb-1 block" style={{ color: '#52586E' }}>
               To
             </label>
             <div className="relative">
-              <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/60" />
+              <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: '#8C94AC' }} />
               <input
                 id="export-date-to"
                 type="date"
                 value={dateTo}
                 onChange={(e) => setDateTo(e.target.value)}
-                className="w-full pl-9 pr-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white font-body text-sm focus:border-spark-blue/50 focus:outline-none [color-scheme:dark]"
+                className="w-full pl-9 pr-3 py-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#4F6EF7]/30"
+                style={{ background: '#F6F8FD', border: '1px solid #E6E9F4', color: '#1A1D2B' }}
                 aria-label="Export data to date"
               />
             </div>
           </div>
         </div>
-        <p className="font-body text-xs text-white/55 mt-2">
+        <p className="text-xs mt-2" style={{ color: '#8C94AC' }}>
           Leave blank to include all available data. Date filtering applies to Activity Log export.
         </p>
       </motion.div>
 
       {/* Preview & Download */}
-      <motion.div variants={staggerItem} className="bg-[var(--surface-card)] border border-[var(--surface-border)] rounded-xl p-5 mb-6">
-        <h2 className="font-display text-sm font-bold text-white mb-4 flex items-center gap-2">
-          <span className="w-5 h-5 rounded-full bg-spark-purple/20 text-spark-purple font-data text-xs flex items-center justify-center">4</span>
+      <motion.div
+        variants={calmItem}
+        className="rounded-xl p-5 mb-6"
+        style={{ background: '#FFFFFF', border: '1px solid #E6E9F4', boxShadow: '0 8px 30px rgba(26,29,43,0.08)' }}
+      >
+        <h2 className="text-sm font-bold mb-4 flex items-center gap-2" style={{ fontFamily: 'var(--font-display)', color: '#1A1D2B' }}>
+          <span className="w-5 h-5 rounded-full text-xs flex items-center justify-center" style={{ background: 'rgba(233,69,245,0.16)', color: '#B217C0' }}>4</span>
           Preview &amp; Download
         </h2>
 
@@ -547,51 +580,53 @@ export default function ExportPage() {
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.25, ease: 'easeOut' }}
             >
-              <div className="rounded-lg bg-white/[0.02] border border-white/5 p-4 mb-4">
+              <div className="rounded-lg p-4 mb-4" style={{ background: '#F8FAFF', border: '1px solid #EEF2FA' }}>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="font-body text-xs text-white/60 mb-1">Children</p>
-                    <p className="font-body text-sm text-white">
+                    <p className="text-xs mb-1" style={{ color: '#8C94AC' }}>Children</p>
+                    <p className="text-sm" style={{ color: '#1A1D2B' }}>
                       {previewSummary.childNames.join(', ')}
                     </p>
                   </div>
                   <div>
-                    <p className="font-body text-xs text-white/60 mb-1">Export Types</p>
-                    <p className="font-body text-sm text-white">
+                    <p className="text-xs mb-1" style={{ color: '#8C94AC' }}>Export Types</p>
+                    <p className="text-sm" style={{ color: '#1A1D2B' }}>
                       {previewSummary.exportLabels.join(', ')}
                     </p>
                   </div>
                   <div>
-                    <p className="font-body text-xs text-white/60 mb-1">Date Range</p>
-                    <p className="font-body text-sm text-white">
+                    <p className="text-xs mb-1" style={{ color: '#8C94AC' }}>Date Range</p>
+                    <p className="text-sm" style={{ color: '#1A1D2B' }}>
                       {dateFrom || dateTo
                         ? `${dateFrom || 'Start'} to ${dateTo || 'Present'}`
                         : 'All time'}
                     </p>
                   </div>
                   <div>
-                    <p className="font-body text-xs text-white/60 mb-1">Files</p>
-                    <p className="font-data text-sm text-spark-blue">
+                    <p className="text-xs mb-1" style={{ color: '#8C94AC' }}>Files</p>
+                    <p className="font-data text-sm" style={{ color: '#4F6EF7' }}>
                       {previewSummary.exportCount} CSV file{previewSummary.exportCount !== 1 ? 's' : ''}
                     </p>
                   </div>
                 </div>
 
                 {/* Column preview per selected export */}
-                <div className="mt-4 border-t border-white/5 pt-3">
-                  <p className="font-body text-xs text-white/60 mb-2">Columns included:</p>
+                <div className="mt-4 pt-3" style={{ borderTop: '1px solid #EEF2FA' }}>
+                  <p className="text-xs mb-2" style={{ color: '#8C94AC' }}>Columns included:</p>
                   <div className="space-y-2">
                     {EXPORT_OPTIONS.filter((o) => selectedExports.has(o.id)).map((option) => (
                       <div key={option.id}>
-                        <p className="font-display text-xs font-semibold text-white/60 mb-1">
+                        <p className="text-xs font-semibold mb-1" style={{ fontFamily: 'var(--font-display)', color: '#52586E' }}>
                           {option.label}:
                         </p>
                         <div className="flex flex-wrap gap-1.5">
                           {option.columns.map((col) => (
                             <span
                               key={col}
-                              className="px-2 py-0.5 rounded bg-white/5 border border-white/5 font-mono text-[10px] text-white/70"
+                              className="px-2 py-0.5 rounded font-mono text-[10px]"
+                              style={{ background: '#FFFFFF', border: '1px solid #E6E9F4', color: '#52586E' }}
                             >
                               {col}
                             </span>
@@ -606,7 +641,8 @@ export default function ExportPage() {
               <motion.button
                 onClick={handleExport}
                 disabled={isExporting}
-                className="w-full py-3 rounded-xl bg-gradient-to-r from-spark-blue to-blue-600 text-white font-display font-bold text-sm inline-flex items-center justify-center gap-2 hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full py-3 rounded-xl text-white font-bold text-sm inline-flex items-center justify-center gap-2 hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4F6EF7]/40"
+                style={{ fontFamily: 'var(--font-display)', background: 'linear-gradient(135deg, #4F6EF7, #3B54D6)' }}
                 whileTap={{ scale: 0.98 }}
                 aria-label="Download selected exports as CSV files"
               >
@@ -631,8 +667,8 @@ export default function ExportPage() {
               exit={{ opacity: 0 }}
               className="text-center py-8"
             >
-              <Download className="w-10 h-10 text-white/50 mx-auto mb-3" />
-              <p className="font-body text-sm text-white/60">
+              <Download className="w-10 h-10 mx-auto mb-3" style={{ color: '#C3C9DB' }} />
+              <p className="text-sm" style={{ color: '#52586E' }}>
                 Select at least one child and one export type to continue
               </p>
             </motion.div>
@@ -640,7 +676,7 @@ export default function ExportPage() {
         </AnimatePresence>
 
         {lastExported && (
-          <p className="font-body text-xs text-white/55 mt-3 text-center">
+          <p className="text-xs mt-3 text-center" style={{ color: '#8C94AC' }}>
             Last exported: {lastExported}
           </p>
         )}
