@@ -1,6 +1,7 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
 import { Cookie, ShieldCheck, MonitorSmartphone } from 'lucide-react';
+import BlurText from '@/components/bits/BlurText';
 
 export const metadata: Metadata = {
   title: 'Cookie Policy — SparkForge',
@@ -60,8 +61,8 @@ export default function CookiePolicyPage() {
           <div className="inline-block px-3 py-1 rounded-full bg-spark-blue/10 border border-spark-blue/20 text-spark-blue text-xs font-data uppercase tracking-wider mb-4">
             Cookies &amp; Identifiers
           </div>
-          <h1 className="font-display text-4xl font-bold mb-3 bg-gradient-to-r from-spark-blue to-spark-purple bg-clip-text text-transparent">
-            Cookie Policy
+          <h1 className="font-display text-4xl font-bold mb-3 text-white">
+            <BlurText text="Cookie Policy" />
           </h1>
           <p className="text-white/70 font-body">
             Effective Date: April 23, 2026 &middot; Last Updated: April 23, 2026
@@ -127,20 +128,20 @@ export default function CookiePolicyPage() {
                     <h3 className="font-display text-base font-semibold text-white">
                       <code className="text-sm bg-white/[0.06] px-1.5 py-0.5 rounded">{c.name}</code>
                     </h3>
-                    <span className="text-[11px] font-data uppercase tracking-wider text-white/60">
+                    <span className="text-[11px] font-data uppercase tracking-wider text-white/70">
                       First-party
                     </span>
                   </div>
                   <div className="grid grid-cols-[max-content_1fr] gap-x-4 gap-y-1.5 text-xs text-white/70">
-                    <span className="text-white/50">Set by:</span>
+                    <span className="text-white/70">Set by:</span>
                     <span>{c.setBy}</span>
-                    <span className="text-white/50">Type:</span>
+                    <span className="text-white/70">Type:</span>
                     <span>{c.type}</span>
-                    <span className="text-white/50">Purpose:</span>
+                    <span className="text-white/70">Purpose:</span>
                     <span>{c.purpose}</span>
-                    <span className="text-white/50">Duration:</span>
+                    <span className="text-white/70">Duration:</span>
                     <span>{c.duration}</span>
-                    <span className="text-white/50">COPPA basis:</span>
+                    <span className="text-white/70">COPPA basis:</span>
                     <span>{c.coppaBasis}</span>
                   </div>
                 </div>
@@ -233,12 +234,12 @@ export default function CookiePolicyPage() {
             </h2>
             <div className="p-4 rounded-lg bg-white/[0.03] border border-white/[0.06]">
               <p className="text-sm text-white/70">
-                <strong className="text-white">SparkForge LLC &mdash; Privacy Team</strong> <span className="text-white/60">(an Illinois limited liability company)</span><br />
+                <strong className="text-white">SparkForge LLC &mdash; Privacy Team</strong> <span className="text-white/70">(an Illinois limited liability company)</span><br />
                 Telephone: <a href="tel:+17736292320" className="text-spark-blue hover:underline">(773) 629-2320</a><br />
                 Email: <a href="mailto:privacy@sparkforge-labs.com" className="text-spark-blue hover:underline">privacy@sparkforge-labs.com</a>
               </p>
             </div>
-            <p className="mt-3 text-sm text-white/60">
+            <p className="mt-3 text-sm text-white/70">
               See also our full{' '}
               <Link href="/privacy" className="text-spark-blue hover:underline">Privacy Policy</Link>
               {' '}and{' '}
