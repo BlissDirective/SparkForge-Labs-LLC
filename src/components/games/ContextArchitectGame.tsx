@@ -1,182 +1,893 @@
 // ════════════════════════════════════════════════════════════════════════
-// CONTEXT ARCHITECT v4 — Lab 8 Flagship (Redesigned)
+// CONTEXT ARCHITECT — Lab 8 Flagship (real engine wiring)
 // ════════════════════════════════════════════════════════════════════════
-// Design optimal context windows for AI systems. Quiz-based:
-// prompt engineering, attention mechanisms, context sizing, RAG patterns.
-// 10 levels from basic context to advanced retrieval architecture.
+// The child is the Context Architect: they manage an AI's limited "memory
+// shelf" (its context window). Place knowledge cards, but keep the shelf
+// clean — Offload cards to external memory, Retrieve them back, Isolate
+// them from the next agent, or Reduce them to summaries. A crowded shelf
+// full of the wrong cards breeds Context Rot, which drags the AI's answers
+// down. Beat Rot across four challenges to master context engineering.
+//
+// This component is pure UI. ALL game logic lives in
+// `useContextArchitectStore` + `@/lib/contextarch/*` (budget engine,
+// card + question libraries). We only drive the phase machine and render.
 
 'use client';
-import { useCallback } from 'react';
+
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameActions } from '@/stores/gameStore';
-import GameLevelSystem, { type LevelResult } from '@/components/games/shared/GameLevelSystem';
-import QuizLevelRenderer, { type QuizQuestion, type QuizBonusRound } from '@/components/games/shared/QuizLevelRenderer';
+import { useActiveChild } from '@/hooks/useChildren';
+import {
+  useContextArchitectStore,
+  type ContextArchitectPhase,
+} from '@/stores/contextArchitectStore';
+import type { ContextMode, ConversationTurn } from '@/types/contextArchitect';
+import {
+  getCard,
+  cardsForBand,
+  THEME_META,
+  reducedTokensFor,
+} from '@/lib/contextarch/cardLibrary';
+import {
+  MOVE_META,
+  computeGrade,
+  effectiveTokens,
+} from '@/lib/contextarch/budgetEngine';
 
-// Bonus drag-to-order round: how a well-built prompt is layered.
-const BONUS_ROUND: QuizBonusRound = {
-  title: 'Build a strong prompt',
-  prompt: 'Drag the parts of a prompt into the order that gives the AI the clearest context.',
-  items: [
-    { id: 'role', label: 'Set the role (who the AI should act as)', correctPosition: 0, currentPosition: 0, color: '#8F96FA' },
-    { id: 'context', label: 'Give the background context', correctPosition: 1, currentPosition: 1, color: '#3B82F6' },
-    { id: 'task', label: 'State the task / question', correctPosition: 2, currentPosition: 2, color: '#F59E0B' },
-    { id: 'format', label: 'Describe the answer format', correctPosition: 3, currentPosition: 3, color: '#10B981' },
-  ],
+const LAB_COLOR = '#8F96FA';
+const ROUNDS_PER_MODE = 2;
+const MODE_SEQUENCE: ContextMode[] = ['sort', 'budget', 'multi-turn', 'rot-boss'];
+
+const PHASE_TO_MODE: Partial<Record<ContextArchitectPhase, ContextMode>> = {
+  'sort-mode': 'sort',
+  'budget-mode': 'budget',
+  'multi-turn-mode': 'multi-turn',
+  'rot-boss': 'rot-boss',
+  'design-shelf': 'design-shelf',
 };
 
-const LEVELS = [
-  { id: 1, name: 'Context Basics', description: 'What lives in the context window?', emoji: '🪟', difficulty: 'easy' as const, starThresholds: [60,80,95], xpReward: 50 },
-  { id: 2, name: 'Token Budget', description: 'Manage your token allowance!', emoji: '💰', difficulty: 'easy' as const, starThresholds: [60,80,95], xpReward: 60 },
-  { id: 3, name: 'Prompt Parts', description: 'Deconstruct a prompt!', emoji: '🧩', difficulty: 'easy' as const, starThresholds: [60,80,95], xpReward: 70 },
-  { id: 4, name: 'Attention', description: 'How attention focuses on what matters!', emoji: '👁️', difficulty: 'medium' as const, starThresholds: [60,80,90], xpReward: 80 },
-  { id: 5, name: 'Context Tricks', description: 'Techniques to fit more in!', emoji: '🎭', difficulty: 'medium' as const, starThresholds: [60,80,90], xpReward: 90 },
-  { id: 6, name: 'RAG Intro', description: 'Retrieval-Augmented Generation!', emoji: '🔍', difficulty: 'medium' as const, starThresholds: [50,75,90], xpReward: 100 },
-  { id: 7, name: 'System Prompts', description: 'Craft the perfect instruction!', emoji: '⚙️', difficulty: 'hard' as const, starThresholds: [50,75,85], xpReward: 120 },
-  { id: 8, name: 'Multi-turn', description: 'Manage conversation history!', emoji: '💬', difficulty: 'hard' as const, starThresholds: [50,75,85], xpReward: 130 },
-  { id: 9, name: 'Long Context', description: 'Handle huge documents!', emoji: '📚', difficulty: 'expert' as const, starThresholds: [50,70,85], xpReward: 150 },
-  { id: 10, name: 'Context Master', description: 'The ultimate context challenge!', emoji: '👑', difficulty: 'expert' as const, starThresholds: [50,70,85], xpReward: 200, isBonus: true },
+const MODE_INFO: Record<ContextMode, { name: string; emoji: string; blurb: string }> = {
+  sort: {
+    name: 'Sort the Shelf',
+    emoji: '🗂️',
+    blurb: 'No budget pressure yet — just place the cards that answer the question and leave the rest off.',
+  },
+  budget: {
+    name: 'Tight Budget',
+    emoji: '💰',
+    blurb: 'The shelf is small now. Reduce or Offload cards so you never spill over the token budget.',
+  },
+  'multi-turn': {
+    name: 'Rolling Memory',
+    emoji: '💬',
+    blurb: 'Old cards stay on the shelf across questions. Clean up what you no longer need.',
+  },
+  'rot-boss': {
+    name: 'Rot Boss',
+    emoji: '👑',
+    blurb: 'The hardest questions and a budget that shrinks every round. Keep the shelf razor-sharp.',
+  },
+  'design-shelf': {
+    name: 'Free Build',
+    emoji: '🛠️',
+    blurb: 'No pressure — experiment with the shelf and watch how Rot and accuracy react.',
+  },
+};
+
+const LEARN_CARDS: Array<{
+  key: 'shelf' | 'budget' | 'moves' | 'rot';
+  phase: ContextArchitectPhase;
+  emoji: string;
+  title: string;
+  body: string;
+}> = [
+  {
+    key: 'shelf',
+    phase: 'learn-shelf',
+    emoji: '🧠',
+    title: 'The Memory Shelf',
+    body: "An AI can only 'see' what fits on its context shelf right now. You decide which knowledge cards go on the shelf so it can answer the question.",
+  },
+  {
+    key: 'budget',
+    phase: 'learn-budget',
+    emoji: '💰',
+    title: 'The Token Budget',
+    body: 'Every card costs tokens. The shelf has a budget. Go over it and the AI starts dropping things. Keep the shelf light.',
+  },
+  {
+    key: 'moves',
+    phase: 'learn-moves',
+    emoji: '🎛️',
+    title: 'Your Four Moves',
+    body: 'Offload a card to external memory, Retrieve it back later, Isolate it (hide it from the next agent), or Reduce it to a summary that costs half the tokens.',
+  },
+  {
+    key: 'rot',
+    phase: 'learn-rot',
+    emoji: '🦠',
+    title: 'Context Rot',
+    body: 'A crowded shelf full of cards that do NOT help the question grows Rot — and Rot drags the answer down. The best shelf is the smallest one that still answers.',
+  },
 ];
 
-function getQuestions(levelId: number): QuizQuestion[] {
-  const q: Record<number, QuizQuestion[]> = {
-    1: [
-      { question: "What lives in a language model's context window?", options: ["The model's long-term memory","The current conversation and instructions","The entire internet","Only the last word typed"], correctIndex: 1, explanation: "The context window holds the current conversation, system instructions, and any retrieved information — everything the model can 'see' right now.", band: 'A' },
-      { question: "What happens when the context window gets too full?", options: ["The model gets smarter","The model forgets older information","The model shuts down","Nothing happens"], correctIndex: 1, explanation: "When context exceeds the window limit, older tokens are pushed out or summarized. The model literally can't see them anymore.", band: 'A' },
-      { question: "Which takes up more tokens in context?", options: ["A single letter","A short word like 'cat'","A long paragraph","They're all the same"], correctIndex: 2, explanation: "More text = more tokens. A long paragraph consumes significantly more of the context budget than a single word.", band: 'A' },
-      { question: "Can a model access information NOT in its context window?", options: ["Yes — it knows everything","No — it can only see what's in context","Sometimes — it guesses","Only if connected to the internet"], correctIndex: 1, explanation: "A model cannot access information outside its context window. Its knowledge comes only from what is placed in context during that specific query.", band: 'B' },
-      { question: "What is a 'system prompt'?", options: ["A prompt about computer systems","Instructions that define the AI's behavior","A prompt that uses code","A prompt from the operating system"], correctIndex: 1, explanation: "The system prompt sets the AI's role, rules, and constraints. It sits at the beginning of the context and guides all responses.", band: 'A' },
-      { question: "If a model has a 4,000 token limit and your prompt is 5,000 tokens, what happens?", options: ["It processes all 5,000 tokens","It ignores the extra 1,000 tokens","It crashes","It automatically compresses them"], correctIndex: 1, explanation: "The model can only process up to its token limit. Extra tokens beyond the limit are typically truncated (cut off) or rejected.", band: 'B' },
-      { question: "Which is the MOST efficient way to use context?", options: ["Write extremely detailed prompts","Include only relevant information","Copy-paste entire books","Use as many words as possible"], correctIndex: 1, explanation: "Efficient context use means including only information relevant to the task. Every unnecessary word consumes tokens that could be used for the response.", band: 'A' },
-      { question: "What does 'context' mean in AI?", options: ["The model's training data","Everything the model can currently see","The computer's background","The model's source code"], correctIndex: 1, explanation: "Context is everything currently visible to the model in a conversation — your question, previous messages, system instructions, and any provided documents.", band: 'A' },
-    ],
-    2: [
-      { question: "How many tokens does a typical English word use?", options: ["Always 1 token","About 0.75 words per token","Exactly 2 tokens","It varies by word length"], correctIndex: 1, explanation: "On average, one token represents about 0.75 English words. 'Token' is not the same as 'word' — it's a subword unit the model processes.", band: 'B' },
-      { question: "If you have a 2,000 token budget, what's the smartest approach?", options: ["Use all 2,000 for the prompt","Reserve some tokens for the AI's answer","Spend them all on fancy formatting","Ignore the budget entirely"], correctIndex: 1, explanation: "Smart budget management reserves tokens for both the prompt AND the response. The model needs budget space to generate its answer.", band: 'A' },
-      { question: "What is 'token pricing' in AI APIs?", options: ["Buying physical tokens","Charging based on tokens used","Pricing per word","Free for everyone"], correctIndex: 1, explanation: "AI APIs typically charge per token — both input tokens (your prompt) and output tokens (the AI's response). Efficient prompts save money.", band: 'B' },
-      { question: "Which prompt technique saves tokens?", options: ["Adding extra adjectives","Being concise and specific","Repeating the question","Using very long examples"], correctIndex: 1, explanation: "Concise, specific prompts use fewer tokens while being more effective. Every word should earn its place in the context.", band: 'A' },
-      { question: "What happens if you give an AI a 10,000-word document when its limit is 4,000 tokens?", options: ["It reads the whole thing","It only processes the first ~3,000 words","It gets smarter","It automatically summarizes"], correctIndex: 1, explanation: "The model can only process tokens within its limit. A 10,000-word document far exceeds 4,000 tokens and will be truncated.", band: 'B' },
-      { question: "Are emojis more or less token-efficient than words?", options: ["Always more efficient","Sometimes more, sometimes less","Always less efficient","Emojis are free"], correctIndex: 1, explanation: "Emojis vary — some use 1-3 tokens. They can be efficient for conveying tone but aren't universally better than words.", band: 'B' },
-      { question: "What is 'context compression'?", options: ["Shrinking the model size","Summarizing long context to fit","Removing the context window","Compressing images"], correctIndex: 1, explanation: "Context compression techniques summarize or selectively include portions of long documents to fit within the token limit while preserving key information.", band: 'B' },
-      { question: "Which takes MORE tokens: 'Hello' or 'supercalifragilisticexpialidocious'?", options: ["Hello","supercalifragilisticexpialidocious","They're the same","It depends on the model"], correctIndex: 1, explanation: "Longer, more unusual words typically require more tokens. Simple common words like 'Hello' often fit in just 1 token.", band: 'A' },
-    ],
-    3: [
-      { question: "What are the three main parts of a well-structured prompt?", options: ["Introduction, Body, Conclusion","Instruction, Context, Output Format","Beginning, Middle, End","Question, Answer, Explanation"], correctIndex: 1, explanation: "A well-structured prompt has: (1) clear instruction (what to do), (2) relevant context (background info), and (3) output format (how to respond).", band: 'B' },
-      { question: "What does 'zero-shot' prompting mean?", options: ["Giving zero instructions","Asking without examples","Prompting with no context","A failed prompt"], correctIndex: 1, explanation: "Zero-shot means asking the AI to do something without providing examples. It relies entirely on the model's pre-trained knowledge.", band: 'B' },
-      { question: "What does 'few-shot' prompting mean?", options: ["Using very few tokens","Providing a few examples in the prompt","Prompting only once","A cheap prompt"], correctIndex: 1, explanation: "Few-shot prompting includes a few examples of desired input-output pairs in the context, helping the model understand the pattern.", band: 'B' },
-      { question: "Why are examples in few-shot prompts placed BEFORE the actual question?", options: ["It's just a convention","The model processes context left-to-right","Examples don't matter","It saves tokens"], correctIndex: 1, explanation: "Language models process context left-to-right. Examples placed before the question act as demonstrations the model can reference when generating its response.", band: 'C' },
-      { question: "What is a 'chain-of-thought' prompt?", options: ["A very long prompt","A prompt that asks the model to show its reasoning step-by-step","A prompt about chains","A prompt with multiple questions"], correctIndex: 1, explanation: "Chain-of-thought prompting asks the model to explain its reasoning step by step. This often improves accuracy on complex problems.", band: 'C' },
-      { question: "What is 'role prompting'?", options: ["Casting actors","Assigning a persona to the AI","Prompting about jobs","Role-playing games"], correctIndex: 1, explanation: "Role prompting assigns the AI a specific persona (e.g., 'You are an expert marine biologist'). This frames responses through that expertise lens.", band: 'B' },
-      { question: "What is a 'delimiter' in prompt engineering?", options: ["A type of punctuation","Special markers that separate sections","A programming term","A type of prompt"], correctIndex: 1, explanation: "Delimiters like triple quotes (\"\"\") or XML tags (<context>) help the model distinguish between instructions, examples, and input data.", band: 'C' },
-      { question: "Why should you be specific about output format in prompts?", options: ["It looks more professional","It reduces ambiguity and improves consistency","It's required by law","It saves tokens"], correctIndex: 1, explanation: "Specifying output format (JSON, bullet points, paragraphs) reduces ambiguity. The model knows exactly how to structure its response.", band: 'B' },
-    ],
-    4: [
-      { question: "What is 'attention' in transformer models?", options: ["Paying attention in class","A mechanism that weights the importance of different words","A type of neural network layer","Listening carefully"], correctIndex: 1, explanation: "Attention is a mechanism that lets the model weigh how much each word in the input should influence each word in the output. It's the key innovation of transformers.", band: 'B' },
-      { question: "In self-attention, what does the model compute for every pair of words?", options: ["Their alphabetical order","Their similarity or relevance score","Their word length","Their frequency"], correctIndex: 1, explanation: "Self-attention computes a relevance score between every pair of tokens. This tells the model which words relate to each other in the sentence.", band: 'C' },
-      { question: "What do Q, K, and V stand for in attention?", options: ["Quick, Kind, Valuable","Query, Key, Value","Question, Knowledge, Value","Queue, Keychain, Volume"], correctIndex: 1, explanation: "Query, Key, and Value are the three matrices in attention. Query asks 'what am I looking for?', Key says 'what do I contain?', and Value provides the actual information.", band: 'C' },
-      { question: "Why is multi-head attention called 'multi-head'?", options: ["It has many leaders","It runs attention multiple times in parallel","It uses multiple models","It processes multiple sentences"], correctIndex: 1, explanation: "Multi-head attention runs the attention mechanism multiple times in parallel with different learned projections. Each 'head' can focus on different types of relationships.", band: 'C' },
-      { question: "What pattern might one attention head learn?", options: ["The color of words","Subject-verb relationships","Word font sizes","The author of the text"], correctIndex: 1, explanation: "Different attention heads specialize in different linguistic patterns — subject-verb agreement, pronoun references, or nearby word relationships.", band: 'C' },
-      { question: "What is the attention mask used for?", options: ["Hiding the model's face","Preventing the model from seeing future tokens","Blocking bad words","Encrypting data"], correctIndex: 1, explanation: "In causal (autoregressive) language models, the attention mask prevents the model from looking at future tokens when predicting the next word.", band: 'C' },
-      { question: "What does 'softmax' do in the attention mechanism?", options: ["Makes the model softer","Converts scores to probabilities that sum to 1","Slows down computation","Compresses the data"], correctIndex: 1, explanation: "Softmax converts raw attention scores into a probability distribution (summing to 1), determining how much each token should contribute to the output.", band: 'C' },
-      { question: "Why is attention more powerful than recurrence (RNNs)?", options: ["It's newer","It can process all tokens in parallel and capture long-range dependencies","It uses less memory","It's simpler to implement"], correctIndex: 1, explanation: "Attention processes all tokens simultaneously (parallelizable) and can directly connect distant words, overcoming the vanishing gradient problem of RNNs.", band: 'C' },
-    ],
-    5: [
-      { question: "What is 'in-context learning'?", options: ["Learning inside a classroom","The model learning from examples in the prompt without parameter updates","A type of online course","Learning from training data"], correctIndex: 1, explanation: "In-context learning is when a model adapts its behavior based on examples provided in the prompt, without any weights being updated.", band: 'B' },
-      { question: "What is prompt chaining?", options: ["Linking multiple prompts together","Using a literal chain","A type of necklace","Chaining commands in code"], correctIndex: 1, explanation: "Prompt chaining breaks complex tasks into a sequence of simpler prompts, where each step's output feeds into the next step's input.", band: 'C' },
-      { question: "What is 'priming' in prompt engineering?", options: ["Painting a surface","Starting the prompt with content that guides the response","A type of engine","Warming up the model"], correctIndex: 1, explanation: "Priming means starting the prompt (or the response) with partial content that steers the model toward the desired style, format, or content.", band: 'B' },
-      { question: "What is a 'meta-prompt'?", options: ["A prompt about prompts","A prompt that generates other prompts","A very large prompt","A prompt that doesn't work"], correctIndex: 1, explanation: "A meta-prompt is a prompt that instructs the AI to generate effective prompts. It's 'prompt engineering for prompt engineering.'", band: 'C' },
-      { question: "What does 'temperature' control in AI generation?", options: ["The room temperature","The randomness/creativity of outputs","The speed of response","The token count"], correctIndex: 1, explanation: "Temperature controls randomness. Low temperature (0.1) = more deterministic, focused outputs. High temperature (0.9) = more creative, varied outputs.", band: 'B' },
-      { question: "What is 'top-p' (nucleus) sampling?", options: ["The best prompt","Sampling from the smallest set of tokens whose probabilities sum to p","A type of filter","The top prediction"], correctIndex: 1, explanation: "Top-p sampling considers only the most likely tokens whose cumulative probability exceeds the threshold p. It dynamically adjusts the candidate pool.", band: 'C' },
-      { question: "What does a lower 'max tokens' setting do?", options: ["Makes the model smarter","Limits the response length","Increases accuracy","Uses more context"], correctIndex: 1, explanation: "Max tokens sets an upper bound on the response length. Useful for keeping answers concise or preventing runaway generation.", band: 'B' },
-      { question: "What is 'repetition penalty' in generation?", options: ["A punishment for repeating grades","Reducing the probability of tokens that already appeared","A game mechanic","A type of fine-tuning"], correctIndex: 1, explanation: "Repetition penalty reduces the likelihood of tokens that have already appeared in the generated text, preventing repetitive outputs.", band: 'C' },
-    ],
-    6: [
-      { question: "What does RAG stand for?", options: ["Random Answer Generator","Retrieval-Augmented Generation","Really Awesome GPT","Recursive Algorithm Group"], correctIndex: 1, explanation: "RAG = Retrieval-Augmented Generation. It combines information retrieval (searching documents) with text generation for more accurate, grounded responses.", band: 'B' },
-      { question: "What problem does RAG solve?", options: ["Slow internet","Models making up facts (hallucinations)","Too many users","Models being too small"], correctIndex: 1, explanation: "RAG grounds AI responses in retrieved documents, reducing hallucinations by providing factual context the model can reference.", band: 'B' },
-      { question: "In RAG, what happens first: retrieval or generation?", options: ["Generation","Retrieval","They happen simultaneously","It depends on the weather"], correctIndex: 1, explanation: "RAG first retrieves relevant documents from a knowledge base, then includes those documents in the context for the generation step.", band: 'B' },
-      { question: "What is a 'vector database' in RAG?", options: ["A database of math vectors","A store of document embeddings for similarity search","A database of arrows","A type of spreadsheet"], correctIndex: 1, explanation: "Vector databases store document embeddings (numerical representations). Queries are converted to vectors and matched against stored vectors for semantic similarity.", band: 'C' },
-      { question: "What is 'embedding' in the context of RAG?", options: ["Decorating a cake","Converting text to a numerical vector","Putting something inside something else","A type of coding"], correctIndex: 1, explanation: "An embedding is a numerical vector representation of text that captures semantic meaning. Similar texts have similar vectors (close in vector space).", band: 'C' },
-      { question: "What is 'chunking' in document processing?", options: ["Breaking documents into bite-sized pieces","Breaking documents into smaller segments for embedding","A type of cookie","Removing chunks of text"], correctIndex: 1, explanation: "Chunking splits long documents into smaller segments that fit within embedding model limits and retrieval constraints. Good chunking preserves semantic coherence.", band: 'C' },
-      { question: "Why might RAG be better than fine-tuning for updating knowledge?", options: ["It's faster to compute","You just add new documents — no retraining needed","It uses less electricity","It's more accurate"], correctIndex: 1, explanation: "RAG updates knowledge by simply adding new documents to the vector store. Fine-tuning requires retraining the model, which is expensive and time-consuming.", band: 'C' },
-      { question: "What is 'semantic search' vs 'keyword search'?", options: ["They're the same","Semantic search finds conceptually related content; keyword search finds exact matches","Semantic search is slower","Keyword search is always better"], correctIndex: 1, explanation: "Keyword search looks for exact word matches. Semantic search finds conceptually related content even with different wording, using vector similarity.", band: 'B' },
-    ],
-    7: [
-      { question: "What should a good system prompt include?", options: ["Random words","Role definition, constraints, and output format","The entire internet","Personal information"], correctIndex: 1, explanation: "Effective system prompts define the AI's role, set behavioral constraints, and specify the desired output format. They are the 'operating instructions' for the AI.", band: 'B' },
-      { question: "What is 'prompt injection'?", options: ["Injecting medicine","A malicious attempt to override system instructions through user input","Adding extra prompts","A type of coding"], correctIndex: 1, explanation: "Prompt injection is an attack where malicious user input tries to override the system prompt (e.g., 'Ignore previous instructions and...'). It's a security concern.", band: 'C' },
-      { question: "Why should system and user prompts be separated?", options: ["It's just a convention","It helps the model distinguish instructions from input, improving security","It looks better","It's required by law"], correctIndex: 1, explanation: "Separating system and user prompts creates a clear boundary between instructions and untrusted input, helping defend against prompt injection attacks.", band: 'C' },
-      { question: "What is 'defensive prompt engineering'?", options: ["Building fortresses","Techniques to make prompts robust against manipulation","A military application","Using angry language"], correctIndex: 1, explanation: "Defensive prompt engineering uses techniques like delimiters, output constraints, and input validation to make prompts resistant to injection and manipulation.", band: 'C' },
-      { question: "What does 'jailbreaking' a model mean?", options: ["Breaking out of prison","Tricking the model into bypassing its safety guidelines","A type of hacking","Removing the context window"], correctIndex: 1, explanation: "Jailbreaking refers to techniques that attempt to trick AI models into bypassing their safety guidelines or generating harmful content they normally refuse.", band: 'C' },
-      { question: "Why is it important to version control prompts?", options: ["It's not important","Prompts are code — changes affect behavior and need tracking","It's a legal requirement","It makes prompts run faster"], correctIndex: 1, explanation: "Prompts are a form of code. Small changes can dramatically alter behavior. Version control lets you track changes, test systematically, and roll back if needed.", band: 'C' },
-      { question: "What is a 'prompt template'?", options: ["A blank document","A reusable prompt structure with variable placeholders","A design template","A type of email"], correctIndex: 1, explanation: "Prompt templates are reusable structures with placeholders (like {name} or {topic}). They enable consistent prompting across different inputs and use cases.", band: 'B' },
-      { question: "What is the 'system vs. user' message distinction in chat models?", options: ["There is no distinction","System = instructions/role; User = the actual query or input","System is more important","User messages are ignored"], correctIndex: 1, explanation: "Chat models distinguish between system messages (instructions, role definition) and user messages (the actual query). This separation improves control and safety.", band: 'B' },
-    ],
-    8: [
-      { question: "Why does conversation history matter in multi-turn chats?", options: ["It doesn't matter","The model uses it to maintain context and coherence","It slows things down","It's just for display"], correctIndex: 1, explanation: "Conversation history provides the model with context from previous turns, enabling coherent multi-turn dialogue, reference resolution, and topic continuity.", band: 'B' },
-      { question: "What happens to older messages in a long conversation?", options: ["They stay forever","They may be dropped or summarized when context limits are reached","They become more important","They're saved to a database"], correctIndex: 1, explanation: "In long conversations, older messages may be dropped (truncated) or summarized when approaching the context window limit to make room for new messages.", band: 'C' },
-      { question: "What is 'conversation summarization'?", options: ["Writing a book summary","Compressing older conversation turns into a brief summary","A type of AI","Deleting messages"], correctIndex: 1, explanation: "Conversation summarization compresses earlier parts of a long conversation into a shorter summary, preserving key information while freeing up context space.", band: 'C' },
-      { question: "Why might you want to clear conversation history?", options: ["To save the model's feelings","To start fresh with no prior context affecting responses","It's required periodically","To save electricity"], correctIndex: 1, explanation: "Clearing history starts a fresh context. This prevents earlier conversation turns from influencing new responses and helps isolate different topics.", band: 'B' },
-      { question: "What is a 'sliding window' approach to context?", options: ["A window that slides open","Keeping only the most recent N messages","A type of animation","Opening multiple windows"], correctIndex: 1, explanation: "A sliding window keeps only the most recent N messages in context. Old messages are discarded as new ones arrive, maintaining a fixed context size.", band: 'C' },
-      { question: "How does a model handle references like 'it' or 'that'?", options: ["It ignores them","It uses attention to resolve what the pronoun refers to in prior context","It guesses randomly","It asks for clarification"], correctIndex: 1, explanation: "Models use attention mechanisms to resolve pronouns and references by linking them back to their antecedents in the conversation history.", band: 'C' },
-      { question: "What is 'context drift' in long conversations?", options: ["A type of weather pattern","When the model gradually loses track of the original topic or instructions","Moving to a new location","A hardware problem"], correctIndex: 1, explanation: "Context drift occurs when a model in a long conversation gradually loses adherence to the original topic or system instructions as new messages accumulate.", band: 'C' },
-      { question: "What technique helps maintain instruction adherence across many turns?", options: ["Shouting in the prompt","Periodically restating key instructions","Using all caps","Sending fewer messages"], correctIndex: 1, explanation: "Periodically restating key instructions in multi-turn conversations helps the model maintain adherence, especially as earlier instructions get pushed out of context.", band: 'B' },
-    ],
-    9: [
-      { question: "What is a 'long context window' model?", options: ["A model that talks a lot","A model that can process very long documents (100K+ tokens)","A slow model","A model with many parameters"], correctIndex: 1, explanation: "Long context models can process 100,000+ tokens in a single query, enabling analysis of entire books, codebases, or lengthy documents at once.", band: 'B' },
-      { question: "What is the 'lost in the middle' problem?", options: ["Getting lost geographically","Models performing worse on information in the middle of long contexts","A navigation issue","Losing context at the start"], correctIndex: 1, explanation: "Research shows models often underperform on information located in the middle of very long contexts, performing better on content at the beginning and end.", band: 'C' },
-      { question: "What is 'needle in a haystack' testing?", options: ["A sewing test","Embedding a specific fact in a large document to test if the model can find it","A farming technique","A type of search engine"], correctIndex: 1, explanation: "Needle-in-a-haystack tests place a specific piece of information (the needle) in a large document (the haystack) to evaluate a model's ability to retrieve specific details from long context.", band: 'C' },
-      { question: "Why is processing long context computationally expensive?", options: ["It just is","Attention scales quadratically with sequence length (O(n²))","Longer text uses more bandwidth","Models charge more for it"], correctIndex: 1, explanation: "Standard self-attention has O(n²) complexity — doubling the sequence length quadruples computation. This makes very long context processing expensive.", band: 'C' },
-      { question: "What is 'sparse attention'?", options: ["Paying attention only sometimes","Attention mechanisms that don't compute all token pairs, reducing cost","A type of focus","Ignoring important tokens"], correctIndex: 1, explanation: "Sparse attention mechanisms (like Sliding Window, Longformer, BigBird) compute attention for only a subset of token pairs, enabling longer context at lower cost.", band: 'C' },
-      { question: "What is 'ring attention'?", options: ["A circular data structure","A technique for processing extremely long sequences by computing attention in blocks","A type of jewelry","Attention that repeats"], correctIndex: 1, explanation: "Ring attention and similar blockwise approaches split long sequences into blocks that can be processed across multiple devices, enabling million-token contexts.", band: 'C' },
-      { question: "When is long context better than RAG?", options: ["Always","When you need to understand relationships across the entire document","Never","When documents are very short"], correctIndex: 1, explanation: "Long context excels when holistic understanding of a document is needed — understanding relationships, themes, and structure across the entire text, not just retrieved chunks.", band: 'C' },
-      { question: "What is 'context caching' in some AI APIs?", options: ["Saving money","Reusing processed prefix context across multiple queries","A type of memory","Deleting old context"], correctIndex: 1, explanation: "Context caching processes and stores the prefix (system prompt, documents) once, then reuses it across multiple queries, reducing latency and cost for repeated access.", band: 'C' },
-    ],
-    10: [
-      { question: "What is the optimal context strategy for a coding assistant?", options: ["No context needed","Include relevant files, imports, and recent changes; exclude unrelated code","Include the entire codebase always","Only the current file"], correctIndex: 1, explanation: "Coding assistants work best with carefully curated context: relevant files, dependencies, and recent edits. Too much unrelated code causes confusion and wastes tokens.", band: 'C' },
-      { question: "What is 'hybrid search' in RAG systems?", options: ["Searching with multiple browsers","Combining keyword and semantic search for better retrieval","A type of car","Searching multiple databases"], correctIndex: 1, explanation: "Hybrid search combines the precision of keyword matching with the semantic understanding of vector search, often using reranking to combine results.", band: 'C' },
-      { question: "What is 'reranking' in retrieval pipelines?", options: ["Sorting search results by a more precise model","Ranking results twice","A type of game","Removing duplicates"], correctIndex: 1, explanation: "Reranking uses a specialized model to score and reorder initially retrieved documents, improving relevance by applying more sophisticated judgment to a candidate set.", band: 'C' },
-      { question: "What is 'prompt caching' and why is it useful?", options: ["Storing prompts for reuse","Reusing KV-cache from previous computations to speed up repeated prefixes","A type of memory card","Saving prompts to disk"], correctIndex: 1, explanation: "Prompt caching reuses the key-value cache from previous token computations. For repeated prefixes (like system prompts), this dramatically speeds up subsequent queries.", band: 'C' },
-      { question: "What is the trade-off between context length and model size?", options: ["There is no trade-off","Longer context often requires more memory and computation, but enables new capabilities","Longer context always makes models smarter","Smaller models have longer context"], correctIndex: 1, explanation: "Longer context requires more memory (KV cache grows with sequence length) and computation. The benefit is accessing more information without retrieval complexity.", band: 'C' },
-      { question: "What is 'hierarchical retrieval' in advanced RAG?", options: ["A company structure","Retrieving at multiple levels: document → section → paragraph","A type of government","Single-level search"], correctIndex: 1, explanation: "Hierarchical retrieval first identifies relevant documents, then sections within those documents, then specific paragraphs. This zooms in from coarse to fine granularity.", band: 'C' },
-      { question: "What determines the 'quality' of a context window?", options: ["Only its size","Size, attention mechanism quality, and how well the model uses all positions","The brand name","The training data size"], correctIndex: 1, explanation: "Context quality depends on: (1) raw token capacity, (2) attention mechanism efficiency, and (3) the model's ability to effectively attend across all positions (needle-in-haystack performance).", band: 'C' },
-      { question: "What is the future direction for AI context handling?", options: ["Smaller context windows","Infinite context via compression, selective attention, and external memory","No more context","Only images"], correctIndex: 1, explanation: "Research is moving toward 'infinite' context through techniques like prompt compression, selective attention, recurrent memory mechanisms, and better integration with external retrieval systems.", band: 'C' },
-    ],
-  };
+// ─── Small UI atoms ──────────────────────────────────────────────────────
 
-  const base = q[levelId] || q[1];
-  // Add harder questions for levels 4+
-  const extra: QuizQuestion[] = levelId >= 4 ? [
-    { question: "What does 'KV cache' optimization do?", options: ["Caches key-value pairs from attention to avoid recomputation","Stores training data","Caches the prompt","Optimizes images"], correctIndex: 0, explanation: "KV cache stores the computed Key and Value vectors from previous tokens, avoiding recomputation during autoregressive generation. This dramatically speeds up inference.", band: 'C' },
-    { question: "What is 'flash attention'?", options: ["Very fast attention","An I/O-aware algorithm that reduces memory reads for attention computation","A type of camera flash","Attention that blinks"], correctIndex: 1, explanation: "Flash Attention is an algorithm that reorganizes attention computation to be I/O-aware, reducing memory accesses and enabling faster, more memory-efficient attention.", band: 'C' },
-  ] : [];
-  const extra2: QuizQuestion[] = levelId >= 7 ? [
-    { question: "What is 'speculative decoding'?", options: ["Guessing the future","Using a small model to draft tokens that a large model verifies","A planning technique","A type of encryption"], correctIndex: 1, explanation: "Speculative decoding uses a small, fast model to generate draft tokens, then a large model verifies them in parallel. This speeds up generation by 2-3x.", band: 'C' },
-    { question: "What is 'mixture of experts' (MoE) context efficiency?", options: ["A group of professors","Only a subset of model parameters are active per token, enabling larger models with similar inference cost","A type of committee","Multiple models voting"], correctIndex: 1, explanation: "MoE architectures activate only a subset of 'expert' parameters per token. This enables massive model capacity with reasonable inference costs and context handling.", band: 'C' },
-  ] : [];
+function Meter({
+  label,
+  pct,
+  valueText,
+  color,
+  danger,
+}: {
+  label: string;
+  pct: number;
+  valueText: string;
+  color: string;
+  danger?: boolean;
+}) {
+  const clamped = Math.max(0, Math.min(100, pct));
+  return (
+    <div
+      role="progressbar"
+      aria-label={label}
+      aria-valuenow={Math.round(clamped)}
+      aria-valuemin={0}
+      aria-valuemax={100}
+      aria-valuetext={valueText}
+    >
+      <div className="flex items-center justify-between text-xs mb-1">
+        <span className="text-white/70">{label}</span>
+        <span className="font-mono text-white/90">{valueText}</span>
+      </div>
+      <div
+        className="w-full rounded-full overflow-hidden bg-white/10"
+        style={{ height: 10 }}
+      >
+        <motion.div
+          className="h-full rounded-full"
+          style={{ backgroundColor: danger ? '#F87171' : color }}
+          initial={false}
+          animate={{ width: `${clamped}%` }}
+          transition={{ type: 'spring', stiffness: 180, damping: 24 }}
+        />
+      </div>
+    </div>
+  );
+}
 
-  return [...base, ...extra, ...extra2].slice(0, 10);
+function Stars({ count }: { count: number }) {
+  return (
+    <div className="flex gap-2 justify-center" aria-label={`${count} of 3 stars`}>
+      {[1, 2, 3].map((n) => (
+        <span
+          key={n}
+          aria-hidden="true"
+          style={{ fontSize: 40, opacity: n <= count ? 1 : 0.25 }}
+        >
+          ⭐
+        </span>
+      ))}
+    </div>
+  );
+}
+
+// ─── Play view (the core interaction) ────────────────────────────────────
+
+function PlayView({
+  band,
+  freePlay,
+  progressLabel,
+  onAnswerRecorded,
+  onFinishFreePlay,
+}: {
+  band: 'A' | 'B' | 'C';
+  freePlay: boolean;
+  progressLabel: string;
+  onAnswerRecorded: (turn: ConversationTurn) => void;
+  onFinishFreePlay: () => void;
+}) {
+  const shelf = useContextArchitectStore((s) => s.shelf);
+  const external = useContextArchitectStore((s) => s.external);
+  const budget = useContextArchitectStore((s) => s.budget);
+  const used = useContextArchitectStore((s) => s.used);
+  const rot = useContextArchitectStore((s) => s.rot);
+  const accuracy = useContextArchitectStore((s) => s.accuracy);
+  const currentQuestion = useContextArchitectStore((s) => s.currentQuestion);
+  const mode = useContextArchitectStore((s) => s.mode);
+  const lastError = useContextArchitectStore((s) => s.lastError);
+
+  const placeCard = useContextArchitectStore((s) => s.placeCard);
+  const offloadCard = useContextArchitectStore((s) => s.offloadCard);
+  const retrieveCard = useContextArchitectStore((s) => s.retrieveCard);
+  const isolateCard = useContextArchitectStore((s) => s.isolateCard);
+  const reduceCard = useContextArchitectStore((s) => s.reduceCard);
+  const removeCard = useContextArchitectStore((s) => s.removeCard);
+  const answerCurrentQuestion = useContextArchitectStore((s) => s.answerCurrentQuestion);
+
+  const [showHint, setShowHint] = useState(false);
+  useEffect(() => {
+    setShowHint(false);
+  }, [currentQuestion?.id]);
+
+  const info = MODE_INFO[mode];
+
+  // Deck for this question: the key cards, the decoys, then a few extra
+  // distractors from the child's band — a focused puzzle rather than all 48.
+  const deckIds = useMemo(() => {
+    if (!currentQuestion) return [] as string[];
+    const ids: string[] = [];
+    const add = (id: string) => {
+      if (!ids.includes(id) && getCard(id)) ids.push(id);
+    };
+    currentQuestion.keyCardIds.forEach(add);
+    currentQuestion.decoyCardIds.forEach(add);
+    for (const c of cardsForBand(band)) {
+      if (ids.length >= 9) break;
+      add(c.id);
+    }
+    return ids.sort();
+  }, [currentQuestion, band]);
+
+  const placedIds = useMemo(
+    () => new Set([...shelf.map((p) => p.cardId), ...external.map((p) => p.cardId)]),
+    [shelf, external],
+  );
+  const availableIds = deckIds.filter((id) => !placedIds.has(id));
+
+  const overBudget = used > budget;
+  const capacityPct = budget > 0 ? (used / budget) * 100 : 0;
+
+  const handleAnswer = useCallback(() => {
+    answerCurrentQuestion();
+    const turns = useContextArchitectStore.getState().turnsThisSession;
+    const last = turns[turns.length - 1];
+    if (last) onAnswerRecorded(last);
+  }, [answerCurrentQuestion, onAnswerRecorded]);
+
+  if (!currentQuestion) {
+    return (
+      <div className="flex items-center justify-center h-full text-white/70">
+        Preparing the shelf…
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-4 max-w-5xl mx-auto w-full">
+      {/* Mode header */}
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <div className="flex items-center gap-2">
+          <span aria-hidden="true" style={{ fontSize: 24 }}>{info.emoji}</span>
+          <div>
+            <div className="font-bold text-white">{info.name}</div>
+            <div className="text-xs text-white/60">{progressLabel}</div>
+          </div>
+        </div>
+        <span
+          className="text-xs px-3 py-1 rounded-full font-semibold uppercase tracking-wide"
+          style={{ backgroundColor: `${LAB_COLOR}22`, color: LAB_COLOR }}
+        >
+          {currentQuestion.difficulty}
+        </span>
+      </div>
+
+      {/* Question */}
+      <div
+        className="rounded-2xl p-5 border"
+        style={{ borderColor: `${LAB_COLOR}55`, backgroundColor: `${LAB_COLOR}12` }}
+      >
+        <div className="text-xs uppercase tracking-wide text-white/60 mb-1">
+          The AI is asked
+        </div>
+        <p className="text-lg font-semibold text-white">{currentQuestion.text}</p>
+        {currentQuestion.hint && (
+          <div className="mt-2">
+            <button
+              type="button"
+              onClick={() => setShowHint((v) => !v)}
+              className="text-sm underline text-white/70 hover:text-white"
+              aria-expanded={showHint}
+            >
+              {showHint ? 'Hide hint' : 'Need a hint?'}
+            </button>
+            {showHint && <p className="text-sm text-white/70 mt-1">💡 {currentQuestion.hint}</p>}
+          </div>
+        )}
+      </div>
+
+      {/* Live meters */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 rounded-2xl p-4 bg-white/5 border border-white/10">
+        <Meter
+          label="Shelf budget"
+          pct={capacityPct}
+          valueText={`${used} / ${budget} tokens`}
+          color={LAB_COLOR}
+          danger={overBudget}
+        />
+        <Meter
+          label="Context Rot"
+          pct={rot * 100}
+          valueText={`${Math.round(rot * 100)}%`}
+          color="#FBBF24"
+          danger={rot >= 0.6}
+        />
+        <Meter
+          label="Answer strength"
+          pct={accuracy * 100}
+          valueText={`${Math.round(accuracy * 100)}%`}
+          color="#34D399"
+        />
+      </div>
+
+      <AnimatePresence>
+        {lastError && (
+          <motion.div
+            initial={{ opacity: 0, y: -6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            role="alert"
+            className="rounded-xl px-4 py-2 text-sm font-medium border"
+            style={{ borderColor: '#F8717166', color: '#FCA5A5', backgroundColor: '#F871711a' }}
+          >
+            {lastError}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* The shelf */}
+      <section aria-label="Context shelf" className="rounded-2xl p-4 bg-black/30 border border-white/10">
+        <h3 className="text-sm font-bold text-white/90 mb-3 flex items-center gap-2">
+          <span aria-hidden="true">📚</span> Memory Shelf
+          <span className="text-white/50 font-normal">({shelf.length} on shelf)</span>
+        </h3>
+        {shelf.length === 0 ? (
+          <p className="text-sm text-white/60 py-4 text-center">
+            The shelf is empty. Add the cards that answer the question below.
+          </p>
+        ) : (
+          <ul className="flex flex-col gap-2">
+            {shelf.map((p) => {
+              const card = getCard(p.cardId);
+              if (!card) return null;
+              const theme = THEME_META[card.theme];
+              return (
+                <li
+                  key={p.cardId}
+                  className="rounded-xl p-3 border flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"
+                  style={{
+                    borderColor: `${theme.color}55`,
+                    backgroundColor: p.isolated ? 'rgba(255,255,255,0.03)' : `${theme.color}14`,
+                    opacity: p.isolated ? 0.65 : 1,
+                  }}
+                >
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span aria-hidden="true">{card.emoji}</span>
+                      <span className="font-semibold text-white truncate">{card.title}</span>
+                      <span className="text-xs font-mono text-white/70">
+                        {effectiveTokens(p)}t
+                      </span>
+                      {p.reduced && (
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-white/10 text-white/80">
+                          🗜️ reduced
+                        </span>
+                      )}
+                      {p.isolated && (
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-white/10 text-white/80">
+                          🙈 isolated
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-white/60 mt-1">{card.text}</p>
+                  </div>
+                  <div className="flex flex-wrap gap-1.5 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => offloadCard(p.cardId)}
+                      className="text-xs px-2.5 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-colors"
+                      aria-label={`${MOVE_META.offload.label} ${card.title}. ${MOVE_META.offload.hint}`}
+                      title={MOVE_META.offload.hint}
+                    >
+                      {MOVE_META.offload.emoji} Offload
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => reduceCard(p.cardId)}
+                      disabled={p.reduced}
+                      className="text-xs px-2.5 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                      aria-label={`${MOVE_META.reduce.label} ${card.title}. ${MOVE_META.reduce.hint}`}
+                      title={MOVE_META.reduce.hint}
+                    >
+                      {MOVE_META.reduce.emoji} Reduce
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => isolateCard(p.cardId)}
+                      disabled={p.isolated}
+                      className="text-xs px-2.5 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                      aria-label={`${MOVE_META.isolate.label} ${card.title}. ${MOVE_META.isolate.hint}`}
+                      title={MOVE_META.isolate.hint}
+                    >
+                      {MOVE_META.isolate.emoji} Isolate
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => removeCard(p.cardId)}
+                      className="text-xs px-2.5 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-colors"
+                      aria-label={`Remove ${card.title} from the shelf`}
+                      title="Take the card off the shelf entirely"
+                    >
+                      ✕ Remove
+                    </button>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </section>
+
+      {/* External memory */}
+      {external.length > 0 && (
+        <section aria-label="External memory" className="rounded-2xl p-4 bg-white/5 border border-white/10">
+          <h3 className="text-sm font-bold text-white/90 mb-3 flex items-center gap-2">
+            <span aria-hidden="true">🗃️</span> External Memory
+            <span className="text-white/50 font-normal">(off the shelf — Retrieve costs 1 turn)</span>
+          </h3>
+          <div className="flex flex-wrap gap-2">
+            {external.map((p) => {
+              const card = getCard(p.cardId);
+              if (!card) return null;
+              return (
+                <button
+                  key={p.cardId}
+                  type="button"
+                  onClick={() => retrieveCard(p.cardId)}
+                  className="text-xs px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-colors flex items-center gap-1.5"
+                  aria-label={`${MOVE_META.retrieve.label} ${card.title} back to the shelf. ${MOVE_META.retrieve.hint}`}
+                  title={MOVE_META.retrieve.hint}
+                >
+                  <span aria-hidden="true">{card.emoji}</span>
+                  {card.title}
+                  <span className="text-white/60">· 📥 Retrieve</span>
+                </button>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
+      {/* Deck of available cards */}
+      <section aria-label="Available cards" className="rounded-2xl p-4 bg-white/5 border border-white/10">
+        <h3 className="text-sm font-bold text-white/90 mb-3 flex items-center gap-2">
+          <span aria-hidden="true">🃏</span> Card Deck
+          <span className="text-white/50 font-normal">(tap to place on the shelf)</span>
+        </h3>
+        {availableIds.length === 0 ? (
+          <p className="text-sm text-white/60">Every card is on the shelf or in external memory.</p>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {availableIds.map((id) => {
+              const card = getCard(id);
+              if (!card) return null;
+              const theme = THEME_META[card.theme];
+              return (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => placeCard(id)}
+                  className="text-left rounded-xl p-3 border hover:brightness-125 transition-all"
+                  style={{ borderColor: `${theme.color}44`, backgroundColor: `${theme.color}10` }}
+                  aria-label={`Place ${card.title} on the shelf. ${card.text} Costs ${card.tokens} tokens.`}
+                >
+                  <div className="flex items-center gap-2">
+                    <span aria-hidden="true">{card.emoji}</span>
+                    <span className="font-semibold text-white truncate">{card.title}</span>
+                    <span className="text-xs font-mono text-white/70 ml-auto">{card.tokens}t</span>
+                  </div>
+                  <p className="text-xs text-white/60 mt-1">{card.text}</p>
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </section>
+
+      {/* Footer actions */}
+      <div className="flex flex-wrap gap-3 justify-end pt-1 pb-2">
+        {freePlay && (
+          <button
+            type="button"
+            onClick={onFinishFreePlay}
+            className="px-5 py-3 rounded-xl font-semibold bg-white/10 hover:bg-white/20 text-white transition-colors"
+          >
+            Back to Report
+          </button>
+        )}
+        <button
+          type="button"
+          onClick={handleAnswer}
+          className="px-6 py-3 rounded-xl font-bold text-black transition-transform hover:scale-105"
+          style={{ backgroundColor: LAB_COLOR }}
+          aria-label="Answer the question with the current shelf"
+        >
+          ✅ Answer with this shelf
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ─── Root ────────────────────────────────────────────────────────────────
+
+function ContextArchitectRoot() {
+  const band = (useActiveChild()?.age_band || 'B') as 'A' | 'B' | 'C';
+
+  const phase = useContextArchitectStore((s) => s.phase);
+  const currentQuestion = useContextArchitectStore((s) => s.currentQuestion);
+  const bestScore = useContextArchitectStore((s) => s.bestScore);
+
+  const reset = useContextArchitectStore((s) => s.reset);
+  const beginGame = useContextArchitectStore((s) => s.beginGame);
+  const markTutorialSeen = useContextArchitectStore((s) => s.markTutorialSeen);
+  const startMode = useContextArchitectStore((s) => s.startMode);
+  const nextQuestion = useContextArchitectStore((s) => s.nextQuestion);
+  const setPhase = useContextArchitectStore((s) => s.setPhase);
+
+  const { awardXP, completeGame } = useGameActions();
+
+  // Welcome is a local gate so the intro always shows even though
+  // beginGame() (per the mount contract) routes straight past the store's
+  // 'welcome' phase. Store logic is untouched; we just defer reveal.
+  const [entered, setEntered] = useState(false);
+  const [roundInMode, setRoundInMode] = useState(1);
+  const [roundResult, setRoundResult] = useState<{ accuracy: number; rot: number } | null>(null);
+  const [freePlay, setFreePlay] = useState(false);
+
+  // Full-session turn history (survives per-mode startMode resets), used to
+  // grade the final report via the real engine.
+  const allTurnsRef = useRef<ConversationTurn[]>([]);
+  const rewardedRef = useRef(false);
+
+  // Mount: reset transient state, then let the store route the phase machine.
+  useEffect(() => {
+    reset();
+    beginGame();
+    return () => reset();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Ensure a mode phase always has a question set up (covers returning
+  // players whose beginGame() jumps straight to 'sort-mode').
+  useEffect(() => {
+    if (!entered) return;
+    const mode = PHASE_TO_MODE[phase];
+    if (mode && !currentQuestion) startMode(mode, band);
+  }, [entered, phase, currentQuestion, band, startMode]);
+
+  // Fire completion exactly once when the report is first reached.
+  useEffect(() => {
+    if (phase !== 'report' || rewardedRef.current) return;
+    rewardedRef.current = true;
+    const grade = computeGrade(allTurnsRef.current);
+    const xp = 40 + grade.correctAnswers * 15 + grade.stars * 30;
+    awardXP(xp);
+    completeGame('context-architect', grade.stars);
+  }, [phase, awardXP, completeGame]);
+
+  const recordTurn = useCallback((turn: ConversationTurn) => {
+    allTurnsRef.current = [...allTurnsRef.current, turn];
+    setRoundResult({ accuracy: turn.accuracy, rot: turn.rotAtAnswer });
+  }, []);
+
+  // Advance after the child confirms a round result.
+  const handleContinue = useCallback(() => {
+    setRoundResult(null);
+    if (freePlay) {
+      const prevId = useContextArchitectStore.getState().currentQuestion?.id;
+      nextQuestion(band);
+      const newId = useContextArchitectStore.getState().currentQuestion?.id;
+      if (!newId || newId === prevId) setPhase('report');
+      return;
+    }
+    const mode = PHASE_TO_MODE[phase];
+    if (!mode) return;
+    const idx = MODE_SEQUENCE.indexOf(mode);
+    // More rounds left in this mode? Try to pull a fresh question.
+    if (roundInMode < ROUNDS_PER_MODE) {
+      const prevId = useContextArchitectStore.getState().currentQuestion?.id;
+      nextQuestion(band);
+      const newId = useContextArchitectStore.getState().currentQuestion?.id;
+      if (newId && newId !== prevId) {
+        setRoundInMode((r) => r + 1);
+        return;
+      }
+    }
+    // Otherwise move to the next challenge, or finish.
+    if (idx >= 0 && idx < MODE_SEQUENCE.length - 1) {
+      startMode(MODE_SEQUENCE[idx + 1], band);
+      setRoundInMode(1);
+    } else {
+      setPhase('report');
+    }
+  }, [freePlay, phase, roundInMode, band, nextQuestion, startMode, setPhase]);
+
+  const handleLearnContinue = useCallback(
+    (key: 'shelf' | 'budget' | 'moves' | 'rot' | 'tutorial') => {
+      markTutorialSeen(key);
+      beginGame();
+    },
+    [markTutorialSeen, beginGame],
+  );
+
+  const startFreePlay = useCallback(() => {
+    setFreePlay(true);
+    setRoundResult(null);
+    startMode('design-shelf', band);
+  }, [startMode, band]);
+
+  const finishFreePlay = useCallback(() => {
+    setFreePlay(false);
+    setRoundResult(null);
+    setPhase('report');
+  }, [setPhase]);
+
+  const playAgain = useCallback(() => {
+    allTurnsRef.current = [];
+    rewardedRef.current = false;
+    setFreePlay(false);
+    setRoundInMode(1);
+    setRoundResult(null);
+    reset();
+    startMode('sort', band);
+  }, [reset, startMode, band]);
+
+  // ── Welcome ─────────────────────────────────────────────────────────
+  if (!entered) {
+    return (
+      <div className="flex items-center justify-center min-h-full p-6">
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="max-w-xl text-center rounded-3xl p-8 border bg-black/40"
+          style={{ borderColor: `${LAB_COLOR}55` }}
+        >
+          <div aria-hidden="true" style={{ fontSize: 56 }}>🪟</div>
+          <h1 className="text-2xl font-bold text-white mt-2">Context Architect</h1>
+          <p className="text-white/70 mt-3">
+            You are the Context Architect. An AI has a small memory shelf — its context
+            window. Place the right knowledge cards, clear out the clutter, and beat{' '}
+            <span style={{ color: LAB_COLOR }} className="font-semibold">Context Rot</span> so
+            the AI answers every question.
+          </p>
+          {bestScore > 0 && (
+            <p className="text-sm text-white/60 mt-3">Best score so far: {bestScore}</p>
+          )}
+          <button
+            type="button"
+            onClick={() => setEntered(true)}
+            className="mt-6 px-8 py-3 rounded-xl font-bold text-black transition-transform hover:scale-105"
+            style={{ backgroundColor: LAB_COLOR }}
+          >
+            Enter the Lab →
+          </button>
+        </motion.div>
+      </div>
+    );
+  }
+
+  // ── Learn cards ─────────────────────────────────────────────────────
+  const learn = LEARN_CARDS.find((c) => c.phase === phase);
+  if (learn) {
+    const idx = LEARN_CARDS.findIndex((c) => c.phase === phase);
+    return (
+      <div className="flex items-center justify-center min-h-full p-6">
+        <motion.div
+          key={learn.key}
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          className="max-w-lg text-center rounded-3xl p-8 border bg-black/40"
+          style={{ borderColor: `${LAB_COLOR}55` }}
+        >
+          <div className="text-xs uppercase tracking-wide text-white/50">
+            Lesson {idx + 1} of {LEARN_CARDS.length}
+          </div>
+          <div aria-hidden="true" style={{ fontSize: 48 }} className="mt-2">{learn.emoji}</div>
+          <h2 className="text-xl font-bold text-white mt-2">{learn.title}</h2>
+          <p className="text-white/70 mt-3">{learn.body}</p>
+          <button
+            type="button"
+            onClick={() => handleLearnContinue(learn.key)}
+            className="mt-6 px-8 py-3 rounded-xl font-bold text-black transition-transform hover:scale-105"
+            style={{ backgroundColor: LAB_COLOR }}
+          >
+            Got it →
+          </button>
+        </motion.div>
+      </div>
+    );
+  }
+
+  // ── Tutorial hand-off ───────────────────────────────────────────────
+  if (phase === 'tutorial') {
+    return (
+      <div className="flex items-center justify-center min-h-full p-6">
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="max-w-lg text-center rounded-3xl p-8 border bg-black/40"
+          style={{ borderColor: `${LAB_COLOR}55` }}
+        >
+          <div aria-hidden="true" style={{ fontSize: 48 }}>🚀</div>
+          <h2 className="text-xl font-bold text-white mt-2">Ready to Architect</h2>
+          <p className="text-white/70 mt-3">
+            Four challenges are coming: Sort the Shelf, Tight Budget, Rolling Memory, and the
+            Rot Boss. Keep the shelf small and on-topic. Watch the Rot meter!
+          </p>
+          <button
+            type="button"
+            onClick={() => handleLearnContinue('tutorial')}
+            className="mt-6 px-8 py-3 rounded-xl font-bold text-black transition-transform hover:scale-105"
+            style={{ backgroundColor: LAB_COLOR }}
+          >
+            Start Challenge 1 →
+          </button>
+        </motion.div>
+      </div>
+    );
+  }
+
+  // ── Report ──────────────────────────────────────────────────────────
+  if (phase === 'report') {
+    const grade = computeGrade(allTurnsRef.current);
+    const accPct = Math.round(grade.meanAccuracy * 100);
+    const rotPct = Math.round(grade.meanRot * 100);
+    return (
+      <div className="flex items-center justify-center min-h-full p-6">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="max-w-lg w-full text-center rounded-3xl p-8 border bg-black/40"
+          style={{ borderColor: `${LAB_COLOR}55` }}
+        >
+          <h2 className="text-2xl font-bold text-white">Session Report</h2>
+          <div className="my-5">
+            <Stars count={grade.stars} />
+          </div>
+          <p className="text-white/80">{grade.summary}</p>
+
+          <div className="grid grid-cols-2 gap-3 mt-6 text-left">
+            <div className="rounded-xl p-3 bg-white/5 border border-white/10">
+              <div className="text-xs text-white/60">Questions answered</div>
+              <div className="text-lg font-bold text-white">{grade.totalQuestions}</div>
+            </div>
+            <div className="rounded-xl p-3 bg-white/5 border border-white/10">
+              <div className="text-xs text-white/60">Answered well</div>
+              <div className="text-lg font-bold text-white">{grade.correctAnswers}</div>
+            </div>
+            <div className="rounded-xl p-3 bg-white/5 border border-white/10">
+              <div className="text-xs text-white/60">Avg. answer strength</div>
+              <div className="text-lg font-bold" style={{ color: '#34D399' }}>{accPct}%</div>
+            </div>
+            <div className="rounded-xl p-3 bg-white/5 border border-white/10">
+              <div className="text-xs text-white/60">Avg. Context Rot</div>
+              <div className="text-lg font-bold" style={{ color: '#FBBF24' }}>{rotPct}%</div>
+            </div>
+          </div>
+          <p className="text-sm text-white/60 mt-4">Best score: {Math.max(bestScore, accPct)}</p>
+
+          <div className="flex flex-wrap gap-3 justify-center mt-6">
+            <button
+              type="button"
+              onClick={startFreePlay}
+              className="px-6 py-3 rounded-xl font-semibold bg-white/10 hover:bg-white/20 text-white transition-colors"
+            >
+              🛠️ Free Build
+            </button>
+            <button
+              type="button"
+              onClick={playAgain}
+              className="px-6 py-3 rounded-xl font-bold text-black transition-transform hover:scale-105"
+              style={{ backgroundColor: LAB_COLOR }}
+            >
+              Play Again
+            </button>
+          </div>
+        </motion.div>
+      </div>
+    );
+  }
+
+  // ── Play (mode phases + free build) ─────────────────────────────────
+  const mode = PHASE_TO_MODE[phase];
+  if (mode) {
+    const idx = MODE_SEQUENCE.indexOf(mode);
+    const progressLabel = freePlay
+      ? 'Free build — experiment freely'
+      : `Challenge ${idx + 1} of ${MODE_SEQUENCE.length} · Round ${roundInMode} of ${ROUNDS_PER_MODE}`;
+    return (
+      <div className="relative p-4 sm:p-6 min-h-full overflow-y-auto">
+        <PlayView
+          band={band}
+          freePlay={freePlay}
+          progressLabel={progressLabel}
+          onAnswerRecorded={recordTurn}
+          onFinishFreePlay={finishFreePlay}
+        />
+
+        {/* Round result overlay */}
+        <AnimatePresence>
+          {roundResult && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/70"
+              role="dialog"
+              aria-modal="true"
+              aria-label="Round result"
+            >
+              <motion.div
+                initial={{ scale: 0.9, y: 10 }}
+                animate={{ scale: 1, y: 0 }}
+                className="max-w-sm w-full text-center rounded-3xl p-8 border bg-black/90"
+                style={{ borderColor: `${LAB_COLOR}66` }}
+              >
+                <div aria-hidden="true" style={{ fontSize: 52 }}>
+                  {roundResult.accuracy >= 0.7 ? '🎉' : '🤔'}
+                </div>
+                <h3 className="text-xl font-bold text-white mt-2">
+                  {roundResult.accuracy >= 0.7 ? 'Sharp shelf!' : 'The AI got fuzzy'}
+                </h3>
+                <p className="text-white/70 mt-2">
+                  Answer strength{' '}
+                  <span className="font-bold" style={{ color: '#34D399' }}>
+                    {Math.round(roundResult.accuracy * 100)}%
+                  </span>{' '}
+                  · Rot{' '}
+                  <span className="font-bold" style={{ color: '#FBBF24' }}>
+                    {Math.round(roundResult.rot * 100)}%
+                  </span>
+                </p>
+                <p className="text-sm text-white/60 mt-2">
+                  {roundResult.rot >= 0.5
+                    ? 'Too much clutter — try Offloading or Reducing off-topic cards.'
+                    : roundResult.accuracy >= 0.7
+                    ? 'You kept only what the question needed. That is clean context.'
+                    : 'Make sure the key cards are on the shelf and decoys are off it.'}
+                </p>
+                <button
+                  type="button"
+                  onClick={handleContinue}
+                  className="mt-6 px-8 py-3 rounded-xl font-bold text-black transition-transform hover:scale-105"
+                  style={{ backgroundColor: LAB_COLOR }}
+                  autoFocus
+                >
+                  Continue →
+                </button>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    );
+  }
+
+  // Fallback (should not normally render — store routes to a known phase).
+  return (
+    <div className="flex items-center justify-center min-h-full text-white/70">
+      Loading…
+    </div>
+  );
 }
 
 export default function ContextArchitectGame() {
-  const { awardXP, completeGame } = useGameActions();
-  const handleComplete = useCallback((results: LevelResult[]) => {
-    const totalXP = results.reduce((s, r) => s + r.xpEarned, 0);
-    const totalStars = results.reduce((s, r) => s + r.stars, 0);
-    awardXP(Math.round(totalXP));
-    completeGame('context-architect', totalStars >= 25 ? 3 : totalStars >= 15 ? 2 : 1);
-  }, [awardXP, completeGame]);
-
   return (
-    <GameShell title="Context Architect" color="#8F96FA" labNum={8}>
-      <GameLevelSystem gameTitle="Context Architect" gameEmoji="🪟" labColor="#8F96FA" levels={LEVELS}
-        onComplete={handleComplete}
-        renderLevel={(level, onComplete, onExit) => (
-          <QuizLevelRenderer
-            level={level} onComplete={onComplete} onExit={onExit}
-            questions={getQuestions(level.id)} labColor="#8F96FA" gameEmoji="🪟"
-            timePerQuestion={level.difficulty === 'expert' ? 15 : level.difficulty === 'hard' ? 20 : 25}
-            bonusRound={level.id === 1 ? BONUS_ROUND : undefined}
-          />
-        )}
-      />
+    <GameShell title="Context Architect" color={LAB_COLOR} labNum={8}>
+      <ContextArchitectRoot />
     </GameShell>
   );
 }
