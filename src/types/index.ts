@@ -363,7 +363,7 @@ export const LABS: LabMeta[] = [
   {
     id: 1, title: 'What IS AI?', subtitle: 'Foundations', color: '#00BBFF', tint: '#00BBFF', icon: '🤖', description: 'Discover how machines learn to think',
     games: [
-      { slug: 'pocket-brain', title: 'Pocket Brain', emoji: '🧠', description: 'Run a real AI in your browser — no internet needed', estimatedMinutes: 22, xpReward: 35, ageBands: ['A', 'B', 'C'] },
+      { slug: 'pocket-brain', title: 'Pocket Brain', emoji: '🧠', description: 'Learn how a tiny AI model can run entirely on a device — no internet, server, or API key needed.', estimatedMinutes: 22, xpReward: 35, ageBands: ['A', 'B', 'C'] },
       { slug: 'ai-spy', title: 'AI Spy', emoji: '🔍', description: 'Find hidden AI in everyday scenes', estimatedMinutes: 10, xpReward: 25, ageBands: ['A', 'B', 'C'] },
       { slug: 'time-machine', title: 'Time Machine', emoji: '⏰', description: 'Place AI milestones on a timeline', estimatedMinutes: 10, xpReward: 25, ageBands: ['A', 'B', 'C'] },
       { slug: 'human-vs-machine', title: 'Human vs Machine', emoji: '🤝', description: 'Who does it better — you or AI?', estimatedMinutes: 10, xpReward: 25, ageBands: ['A', 'B', 'C'] },
