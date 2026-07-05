@@ -10,7 +10,7 @@
 
 'use client';
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   Brain, Zap, ChevronRight, Plus, Minus, RotateCcw,
@@ -65,12 +65,12 @@ const LEVEL_DATA: Record<number, LevelData> = {
   1: { title: 'First Neuron', description: 'Build a single neuron that can tell light from dark.', concept: 'A neuron takes inputs, multiplies them by weights, adds them up, and decides "yes" or "no."', inputNodes: 2, hiddenLayers: [], outputNodes: 1, trainingRounds: 3, targetAccuracy: 70 },
   2: { title: 'Layer Up', description: 'Add a hidden layer — neurons talking to other neurons!', concept: 'Hidden layers let the network learn intermediate patterns. More layers = deeper thinking.', inputNodes: 2, hiddenLayers: [3], outputNodes: 1, trainingRounds: 4, targetAccuracy: 75 },
   3: { title: 'Deep Net', description: 'Stack 3 hidden layers for deep pattern recognition.', concept: 'Deep networks can learn complex hierarchies: edges → shapes → objects.', inputNodes: 3, hiddenLayers: [4, 3], outputNodes: 2, trainingRounds: 5, targetAccuracy: 80 },
-  4: { title: 'Weight Wizard', description: 'Tune individual weights for maximum accuracy.', concept: 'Weights determine how much each input matters. Tuning them is the art of neural networks.', inputNodes: 3, hiddenLayers: [4, 4], outputNodes: 2, trainingRounds: 6, targetAccuracy: 82, challenge: 'Some weights hurt more than they help!' },
+  4: { title: 'Weight Wizard', description: 'Tune individual weights for maximum accuracy.', concept: 'Weights decide how much each input matters. Learning good weights is a big part of what real neural networks do.', inputNodes: 3, hiddenLayers: [4, 4], outputNodes: 2, trainingRounds: 6, targetAccuracy: 82, challenge: 'Fun fact: in real networks, some weights help more than others!' },
   5: { title: 'Pattern Match', description: 'Teach your net to recognize shapes from pixel data.', concept: 'Each pixel is an input. The network learns to see lines, curves, and eventually shapes.', inputNodes: 4, hiddenLayers: [5, 4, 3], outputNodes: 3, trainingRounds: 6, targetAccuracy: 85 },
   6: { title: 'Speed Train', description: 'Train fast! Every second counts in this timed challenge.', concept: 'Training speed vs accuracy is a tradeoff. More epochs = better results but takes longer.', inputNodes: 4, hiddenLayers: [5, 5], outputNodes: 3, trainingRounds: 8, targetAccuracy: 80, challenge: 'Complete training in under 45 seconds!' },
-  7: { title: 'Overfit Alert', description: 'Your network memorized the answers! Fix it.', concept: 'Overfitting = the network memorizes training data but fails on new data. Solution: generalization.', inputNodes: 5, hiddenLayers: [6, 5, 4], outputNodes: 3, trainingRounds: 8, targetAccuracy: 83, challenge: 'Keep test accuracy within 10% of training accuracy!' },
+  7: { title: 'Overfit Alert', description: 'Your network memorized the answers! Fix it.', concept: 'Overfitting = the network memorizes training data but fails on new data. Solution: generalization.', inputNodes: 5, hiddenLayers: [6, 5, 4], outputNodes: 3, trainingRounds: 8, targetAccuracy: 83, challenge: 'See how close the test accuracy lands to the training accuracy.' },
   8: { title: 'Multi-Task', description: 'Classify multiple things at once with shared layers.', concept: 'Multi-task learning: one network learns several related tasks, sharing what it learns.', inputNodes: 5, hiddenLayers: [6, 6, 5], outputNodes: 4, trainingRounds: 10, targetAccuracy: 85 },
-  9: { title: 'The Architect', description: 'Design the perfect network architecture for the problem.', concept: 'Architecture is everything! Too small = underfit. Too big = overfit. Find the sweet spot.', inputNodes: 6, hiddenLayers: [7, 6, 5, 4], outputNodes: 4, trainingRounds: 10, targetAccuracy: 88, challenge: 'Design your own hidden layer sizes!' },
+  9: { title: 'The Architect', description: 'Design the perfect network architecture for the problem.', concept: 'Architecture matters a lot! In real networks, too small can underfit and too big can overfit — engineers hunt for the sweet spot.', inputNodes: 6, hiddenLayers: [7, 6, 5, 4], outputNodes: 4, trainingRounds: 10, targetAccuracy: 88, challenge: 'Design your own hidden layer sizes!' },
   10: { title: 'Neural Grandmaster', description: 'The ultimate test. Master everything.', concept: 'True mastery: understand when to go deep, when to stay shallow, and how to balance it all.', inputNodes: 6, hiddenLayers: [8, 7, 6, 5], outputNodes: 5, trainingRounds: 12, targetAccuracy: 90, challenge: 'Beat all previous accuracy records!' },
 };
 
@@ -149,8 +149,8 @@ function LevelRenderer({
   const maxScore = data.trainingRounds * 10 + 20;
   const labColor = '#E945F5';
 
-  // Timer
-  useState(() => {
+  // Timer — counts down once the train/test phase begins, cleans up on unmount/phase change.
+  useEffect(() => {
     if (phase === 'train' || phase === 'test') {
       const interval = setInterval(() => {
         setTimeLeft((t) => {
@@ -160,7 +160,7 @@ function LevelRenderer({
       }, 1000);
       return () => clearInterval(interval);
     }
-  });
+  }, [phase]);
 
   const handleAddLayer = useCallback(() => {
     if (nn.layers.length - 2 >= 5) return; // Max 5 hidden
@@ -203,7 +203,7 @@ function LevelRenderer({
           : `Training done. ${Math.round(trained.accuracy)}% — below target ${data.targetAccuracy}%`,
         explanation: trained.accuracy >= data.targetAccuracy
           ? 'Great job! Your network learned the patterns well.'
-          : 'Try adding more layers or training again.',
+          : 'In real training, engineers might add layers or train longer to improve.',
       });
     } else {
       setFeedback({

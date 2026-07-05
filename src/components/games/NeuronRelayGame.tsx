@@ -82,8 +82,7 @@ function layered(cols: { id: string; label: string }[][], pathIds: string[]): Ne
     const x = nCols === 1 ? 50 : (ci / (nCols - 1)) * 82 + 9;
     col.forEach((n, ri) => {
       const y = col.length === 1 ? 50 : (ri / (col.length - 1)) * 70 + 15;
-      const onPath = pathIds.includes(n.id);
-      nodes.push({ id: n.id, label: n.label, x, y, color: onPath ? undefined : '#5A6078' });
+      nodes.push({ id: n.id, label: n.label, x, y, color: undefined });
     });
   });
   const correct: [string, string][] = [];
@@ -102,7 +101,7 @@ function getNetwork(levelId: number): Network {
       return layered([[IN], [{ id: 'n1', label: 'Neuron' }], [OUT]], ['in', 'n1', 'out']);
     case 2:
       return layered(
-        [[IN], [{ id: 'a', label: 'A' }, { id: 'b', label: 'B (dead)' }], [OUT]],
+        [[IN], [{ id: 'a', label: 'A' }, { id: 'b', label: 'B' }], [OUT]],
         ['in', 'a', 'out'],
       );
     case 3:
@@ -117,7 +116,7 @@ function getNetwork(levelId: number): Network {
       );
     case 5:
       return layered(
-        [[IN], [{ id: 'x', label: 'X' }, { id: 'y', label: 'Y (dead)' }], [{ id: 'z', label: 'Z' }, { id: 'w', label: 'W (dead)' }], [OUT]],
+        [[IN], [{ id: 'x', label: 'X' }, { id: 'y', label: 'Y' }], [{ id: 'z', label: 'Z' }, { id: 'w', label: 'W' }], [OUT]],
         ['in', 'x', 'z', 'out'],
       );
     case 6:
@@ -137,7 +136,7 @@ function getNetwork(levelId: number): Network {
       );
     case 9:
       return layered(
-        [[IN], [{ id: 'c', label: 'Clean' }, { id: 'noise', label: 'Noise (dead)' }], [{ id: 'f', label: 'Filter' }, { id: 'noise2', label: 'Noise2 (dead)' }], [OUT]],
+        [[IN], [{ id: 'c', label: 'Clean' }, { id: 'noise', label: 'Noise' }], [{ id: 'f', label: 'Filter' }, { id: 'noise2', label: 'Noise2' }], [OUT]],
         ['in', 'c', 'f', 'out'],
       );
     case 10:

@@ -2,7 +2,8 @@
 // AGENT ATELIER v4 — Lab 11 Flagship (Redesigned)
 // ════════════════════════════════════════════════════════════════════════
 // Design AI agents with goals, tools, memory, and reasoning.
-// Simulation: balance autonomy, safety, capability, efficiency.
+// Slider simulation: balance autonomy, safety, capability, efficiency
+// (a themed dial sim, not a real agent runtime).
 // 10 levels from simple agents to multi-agent systems.
 
 'use client';
@@ -52,7 +53,7 @@ function getSimulate(levelId: number) {
         trust: { value: Math.round(trust), target: 75, label: 'Trust Score', emoji: '✅' },
       },
       feedback: score >= 80 ? 'Outstanding agent!' : score >= 60 ? 'Functional agent!' : 'Needs more tuning!',
-      explanation: 'Great AI agents balance autonomy, tool access, memory, and safety guardrails.',
+      explanation: 'In real AI, great agents balance autonomy, tool access, memory, and safety guardrails.',
     };
   };
 }
@@ -87,7 +88,7 @@ export default function AgentAtelierGame() {
           <SimLevelRenderer
             level={level} onComplete={onComplete} onExit={onExit}
             labColor="#E945F5" gameEmoji="🤖"
-            description={level.description}
+            description={`${level.description} Adjust the dials and see what changes.`}
             concept={CONCEPTS[level.id] || CONCEPTS[1]}
             parameters={[
               { id: 'autonomy', label: 'Autonomy Level', emoji: '🎯', value: 50, min: 0, max: 100, step: 5, unit: '%' },

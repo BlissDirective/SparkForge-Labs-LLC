@@ -83,8 +83,7 @@ function layered(cols: { id: string; label: string }[][], pathIds: string[]): Ne
     const x = nCols === 1 ? 50 : (ci / (nCols - 1)) * 82 + 9;
     col.forEach((n, ri) => {
       const y = col.length === 1 ? 50 : (ri / (col.length - 1)) * 70 + 15;
-      const onPath = pathIds.includes(n.id);
-      nodes.push({ id: n.id, label: n.label, x, y, color: onPath ? undefined : '#5A6078' });
+      nodes.push({ id: n.id, label: n.label, x, y, color: undefined });
     });
   });
   const correct: [string, string][] = [];

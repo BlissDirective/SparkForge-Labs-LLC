@@ -186,7 +186,10 @@ function LevelRenderer({
     const q = questionRef.current;
     const cand = q.candidates[Math.floor(Math.random() * q.candidates.length)];
     const isBest = cand.word === q.candidates.reduce((a, b) => (b.prob > a.prob ? b : a)).word;
-    return { label: cand.word, correct: isBest, prob: cand.prob, color: LAB_COLOR };
+    // G1 (S4.5): do NOT pass `prob` — rendering the probability bar on the
+    // card telegraphs the answer the child is meant to predict from context.
+    // Correctness still flows via `correct`; the sentence prompt is the cue.
+    return { label: cand.word, correct: isBest, color: LAB_COLOR };
   }, []);
 
   const handleHit = useCallback((correct?: boolean) => {

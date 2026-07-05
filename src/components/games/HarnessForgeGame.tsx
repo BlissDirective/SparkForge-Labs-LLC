@@ -1,8 +1,9 @@
 // ════════════════════════════════════════════════════════════════════════
 // HARNESS FORGE v4 — Lab 11 Flagship (Redesigned)
 // ════════════════════════════════════════════════════════════════════════
-// Test and validate AI systems. Simulation: balance test coverage,
-// evaluation metrics, red teaming, and deployment safety.
+// Learn how AI systems are tested and validated. Slider simulation: balance
+// test coverage, evaluation metrics, red teaming, and deployment safety
+// (a themed dial sim, not a real test harness).
 // 10 levels from unit testing to production validation.
 
 'use client';
@@ -52,7 +53,7 @@ function getSimulate(levelId: number) {
         robustness: { value: Math.round(robustness), target: 75, label: 'Robustness', emoji: '💪' },
       },
       feedback: score >= 80 ? 'Production ready!' : score >= 60 ? 'Good testing!' : 'More testing needed!',
-      explanation: 'Rigorous AI testing balances coverage, metrics, adversarial testing, and safety evaluation.',
+      explanation: 'In real AI, rigorous testing balances coverage, metrics, adversarial testing, and safety evaluation.',
     };
   };
 }
@@ -87,7 +88,7 @@ export default function HarnessForgeGame() {
           <SimLevelRenderer
             level={level} onComplete={onComplete} onExit={onExit}
             labColor="#E945F5" gameEmoji="🧪"
-            description={level.description}
+            description={`${level.description} Adjust the dials and see what changes.`}
             concept={CONCEPTS[level.id] || CONCEPTS[1]}
             parameters={[
               { id: 'coverage', label: 'Test Coverage', emoji: '📊', value: 50, min: 0, max: 100, step: 5, unit: '%' },

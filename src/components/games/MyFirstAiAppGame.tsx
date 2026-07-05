@@ -83,8 +83,7 @@ function layered(cols: { id: string; label: string }[][], pathIds: string[]): Ne
     const x = nCols === 1 ? 50 : (ci / (nCols - 1)) * 82 + 9;
     col.forEach((n, ri) => {
       const y = col.length === 1 ? 50 : (ri / (col.length - 1)) * 70 + 15;
-      const onPath = pathIds.includes(n.id);
-      nodes.push({ id: n.id, label: n.label, x, y, color: onPath ? undefined : '#5A6078' });
+      nodes.push({ id: n.id, label: n.label, x, y, color: undefined });
     });
   });
   const correct: [string, string][] = [];
@@ -108,7 +107,7 @@ function getNetwork(levelId: number): Network {
       );
     case 3:
       return layered(
-        [[IN], [{ id: 'spam', label: 'Spam Classifier' }, { id: 'random', label: 'Random API (dead)' }], [OUT]],
+        [[IN], [{ id: 'spam', label: 'Spam Classifier' }, { id: 'random', label: 'Random API' }], [OUT]],
         ['in', 'spam', 'out'],
       );
     case 4:
@@ -118,33 +117,33 @@ function getNetwork(levelId: number): Network {
       );
     case 5:
       return layered(
-        [[IN], [{ id: 'stt', label: 'Speech-to-Text' }, { id: 'tts', label: 'Text-to-Speech (dead)' }], [{ id: 'cmd', label: 'Command Model' }, { id: 'img', label: 'Image Model (dead)' }], [OUT]],
+        [[IN], [{ id: 'stt', label: 'Speech-to-Text' }, { id: 'tts', label: 'Text-to-Speech' }], [{ id: 'cmd', label: 'Command Model' }, { id: 'img', label: 'Image Model' }], [OUT]],
         ['in', 'stt', 'cmd', 'out'],
       );
     case 6:
       return layered(
-        [[IN], [{ id: 'feats', label: 'Features' }, { id: 'noise', label: 'Noise (dead)' }], [{ id: 'rank', label: 'Ranker' }], [OUT]],
+        [[IN], [{ id: 'feats', label: 'Features' }, { id: 'noise', label: 'Noise' }], [{ id: 'rank', label: 'Ranker' }], [OUT]],
         ['in', 'feats', 'rank', 'out'],
       );
     case 7:
       return layered(
-        [[IN], [{ id: 'enc', label: 'Encoder' }, { id: 'enc2', label: 'Bad Encoder' }], [{ id: 'mt', label: 'Translator' }, { id: 'mt2', label: 'Old MT (dead)' }], [{ id: 'dec', label: 'Decoder' }], [OUT]],
+        [[IN], [{ id: 'enc', label: 'Encoder' }, { id: 'enc2', label: 'Bad Encoder' }], [{ id: 'mt', label: 'Translator' }, { id: 'mt2', label: 'Old MT' }], [{ id: 'dec', label: 'Decoder' }], [OUT]],
         ['in', 'enc', 'mt', 'dec', 'out'],
       );
     case 8:
       return layered(
-        [[IN], [{ id: 'parse', label: 'Parser' }, { id: 'parse2', label: 'Lint (dead)' }], [{ id: 'llm', label: 'Code Model' }], [OUT]],
+        [[IN], [{ id: 'parse', label: 'Parser' }, { id: 'parse2', label: 'Lint' }], [{ id: 'llm', label: 'Code Model' }], [OUT]],
         ['in', 'parse', 'llm', 'out'],
       );
     case 9:
       return layered(
-        [[IN], [{ id: 'live', label: 'Live API' }, { id: 'off', label: 'Offline API (dead)' }], [{ id: 'fuse', label: 'Fusion' }, { id: 'broke', label: 'Broken (dead)' }], [OUT]],
+        [[IN], [{ id: 'live', label: 'Live API' }, { id: 'off', label: 'Offline API' }], [{ id: 'fuse', label: 'Fusion' }, { id: 'broke', label: 'Broken' }], [OUT]],
         ['in', 'live', 'fuse', 'out'],
       );
     case 10:
     default:
       return layered(
-        [[IN], [{ id: 'p1', label: 'Ingest' }, { id: 'p1b', label: 'Stub (dead)' }], [{ id: 'p2', label: 'Embed' }], [{ id: 'p3', label: 'Reason' }, { id: 'p3b', label: 'Echo (dead)' }], [OUT]],
+        [[IN], [{ id: 'p1', label: 'Ingest' }, { id: 'p1b', label: 'Stub' }], [{ id: 'p2', label: 'Embed' }], [{ id: 'p3', label: 'Reason' }, { id: 'p3b', label: 'Echo' }], [OUT]],
         ['in', 'p1', 'p2', 'p3', 'out'],
       );
   }

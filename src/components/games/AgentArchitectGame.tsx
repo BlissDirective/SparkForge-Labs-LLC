@@ -735,7 +735,11 @@ export function AgentArchitectGame() {
 
       let next: Arrow;
       if (block.type.outputs === 2 && outgoing.length >= 2) {
-        const pick = Math.random() > 0.5 ? 0 : 1;
+        // Deterministic demo branch: seed the YES/NO path from the block's stable
+        // id so a given pipeline always runs the same way (no coin-flip pretending
+        // to be a real decision). Real branching logic is a later milestone.
+        const seed = block.id.split('').reduce((s, ch) => s + ch.charCodeAt(0), 0);
+        const pick = seed % 2;
         next = outgoing.find(a => a.outputIndex === pick) || outgoing[0];
         steps[steps.length - 1].decision = pick === 0 ? 'yes' : 'no';
         setRunSteps([...steps]);

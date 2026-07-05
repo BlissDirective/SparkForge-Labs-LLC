@@ -84,8 +84,7 @@ function layered(cols: { id: string; label: string }[][], pathIds: string[]): Ne
     const x = nCols === 1 ? 50 : (ci / (nCols - 1)) * 82 + 9;
     col.forEach((n, ri) => {
       const y = col.length === 1 ? 50 : (ri / (col.length - 1)) * 70 + 15;
-      const onPath = pathIds.includes(n.id);
-      nodes.push({ id: n.id, label: n.label, x, y, color: onPath ? undefined : '#5A6078' });
+      nodes.push({ id: n.id, label: n.label, x, y, color: undefined });
     });
   });
   const correct: [string, string][] = [];
@@ -107,48 +106,48 @@ function getNetwork(levelId: number): Network {
       );
     case 2:
       return layered(
-        [[{ id: 'in', label: 'Student' }], [{ id: 'brain', label: 'AI Brain' }, { id: 'random', label: 'Random (dead)' }], [{ id: 'out', label: 'Lesson' }]],
+        [[{ id: 'in', label: 'Student' }], [{ id: 'brain', label: 'AI Brain' }, { id: 'random', label: 'Random' }], [{ id: 'out', label: 'Lesson' }]],
         ['in', 'brain', 'out'],
       );
     case 3:
       return layered(
-        [[{ id: 'in', label: 'Sensor' }], [{ id: 'data', label: 'Data' }, { id: 'guess', label: 'Guess (dead)' }], [{ id: 'brain', label: 'AI Brain' }], [{ id: 'out', label: 'Diagnosis' }]],
+        [[{ id: 'in', label: 'Sensor' }], [{ id: 'data', label: 'Data' }, { id: 'guess', label: 'Guess' }], [{ id: 'brain', label: 'AI Brain' }], [{ id: 'out', label: 'Diagnosis' }]],
         ['in', 'data', 'brain', 'out'],
       );
     case 4:
       return layered(
-        [[{ id: 'in', label: 'Cameras' }], [{ id: 'percept', label: 'Perception' }, { id: 'h2', label: 'Radio (dead)' }, { id: 'h3', label: 'Horn (dead)' }], [{ id: 'plan', label: 'Planning' }], [{ id: 'out', label: 'Steering' }]],
+        [[{ id: 'in', label: 'Cameras' }], [{ id: 'percept', label: 'Perception' }, { id: 'h2', label: 'Radio' }, { id: 'h3', label: 'Horn' }], [{ id: 'plan', label: 'Planning' }], [{ id: 'out', label: 'Steering' }]],
         ['in', 'percept', 'plan', 'out'],
       );
     case 5:
       return layered(
-        [[{ id: 'in', label: 'Prompt' }], [{ id: 'model', label: 'Model' }, { id: 'noise', label: 'Noise (dead)' }], [{ id: 'draft', label: 'Draft' }, { id: 'w', label: 'Spam (dead)' }], [{ id: 'out', label: 'Work' }]],
+        [[{ id: 'in', label: 'Prompt' }], [{ id: 'model', label: 'Model' }, { id: 'noise', label: 'Noise' }], [{ id: 'draft', label: 'Draft' }, { id: 'w', label: 'Spam' }], [{ id: 'out', label: 'Work' }]],
         ['in', 'model', 'draft', 'out'],
       );
     case 6:
       return layered(
-        [[{ id: 'in', label: 'Data' }], [{ id: 'model', label: 'Model' }, { id: 'q', label: 'Hunch (dead)' }], [{ id: 'forecast', label: 'Forecast' }], [{ id: 'out', label: 'Action' }]],
+        [[{ id: 'in', label: 'Data' }], [{ id: 'model', label: 'Model' }, { id: 'q', label: 'Hunch' }], [{ id: 'forecast', label: 'Forecast' }], [{ id: 'out', label: 'Action' }]],
         ['in', 'model', 'forecast', 'out'],
       );
     case 7:
       return layered(
-        [[POWER], [{ id: 'sensor', label: 'Sensors' }, { id: 'l1b', label: 'Antenna (dead)' }], [{ id: 'brain', label: 'AI Brain' }, { id: 'l2b', label: 'Camera (dead)' }], [{ id: 'thrust', label: 'Thruster' }], [ACTION]],
+        [[POWER], [{ id: 'sensor', label: 'Sensors' }, { id: 'l1b', label: 'Antenna' }], [{ id: 'brain', label: 'AI Brain' }, { id: 'l2b', label: 'Camera' }], [{ id: 'thrust', label: 'Thruster' }], [ACTION]],
         ['in', 'sensor', 'brain', 'thrust', 'out'],
       );
     case 8:
       return layered(
-        [[{ id: 'in', label: 'Idea' }], [{ id: 'proto', label: 'Prototype' }, { id: 's2', label: 'Hype (dead)' }], [{ id: 'test', label: 'Test' }], [{ id: 'out', label: 'Launch' }]],
+        [[{ id: 'in', label: 'Idea' }], [{ id: 'proto', label: 'Prototype' }, { id: 's2', label: 'Hype' }], [{ id: 'test', label: 'Test' }], [{ id: 'out', label: 'Launch' }]],
         ['in', 'proto', 'test', 'out'],
       );
     case 9:
       return layered(
-        [[{ id: 'in', label: 'Goal' }], [{ id: 'brain', label: 'AI Brain' }, { id: 'noise', label: 'Bias (dead)' }], [{ id: 'monitor', label: 'Monitor' }, { id: 'noise2', label: 'Override (dead)' }], [{ id: 'out', label: 'Action' }]],
+        [[{ id: 'in', label: 'Goal' }], [{ id: 'brain', label: 'AI Brain' }, { id: 'noise', label: 'Bias' }], [{ id: 'monitor', label: 'Monitor' }, { id: 'noise2', label: 'Override' }], [{ id: 'out', label: 'Action' }]],
         ['in', 'brain', 'monitor', 'out'],
       );
     case 10:
     default:
       return layered(
-        [[POWER], [{ id: 'sensor', label: 'Sensor' }, { id: 'd1b', label: 'Light (dead)' }], [{ id: 'brain', label: 'AI Brain' }], [{ id: 'safety', label: 'Safety' }, { id: 'd3b', label: 'Speaker (dead)' }], [ACTION]],
+        [[POWER], [{ id: 'sensor', label: 'Sensor' }, { id: 'd1b', label: 'Light' }], [{ id: 'brain', label: 'AI Brain' }], [{ id: 'safety', label: 'Safety' }, { id: 'd3b', label: 'Speaker' }], [ACTION]],
         ['in', 'sensor', 'brain', 'safety', 'out'],
       );
   }
