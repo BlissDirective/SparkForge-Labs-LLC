@@ -3,14 +3,16 @@
 // Stage 11A — Pocket Brain (C5, Lab 1)
 // ════════════════════════════════════════════════════════════════
 // Browser-capability detection. Picks the largest WebLLM model the
-// device can handle (LFM2-MoE → Gemma E2B → TinyLlama → MP4 poster).
-// Pure async; no React.
+// device can handle. Pure async; no React.
 //
-// Per Doc 2 §H.5, the capability hierarchy is:
-//   WebGPU + adapter w/ ≥ 4GB VRAM hint   → LFM2-MoE (8.3B / 1.5B active, ~1.5GB Q4)
-//   WebGPU + adapter w/ ≥ 2GB VRAM hint   → Gemma 4 E2B  (~1GB Q4)
+// Capability hierarchy (G2.1, owner-approved — Gemma-2-2B flagship):
+//   WebGPU + adapter w/ ≥ 4GB VRAM hint   → Gemma 2 2B  (~1GB Q4, flagship)
+//   WebGPU + adapter w/ ≥ 2GB VRAM hint   → Gemma 2 2B  (~1GB Q4)
 //   WebGPU only (small adapter)           → TinyLlama 1.1B (~600MB Q4)
-//   No WebGPU                             → MP4-poster fallback (no live model)
+//   No WebGPU                             → slider-simulator fallback (no live model)
+//
+// (The 'lfm2-moe' ModelChoice key is retained for store/3D compat but
+// now resolves to Gemma-2-2B; see MODEL_IDS below.)
 // ════════════════════════════════════════════════════════════════
 
 export type ModelChoice =
@@ -36,12 +38,15 @@ export interface DeviceCapability {
 
 /** WebLLM-compatible model id strings. Mapped from our ModelChoice + Quantization. */
 const MODEL_IDS: Record<Exclude<ModelChoice, 'mp4-poster'>, Record<Quantization, string>> = {
-  // LFM2-MoE (primary)
+  // Flagship tier (G2.1, owner-approved): Gemma-2-2B. The original
+  // LFM2-MoE ids are not present in @mlc-ai/web-llm 0.2.83's prebuilt
+  // config, so CreateMLCEngine threw for every ≥4GB-VRAM device (i.e.
+  // most desktops). Remapped to the real, prebuilt Gemma-2-2B id.
   'lfm2-moe': {
-    Q4: 'LFM2-2.6B-q4f16_1-MLC',  // proxied — actual MoE id when available
-    Q5: 'LFM2-2.6B-q4f32_1-MLC',
-    Q8: 'LFM2-2.6B-q4f16_1-MLC',
-    FP16: 'LFM2-2.6B-q4f16_1-MLC',
+    Q4: 'gemma-2-2b-it-q4f16_1-MLC',
+    Q5: 'gemma-2-2b-it-q4f32_1-MLC',
+    Q8: 'gemma-2-2b-it-q4f16_1-MLC',
+    FP16: 'gemma-2-2b-it-q4f16_1-MLC',
   },
   // Gemma E2B fallback
   'gemma-e2b': {
@@ -178,14 +183,14 @@ async function detectCachedModel(): Promise<boolean> {
 
 export const MODEL_META: Record<ModelChoice, { label: string; sizeLabel: string; description: string }> = {
   'lfm2-moe': {
-    label: 'LFM2 MoE',
-    sizeLabel: '~1.5 GB',
-    description: 'Mixture-of-Experts model. 8.3B parameters but only 1.5B active per token.',
+    label: 'Gemma 2 · 2B',
+    sizeLabel: '~1 GB',
+    description: 'Google\'s Gemma 2 (2B parameters) — the smartest model your device can run on its own.',
   },
   'gemma-e2b': {
-    label: 'Gemma 4 E2B',
+    label: 'Gemma 2 · 2B',
     sizeLabel: '~1 GB',
-    description: 'Google\'s 2B parameter model. Smaller, multimodal-capable.',
+    description: 'Google\'s Gemma 2 (2B parameters) running fully on your device.',
   },
   'tinyllama-1b': {
     label: 'TinyLlama 1.1B',
