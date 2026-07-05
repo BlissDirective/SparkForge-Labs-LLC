@@ -22,7 +22,7 @@ import { SFBadge } from '@/components/ui/SFBadge';
 import { SFProgressBar } from '@/components/ui/SFProgressBar';
 import { SFButton } from '@/components/ui/SFButton';
 import SpotlightCard from '@/components/bits/SpotlightCard';
-import GradientText from '@/components/bits/GradientText';
+import BlurText from '@/components/bits/BlurText';
 import CountUp from '@/components/bits/CountUp';
 import { ScreenTimeCard } from '@/components/parent';
 import { ContentFilterCard } from '@/components/parent';
@@ -72,12 +72,10 @@ export default function ParentPage() {
       {/* Header */}
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
         <h1 className="text-2xl sm:text-3xl font-extrabold mb-1" style={{ fontFamily: 'var(--font-display)', color: '#1A1D2B' }}>
-          <GradientText from="#4F6EF7" to="#2ECC71">
-            <Shield className="w-7 h-7 inline mr-2" style={{ color: '#4F6EF7' }} />
-            Parent Dashboard
-          </GradientText>
+          <Shield className="w-7 h-7 inline mr-2" style={{ color: '#4F6EF7' }} />
+          <BlurText text="Parent Dashboard" />
         </h1>
-        <p className="text-sm" style={{ color: '#8C94AC' }}>
+        <p className="text-sm" style={{ color: '#52586E' }}>
           Monitor progress, manage settings, and keep your kids safe
         </p>
       </motion.div>

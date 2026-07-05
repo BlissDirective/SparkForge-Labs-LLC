@@ -18,7 +18,7 @@ import { SFCard } from '@/components/ui/SFCard';
 import { SFButton } from '@/components/ui/SFButton';
 import { SFInput } from '@/components/ui/SFInput';
 import SpotlightCard from '@/components/bits/SpotlightCard';
-import GradientText from '@/components/bits/GradientText';
+import BlurText from '@/components/bits/BlurText';
 
 interface ToggleProps {
   label: string;
@@ -38,6 +38,7 @@ function Toggle({ label, description, enabled, onChange }: ToggleProps) {
         onClick={() => onChange(!enabled)}
         className={`relative w-11 h-6 rounded-full transition-all ${enabled ? 'bg-sf-primary' : 'bg-sf-border'}`}
         aria-label={`Toggle ${label}`}
+        aria-pressed={enabled}
       >
         <span
           className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow-sm transition-all ${enabled ? 'left-[22px]' : 'left-0.5'}`}
@@ -90,12 +91,10 @@ export default function SettingsPage() {
       {/* Header */}
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
         <h1 className="text-2xl sm:text-3xl font-extrabold mb-1" style={{ fontFamily: 'var(--font-display)', color: '#1A1D2B' }}>
-          <GradientText from="#8C94AC" to="#4F6EF7">
-            <Settings className="w-7 h-7 inline mr-2" style={{ color: '#8C94AC' }} />
-            Settings
-          </GradientText>
+          <Settings className="w-7 h-7 inline mr-2" style={{ color: '#4F6EF7' }} />
+          <BlurText text="Settings" />
         </h1>
-        <p className="text-sm" style={{ color: '#8C94AC' }}>
+        <p className="text-sm" style={{ color: '#52586E' }}>
           Manage your account, preferences, and privacy
         </p>
       </motion.div>
