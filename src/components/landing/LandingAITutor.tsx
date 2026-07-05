@@ -8,8 +8,7 @@
 
 import { motion } from 'motion/react';
 import { Sparkles, MessageCircle, Shield, Brain, Zap, Star } from 'lucide-react';
-import GradientText from '@/components/bits/GradientText';
-import ShinyText from '@/components/bits/ShinyText';
+import BlurText from '@/components/bits/BlurText';
 import { SparkyStatic } from '@/components/sparky/SparkyStatic';
 
 export function LandingAITutor() {
@@ -18,7 +17,7 @@ export function LandingAITutor() {
       {/* Background ambient glow */}
       <div
         className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] rounded-full opacity-20 blur-3xl pointer-events-none"
-        style={{ background: 'radial-gradient(ellipse, #00D2FF30, transparent 70%)' }}
+        style={{ background: 'radial-gradient(ellipse, #4DE9FF30, transparent 70%)' }}
       />
       <div
         className="absolute bottom-0 right-0 w-[600px] h-[300px] rounded-full opacity-15 blur-3xl pointer-events-none"
@@ -37,24 +36,26 @@ export function LandingAITutor() {
             {/* Badge */}
             <div
               className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-6"
-              style={{ backgroundColor: 'rgba(0,210,255,0.1)', border: '1px solid rgba(0,210,255,0.2)' }}
+              style={{ backgroundColor: 'rgba(77,233,255,0.1)', border: '1px solid rgba(77,233,255,0.2)' }}
             >
-              <Sparkles className="w-4 h-4" style={{ color: '#00D2FF' }} />
-              <span className="text-sm font-semibold" style={{ color: '#00D2FF' }}>Meet Sparky</span>
+              <Sparkles className="w-4 h-4" style={{ color: '#4DE9FF' }} />
+              <span className="text-sm font-semibold" style={{ color: '#4DE9FF' }}>Meet Sparky</span>
             </div>
 
-            {/* Main Quote with ShinyText */}
+            {/* Main quote — one text-effect system (BlurText), DESIGN §7.1 */}
             <h2
               className="text-3xl sm:text-4xl lg:text-5xl font-extrabold leading-tight mb-6"
               style={{ fontFamily: 'var(--font-display)' }}
             >
               <span className="text-white">Personalized </span>
               <br />
-              <ShinyText text="AI Learning Tutor" speed={4} color="#00D2FF" />
+              <span style={{ color: '#4DE9FF' }}>
+                <BlurText text="AI Learning Tutor" />
+              </span>
               <br />
-              <GradientText from="#E945F5" to="#4F6EF7">
-                that grows with you
-              </GradientText>
+              <span className="text-white">
+                <BlurText text="that grows with you" delay={0.15} />
+              </span>
             </h2>
 
             <p className="text-base sm:text-lg leading-relaxed mb-8" style={{ color: 'rgba(248,250,255,0.6)' }}>
@@ -66,7 +67,7 @@ export function LandingAITutor() {
             {/* Feature list */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {[
-                { icon: MessageCircle, color: '#00D2FF', text: 'Ask questions about any game or AI topic' },
+                { icon: MessageCircle, color: '#4DE9FF', text: 'Ask questions about any game or AI topic' },
                 { icon: Brain, color: '#E945F5', text: 'Learns your interests and adapts responses' },
                 { icon: Shield, color: '#2ECC71', text: 'COPPA-safe with parental monitoring' },
                 { icon: Zap, color: '#FFD93D', text: 'Gives tips to level up faster' },
@@ -102,7 +103,7 @@ export function LandingAITutor() {
             {/* Glow behind orb */}
             <div
               className="absolute w-64 h-64 rounded-full blur-3xl opacity-40"
-              style={{ background: 'radial-gradient(circle, #00D2FF40, transparent 70%)' }}
+              style={{ background: 'radial-gradient(circle, #4DE9FF40, transparent 70%)' }}
             />
 
             {/* Sparky — Canonical AI Tutor Avatar */}
@@ -126,7 +127,7 @@ export function LandingAITutor() {
                 className="px-4 py-3 rounded-2xl rounded-bl-sm max-w-[180px]"
                 style={{
                   background: 'linear-gradient(135deg, #1A1D3B, #2A2D4F)',
-                  border: '1px solid rgba(0,210,255,0.15)',
+                  border: '1px solid rgba(77,233,255,0.15)',
                   boxShadow: '0 8px 24px rgba(0,0,0,0.3)',
                 }}
               >
