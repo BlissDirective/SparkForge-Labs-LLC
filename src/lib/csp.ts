@@ -36,6 +36,12 @@ export function buildCsp(nonce: string, isProd: boolean): string {
     // transitively. Required for Next.js chunked loading without
     // having to annotate every `<script src>`.
     "'strict-dynamic'",
+    // WebLLM (Pocket Brain, Lab 11): the @mlc-ai/web-llm tvmjs runtime
+    // instantiates WebAssembly, which CSP blocks without a wasm eval
+    // grant. 'wasm-unsafe-eval' permits ONLY WebAssembly compilation —
+    // it does NOT re-enable JS eval() — so it is safe to include in
+    // production (unlike 'unsafe-eval' below, which stays dev-only).
+    "'wasm-unsafe-eval'",
     // Dev-only: HMR eval, webpack eval-source-map.
     isProd ? '' : "'unsafe-eval'",
     'blob:',
@@ -58,6 +64,16 @@ export function buildCsp(nonce: string, isProd: boolean): string {
       'https://va.vercel-scripts.com',
       'https://api.stripe.com',
       'https://api.anthropic.com',
+      // WebLLM (Pocket Brain, Lab 11) — on-device model download.
+      // Model weights are fetched from Hugging Face (huggingface.co
+      // 302-redirects to cdn-lfs*.huggingface.co, covered by the
+      // wildcard) and the tvmjs WASM libs from the mlc-ai repo on
+      // GitHub raw. Owner-approved (G2.1). No user data is sent to
+      // these hosts — they are read-only asset fetches, cached into
+      // IndexedDB after first run.
+      'https://huggingface.co',
+      'https://*.huggingface.co',
+      'https://raw.githubusercontent.com',
     ].join(' '),
     "img-src 'self' https://*.supabase.co data: blob:",
     "font-src 'self' https://fonts.gstatic.com",
