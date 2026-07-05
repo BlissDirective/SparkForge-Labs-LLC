@@ -1119,7 +1119,7 @@ export function EthicsCourtroomGame() {
                                 : 'border-white/10 bg-white/5'
                             }`}
                             whileTap={{ scale: 0.98 }}
-                            aria-label={`Argument: ${arg.text}. Strength: ${arg.strength}`}
+                            aria-label={`Argument: ${arg.text}`}
                           >
                             <div className="flex items-start gap-2">
                               <div
@@ -1132,18 +1132,11 @@ export function EthicsCourtroomGame() {
                                 {selectedArgs.has(i) ? '✓' : ''}
                               </div>
                               <div className="flex-1">
+                                {/* G1 (S4.4): argument-strength badge removed from the
+                                    pre-commit 'argue' step — it told the child which
+                                    arguments scored before they chose. Strength is now
+                                    revealed in the post-commit 'verdict' review below. */}
                                 <p className="font-body text-sm text-white/70">{arg.text}</p>
-                                <span
-                                  className={`inline-block mt-1 px-1.5 py-0.5 rounded text-2xs font-bold ${
-                                    arg.strength === 'strong'
-                                      ? 'bg-green-500/15 text-green-400'
-                                      : arg.strength === 'moderate'
-                                        ? 'bg-amber-500/15 text-amber-400'
-                                        : 'bg-red-500/15 text-red-400'
-                                  }`}
-                                >
-                                  {arg.strength}
-                                </span>
                               </div>
                             </div>
                           </motion.button>
@@ -1185,7 +1178,20 @@ export function EthicsCourtroomGame() {
                             return (
                               <div key={i} className="mb-2">
                                 <p className="font-body text-xs text-white/60">
-                                  • {arg.text}
+                                  • {arg.text}{' '}
+                                  {/* G1 (S4.4): strength revealed here, AFTER the child
+                                      committed — this is the learning payoff. */}
+                                  <span
+                                    className={`inline-block px-1.5 py-0.5 rounded text-2xs font-bold align-middle ${
+                                      arg.strength === 'strong'
+                                        ? 'bg-green-500/15 text-green-400'
+                                        : arg.strength === 'moderate'
+                                          ? 'bg-amber-500/15 text-amber-400'
+                                          : 'bg-red-500/15 text-red-400'
+                                    }`}
+                                  >
+                                    {arg.strength}
+                                  </span>
                                 </p>
                                 <p className="font-body text-2xs text-white/60 ml-3">
                                   {arg.explanation}

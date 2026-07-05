@@ -13,6 +13,7 @@ import { ChevronRight, Target } from 'lucide-react';
 import { SFCard } from '@/components/ui/SFCard';
 import { SFButton } from '@/components/ui/SFButton';
 import { useJuice } from '@/components/juice/JuiceProvider';
+import { useActiveChild } from '@/hooks/useChildren';
 import { SortingTray } from '@/components/mechanics/SortingTray';
 import type { SortableItem } from '@/lib/mechanics/GameMechanicKit';
 import type { LevelConfig, LevelResult } from './GameLevelSystem';
@@ -54,10 +55,26 @@ interface QuizLevelRendererProps {
   bonusRound?: QuizBonusRound;
 }
 
+const BAND_ORDER: Record<'A' | 'B' | 'C', number> = { A: 0, B: 1, C: 2 };
+
 export default function QuizLevelRenderer({
-  level, onComplete, onExit, questions, labColor, gameEmoji, timePerQuestion = 20, bonusRound,
+  level, onComplete, onExit, questions: rawQuestions, labColor, gameEmoji, timePerQuestion = 20, bonusRound,
 }: QuizLevelRendererProps) {
   const juice = useJuice();
+
+  // G1 (S6): age-band gating, wired once here so all five quiz games
+  // (McpLab, DataDetective, PixelWitness, GlassBox, ContextArchitect)
+  // stop serving band-C questions to a 7-year-old. Questions tagged above
+  // the child's band are dropped; if a level filters to empty we fall back
+  // to the full set so the level stays playable. maxScore recomputes below.
+  const activeChild = useActiveChild();
+  const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
+  const questions = useMemo(() => {
+    const filtered = rawQuestions.filter(
+      (q) => !q.band || BAND_ORDER[q.band] <= BAND_ORDER[ageBand],
+    );
+    return filtered.length > 0 ? filtered : rawQuestions;
+  }, [rawQuestions, ageBand]);
   const [phase, setPhase] = useState<'welcome' | 'play' | 'bonus' | 'done'>('welcome');
   const [qIndex, setQIndex] = useState(0);
   const [score, setScore] = useState(0);

@@ -127,7 +127,7 @@ function LevelRenderer({
   const allSorted = sortedCount >= items.length;
 
   const sceneItems = useMemo<BinSortItem[]>(
-    () => items.map((it, i) => ({ id: it.id, label: it.label, name: `"${it.label}" (${BINS[it.bin]})`, color: CHIP_PALETTE[i % CHIP_PALETTE.length] })),
+    () => items.map((it, i) => ({ id: it.id, label: it.label, name: `"${it.label}"`, color: CHIP_PALETTE[i % CHIP_PALETTE.length] })),
     [items],
   );
 

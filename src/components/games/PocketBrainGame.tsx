@@ -1,8 +1,9 @@
 // ════════════════════════════════════════════════════════════════════════
 // POCKET BRAIN v4 — Lab 1 Flagship (Redesigned)
 // ════════════════════════════════════════════════════════════════════════
-// Build efficient small AI models through distillation, quantization,
-// and pruning. Simulation: balance model size, accuracy, speed, and memory.
+// Explore how efficient small AI models are made — distillation, quantization,
+// and pruning. Slider simulation: balance model size, accuracy, speed, and
+// memory. No real model is loaded or run in the browser here.
 // 10 levels from basic compression to production deployment.
 
 'use client';
@@ -52,7 +53,7 @@ function getSimulate(levelId: number) {
         accuracyRetention: { value: Math.round(accuracyRetention), target: 85, label: 'Accuracy Kept', emoji: '🎯' },
       },
       feedback: score >= 80 ? 'Ultra-efficient model!' : score >= 60 ? 'Good compression!' : 'Keep optimizing!',
-      explanation: 'Efficient AI models balance size reduction (quantization, pruning) with accuracy retention (distillation, optimization).',
+      explanation: 'In real AI, efficient models balance size reduction (quantization, pruning) with accuracy retention (distillation, optimization).',
     };
   };
 }
@@ -87,7 +88,7 @@ export default function PocketBrainGame() {
           <SimLevelRenderer
             level={level} onComplete={onComplete} onExit={onExit}
             labColor="#0FB8FA" gameEmoji="🧠"
-            description={level.description}
+            description={`${level.description} Adjust the dials and see what changes.`}
             concept={CONCEPTS[level.id] || CONCEPTS[1]}
             parameters={[
               { id: 'quantization', label: 'Quantization', emoji: '🔢', value: 50, min: 0, max: 100, step: 5, unit: '%' },

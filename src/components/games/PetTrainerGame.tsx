@@ -1,7 +1,8 @@
 // ════════════════════════════════════════════════════════════════════════
 // PET TRAINER v4 — Lab 2 Flagship (Redesigned)
 // ════════════════════════════════════════════════════════════════════════
-// Train virtual pets through supervised learning simulation.
+// Train virtual pets by adjusting training dials — a supervised-learning-themed
+// slider simulation (not a real training algorithm).
 // Replaced Three.js with CSS-animated pet avatars.
 // 10 levels with different species, behaviors, and training goals.
 
@@ -55,13 +56,13 @@ function getSimulate(levelId: number) {
         bond: { value: Math.round(bond), target: 70, label: 'Trust Bond', emoji: '❤️' },
       },
       feedback: score >= 80 ? `${PETS[levelId - 1]} mastered the trick!` : score >= 60 ? `${PETS[levelId - 1]} is learning!` : 'Keep trying — every pet learns differently!',
-      explanation: 'Supervised learning: reward good behavior, repeat consistently, be patient. Each pet has unique optimal parameters.',
+      explanation: 'The idea behind supervised learning is to reward good behavior and repeat it. In this game, each pet has its own best dial settings to find.',
     };
   };
 }
 
 const CONCEPTS: Record<number, string> = {
-  1: 'Supervised learning: you provide labeled examples (treat = correct behavior) and the pet learns.',
+  1: 'The idea of supervised learning: you give labeled examples (like a treat for good behavior) so a learner knows what is correct.',
   2: 'Different species need different training — just like different ML models need different hyperparameters!',
   3: 'Repetition strengthens neural pathways. Each practice round reinforces the learned behavior.',
   4: 'Generalization: a well-trained pet responds to the command in NEW locations, not just where trained.',
@@ -90,7 +91,7 @@ export default function PetTrainerGame() {
           <SimLevelRenderer
             level={level} onComplete={onComplete} onExit={onExit}
             labColor="#4F6EF7" gameEmoji={PETS[level.id - 1]}
-            description={`Train your virtual ${PET_NAMES[level.id - 1]} using supervised learning! Adjust reward timing, repetition, patience, and consistency.`}
+            description={`Adjust the dials for your virtual ${PET_NAMES[level.id - 1]} — reward timing, repetition, patience, and consistency — and see what changes!`}
             concept={CONCEPTS[level.id] || CONCEPTS[1]}
             parameters={[
               { id: 'reward', label: 'Reward Timing', emoji: '🦴', value: 50, min: 0, max: 100, step: 5, unit: '%' },

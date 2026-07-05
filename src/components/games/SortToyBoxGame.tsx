@@ -7,12 +7,12 @@
 // 10 levels with progressive toy sets, multi-dimension sorting,
 // combo system, star ratings, timed challenges.
 //
-// Teaches: unsupervised learning, clustering, features, k-means,
-// similarity metrics, dimensionality.
+// Teaches (concept intuition only, not a real algorithm): grouping
+// similar things, features, similarity, and having many traits to compare.
 
 'use client';
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import dynamic from 'next/dynamic';
 import PixiStageSkeleton from '@/components/games/pixi/PixiStageSkeleton';
 import { motion, useReducedMotion } from 'motion/react';
@@ -81,16 +81,16 @@ const LEVELS: LevelConfig[] = [
 ];
 
 const LEVEL_DATA: Record<number, LevelData> = {
-  1: { title: 'Toy Sorting 101', description: 'Drag toys into groups. The AI will show you how it sees the same toys!', concept: 'Clustering means grouping similar things together. You sort by what seems similar — the AI does the same with math!', toyTypes: ['train', 'chess', 'chest', 'rocket', 'robot'], featureKeys: ['type'], featureLabels: { type: 'Toy Type' }, maxGroups: 3, timeLimit: null },
+  1: { title: 'Toy Sorting 101', description: 'Drag toys into groups. The AI will show you how it sees the same toys!', concept: 'Grouping means putting similar things together by looking at what they have in common. You get to decide what makes two toys belong side by side!', toyTypes: ['train', 'chess', 'chest', 'rocket', 'robot'], featureKeys: ['type'], featureLabels: { type: 'Toy Type' }, maxGroups: 3, timeLimit: null },
   2: { title: 'Color Clues', description: 'This time, toys come in different colors. Group by color first!', concept: 'Color is a feature! A feature is any property we can measure. AI uses features to decide what goes together.', toyTypes: ['train', 'chess', 'chest', 'rocket', 'robot', 'dice', 'ball', 'car'], featureKeys: ['colorHue'], featureLabels: { colorHue: 'Color' }, maxGroups: 4, timeLimit: null },
   3: { title: 'Size Matters', description: 'Sort by size AND type. Multi-feature sorting!', concept: 'Multiple features = more dimensions. A toy can be similar in size but different in type. That is complexity!', toyTypes: ['train', 'chess', 'chest', 'rocket', 'robot', 'dice', 'ball', 'car', 'teddy', 'block'], featureKeys: ['type', 'size'], featureLabels: { type: 'Type', size: 'Size' }, maxGroups: 4, timeLimit: null },
-  4: { title: 'Shape & Form', description: 'Complex sorting with 3 different features to consider.', concept: 'As dimensions grow, clustering gets harder. The AI uses distance in multi-dimensional space to find groups.', toyTypes: ['train', 'chess', 'chest', 'rocket', 'robot', 'dice', 'ball', 'car', 'teddy', 'block', 'plane', 'puzzle'], featureKeys: ['type', 'size', 'roundness'], featureLabels: { type: 'Type', size: 'Size', roundness: 'Shape' }, maxGroups: 5, timeLimit: null },
+  4: { title: 'Shape & Form', description: 'Complex sorting with 3 different features to consider.', concept: 'The more features you look at, the trickier grouping gets. One idea: put toys that feel close on lots of features into the same group.', toyTypes: ['train', 'chess', 'chest', 'rocket', 'robot', 'dice', 'ball', 'car', 'teddy', 'block', 'plane', 'puzzle'], featureKeys: ['type', 'size', 'roundness'], featureLabels: { type: 'Type', size: 'Size', roundness: 'Shape' }, maxGroups: 5, timeLimit: null },
   5: { title: 'Speed Sort!', description: '30 seconds! Sort as many toys as you can into the right groups.', concept: 'Real AI clustering happens in milliseconds. Can you keep up?', toyTypes: ['train', 'chess', 'chest', 'rocket', 'robot', 'dice', 'ball', 'car', 'teddy', 'block', 'plane', 'puzzle'], featureKeys: ['type', 'colorHue'], featureLabels: { type: 'Type', colorHue: 'Color' }, maxGroups: 4, timeLimit: 30, challenge: 'Sort 10 toys in 30 seconds!' },
-  6: { title: 'Hidden Features', description: 'Some features are invisible! Can you guess the hidden trait?', concept: 'Not all features are visible. AI can discover hidden patterns — like weight, material, or sound.', toyTypes: ['train', 'chess', 'chest', 'rocket', 'robot', 'dice', 'ball', 'car', 'teddy', 'block', 'plane', 'puzzle'], featureKeys: ['type', 'size', 'hiddenWeight'], featureLabels: { type: 'Type', size: 'Size', hiddenWeight: 'Weight (hidden)' }, maxGroups: 4, timeLimit: null, challenge: 'The weight feature is hidden! Watch the AI reveal it.' },
-  7: { title: 'AI vs Human', description: 'Your sorting vs the AI\'s sorting. Who gets better groups?', concept: 'K-means clustering: the AI picks random centers, assigns points, moves centers, repeats. Simple but powerful!', toyTypes: ['train', 'chess', 'chest', 'rocket', 'robot', 'dice', 'ball', 'car', 'teddy', 'block', 'plane', 'puzzle'], featureKeys: ['type', 'colorHue', 'size'], featureLabels: { type: 'Type', colorHue: 'Color', size: 'Size' }, maxGroups: 5, timeLimit: 45, challenge: 'Score higher than the AI clusterer!' },
-  8: { title: 'Confusing Toys', description: 'Some toys belong to multiple groups. Ambiguity!', concept: 'Fuzzy clustering lets items belong to multiple groups with different degrees. Not everything fits in one box.', toyTypes: ['train', 'chess', 'chest', 'rocket', 'robot', 'dice', 'ball', 'car', 'teddy', 'block', 'plane', 'puzzle'], featureKeys: ['type', 'colorHue', 'size', 'roundness'], featureLabels: { type: 'Type', colorHue: 'Color', size: 'Size', roundness: 'Shape' }, maxGroups: 5, timeLimit: null },
-  9: { title: 'Master Sorter', description: 'All features, all toys, maximum complexity.', concept: 'High-dimensional clustering: each feature is a dimension. The AI finds structure in 5+ dimensions!', toyTypes: ['train', 'chess', 'chest', 'rocket', 'robot', 'dice', 'ball', 'car', 'teddy', 'block', 'plane', 'puzzle'], featureKeys: ['type', 'colorHue', 'size', 'roundness', 'hiddenWeight'], featureLabels: { type: 'Type', colorHue: 'Color', size: 'Size', roundness: 'Shape', hiddenWeight: 'Weight' }, maxGroups: 6, timeLimit: 60 },
-  10: { title: 'Cluster Champion', description: 'The ultimate test of sorting mastery.', concept: 'Combine everything: speed, multi-dimension sorting, hidden features, and beating the AI.', toyTypes: ['train', 'chess', 'chest', 'rocket', 'robot', 'dice', 'ball', 'car', 'teddy', 'block', 'plane', 'puzzle'], featureKeys: ['type', 'colorHue', 'size', 'roundness', 'hiddenWeight'], featureLabels: { type: 'Type', colorHue: 'Color', size: 'Size', roundness: 'Shape', hiddenWeight: 'Weight' }, maxGroups: 6, timeLimit: 45, challenge: 'The ultimate sorting test!' },
+  6: { title: 'Hidden Features', description: 'Some traits are hard to see! Group using the ones you can spot.', concept: 'Not everything about a toy is easy to see. Real AI can sometimes group things using traits people find hard to notice, like weight or material.', toyTypes: ['train', 'chess', 'chest', 'rocket', 'robot', 'dice', 'ball', 'car', 'teddy', 'block', 'plane', 'puzzle'], featureKeys: ['type', 'size'], featureLabels: { type: 'Type', size: 'Size' }, maxGroups: 4, timeLimit: null, challenge: 'Some traits are hard to see — group by the ones you can!' },
+  7: { title: 'AI vs Human', description: 'Your sorting vs the AI\'s sorting. Who gets better groups?', concept: 'Computers can group things by starting with rough guesses and improving them step by step. Can your groups beat the demo?', toyTypes: ['train', 'chess', 'chest', 'rocket', 'robot', 'dice', 'ball', 'car', 'teddy', 'block', 'plane', 'puzzle'], featureKeys: ['type', 'colorHue', 'size'], featureLabels: { type: 'Type', colorHue: 'Color', size: 'Size' }, maxGroups: 5, timeLimit: 45, challenge: 'Score higher than the AI clusterer!' },
+  8: { title: 'Confusing Toys', description: 'Some toys belong to multiple groups. Ambiguity!', concept: 'Some things could fit in more than one group! In real life, not everything fits neatly into a single box.', toyTypes: ['train', 'chess', 'chest', 'rocket', 'robot', 'dice', 'ball', 'car', 'teddy', 'block', 'plane', 'puzzle'], featureKeys: ['type', 'colorHue', 'size', 'roundness'], featureLabels: { type: 'Type', colorHue: 'Color', size: 'Size', roundness: 'Shape' }, maxGroups: 5, timeLimit: null },
+  9: { title: 'Master Sorter', description: 'All features, all toys, maximum complexity.', concept: 'The more traits you compare, the more ways there are to group. Real AI can compare many traits at once to look for patterns.', toyTypes: ['train', 'chess', 'chest', 'rocket', 'robot', 'dice', 'ball', 'car', 'teddy', 'block', 'plane', 'puzzle'], featureKeys: ['type', 'colorHue', 'size', 'roundness'], featureLabels: { type: 'Type', colorHue: 'Color', size: 'Size', roundness: 'Shape' }, maxGroups: 6, timeLimit: 60 },
+  10: { title: 'Cluster Champion', description: 'The ultimate test of sorting mastery.', concept: 'Combine everything you have learned: speed, comparing many traits at once, and finding the neatest groups.', toyTypes: ['train', 'chess', 'chest', 'rocket', 'robot', 'dice', 'ball', 'car', 'teddy', 'block', 'plane', 'puzzle'], featureKeys: ['type', 'colorHue', 'size', 'roundness'], featureLabels: { type: 'Type', colorHue: 'Color', size: 'Size', roundness: 'Shape' }, maxGroups: 6, timeLimit: 45, challenge: 'The ultimate sorting test!' },
 };
 
 // ════════════════════════════════════════════════════════════════════════
@@ -112,7 +112,6 @@ function generateToys(levelId: number): ToyItemData[] {
         colorHue: (parseInt(toyDef.color.slice(1), 16) % 360) / 360,
         size: type === 'chest' || type === 'train' ? 0.8 : type === 'dice' || type === 'ball' ? 0.4 : 0.6,
         roundness: ['ball', 'dice'].includes(type) ? 1 : ['rocket', 'plane'].includes(type) ? 0.3 : 0.5,
-        hiddenWeight: Math.random(),
       },
     });
   }
@@ -154,8 +153,8 @@ function LevelRenderer({
     [toys],
   );
 
-  // Timer
-  useState(() => {
+  // Timer — counts down once the sort/reveal phase begins, cleans up on unmount/phase change.
+  useEffect(() => {
     if ((phase === 'sort' || phase === 'reveal') && data.timeLimit) {
       const interval = setInterval(() => {
         setTimeLeft((t) => {
@@ -165,7 +164,7 @@ function LevelRenderer({
       }, 1000);
       return () => clearInterval(interval);
     }
-  });
+  }, [phase, data.timeLimit]);
 
   const handleAssign = useCallback((toyId: string, group: number) => {
     if (groups[toyId] !== undefined) return; // Already sorted
@@ -185,9 +184,11 @@ function LevelRenderer({
         const nextScore = score + gained;
         setScore(nextScore);
         setCombo((c) => c + 1);
+        // Honest per-drop feedback: acknowledge the placement without judging it
+        // "correct" — the game isn't scoring each drop against a real grouping.
         setFeedback({
-          type: 'correct',
-          message: combo > 2 ? `${combo}x combo! +${gained} pts` : `+${gained} pts`,
+          type: 'info',
+          message: combo > 2 ? `Added • ${combo}x streak! +${gained} pts` : `Added • +${gained} pts`,
         });
         // Drive the shared GameJuiceEngine (combo flames, Sparky, milestones).
         juice.onCorrect(sortedCount + 1, nextScore);

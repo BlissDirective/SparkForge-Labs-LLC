@@ -1,9 +1,9 @@
 // ════════════════════════════════════════════════════════════════════════
 // ROBOT VACUUM v4 — Lab 5 Flagship (Redesigned)
 // ════════════════════════════════════════════════════════════════════════
-// Navigate a robot vacuum using SLAM simulation. Adjust sensors,
-// speed, battery, and cleaning pattern. Replaced Three.js with
-// CSS grid-based room visualization.
+// Explore how a robot vacuum navigates (SLAM-themed). Adjust sensors,
+// speed, battery, and cleaning pattern with sliders — a themed dial sim,
+// not real navigation. Replaced Three.js with CSS grid-based room visualization.
 // 10 levels from studio apartment to mansion.
 
 'use client';
@@ -53,7 +53,7 @@ function getSimulate(levelId: number) {
         efficiency: { value: Math.round(efficiency), target: 75, label: 'Battery Efficiency', emoji: '🔋' },
       },
       feedback: score >= 80 ? 'Spotless!' : score >= 60 ? 'Pretty clean!' : 'Missed some spots!',
-      explanation: 'Robot vacuums use SLAM (Simultaneous Localization and Mapping) to navigate. Sensors, speed, battery, and pattern all matter.',
+      explanation: 'In real life, robot vacuums use SLAM (Simultaneous Localization and Mapping) to navigate. Sensors, speed, battery, and pattern all matter.',
     };
   };
 }
@@ -88,7 +88,7 @@ export default function RobotVacuumGame() {
           <SimLevelRenderer
             level={level} onComplete={onComplete} onExit={onExit}
             labColor="#2ECC71" gameEmoji="🤖"
-            description={level.description}
+            description={`${level.description} Adjust the dials and see what changes.`}
             concept={CONCEPTS[level.id] || CONCEPTS[1]}
             parameters={[
               { id: 'sensor', label: 'Sensor Range', emoji: '👁️', value: 50, min: 0, max: 100, step: 5, unit: '%' },
