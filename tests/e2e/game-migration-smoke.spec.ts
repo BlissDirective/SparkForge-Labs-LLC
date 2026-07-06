@@ -25,7 +25,7 @@ const PW_CHROME = process.env.PW_EXECUTABLE_PATH || '/opt/pw-browsers/chromium';
 test.use({ launchOptions: { executablePath: PW_CHROME } });
 
 // Every migrated game (Waves 1-7) + the Sort Toy Box reference.
-const GAMES: { slug: string; archetype: 'SORT' | 'REVEAL' | 'CONNECT' | 'REACT' | 'PHASER' }[] = [
+const GAMES: { slug: string; archetype: 'SORT' | 'REVEAL' | 'CONNECT' | 'REACT' | 'PHASER' | 'DOM' }[] = [
   { slug: 'sort-toy-box', archetype: 'SORT' },
   { slug: 'ai-spy', archetype: 'REVEAL' },
   { slug: 'neuron-relay', archetype: 'CONNECT' },
@@ -33,23 +33,24 @@ const GAMES: { slug: string; archetype: 'SORT' | 'REVEAL' | 'CONNECT' | 'REACT' 
   { slug: 'data-shield', archetype: 'SORT' },
   { slug: 'real-or-fake', archetype: 'REVEAL' },
   { slug: 'word-predictor', archetype: 'REACT' },
-  { slug: 'token-chopper', archetype: 'SORT' },
+  // G3: de-cloned to bespoke DOM/SVG mechanics (no Pixi canvas).
+  { slug: 'token-chopper', archetype: 'DOM' },
   { slug: 'ai-art-detective', archetype: 'SORT' },
   { slug: 'camera-quest', archetype: 'REVEAL' },
   { slug: 'fool-the-ai', archetype: 'SORT' },
   { slug: 'build-classifier', archetype: 'SORT' },
-  { slug: 'prediction-market', archetype: 'SORT' },
+  { slug: 'prediction-market', archetype: 'DOM' },
   { slug: 'sentiment-scanner', archetype: 'SORT' },
   { slug: 'emoji-decoder', archetype: 'SORT' },
-  { slug: 'chatbot-builder', archetype: 'CONNECT' },
-  { slug: 'lost-in-translation', archetype: 'CONNECT' },
+  { slug: 'chatbot-builder', archetype: 'DOM' },
+  { slug: 'lost-in-translation', archetype: 'DOM' },
   { slug: 'time-machine', archetype: 'SORT' },
-  { slug: 'human-vs-machine', archetype: 'SORT' },
+  { slug: 'human-vs-machine', archetype: 'DOM' },
   { slug: 'pixel-investigator', archetype: 'REVEAL' },
   { slug: 'tool-picker', archetype: 'SORT' },
-  { slug: 'code-blocks', archetype: 'CONNECT' },
-  { slug: 'career-explorer', archetype: 'CONNECT' },
-  { slug: 'my-first-ai-app', archetype: 'CONNECT' },
+  { slug: 'code-blocks', archetype: 'DOM' },
+  { slug: 'career-explorer', archetype: 'DOM' },
+  { slug: 'my-first-ai-app', archetype: 'DOM' },
   { slug: 'future-forge', archetype: 'CONNECT' },
   { slug: 'treat-trainer', archetype: 'PHASER' },
   // Phase D — flagship quiz games migrated to archetypes
@@ -91,18 +92,22 @@ test.describe('Game migration — archetype scenes render', () => {
       await clickByName(page, /^start|enter maze/i);
       await page.waitForTimeout(400);
 
-      // Wait for the archetype canvas to mount with real dimensions. The play
-      // phase is the only phase that mounts a <canvas>, so its presence proves
-      // we reached it and the Pixi/Phaser renderer initialized (no CSP/eval
-      // failure). The window.__SPARKFORGE_GAME__ inspector is dev-only (stripped
-      // from production builds), so it's read as a bonus, not asserted here.
-      const hasCanvas = await page
-        .waitForFunction(() => {
-          const c = document.querySelector('canvas');
-          return !!c && (c as HTMLCanvasElement).width > 0 && (c as HTMLCanvasElement).height > 0;
-        }, { timeout: 15_000 })
-        .then(() => true)
-        .catch(() => false);
+      // Canvas archetypes: wait for the Pixi/Phaser <canvas> to mount with real
+      // dimensions. The play phase is the only phase that mounts a <canvas>, so
+      // its presence proves we reached it and the renderer initialized (no
+      // CSP/eval failure). G3-redesigned games ('DOM' archetype) are bespoke
+      // HTML/SVG and mount no canvas — for those the render-proven signal is the
+      // preview wrapper staying mounted through the play phase with zero errors.
+      const isDom = archetype === 'DOM';
+      const hasCanvas = isDom
+        ? true
+        : await page
+            .waitForFunction(() => {
+              const c = document.querySelector('canvas');
+              return !!c && (c as HTMLCanvasElement).width > 0 && (c as HTMLCanvasElement).height > 0;
+            }, { timeout: 15_000 })
+            .then(() => true)
+            .catch(() => false);
 
       await page.screenshot({ path: join(SHOT_DIR, `${slug}.png`) });
 
@@ -113,8 +118,13 @@ test.describe('Game migration — archetype scenes render', () => {
 
       // Hard requirement: no uncaught runtime errors in any migrated game.
       expect(errors, `runtime errors in ${slug}:\n${errors.join('\n')}`).toHaveLength(0);
-      // Canvas with real dimensions = the archetype "render-proven" signal.
-      expect(hasCanvas, `no rendered canvas for ${slug} (scene=${sceneStage})`).toBe(true);
+      if (isDom) {
+        // DOM game render-proven: the module stayed mounted through play phase.
+        await expect(page.getByTestId('game-preview')).toBeVisible();
+      } else {
+        // Canvas with real dimensions = the archetype "render-proven" signal.
+        expect(hasCanvas, `no rendered canvas for ${slug} (scene=${sceneStage})`).toBe(true);
+      }
     });
   }
 });
