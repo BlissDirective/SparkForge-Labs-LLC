@@ -28,7 +28,7 @@ test.use({ launchOptions: { executablePath: PW_CHROME } });
 const GAMES: { slug: string; archetype: 'SORT' | 'REVEAL' | 'CONNECT' | 'REACT' | 'PHASER' | 'DOM' }[] = [
   { slug: 'sort-toy-box', archetype: 'SORT' },
   { slug: 'ai-spy', archetype: 'DOM' },
-  { slug: 'neuron-relay', archetype: 'CONNECT' },
+  { slug: 'neuron-relay', archetype: 'DOM' },
   { slug: 'ai-or-not', archetype: 'REACT' },
   { slug: 'data-shield', archetype: 'DOM' },
   { slug: 'real-or-fake', archetype: 'DOM' },
