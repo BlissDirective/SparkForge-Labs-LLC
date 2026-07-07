@@ -37,7 +37,8 @@ const EthicsCourtroomEnvironment = dynamic(
 );
 
 type Phase = 'welcome' | 'learn' | 'trial' | 'complete';
-type TrialStep = 'case' | 'perspective' | 'argue' | 'verdict';
+type TrialStep = 'case' | 'perspective' | 'argue' | 'jury' | 'rebuttal' | 'verdict';
+type Strength = 'strong' | 'moderate' | 'weak';
 
 interface Argument {
   text: string;
@@ -793,6 +794,59 @@ const LEARN_CARDS = [
   },
 ];
 
+// ── Jury + Rival Lawyer layer (additive; grounded in existing case content) ──
+
+// Animated jury bench. Sparky serves as bailiff (represented as an emoji label,
+// no new mascot art). Each juror reacts to an argument based on its strength.
+const JURORS = [
+  { emoji: '🧑‍⚖️', name: 'Juror 1' },
+  { emoji: '👩‍⚖️', name: 'Juror 2' },
+  { emoji: '👨‍⚖️', name: 'Juror 3' },
+  { emoji: '👵', name: 'Juror 4' },
+  { emoji: '🧔', name: 'Juror 5' },
+];
+
+// Deterministic per-juror reaction. One skeptic (idx 4) withholds a nod on
+// strong points; one lenient juror (idx 0) withholds a frown on weak points —
+// so the bench never reads as a single unanimous verdict.
+function jurorReaction(strength: Strength, jurorIdx: number): 'nod' | 'neutral' | 'frown' {
+  if (strength === 'strong') return jurorIdx === 4 ? 'neutral' : 'nod';
+  if (strength === 'weak') return jurorIdx === 0 ? 'neutral' : 'frown';
+  return jurorIdx % 2 === 0 ? 'nod' : 'neutral';
+}
+
+// Generic rebuttal-response strategies the child chooses between. Reusable
+// across all 8 cases — they model *how* to answer an opponent, not case facts.
+// G1: quality is never shown before the child commits; it is revealed post-commit.
+const REBUTTAL_RESPONSES: { text: string; quality: Strength }[] = [
+  {
+    text: 'Concede their point is real — then show why my priority still outweighs it here.',
+    quality: 'strong',
+  },
+  {
+    text: 'Propose a middle path that directly addresses their concern.',
+    quality: 'strong',
+  },
+  {
+    text: 'Note that reasonable people weigh these values differently, and explain mine.',
+    quality: 'moderate',
+  },
+  {
+    text: 'Dismiss their concern — my side is simply correct.',
+    quality: 'weak',
+  },
+];
+
+const STRENGTH_WEIGHT: Record<Strength, number> = { strong: 3, moderate: 2, weak: 1 };
+
+function strengthBadgeClass(s: Strength): string {
+  return s === 'strong'
+    ? 'bg-green-500/15 text-green-400'
+    : s === 'moderate'
+      ? 'bg-amber-500/15 text-amber-400'
+      : 'bg-red-500/15 text-red-400';
+}
+
 export function EthicsCourtroomGame() {
   const prefersReducedMotion = useReducedMotion();
   const game = useGame();
@@ -811,8 +865,24 @@ export function EthicsCourtroomGame() {
   const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
   const cases = useFilteredContent(CASES, tier, ageBand);
   const [hasFinished, setHasFinished] = useState(false);
+  // Jury + rival-lawyer layer state
+  const [juryArgIdx, setJuryArgIdx] = useState(0);
+  const [rebuttalRound, setRebuttalRound] = useState(0);
+  const [rebuttalResponses, setRebuttalResponses] = useState<Strength[]>([]);
 
   const currentCase = cases[caseIdx];
+
+  // Ordered list of the arguments the child committed to (drives jury reveal).
+  const selectedArgList = useMemo(
+    () => Array.from(selectedArgs).sort((a, b) => a - b),
+    [selectedArgs]
+  );
+
+  // The two rival perspectives the AI lawyer will argue from (existing content).
+  const otherPerspectives = useMemo(() => {
+    if (!currentCase || chosenPerspective === null) return [];
+    return currentCase.perspectives.filter((_, i) => i !== chosenPerspective);
+  }, [currentCase, chosenPerspective]);
 
   const particles = useMemo(
     () =>
@@ -835,6 +905,9 @@ export function EthicsCourtroomGame() {
   function choosePerspective(idx: number) {
     setChosenPerspective(idx);
     setSelectedArgs(new Set());
+    setJuryArgIdx(0);
+    setRebuttalRound(0);
+    setRebuttalResponses([]);
     setTrialStep('argue');
   }
 
@@ -855,13 +928,43 @@ export function EthicsCourtroomGame() {
     ).length;
     const pts = 10 + strongCount * 5;
     game.updateScore(pts);
-    setTrialStep('verdict');
+    // Head to the jury bench: the jury reacts argument-by-argument before the
+    // rival AI lawyer gets to rebut.
+    setJuryArgIdx(0);
+    setTrialStep('jury');
+  }
+
+  // Jury has finished reacting to every committed argument → face the rival.
+  function startRebuttal() {
+    setRebuttalRound(0);
+    setRebuttalResponses([]);
+    setTrialStep('rebuttal');
+  }
+
+  // Child answers the rival lawyer's rebuttal. ~2 rounds (one per rival
+  // perspective). Quality is recorded and revealed later (G1 post-commit).
+  function pickRebuttal(quality: Strength) {
+    const next = [...rebuttalResponses, quality];
+    setRebuttalResponses(next);
+    if (rebuttalRound < otherPerspectives.length - 1) {
+      setRebuttalRound((r) => r + 1);
+    } else {
+      const rebPts = next.reduce(
+        (s, q) => s + (q === 'strong' ? 8 : q === 'moderate' ? 4 : 1),
+        0
+      );
+      game.updateScore(rebPts);
+      setTrialStep('verdict');
+    }
   }
 
   function nextCase() {
     setCasesDebated((prev) => [...prev, currentCase.title]);
     setChosenPerspective(null);
     setSelectedArgs(new Set());
+    setJuryArgIdx(0);
+    setRebuttalRound(0);
+    setRebuttalResponses([]);
     setTrialStep('case');
     if (caseIdx < cases.length - 1) {
       setCaseIdx((i) => i + 1);
@@ -1159,8 +1262,201 @@ export function EthicsCourtroomGame() {
                       </motion.div>
                     )}
 
+                    {/* Step: Jury reacts argument-by-argument */}
+                    {trialStep === 'jury' && chosenPerspective !== null && (() => {
+                      const persp = currentCase.perspectives[chosenPerspective];
+                      const argIdx = selectedArgList[juryArgIdx];
+                      const currentArg = persp.arguments[argIdx];
+                      const reactions = JURORS.map((_, ji) =>
+                        jurorReaction(currentArg.strength, ji)
+                      );
+                      const nods = reactions.filter((r) => r === 'nod').length;
+                      const frowns = reactions.filter((r) => r === 'frown').length;
+                      const mood =
+                        nods > frowns
+                          ? 'The jury nods along.'
+                          : frowns > nods
+                            ? 'The jury looks skeptical.'
+                            : 'The jury is divided.';
+                      const isLast = juryArgIdx >= selectedArgList.length - 1;
+                      return (
+                        <motion.div
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          className="flex-1 flex flex-col space-y-3"
+                        >
+                          <p className="font-display text-xs font-bold text-white/70 text-center">
+                            The Jury Deliberates
+                          </p>
+
+                          {/* Jury bench */}
+                          <div className="flex justify-center gap-3 flex-wrap">
+                            {JURORS.map((j, ji) => {
+                              const r = reactions[ji];
+                              return (
+                                <div key={ji} className="flex flex-col items-center gap-1">
+                                  <motion.span
+                                    className="text-3xl"
+                                    animate={
+                                      prefersReducedMotion
+                                        ? {}
+                                        : r === 'nod'
+                                          ? { y: [0, -5, 0] }
+                                          : r === 'frown'
+                                            ? { x: [0, -3, 3, 0] }
+                                            : {}
+                                    }
+                                    transition={
+                                      prefersReducedMotion
+                                        ? { duration: 0 }
+                                        : { duration: 0.6, repeat: Infinity, repeatDelay: 0.8 }
+                                    }
+                                    aria-hidden="true"
+                                  >
+                                    {j.emoji}
+                                  </motion.span>
+                                  <span className="text-sm" aria-hidden="true">
+                                    {r === 'nod' ? '👍' : r === 'frown' ? '👎' : '…'}
+                                  </span>
+                                </div>
+                              );
+                            })}
+                          </div>
+
+                          {/* Sparky the Bailiff presents the current argument */}
+                          <div className="rounded-xl p-3 border border-red-500/15 bg-red-500/5">
+                            <p className="font-body text-2xs text-white/55 mb-1">
+                              ⚡ Sparky the Bailiff reads argument {juryArgIdx + 1} of{' '}
+                              {selectedArgList.length}:
+                            </p>
+                            <p className="font-body text-sm text-white/70">
+                              “{currentArg.text}”
+                            </p>
+                          </div>
+
+                          {/* Live announcement of the bench's reaction */}
+                          <div
+                            aria-live="polite"
+                            className="rounded-xl p-3 border border-amber-500/15 bg-amber-500/5 text-center"
+                          >
+                            <p className="font-display text-sm font-bold text-amber-400">
+                              {mood}
+                            </p>
+                          </div>
+
+                          <motion.button
+                            onClick={() => {
+                              if (isLast) startRebuttal();
+                              else setJuryArgIdx((i) => i + 1);
+                            }}
+                            className="mt-auto w-full py-3 rounded-xl font-display font-bold text-white"
+                            style={{ background: 'linear-gradient(135deg, #EF4444, #DC2626)' }}
+                            whileTap={{ scale: 0.98 }}
+                            aria-label={
+                              isLast ? 'Face the rival AI lawyer' : 'Next argument'
+                            }
+                          >
+                            {isLast ? (
+                              <>
+                                Face the Rival Lawyer{' '}
+                                <MessageSquare className="inline w-4 h-4 ml-1" />
+                              </>
+                            ) : (
+                              'Next Argument →'
+                            )}
+                          </motion.button>
+                        </motion.div>
+                      );
+                    })()}
+
+                    {/* Step: Rival AI lawyer rebuts across ~2 rounds */}
+                    {trialStep === 'rebuttal' && chosenPerspective !== null &&
+                      otherPerspectives[rebuttalRound] && (() => {
+                      const rival = otherPerspectives[rebuttalRound];
+                      const rivalArg =
+                        rival.arguments.find((a) => a.strength === 'strong') ??
+                        rival.arguments[0];
+                      const rivalText =
+                        ageBand === 'C' && rivalArg.textC ? rivalArg.textC : rivalArg.text;
+                      return (
+                        <motion.div
+                          key={rebuttalRound}
+                          initial={{ opacity: 0, x: 20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          className="flex-1 flex flex-col space-y-3"
+                        >
+                          <div className="flex items-center justify-between">
+                            <p className="font-display text-xs font-bold text-white/70">
+                              🤖 Counsel A.I. objects
+                            </p>
+                            <span className="font-mono text-2xs text-white/55">
+                              Round {rebuttalRound + 1}/{otherPerspectives.length}
+                            </span>
+                          </div>
+
+                          {/* Rival's rebuttal, drawn from the opposing perspective */}
+                          <div
+                            aria-live="polite"
+                            className="rounded-xl p-4 border border-red-500/25 bg-red-500/10"
+                          >
+                            <p className="font-body text-2xs text-white/55 mb-1">
+                              {rival.emoji} Speaking for the {rival.role}:
+                            </p>
+                            <p className="font-body text-sm text-white/70 leading-relaxed">
+                              “{rivalText}” — so how do you answer that?
+                            </p>
+                          </div>
+
+                          <p className="font-body text-2xs text-white/60">
+                            Choose your reply to the rival:
+                          </p>
+                          {REBUTTAL_RESPONSES.map((resp, i) => (
+                            <motion.button
+                              key={i}
+                              onClick={() => pickRebuttal(resp.quality)}
+                              className="w-full p-3 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 text-left"
+                              whileTap={{ scale: 0.98 }}
+                              aria-label={`Reply: ${resp.text}`}
+                            >
+                              <p className="font-body text-sm text-white/70">{resp.text}</p>
+                            </motion.button>
+                          ))}
+                        </motion.div>
+                      );
+                    })()}
+
                     {/* Step: Verdict */}
-                    {trialStep === 'verdict' && chosenPerspective !== null && (
+                    {trialStep === 'verdict' && chosenPerspective !== null && (() => {
+                      const persp = currentCase.perspectives[chosenPerspective];
+                      const argVals = selectedArgList.map(
+                        (i) => persp.arguments[i].strength
+                      );
+                      const argScore = argVals.reduce(
+                        (s, st) => s + STRENGTH_WEIGHT[st],
+                        0
+                      );
+                      const argFrac = argVals.length
+                        ? argScore / (argVals.length * 3)
+                        : 0;
+                      const rebScore = rebuttalResponses.reduce(
+                        (s, q) => s + STRENGTH_WEIGHT[q],
+                        0
+                      );
+                      const rebFrac = rebuttalResponses.length
+                        ? rebScore / (rebuttalResponses.length * 3)
+                        : 0;
+                      const persuasion = Math.round(
+                        (0.55 * argFrac + 0.45 * rebFrac) * 100
+                      );
+                      const persuasionLabel =
+                        persuasion >= 75
+                          ? 'Highly Persuasive'
+                          : persuasion >= 50
+                            ? 'Persuasive'
+                            : persuasion >= 25
+                              ? 'Somewhat Persuasive'
+                              : 'Needs a Stronger Case';
+                      return (
                       <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -1201,13 +1497,65 @@ export function EthicsCourtroomGame() {
                           })}
                         </div>
 
-                        {/* Verdict */}
+                        {/* Rebuttal reveal — quality shown post-commit (G1) */}
+                        {rebuttalResponses.length > 0 && (
+                          <div className="rounded-xl p-3 border border-red-500/15 bg-red-500/5">
+                            <p className="font-display text-xs font-bold text-red-300 mb-2">
+                              <MessageSquare className="inline w-3 h-3 mr-1" /> Your Replies
+                              to Counsel A.I.
+                            </p>
+                            {rebuttalResponses.map((q, i) => (
+                              <p key={i} className="font-body text-xs text-white/60 mb-1">
+                                • vs {otherPerspectives[i]?.role}{' '}
+                                <span
+                                  className={`inline-block px-1.5 py-0.5 rounded text-2xs font-bold align-middle ${strengthBadgeClass(
+                                    q
+                                  )}`}
+                                >
+                                  {q}
+                                </span>
+                              </p>
+                            ))}
+                          </div>
+                        )}
+
+                        {/* Persuasion meter — the dynamic outcome the child shaped */}
                         <div className="rounded-xl p-4 border border-amber-500/20 bg-amber-500/5">
                           <Award className="w-6 h-6 text-amber-400 mx-auto mb-2" />
-                          <p className="font-display text-sm font-bold text-amber-400 mb-2">
-                            Jury Reflection
+                          <p className="font-display text-sm font-bold text-amber-400 text-center mb-2">
+                            Persuasion Meter — {persuasionLabel}
                           </p>
-                          <p className="font-body text-xs text-white/60 leading-relaxed">
+                          <div
+                            className="w-full h-3 rounded-full bg-white/10 overflow-hidden"
+                            role="progressbar"
+                            aria-valuenow={persuasion}
+                            aria-valuemin={0}
+                            aria-valuemax={100}
+                            aria-label={`Persuasiveness ${persuasion} percent: ${persuasionLabel}`}
+                          >
+                            <motion.div
+                              className="h-full rounded-full"
+                              style={{
+                                background: 'linear-gradient(90deg, #EF4444, #F59E0B, #22C55E)',
+                              }}
+                              initial={{ width: 0 }}
+                              animate={{ width: `${persuasion}%` }}
+                              transition={
+                                prefersReducedMotion
+                                  ? { duration: 0 }
+                                  : { duration: 0.9, ease: 'easeOut' }
+                              }
+                            />
+                          </div>
+                          <p className="font-data text-sm text-amber-400 text-center mt-1">
+                            {persuasion}%
+                          </p>
+                          <p className="font-body text-2xs text-white/55 text-center mt-2 italic">
+                            This measures how <span className="font-semibold">persuasively</span>{' '}
+                            you argued — not whether you were &ldquo;right.&rdquo; Reasonable
+                            people still disagree here.
+                          </p>
+                          <p className="font-body text-xs text-white/60 leading-relaxed mt-3">
                             {ageBand === 'C'
                               ? currentCase.verdictNoteC
                               : currentCase.verdictNote}
@@ -1238,7 +1586,8 @@ export function EthicsCourtroomGame() {
                           {caseIdx < cases.length - 1 ? 'Next Case →' : 'Complete! ⚖️'}
                         </motion.button>
                       </motion.div>
-                    )}
+                      );
+                    })()}
                   </motion.div>
                 )}
                 {/* COMPLETE */}
