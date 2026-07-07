@@ -1,26 +1,32 @@
 // ════════════════════════════════════════════════════════════════════════
-// DATA SHIELD v4 — Lab 6 (AI & Ethics) — SORT archetype migration (Wave 2)
+// DATA SHIELD v5 — Lab 6 (AI & Ethics) — scenario / context-shift redesign
 // ════════════════════════════════════════════════════════════════════════
-// Was a privacy quiz on QuizLevelRenderer. Now you SORT each data item into a
-// privacy bin — Private / Sensitive / Shareable — exactly the GameMechanicKit
-// privacy demo. A shield-strength meter rises with each correct call and dips
-// on a mistake. Pixi SORT scene (drag chips into named bins) inside GameShell.
+// The old version sorted a fixed bank where each item ALWAYS landed in the same
+// bin — so the real lesson (context decides) was lost and the bank memorised.
 //
-// Teaches: which personal data to guard, share carefully, or post freely.
+// v5 keeps the three-tier sort (Private / Sensitive / Shareable) but every level
+// is a SCENARIO: Sparky's robot friend (a) fills a sign-up form, (b) posts to
+// the whole world, (c) chats with an AI helper, (d) enters the school portal,
+// (e) pastes into a chatbot (2026 skill). The SAME item changes bin by scenario
+// — e.g. "your first name" is fine on the school portal but risky in a public
+// post. The reveal after each commit teaches WHY the context changed the answer.
+//
+// G1 honesty: the scenario (the input) is shown BEFORE sorting; the correct bin
+// is never in the chip or its aria label — it's revealed only after you commit.
+// Keyboard-operable: three real <button>s per item (no drag).
 
 'use client';
 
 import { useState, useCallback, useMemo } from 'react';
-import dynamic from 'next/dynamic';
-import PixiStageSkeleton from '@/components/games/pixi/PixiStageSkeleton';
-import { useReducedMotion } from 'motion/react';
+import { AnimatePresence } from 'motion/react';
 import {
   ChevronRight, Shield, GraduationCap, Target, RotateCcw, Sparkles,
+  Lock, AlertTriangle, Share2, ArrowRight,
 } from 'lucide-react';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameActions } from '@/stores/gameStore';
+import { useActiveChild } from '@/hooks/useChildren';
 import { useJuice } from '@/components/juice/JuiceProvider';
-import { SFCard } from '@/components/ui/SFCard';
 import { SFButton } from '@/components/ui/SFButton';
 import GameLevelSystem, {
   type LevelConfig, type LevelResult,
@@ -28,109 +34,171 @@ import GameLevelSystem, {
 import {
   GlowingTitle, ScoreDisplay, ComboCounter, FeedbackPopup,
 } from '@/components/games/shared/GameVisualKit';
-import type { BinSortItem } from '@/components/games/pixi/PixiBinSortStage';
 
-// Pixi is client-only (WebGL/WebGPU) — never SSR it.
-const PixiBinSortStage = dynamic(() => import('@/components/games/pixi/PixiBinSortStage'), {
-  ssr: false,
-  loading: () => <PixiStageSkeleton />,
-});
+type AgeBand = 'A' | 'B' | 'C';
 
 const LAB_COLOR = '#FF7050';
-const BINS = ['Private', 'Sensitive', 'Shareable']; // bin index 0 / 1 / 2
-const CHIP_PALETTE = ['#4F6EF7', '#E945F5', '#F59E0B', '#10BAD2', '#FF7050', '#8F96FA'];
 
-const LEVELS: LevelConfig[] = [
-  { id: 1, name: 'Password Power', description: 'Sort the secrets from the shareables.', emoji: '🔐', difficulty: 'easy', starThresholds: [40, 60, 80], xpReward: 50 },
-  { id: 2, name: 'Personal Info', description: 'What data is private?', emoji: '📋', difficulty: 'easy', starThresholds: [40, 60, 80], xpReward: 60 },
-  { id: 3, name: 'Share Smart', description: 'When is sharing data OK?', emoji: '🤝', difficulty: 'easy', starThresholds: [40, 60, 80], xpReward: 70 },
-  { id: 4, name: 'Online Profile', description: 'Build a safe profile.', emoji: '🧑‍💻', difficulty: 'medium', starThresholds: [40, 60, 80], xpReward: 80 },
-  { id: 5, name: 'AI & Privacy', description: 'How AI uses your data.', emoji: '🧠', difficulty: 'medium', starThresholds: [40, 60, 80], xpReward: 90 },
-  { id: 6, name: 'Identity Guard', description: 'Protect what makes you, you.', emoji: '⚠️', difficulty: 'medium', starThresholds: [40, 60, 80], xpReward: 100 },
-  { id: 7, name: 'Account Safety', description: 'Lock down your accounts.', emoji: '⚖️', difficulty: 'hard', starThresholds: [40, 60, 80], xpReward: 120 },
-  { id: 8, name: 'Data Footprint', description: 'What you leave behind online.', emoji: '🎭', difficulty: 'hard', starThresholds: [40, 60, 80], xpReward: 130 },
-  { id: 9, name: 'Consent Complex', description: 'Choosing what to give away.', emoji: '✅', difficulty: 'expert', starThresholds: [40, 60, 80], xpReward: 150 },
-  { id: 10, name: 'Privacy Master', description: 'The ultimate data protector!', emoji: '🛡️', difficulty: 'expert', starThresholds: [40, 60, 80], xpReward: 200, isBonus: true },
-];
+// Bin index 0 / 1 / 2 — the fixed privacy taxonomy (NOT the answer to any one
+// item; shown as a legend so kids know the three choices before they decide).
+const BINS = ['Private', 'Sensitive', 'Shareable'] as const;
+const BIN_META = [
+  { label: 'Private', hint: 'Keep it secret', color: '#EF4444', Icon: Lock },
+  { label: 'Sensitive', hint: 'Share with care', color: '#F59E0B', Icon: AlertTriangle },
+  { label: 'Shareable', hint: 'OK to share', color: '#10B981', Icon: Share2 },
+] as const;
 
-const CONCEPTS: Record<number, string> = {
-  1: 'Some data must stay secret (Private), some you share only with trusted people (Sensitive), and some is safe to post (Shareable).',
-  2: 'Personally identifiable info (PII) — name, address, phone — can identify you. Guard it carefully.',
-  3: 'Sharing is fine when it cannot be used to find, impersonate, or harm you. Opinions and hobbies are safe.',
-  4: 'A safe profile shows your interests, not your secrets. Never post passwords or your live location.',
-  5: 'AI systems learn from data you give them. The less PII you share, the less can be misused.',
-  6: 'Your identity is built from PII. Lose control of it and others can pretend to be you.',
-  7: 'Passwords and PINs unlock everything. They are the most Private data of all — never share them.',
-  8: 'Every post leaves a footprint. Sort before you share so nothing Private slips out.',
-  9: 'Consent means choosing what to give away. Know the category before you decide.',
-  10: 'Master test: guard the Private, protect the Sensitive, and share the Shareable with confidence.',
+// ════════════════════════════════════════════════════════════════════════
+// SCENARIOS — each is a real situation. The SAME item id can carry a different
+// `bin` in different scenarios; that is the whole point (context decides).
+//   flip   → a context-shift item (first name across scenarios). Hidden for A.
+//   subtle → hardest nuance. Only band C sees it.
+// ════════════════════════════════════════════════════════════════════════
+interface ScenarioItem {
+  id: string; name: string; bin: number; why: string; flip?: boolean; subtle?: boolean;
+}
+interface Scenario {
+  key: string; name: string; emoji: string;
+  difficulty: LevelConfig['difficulty'];
+  setup: string;   // shown BEFORE sorting — the input/context
+  concept: string; // the teaching line
+  items: ScenarioItem[];
+}
+
+const SCENARIOS: Record<string, Scenario> = {
+  signup: {
+    key: 'signup', name: 'Game App Sign-Up', emoji: '📝', difficulty: 'easy',
+    setup: "Sparky's robot friend is making an account for a new game app. What is OK to type into the sign-up form?",
+    concept: 'A sign-up form only needs enough to make your account. Give what it truly needs — guard the rest.',
+    items: [
+      { id: 'username', name: 'A username you made up', bin: 2, why: 'A username is made for sign-up forms — that is exactly what it is for.' },
+      { id: 'parentEmail', name: "A parent's email address", bin: 1, why: 'The form needs an email to make the account — use a grown-up’s and share it carefully.' },
+      { id: 'address', name: 'Your home address', bin: 0, why: 'A game app does not need to know where you live. Keep your address private.' },
+      { id: 'school', name: 'The name of your school', bin: 0, why: 'A game does not need your school — that could tell a stranger where to find you.' },
+      { id: 'favColor', name: 'Your favourite colour', bin: 2, why: 'A fun detail like this is safe — it cannot be used to find you.' },
+      { id: 'age', name: 'How old you are', bin: 1, why: 'Some apps ask your age to keep you safe — share your age, but not your full birthday.' },
+    ],
+  },
+  publicPost: {
+    key: 'publicPost', name: 'Post to the Whole World', emoji: '🌍', difficulty: 'easy',
+    setup: 'Sparky wants to post something that EVERYONE in the world can see, forever. What is safe to post in public?',
+    concept: 'A public post can be seen by anyone, forever. Only post things that cannot be used to find or copy you.',
+    items: [
+      { id: 'opinion', name: 'Your opinion about a movie', bin: 2, why: 'Opinions are made to be shared — no risk in a public post.' },
+      { id: 'drawing', name: 'A drawing you made', bin: 2, why: 'Sharing your own art in public is wonderful and safe.' },
+      { id: 'firstName', name: 'Your first name', bin: 1, flip: true, why: 'In a PUBLIC post even your first name is worth guarding — yet on your school portal (a place that already knows you) it is fine. Context decides.' },
+      { id: 'schoolName', name: 'The name of your school', bin: 0, why: 'Posting your school tells strangers where to find you on weekdays. Keep it private.' },
+      { id: 'address', name: 'Your home address', bin: 0, why: 'Never post where you live for the whole world to see.' },
+      { id: 'homeAlone', name: '"I’m home alone right now"', bin: 0, why: 'Telling everyone you are home alone is not safe — keep it private.' },
+    ],
+  },
+  aiChat: {
+    key: 'aiChat', name: 'AI Homework Helper', emoji: '🤖', difficulty: 'medium',
+    setup: 'Sparky is chatting with an AI helper to understand a tricky math problem. What is OK to tell the AI?',
+    concept: 'An AI helper needs your question — not your identity. Share the problem, not private facts about you.',
+    items: [
+      { id: 'homework', name: 'The math question you are stuck on', bin: 2, why: 'The whole point is to ask your question — that is safe to share with the helper.' },
+      { id: 'myParagraph', name: 'A paragraph YOU wrote for class', bin: 2, why: 'Asking the AI to check your own writing is fine.' },
+      { id: 'fullName', name: 'Your full real name', bin: 1, why: 'The AI does not need your name to help — leave it out unless a grown-up says it is okay.' },
+      { id: 'friendPhone', name: "Your friend’s phone number", bin: 0, why: 'Your friend’s number is not yours to share — keep it private.' },
+      { id: 'password', name: 'Your account password', bin: 0, why: 'An AI never needs your password. Never type it in.' },
+    ],
+  },
+  schoolPortal: {
+    key: 'schoolPortal', name: 'Your School Portal', emoji: '🏫', difficulty: 'medium',
+    setup: 'Sparky is logging into the OFFICIAL school portal that the teachers set up. What is okay to enter here?',
+    concept: 'A trusted place you know — like your school portal — can safely use info a public site cannot. The context changed the answer.',
+    items: [
+      { id: 'firstName', name: 'Your first name', bin: 2, flip: true, why: 'Your school already knows your first name, so here it is fine — even though it was risky in a public post. Same item, different context.' },
+      { id: 'classGrade', name: 'Your class or grade', bin: 2, why: 'Your teacher needs to know your class — safe on the school portal.' },
+      { id: 'studentId', name: 'Your student ID number', bin: 1, why: 'Your student ID belongs on the REAL school portal only — never type it anywhere else.' },
+      { id: 'reusedPw', name: 'A password you use for other sites', bin: 0, why: 'Never reuse another site’s password here — the portal should have its own.' },
+      { id: 'selfieAll', name: 'A selfie for EVERYONE to see', bin: 1, subtle: true, why: 'A photo for your teacher is different from a photo for the whole world — share it only with care.' },
+    ],
+  },
+  chatbot: {
+    key: 'chatbot', name: 'Safe to Paste into a Chatbot?', emoji: '💬', difficulty: 'expert',
+    setup: 'Sparky is using an AI chatbot and wants to PASTE things into the chat box. What is safe to paste?',
+    concept: 'The 2026 rule: never paste passwords, your home address, or other people’s private info into a chatbot. Your own homework question is fine.',
+    items: [
+      { id: 'homework', name: 'Your own homework question', bin: 2, why: 'Pasting your own question is exactly what a chatbot is for — safe.' },
+      { id: 'myStory', name: 'A story YOU are writing', bin: 2, why: 'Pasting your own writing to get feedback is fine.' },
+      { id: 'password', name: 'A password', bin: 0, why: 'Never paste a password into a chatbot. Ever.' },
+      { id: 'address', name: 'Your home address', bin: 0, why: 'Do not paste where you live — a chatbot does not need it.' },
+      { id: 'friendChat', name: "A screenshot of a friend’s private chat", bin: 0, subtle: true, why: 'Other people’s private messages are not yours to paste — keep them out.' },
+      { id: 'fullName', name: 'Your full real name', bin: 1, why: 'Your name is not needed to get help — leave it out to be safe.' },
+    ],
+  },
 };
 
-// ════════════════════════════════════════════════════════════════════════
-// DATA ITEM BANK — short chip label + full name + correct bin + why
-// (interleaved Private / Sensitive / Shareable so any window covers all bins)
-// ════════════════════════════════════════════════════════════════════════
-interface DataItem { id: string; label: string; name: string; bin: number; why: string; }
+// Ordered scenario plan per age band.
+//  A: 2 obvious scenarios, no flips/subtle items.
+//  B: 4 scenarios incl. the first-name flip (public post ↔ school portal) + chatbot.
+//  C: all 5 scenarios incl. the AI chat + every subtle context flip.
+const PLAN: Record<AgeBand, string[]> = {
+  A: ['publicPost', 'signup'],
+  B: ['signup', 'publicPost', 'schoolPortal', 'chatbot'],
+  C: ['signup', 'publicPost', 'aiChat', 'schoolPortal', 'chatbot'],
+};
 
-const BANK: DataItem[] = [
-  { id: 'password', label: 'Password', name: 'Password', bin: 0, why: 'A password unlocks your accounts — never share it with anyone.' },
-  { id: 'fullname', label: 'Full Name', name: 'Full Name', bin: 1, why: 'Your full name can identify you — share it only on trusted sites.' },
-  { id: 'favcolor', label: 'Fav Color', name: 'Favorite Color', bin: 2, why: 'A favorite color tells no one how to find you — safe to share.' },
-  { id: 'address', label: 'Address', name: 'Home Address', bin: 0, why: 'Your home address tells strangers exactly where you live. Keep it private.' },
-  { id: 'birthday', label: 'Birthday', name: 'Full Birthday', bin: 1, why: 'A full birthdate is valuable to identity thieves — share with care.' },
-  { id: 'favgame', label: 'Fav Game', name: 'Favorite Game', bin: 2, why: 'Your favorite game is just a fun fact — safe to post.' },
-  { id: 'pin', label: 'Bank PIN', name: 'Bank PIN', bin: 0, why: 'A PIN protects money. It is one of the most private things you have.' },
-  { id: 'email', label: 'Email', name: 'Email Address', bin: 1, why: 'An email is a contact point — give it only to people and sites you trust.' },
-  { id: 'hobby', label: 'Hobby', name: 'A Hobby', bin: 2, why: 'Hobbies are great to talk about — they cannot be used to harm you.' },
-  { id: 'location', label: 'Location', name: 'Live Location', bin: 0, why: 'Live location lets people track you in real time. Keep it private.' },
-  { id: 'phone', label: 'Phone', name: 'Phone Number', bin: 1, why: 'A phone number reaches you directly — share it carefully.' },
-  { id: 'nickname', label: 'Nickname', name: 'Nickname', bin: 2, why: 'A made-up nickname does not reveal who you really are — safe to use.' },
-  { id: 'idnum', label: 'ID #', name: 'ID Number', bin: 0, why: 'ID numbers are used to verify identity. Treat them as top-secret.' },
-  { id: 'photo', label: 'Photo', name: 'Your Photo', bin: 1, why: 'A photo of you is personal — share it only with people you trust.' },
-  { id: 'opinion', label: 'Opinion', name: 'A Movie Opinion', bin: 2, why: 'Opinions are meant to be shared — no privacy risk at all.' },
-  { id: 'school', label: 'School', name: 'School Name', bin: 1, why: 'Your school says where to find you on weekdays — share carefully.' },
-  { id: 'drawing', label: 'Drawing', name: 'A Drawing', bin: 2, why: 'Sharing your art is wonderful and totally safe.' },
-  { id: 'keys', label: 'Door Code', name: 'Door Code', bin: 0, why: 'A door code is a key to your home. Never share it online.' },
-];
+const A_MAX_ITEMS = 4; // younger kids get shorter rounds
 
-function getItems(levelId: number): DataItem[] {
-  const count = Math.min(9, 6 + Math.floor(levelId / 3)); // 6–9 items
-  const offset = ((levelId - 1) * 3) % BANK.length;
-  const out: DataItem[] = [];
-  for (let i = 0; i < count; i++) out.push(BANK[(offset + i) % BANK.length]);
-  // De-dup in case the window wraps onto itself.
-  const seen = new Set<string>();
-  return out.filter((it) => (seen.has(it.id) ? false : seen.add(it.id)));
+function itemsForBand(scenario: Scenario, band: AgeBand): ScenarioItem[] {
+  let list = scenario.items.filter((it) => {
+    if (it.subtle) return band === 'C';
+    if (it.flip) return band !== 'A';
+    return true;
+  });
+  if (band === 'A') list = list.slice(0, A_MAX_ITEMS);
+  return list;
+}
+
+function buildLevels(band: AgeBand): LevelConfig[] {
+  const XP: Record<LevelConfig['difficulty'], number> = { easy: 60, medium: 90, hard: 120, expert: 150 };
+  return PLAN[band].map((key, i) => {
+    const s = SCENARIOS[key];
+    const n = itemsForBand(s, band).length;
+    const base = n * 10;
+    return {
+      id: i + 1,
+      name: s.name,
+      description: s.setup,
+      emoji: s.emoji,
+      difficulty: s.difficulty,
+      starThresholds: [Math.round(base * 0.5), Math.round(base * 0.7), Math.round(base * 0.9)],
+      xpReward: XP[s.difficulty],
+      isBonus: s.difficulty === 'expert',
+    };
+  });
 }
 
 // ════════════════════════════════════════════════════════════════════════
-// LEVEL RENDERER — the SORT board + shield meter
+// LEVEL RENDERER — one item at a time, three keyboard-operable bin buttons
 // ════════════════════════════════════════════════════════════════════════
 function LevelRenderer({
-  level, onComplete, onExit,
+  level, band, scenarioKey, onComplete, onExit,
 }: {
-  level: LevelConfig; onComplete: (r: LevelResult) => void; onExit: () => void;
+  level: LevelConfig; band: AgeBand; scenarioKey: string;
+  onComplete: (r: LevelResult) => void; onExit: () => void;
 }) {
   const juice = useJuice();
-  const prefersReducedMotion = useReducedMotion();
+  const scenario = SCENARIOS[scenarioKey];
+  const items = useMemo(() => itemsForBand(scenario, band), [scenario, band]);
+
   const [phase, setPhase] = useState<'welcome' | 'sort'>('welcome');
-  const items = useMemo(() => getItems(level.id), [level.id]);
-  const [assignments, setAssignments] = useState<Record<string, number | undefined>>({});
+  const [cur, setCur] = useState(0);
+  const [assignments, setAssignments] = useState<Record<string, number>>({});
   const [score, setScore] = useState(0);
   const [combo, setCombo] = useState(0);
   const [wrong, setWrong] = useState(0);
   const [shield, setShield] = useState(0);
-  const [feedback, setFeedback] = useState<{ type: 'correct' | 'wrong' | 'info'; message: string; explanation?: string } | null>(null);
+  const [feedback, setFeedback] = useState<{ type: 'correct' | 'wrong'; message: string; explanation?: string } | null>(null);
 
   const maxScore = items.length * 10 + 20;
-  const sortedCount = items.filter((t) => assignments[t.id] !== undefined).length;
-  const allSorted = sortedCount >= items.length;
   const perItemShield = Math.round(100 / items.length);
-
-  const sceneItems = useMemo<BinSortItem[]>(
-    () => items.map((it, i) => ({ id: it.id, label: it.label, name: it.name, color: CHIP_PALETTE[i % CHIP_PALETTE.length] })),
-    [items],
-  );
+  const current = items[cur];
+  const committed = !!current && assignments[current.id] !== undefined;
+  const isLast = cur >= items.length - 1;
 
   const finishLevel = useCallback((finalScore: number, finalWrong: number) => {
     const accuracyBonus = Math.max(0, 20 - finalWrong * 5);
@@ -140,18 +208,14 @@ function LevelRenderer({
         : total >= level.starThresholds[0] ? 1 : 0) as 0 | 1 | 2 | 3;
     setTimeout(() => {
       onComplete({ score: total, maxScore, stars, xpEarned: level.xpReward * (stars / 3), timeMs: 0 });
-    }, 1300);
+    }, 900);
   }, [level, maxScore, onComplete]);
 
-  const handleAssign = useCallback((id: string, bin: number) => {
-    if (assignments[id] !== undefined) return;
-    const item = items.find((t) => t.id === id);
-    if (!item) return;
-
-    const nextAssign = { ...assignments, [id]: bin };
-    setAssignments(nextAssign);
-    const correct = item.bin === bin;
-    const doneCount = Object.keys(nextAssign).length;
+  const handleChoose = useCallback((bin: number) => {
+    if (!current || committed) return;
+    setAssignments((a) => ({ ...a, [current.id]: bin }));
+    const correct = current.bin === bin;
+    const done = cur + 1;
 
     if (correct) {
       const gained = 10 + combo;
@@ -160,36 +224,62 @@ function LevelRenderer({
       setScore(nextScore);
       setCombo(nextCombo);
       setShield((s) => Math.min(100, s + perItemShield));
-      setFeedback({ type: 'correct', message: nextCombo > 2 ? `${nextCombo}x combo! +${gained}` : `Shielded! +${gained}`, explanation: item.why });
-      juice.onCorrect(doneCount, nextScore);
-      if (doneCount >= items.length) finishLevel(nextScore, wrong);
+      setFeedback({
+        type: 'correct',
+        message: nextCombo > 2 ? `${nextCombo}x combo! +${gained}` : `Shielded! +${gained}`,
+        explanation: current.why,
+      });
+      juice.onCorrect(done, nextScore);
     } else {
       setCombo(0);
-      const nextWrong = wrong + 1;
-      setWrong(nextWrong);
+      setWrong((w) => w + 1);
       setShield((s) => Math.max(0, s - Math.round(perItemShield / 2)));
-      setFeedback({ type: 'wrong', message: `That belongs in "${BINS[item.bin]}".`, explanation: item.why });
+      setFeedback({
+        type: 'wrong',
+        message: `This one is ${BINS[current.bin]} here.`,
+        explanation: current.why,
+      });
       juice.onWrong(0, score);
-      if (doneCount >= items.length) finishLevel(score, nextWrong);
     }
-  }, [assignments, items, combo, score, wrong, perItemShield, juice, finishLevel]);
+  }, [current, committed, cur, combo, score, perItemShield, juice]);
 
-  // ═══ WELCOME ═══
+  const next = useCallback(() => {
+    setFeedback(null);
+    if (isLast) {
+      finishLevel(score, wrong);
+    } else {
+      setCur((c) => c + 1);
+    }
+  }, [isLast, finishLevel, score, wrong]);
+
+  // ═══ WELCOME — context is shown up front (the input, not the answer) ═══
   if (phase === 'welcome') {
     return (
       <div className="relative z-10 space-y-5">
-        <GlowingTitle emoji="🛡️" color={LAB_COLOR}>Level {level.id}: {level.name}</GlowingTitle>
-        <SFCard variant="elevated" className="p-5">
-          <p className="text-sm mb-3" style={{ color: '#5A6078' }}>{level.description}</p>
-          <div className="rounded-xl p-3 text-xs" style={{ background: `${LAB_COLOR}10`, color: LAB_COLOR }}>
-            <GraduationCap className="w-4 h-4 inline mr-1" />
-            <strong>Concept:</strong> {CONCEPTS[level.id] || CONCEPTS[1]}
+        <GlowingTitle emoji={scenario.emoji} color={LAB_COLOR}>{scenario.name}</GlowingTitle>
+
+        <div className="rounded-2xl p-5 space-y-3" style={{ background: '#0E1428', border: `1px solid ${LAB_COLOR}30` }}>
+          <div className="flex items-start gap-2">
+            <Target className="w-4 h-4 shrink-0 mt-0.5" style={{ color: LAB_COLOR }} />
+            <p className="text-sm font-semibold" style={{ color: '#E8ECFF' }}>{scenario.setup}</p>
           </div>
-          <div className="mt-3 rounded-xl p-3 text-xs flex items-start gap-2" style={{ background: '#FF6B3510', color: '#FF6B35' }}>
-            <Target className="w-4 h-4 shrink-0 mt-0.5" />
-            <span><strong>Sort:</strong> Drag each item into <strong>Private</strong>, <strong>Sensitive</strong>, or <strong>Shareable</strong>. Raise your shield!</span>
+          <div className="rounded-xl p-3 text-xs flex items-start gap-2" style={{ background: `${LAB_COLOR}14`, color: '#C9D2F0' }}>
+            <GraduationCap className="w-4 h-4 shrink-0 mt-0.5" style={{ color: LAB_COLOR }} />
+            <span><strong style={{ color: LAB_COLOR }}>Why it matters:</strong> {scenario.concept}</span>
           </div>
-        </SFCard>
+        </div>
+
+        {/* Bin legend — the three choices, shown before sorting (not per-item answers) */}
+        <div className="grid grid-cols-3 gap-2">
+          {BIN_META.map((b) => (
+            <div key={b.label} className="rounded-xl p-2.5 text-center" style={{ background: `${b.color}14`, border: `1px solid ${b.color}33` }}>
+              <b.Icon className="w-4 h-4 mx-auto mb-1" style={{ color: b.color }} aria-hidden />
+              <div className="text-xs font-bold" style={{ color: b.color }}>{b.label}</div>
+              <div className="text-xs mt-0.5" style={{ color: '#8C94AC' }}>{b.hint}</div>
+            </div>
+          ))}
+        </div>
+
         <SFButton variant="primary" size="lg" className="w-full" onClick={() => setPhase('sort')}>
           Start Sorting <ChevronRight className="w-5 h-5 ml-2" />
         </SFButton>
@@ -197,11 +287,11 @@ function LevelRenderer({
     );
   }
 
-  // ═══ SORT ═══
+  // ═══ SORT — one item, three buttons, reveal after commit ═══
   return (
     <div className="relative z-10 space-y-4">
       <div className="flex items-center justify-between">
-        <GlowingTitle emoji="🛡️" color={LAB_COLOR}>Sort the Data</GlowingTitle>
+        <GlowingTitle emoji={scenario.emoji} color={LAB_COLOR}>{scenario.name}</GlowingTitle>
         <span className="text-sm font-bold flex items-center gap-1" style={{ color: LAB_COLOR }}>
           <Shield className="w-4 h-4" />{shield}%
         </span>
@@ -218,22 +308,70 @@ function LevelRenderer({
       <ScoreDisplay score={score} maxScore={maxScore} />
       <ComboCounter combo={combo} />
 
-      <PixiBinSortStage
-        items={sceneItems}
-        bins={BINS}
-        assignments={assignments}
-        onAssign={handleAssign}
-        labColor={LAB_COLOR}
-        reducedMotion={!!prefersReducedMotion}
-      />
+      {/* Persistent context banner — the scenario is the INPUT, always visible */}
+      <div className="rounded-xl p-3 flex items-start gap-2" style={{ background: '#0E1428', border: `1px solid ${LAB_COLOR}22` }}>
+        <Target className="w-4 h-4 shrink-0 mt-0.5" style={{ color: LAB_COLOR }} aria-hidden />
+        <p className="text-xs" style={{ color: '#C9D2F0' }}>
+          <strong style={{ color: LAB_COLOR }}>Scenario:</strong> {scenario.setup}
+        </p>
+      </div>
 
-      {feedback && <FeedbackPopup {...feedback} />}
+      <p className="text-xs font-semibold" style={{ color: '#8C94AC' }}>
+        Item {Math.min(cur + 1, items.length)} of {items.length}
+      </p>
+
+      {/* Current item chip — G1: name only, NO bin hint in text or aria */}
+      {current && (
+        <div
+          className="rounded-2xl p-5 text-center"
+          style={{ background: '#141B33', border: '2px solid #2A3556' }}
+          aria-live="polite"
+        >
+          <p className="text-xs mb-1" style={{ color: '#8C94AC' }}>Where does this belong in THIS scenario?</p>
+          <p className="text-base font-bold" style={{ color: '#F5F7FF' }}>{current.name}</p>
+        </div>
+      )}
+
+      {/* Three bin buttons — keyboard-operable, no drag */}
+      {!committed && current && (
+        <div className="grid grid-cols-3 gap-2" role="group" aria-label="Choose where this item belongs in this scenario">
+          {BIN_META.map((b, idx) => (
+            <button
+              key={b.label}
+              type="button"
+              onClick={() => handleChoose(idx)}
+              aria-label={`Sort into ${b.label} — ${b.hint}`}
+              className="flex flex-col items-center gap-1 rounded-2xl p-3 transition-all hover:scale-105
+                focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+              style={{
+                background: `${b.color}14`,
+                border: `2px solid ${b.color}44`,
+                ['--tw-ring-color' as string]: b.color,
+              }}
+            >
+              <b.Icon className="w-5 h-5" style={{ color: b.color }} aria-hidden />
+              <span className="text-xs font-bold" style={{ color: b.color }}>{b.label}</span>
+              <span className="text-xs" style={{ color: '#8C94AC' }}>{b.hint}</span>
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Reveal + continue */}
+      <AnimatePresence mode="wait">
+        {feedback && <FeedbackPopup key={cur} {...feedback} />}
+      </AnimatePresence>
 
       <div className="flex gap-2">
-        <SFButton variant="primary" className="flex-1" onClick={() => finishLevel(score, wrong)} disabled={!allSorted}>
-          <Sparkles className="w-4 h-4 mr-2" />
-          {allSorted ? 'Secure!' : `Sort ${items.length - sortedCount} more…`}
-        </SFButton>
+        {committed ? (
+          <SFButton variant="primary" className="flex-1" onClick={next}>
+            {isLast ? (<><Sparkles className="w-4 h-4 mr-2" />Secure!</>) : (<>Next Item <ArrowRight className="w-4 h-4 ml-2" /></>)}
+          </SFButton>
+        ) : (
+          <div className="flex-1 rounded-xl p-3 text-center text-xs" style={{ background: '#0E1428', color: '#8C94AC' }}>
+            Pick a bin for this item.
+          </div>
+        )}
         <SFButton variant="outline" onClick={onExit} aria-label="Exit level">
           <RotateCcw className="w-4 h-4" />
         </SFButton>
@@ -247,12 +385,18 @@ function LevelRenderer({
 // ════════════════════════════════════════════════════════════════════════
 export default function DataShieldGame() {
   const { awardXP, completeGame } = useGameActions();
+  const band = (useActiveChild()?.age_band || 'B') as AgeBand;
+
+  const levels = useMemo(() => buildLevels(band), [band]);
+  const plan = PLAN[band];
 
   const handleComplete = useCallback((results: LevelResult[]) => {
     const totalXP = results.reduce((s, r) => s + r.xpEarned, 0);
     const totalStars = results.reduce((s, r) => s + r.stars, 0);
+    const maxStars = results.length * 3;
+    const frac = maxStars > 0 ? totalStars / maxStars : 0;
     awardXP(Math.round(totalXP));
-    completeGame('data-shield', totalStars >= 25 ? 3 : totalStars >= 15 ? 2 : 1);
+    completeGame('data-shield', frac >= 0.8 ? 3 : frac >= 0.5 ? 2 : 1);
   }, [awardXP, completeGame]);
 
   return (
@@ -261,10 +405,17 @@ export default function DataShieldGame() {
         gameTitle="Data Shield"
         gameEmoji="🛡️"
         labColor={LAB_COLOR}
-        levels={LEVELS}
+        levels={levels}
         onComplete={handleComplete}
         renderLevel={(level, onComplete, onExit) => (
-          <LevelRenderer level={level} onComplete={onComplete} onExit={onExit} />
+          <LevelRenderer
+            key={level.id}
+            level={level}
+            band={band}
+            scenarioKey={plan[level.id - 1]}
+            onComplete={onComplete}
+            onExit={onExit}
+          />
         )}
       />
     </GameShell>

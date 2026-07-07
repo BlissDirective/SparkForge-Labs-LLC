@@ -27,12 +27,12 @@ test.use({ launchOptions: { executablePath: PW_CHROME } });
 // Every migrated game (Waves 1-7) + the Sort Toy Box reference.
 const GAMES: { slug: string; archetype: 'SORT' | 'REVEAL' | 'CONNECT' | 'REACT' | 'PHASER' | 'DOM' }[] = [
   { slug: 'sort-toy-box', archetype: 'SORT' },
-  { slug: 'ai-spy', archetype: 'REVEAL' },
+  { slug: 'ai-spy', archetype: 'DOM' },
   { slug: 'neuron-relay', archetype: 'CONNECT' },
   { slug: 'ai-or-not', archetype: 'REACT' },
-  { slug: 'data-shield', archetype: 'SORT' },
+  { slug: 'data-shield', archetype: 'DOM' },
   { slug: 'real-or-fake', archetype: 'REVEAL' },
-  { slug: 'word-predictor', archetype: 'REACT' },
+  { slug: 'word-predictor', archetype: 'DOM' },
   // G3: de-cloned to bespoke DOM/SVG mechanics (no Pixi canvas).
   { slug: 'token-chopper', archetype: 'DOM' },
   { slug: 'ai-art-detective', archetype: 'SORT' },
@@ -44,10 +44,10 @@ const GAMES: { slug: string; archetype: 'SORT' | 'REVEAL' | 'CONNECT' | 'REACT' 
   { slug: 'emoji-decoder', archetype: 'SORT' },
   { slug: 'chatbot-builder', archetype: 'DOM' },
   { slug: 'lost-in-translation', archetype: 'DOM' },
-  { slug: 'time-machine', archetype: 'SORT' },
+  { slug: 'time-machine', archetype: 'DOM' },
   { slug: 'human-vs-machine', archetype: 'DOM' },
   { slug: 'pixel-investigator', archetype: 'REVEAL' },
-  { slug: 'tool-picker', archetype: 'SORT' },
+  { slug: 'tool-picker', archetype: 'DOM' },
   { slug: 'code-blocks', archetype: 'DOM' },
   { slug: 'career-explorer', archetype: 'DOM' },
   { slug: 'my-first-ai-app', archetype: 'DOM' },
