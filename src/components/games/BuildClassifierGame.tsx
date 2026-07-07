@@ -1,34 +1,50 @@
 // ════════════════════════════════════════════════════════════════════════
-// BUILD A CLASSIFIER v4 — Lab 7 (Computer Vision) — SORT archetype (Wave 4)
+// BUILD A CLASSIFIER v5 — Lab 7 (Computer Vision) — LABEL → TRAIN → TEST
 // ════════════════════════════════════════════════════════════════════════
-// Was a Collect → Train → Test pipeline screen. Now you build the training set
-// the way a real classifier learns: drag each labelled EXAMPLE into its class
-// bin. A live accuracy meter rewards balanced, correct labelling. Pixi SORT
-// scene (named class bins, which vary per level) inside GameShell.
+// The old version stopped at "Train!" — nothing was ever trained or tested, so
+// the concept died exactly where it started. v5 adds the missing back half:
 //
-// Teaches: a classifier learns from correctly-labelled training examples — the
-// cleaner and more balanced the labels, the higher the accuracy.
+//   1. LABEL  — the child sorts training EXAMPLES into class bins (Pixi board).
+//   2. TRAIN  — Sparky's "brain" assembles a real nearest-prototype (centroid)
+//               model: each class prototype is the MEAN of the hand-authored
+//               feature vectors of the examples the child labelled into it.
+//   3. TEST   — 4 UNSEEN examples stream in; the model GUESSES each by nearest
+//               prototype. Its mistakes trace directly back to labelling errors.
+//
+// Honesty (G1): every test prediction is argmin distance to prototypes built
+// from the CHILD's labels + hand-authored features. No pre-labelled answers are
+// consulted at prediction time — a test item's true class is used only to score
+// and to draw the confusion matrix afterwards.
+//
+// One level (Spam Filter, band C) ships deliberately POISONED training data:
+// two examples arrive pre-labelled WRONG and locked. Those bad labels drag a
+// prototype off, so an honest test item is mis-guessed — garbage in, garbage
+// out. Band C also sees a confusion matrix of the test results.
+//
+// Keyboard-operable throughout (bins are real buttons via PixiBinSortStage's
+// AT strip; every phase advances with buttons). Pixi is KEPT for the LABEL
+// phase; TRAIN and TEST are HTML/CSS. Dark surface, lab-cyan accent.
 
 'use client';
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import dynamic from 'next/dynamic';
-import PixiStageSkeleton from '@/components/games/pixi/PixiStageSkeleton';
+import { motion, AnimatePresence } from 'motion/react';
 import { useReducedMotion } from 'motion/react';
 import {
   ChevronRight, Cpu, GraduationCap, Target, RotateCcw, Sparkles,
+  Brain, Play, ArrowRight, AlertTriangle, Check, X,
 } from 'lucide-react';
+import PixiStageSkeleton from '@/components/games/pixi/PixiStageSkeleton';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameActions } from '@/stores/gameStore';
+import { useActiveChild } from '@/hooks/useChildren';
 import { useJuice } from '@/components/juice/JuiceProvider';
-import { SFCard } from '@/components/ui/SFCard';
 import { SFButton } from '@/components/ui/SFButton';
 import GameLevelSystem, {
   type LevelConfig, type LevelResult,
 } from '@/components/games/shared/GameLevelSystem';
-import {
-  GlowingTitle, ScoreDisplay, ComboCounter, FeedbackPopup,
-} from '@/components/games/shared/GameVisualKit';
+import { GlowingTitle } from '@/components/games/shared/GameVisualKit';
 import type { BinSortItem } from '@/components/games/pixi/PixiBinSortStage';
 
 // Pixi is client-only (WebGL/WebGPU) — never SSR it.
@@ -37,291 +53,613 @@ const PixiBinSortStage = dynamic(() => import('@/components/games/pixi/PixiBinSo
   loading: () => <PixiStageSkeleton />,
 });
 
+type Band = 'A' | 'B' | 'C';
+
 const LAB_COLOR = '#10BAD2';
 const CHIP_PALETTE = ['#4F6EF7', '#E945F5', '#2ECC71', '#F59E0B', '#8F96FA', '#FF7050'];
+const CLASS_COLORS = ['#4F6EF7', '#E945F5', '#2ECC71', '#F59E0B'];
 
-const LEVELS: LevelConfig[] = [
-  { id: 1, name: 'Cats vs Dogs', description: 'Label the examples to teach the classifier.', emoji: '🐱', difficulty: 'easy', starThresholds: [40, 60, 80], xpReward: 50 },
-  { id: 2, name: 'Fruit Sorter', description: 'Two classes of fruit.', emoji: '🍎', difficulty: 'easy', starThresholds: [40, 60, 80], xpReward: 60 },
-  { id: 3, name: 'Vehicles', description: 'Three classes to learn.', emoji: '🚗', difficulty: 'easy', starThresholds: [40, 60, 80], xpReward: 70 },
-  { id: 4, name: 'Emotion Reader', description: 'Classify the feeling.', emoji: '🙂', difficulty: 'medium', starThresholds: [40, 60, 80], xpReward: 80 },
-  { id: 5, name: 'Spam Filter', description: 'Spam or not spam?', emoji: '📧', difficulty: 'medium', starThresholds: [40, 60, 80], xpReward: 90 },
-  { id: 6, name: 'Animal Classes', description: 'Three animal classes.', emoji: '🦜', difficulty: 'medium', starThresholds: [40, 60, 80], xpReward: 100 },
-  { id: 7, name: 'Shape Detector', description: 'Three geometric classes.', emoji: '🔷', difficulty: 'hard', starThresholds: [40, 60, 80], xpReward: 120 },
-  { id: 8, name: 'Ripe or Not', description: 'Watch the noisy edge cases.', emoji: '🍌', difficulty: 'hard', starThresholds: [40, 60, 80], xpReward: 130 },
-  { id: 9, name: 'Four Classes', description: 'A bigger label space.', emoji: '🧩', difficulty: 'expert', starThresholds: [40, 60, 80], xpReward: 150 },
-  { id: 10, name: 'Classifier Master', description: 'The ultimate training set!', emoji: '👑', difficulty: 'expert', starThresholds: [40, 60, 80], xpReward: 200, isBonus: true },
+// ════════════════════════════════════════════════════════════════════════
+// THE MODEL — a real nearest-prototype (centroid) classifier
+// ════════════════════════════════════════════════════════════════════════
+// Each example carries a hand-authored feature vector `feat` (values 0..1). A
+// class prototype is the MEAN of the feature vectors labelled into that class.
+// A test item is classified by the nearest prototype (Euclidean). Everything
+// below is a pure, deterministic function of the child's labels + the features.
+
+function centroid(vectors: number[][], dim: number): number[] {
+  if (vectors.length === 0) return [];
+  const sum = new Array(dim).fill(0);
+  vectors.forEach((v) => v.forEach((val, i) => { sum[i] += val; }));
+  return sum.map((s) => s / vectors.length);
+}
+
+/** Build one prototype per class from the labelled training feature vectors. */
+function buildPrototypes(
+  labelled: { feat: number[]; cls: number }[],
+  numClasses: number,
+  dim: number,
+): (number[] | null)[] {
+  const protos: (number[] | null)[] = [];
+  for (let c = 0; c < numClasses; c++) {
+    const vs = labelled.filter((l) => l.cls === c).map((l) => l.feat);
+    protos.push(vs.length > 0 ? centroid(vs, dim) : null);
+  }
+  return protos;
+}
+
+function euclid(a: number[], b: number[]): number {
+  let s = 0;
+  for (let i = 0; i < a.length; i++) s += (a[i] - b[i]) ** 2;
+  return Math.sqrt(s);
+}
+
+/** Nearest-prototype prediction. Returns the class index + per-class distances. */
+function classify(feat: number[], protos: (number[] | null)[]): { pred: number; dists: (number | null)[] } {
+  const dists = protos.map((p) => (p ? euclid(feat, p) : null));
+  let pred = -1;
+  let best = Infinity;
+  dists.forEach((d, c) => { if (d !== null && d < best) { best = d; pred = c; } });
+  return { pred, dists };
+}
+
+// ════════════════════════════════════════════════════════════════════════
+// LEVEL DATA — hand-authored examples + features. Features are a numeric
+// encoding of each example's plain-language description (what the model "sees").
+// ════════════════════════════════════════════════════════════════════════
+interface Item { id: string; name: string; label: string; feat: number[]; cls: number; }
+interface LevelDef {
+  key: string;
+  name: string;
+  emoji: string;
+  difficulty: LevelConfig['difficulty'];
+  xpReward: number;
+  concept: string;
+  bands: Band[];
+  classes: string[];
+  featureNames: string[];        // one label per feature dimension
+  train: Item[];                 // the child labels these (true cls hidden until TEST)
+  test: Item[];                  // 4 unseen examples the model must guess
+  /** Pre-labelled, LOCKED training rows — deliberately wrong. GIGO demo. */
+  poison?: { item: Item; forcedCls: number }[];
+}
+
+const MASTER_LEVELS: LevelDef[] = [
+  {
+    key: 'cats-dogs', name: 'Cats vs Dogs', emoji: '🐱', difficulty: 'easy', xpReward: 50,
+    concept: 'A classifier learns from labelled examples. Sort each one into its true class — the model builds a "prototype" (an average) for each class from YOUR labels.',
+    bands: ['A', 'B', 'C'], classes: ['Cat', 'Dog'],
+    featureNames: ['Pitch (deep → high)', 'Small (big → small)'],
+    train: [
+      { id: 'cd-t1', name: 'A kitten mewing', label: 'Kitten mews', feat: [0.90, 0.85], cls: 0 },
+      { id: 'cd-t2', name: 'A cat that purrs', label: 'Cat purrs', feat: [0.80, 0.90], cls: 0 },
+      { id: 'cd-t3', name: 'A big dog barking', label: 'Dog barks', feat: [0.15, 0.20], cls: 1 },
+      { id: 'cd-t4', name: 'A hound that fetches', label: 'Hound fetches', feat: [0.20, 0.10], cls: 1 },
+    ],
+    test: [
+      { id: 'cd-x1', name: 'A tiny high-pitch pet', label: 'Tiny, high pitch', feat: [0.88, 0.80], cls: 0 },
+      { id: 'cd-x2', name: 'A large deep-voiced pet', label: 'Large, deep voice', feat: [0.20, 0.15], cls: 1 },
+      { id: 'cd-x3', name: 'A soft mewing pet', label: 'Soft mew', feat: [0.75, 0.70], cls: 0 },
+      { id: 'cd-x4', name: 'A big fetch-loving pet', label: 'Big, fetches', feat: [0.25, 0.25], cls: 1 },
+    ],
+  },
+  {
+    key: 'apple-banana', name: 'Apple vs Banana', emoji: '🍎', difficulty: 'easy', xpReward: 60,
+    concept: 'Features separate classes. Shape and colour tell an apple from a banana — the model averages those features per class.',
+    bands: ['A', 'B', 'C'], classes: ['Apple', 'Banana'],
+    featureNames: ['Shape (round → long)', 'Colour (red → yellow)'],
+    train: [
+      { id: 'ab-t1', name: 'A round red apple', label: 'Round & red', feat: [0.15, 0.20], cls: 0 },
+      { id: 'ab-t2', name: 'A crunchy green apple', label: 'Crunchy apple', feat: [0.20, 0.15], cls: 0 },
+      { id: 'ab-t3', name: 'A long yellow banana', label: 'Long & yellow', feat: [0.90, 0.85], cls: 1 },
+      { id: 'ab-t4', name: 'A curved ripe banana', label: 'Curved banana', feat: [0.85, 0.90], cls: 1 },
+    ],
+    test: [
+      { id: 'ab-x1', name: 'A round reddish fruit', label: 'Round, reddish', feat: [0.20, 0.25], cls: 0 },
+      { id: 'ab-x2', name: 'A long yellow fruit', label: 'Long, yellow', feat: [0.80, 0.85], cls: 1 },
+      { id: 'ab-x3', name: 'A small round fruit', label: 'Small, round', feat: [0.25, 0.15], cls: 0 },
+      { id: 'ab-x4', name: 'A curved yellow fruit', label: 'Curved, yellow', feat: [0.90, 0.80], cls: 1 },
+    ],
+  },
+  {
+    key: 'ripe-unripe', name: 'Ripe or Not', emoji: '🍌', difficulty: 'easy', xpReward: 70,
+    concept: 'Clean, balanced labels build a sharp model. Give each class enough correct examples and the prototypes sit far apart.',
+    bands: ['A', 'B', 'C'], classes: ['Ripe', 'Unripe'],
+    featureNames: ['Softness (hard → soft)', 'Colour (green → yellow)'],
+    train: [
+      { id: 'ru-t1', name: 'Soft yellow fruit', label: 'Soft & yellow', feat: [0.85, 0.80], cls: 0 },
+      { id: 'ru-t2', name: 'Fruit with a sweet smell', label: 'Sweet & soft', feat: [0.80, 0.90], cls: 0 },
+      { id: 'ru-t3', name: 'Hard green fruit', label: 'Hard & green', feat: [0.15, 0.20], cls: 1 },
+      { id: 'ru-t4', name: 'Bright-green firm fruit', label: 'Firm & green', feat: [0.20, 0.15], cls: 1 },
+    ],
+    test: [
+      { id: 'ru-x1', name: 'A soft golden fruit', label: 'Soft, golden', feat: [0.80, 0.85], cls: 0 },
+      { id: 'ru-x2', name: 'A firm green fruit', label: 'Firm, green', feat: [0.20, 0.20], cls: 1 },
+      { id: 'ru-x3', name: 'A squishy sweet fruit', label: 'Squishy, sweet', feat: [0.75, 0.80], cls: 0 },
+      { id: 'ru-x4', name: 'A hard bright fruit', label: 'Hard, bright', feat: [0.25, 0.25], cls: 1 },
+    ],
+  },
+  {
+    key: 'emotions', name: 'Emotion Reader', emoji: '🙂', difficulty: 'medium', xpReward: 90,
+    concept: 'More classes = a harder job. The model needs clear features for each one — a smile, low energy, an intense frown.',
+    bands: ['B', 'C'], classes: ['Happy', 'Sad', 'Angry'],
+    featureNames: ['Mouth (frown → smile)', 'Energy (calm → intense)'],
+    train: [
+      { id: 'em-t1', name: 'A big bright smile', label: 'Big smile', feat: [0.90, 0.70], cls: 0 },
+      { id: 'em-t2', name: 'Laughing out loud', label: 'Laughing', feat: [0.85, 0.75], cls: 0 },
+      { id: 'em-t3', name: 'Tears and a slow droop', label: 'Tearful, slow', feat: [0.15, 0.20], cls: 1 },
+      { id: 'em-t4', name: 'A quiet drooping head', label: 'Droopy, quiet', feat: [0.20, 0.10], cls: 1 },
+      { id: 'em-t5', name: 'A red face, raised voice', label: 'Red, loud', feat: [0.15, 0.85], cls: 2 },
+      { id: 'em-t6', name: 'A clenched jaw, tense', label: 'Clenched, tense', feat: [0.20, 0.90], cls: 2 },
+    ],
+    test: [
+      { id: 'em-x1', name: 'A grinning, cheerful face', label: 'Grinning', feat: [0.88, 0.72], cls: 0 },
+      { id: 'em-x2', name: 'A frown with low energy', label: 'Low, frowning', feat: [0.20, 0.18], cls: 1 },
+      { id: 'em-x3', name: 'A tense, intense frown', label: 'Tense frown', feat: [0.18, 0.80], cls: 2 },
+      { id: 'em-x4', name: 'A smiling, lively face', label: 'Smiling, lively', feat: [0.80, 0.68], cls: 0 },
+    ],
+  },
+  {
+    key: 'spam-poison', name: 'Spam Filter', emoji: '📧', difficulty: 'hard', xpReward: 120,
+    concept: 'Garbage in, garbage out. This dataset already has TWO examples labelled WRONG (flagged in red) — and you cannot fix them. Watch how bad training labels drag a prototype off and cause a wrong guess at test time.',
+    bands: ['C'], classes: ['Spam', 'Not Spam'],
+    featureNames: ['Urgent hype (low → high)', 'Money bait (low → high)'],
+    train: [
+      { id: 'sp-t1', name: '"WIN a FREE prize NOW!!!"', label: 'FREE prize!!!', feat: [0.90, 0.85], cls: 0 },
+      { id: 'sp-t2', name: '"Click to claim $1000"', label: 'Claim $1000', feat: [0.85, 0.90], cls: 0 },
+      { id: 'sp-t3', name: '"Meeting moved to 3pm"', label: 'Meeting 3pm', feat: [0.10, 0.10], cls: 1 },
+      { id: 'sp-t4', name: '"Here are the trip photos"', label: 'Trip photos', feat: [0.15, 0.15], cls: 1 },
+    ],
+    poison: [
+      { item: { id: 'sp-p1', name: '"URGENT! Wire cash to claim reward"', label: 'Wire cash NOW', feat: [0.95, 0.90], cls: 0 }, forcedCls: 1 },
+      { item: { id: 'sp-p2', name: '"Verify account or lose your money"', label: 'Verify or lose $', feat: [0.90, 0.85], cls: 0 }, forcedCls: 1 },
+    ],
+    test: [
+      { id: 'sp-x1', name: '"WIN FREE CASH — act fast!"', label: 'FREE cash', feat: [0.90, 0.88], cls: 0 },
+      { id: 'sp-x2', name: '"Lunch plans for Saturday"', label: 'Lunch plans', feat: [0.12, 0.15], cls: 1 },
+      { id: 'sp-x3', name: '"Urgent: claim your prize link"', label: 'Claim prize', feat: [0.60, 0.60], cls: 0 },
+      { id: 'sp-x4', name: '"Meeting notes attached"', label: 'Meeting notes', feat: [0.20, 0.25], cls: 1 },
+    ],
+  },
 ];
 
-const CONCEPTS: Record<number, string> = {
-  1: 'A classifier learns from labelled examples. Put each example in its true class — correct labels build accuracy.',
-  2: 'Features separate classes: shape, colour, and size tell an apple from a banana.',
-  3: 'More classes = a harder job. The model needs clear features for each one.',
-  4: 'Emotion classifiers read features like a smile or a frown to pick the feeling.',
-  5: 'A spam filter learns from labelled mail: urgent money offers vs ordinary messages.',
-  6: 'Balanced classes matter — give each animal class enough correct examples.',
-  7: 'Shape detectors count corners and curves: circle, square, triangle.',
-  8: 'Noisy edge cases are tricky. Label carefully — one wrong label hurts accuracy.',
-  9: 'A bigger label space (four classes) needs sharper features to keep them apart.',
-  10: 'Master test: label every example correctly to train a high-accuracy classifier.',
-};
+// Band plan. A = only clean 2-class levels. B = adds the 3-class level.
+// C = adds the poisoned level + a confusion matrix in the results.
+function levelsForBand(band: Band): LevelDef[] {
+  return MASTER_LEVELS.filter((l) => l.bands.includes(band));
+}
+
+function toLevelConfigs(defs: LevelDef[]): LevelConfig[] {
+  return defs.map((d, i) => ({
+    id: i + 1,
+    name: d.name,
+    description: d.concept,
+    emoji: d.emoji,
+    difficulty: d.difficulty,
+    // Score is test accuracy (0–100). Stars: ≥50 / ≥75 / =100.
+    starThresholds: [50, 75, 100],
+    xpReward: d.xpReward,
+    isBonus: d.difficulty === 'hard' || d.difficulty === 'expert',
+  }));
+}
 
 // ════════════════════════════════════════════════════════════════════════
-// PER-LEVEL CLASSES + LABELLED EXAMPLES (classes vary per level)
+// SMALL PRESENTATIONAL BITS
 // ════════════════════════════════════════════════════════════════════════
-interface Example { id: string; label: string; name: string; cls: number; why: string; }
-interface LevelData { classes: string[]; examples: Example[]; }
-
-const LEVEL_DATA: Record<number, LevelData> = {
-  1: {
-    classes: ['Cat', 'Dog'],
-    examples: [
-      { id: 'l1a', label: 'Says meow', name: 'Says meow', cls: 0, why: 'Meowing is a cat trait.' },
-      { id: 'l1b', label: 'Barks loudly', name: 'Barks loudly', cls: 1, why: 'Barking is a dog trait.' },
-      { id: 'l1c', label: 'Purrs', name: 'Purrs when happy', cls: 0, why: 'Purring is a cat behaviour.' },
-      { id: 'l1d', label: 'Wags tail', name: 'Wags its tail', cls: 1, why: 'Tail-wagging signals a happy dog.' },
-      { id: 'l1e', label: 'Climbs trees', name: 'Climbs trees', cls: 0, why: 'Cats climb with retractable claws.' },
-      { id: 'l1f', label: 'Fetches stick', name: 'Fetches a stick', cls: 1, why: 'Fetching is a classic dog game.' },
-    ],
-  },
-  2: {
-    classes: ['Apple', 'Banana'],
-    examples: [
-      { id: 'l2a', label: 'Round & red', name: 'Round and red', cls: 0, why: 'Apples are round and often red.' },
-      { id: 'l2b', label: 'Long & yellow', name: 'Long and yellow', cls: 1, why: 'Bananas are long and yellow.' },
-      { id: 'l2c', label: 'Crunchy bite', name: 'Crunchy when bitten', cls: 0, why: 'Apples are crisp and crunchy.' },
-      { id: 'l2d', label: 'Peel to eat', name: 'You peel it to eat', cls: 1, why: 'Bananas have a peel.' },
-      { id: 'l2e', label: 'Has a stem', name: 'Stem on top', cls: 0, why: 'Apples grow with a short stem.' },
-      { id: 'l2f', label: 'Curved shape', name: 'Curved shape', cls: 1, why: 'Bananas have a curved shape.' },
-    ],
-  },
-  3: {
-    classes: ['Car', 'Plane', 'Boat'],
-    examples: [
-      { id: 'l3a', label: 'Four wheels', name: 'Four wheels on roads', cls: 0, why: 'Cars drive on wheels.' },
-      { id: 'l3b', label: 'Has wings', name: 'Has wings', cls: 1, why: 'Planes use wings to fly.' },
-      { id: 'l3c', label: 'Floats', name: 'Floats on water', cls: 2, why: 'Boats float on water.' },
-      { id: 'l3d', label: 'Drives highway', name: 'Drives on a highway', cls: 0, why: 'Cars travel on roads.' },
-      { id: 'l3e', label: 'Flies high', name: 'Flies in the sky', cls: 1, why: 'Planes fly through the air.' },
-      { id: 'l3f', label: 'Has a sail', name: 'Has a sail or motor on water', cls: 2, why: 'Boats move with sails or motors.' },
-    ],
-  },
-  4: {
-    classes: ['Happy', 'Sad', 'Angry'],
-    examples: [
-      { id: 'l4a', label: 'Big smile', name: 'Big smile, bright eyes', cls: 0, why: 'A smile signals happiness.' },
-      { id: 'l4b', label: 'Tears', name: 'Tears and a frown', cls: 1, why: 'Crying signals sadness.' },
-      { id: 'l4c', label: 'Clenched jaw', name: 'Furrowed brow, clenched jaw', cls: 2, why: 'A tense face signals anger.' },
-      { id: 'l4d', label: 'Laughing', name: 'Laughing out loud', cls: 0, why: 'Laughter is a happy cue.' },
-      { id: 'l4e', label: 'Drooping head', name: 'Drooping head, slow', cls: 1, why: 'Low energy signals sadness.' },
-      { id: 'l4f', label: 'Red face', name: 'Red face, raised voice', cls: 2, why: 'A flushed, loud cue signals anger.' },
-    ],
-  },
-  5: {
-    classes: ['Spam', 'Not Spam'],
-    examples: [
-      { id: 'l5a', label: 'FREE prize!!!', name: 'WIN a FREE prize NOW!!!', cls: 0, why: 'Urgent free-prize hype is classic spam.' },
-      { id: 'l5b', label: 'Meeting 3pm', name: 'Meeting moved to 3pm', cls: 1, why: 'A normal scheduling note is not spam.' },
-      { id: 'l5c', label: 'Claim $1000', name: 'Click here to claim $1000', cls: 0, why: 'Money-bait links are spam.' },
-      { id: 'l5d', label: 'Trip photos', name: 'Here are the trip photos', cls: 1, why: 'A friendly personal message is not spam.' },
-      { id: 'l5e', label: 'Verify account', name: 'Urgent: verify your account', cls: 0, why: 'Fake urgent verify requests are phishing spam.' },
-      { id: 'l5f', label: 'Homework due', name: 'Homework is due Friday', cls: 1, why: 'An ordinary reminder is not spam.' },
-    ],
-  },
-  6: {
-    classes: ['Dog', 'Cat', 'Bird'],
-    examples: [
-      { id: 'l6a', label: 'Has feathers', name: 'Has feathers and wings', cls: 2, why: 'Feathers mean a bird.' },
-      { id: 'l6b', label: 'Barks', name: 'Barks and fetches', cls: 0, why: 'Barking means a dog.' },
-      { id: 'l6c', label: 'Meows', name: 'Meows and purrs', cls: 1, why: 'Meowing means a cat.' },
-      { id: 'l6d', label: 'Chirps', name: 'Chirps a song', cls: 2, why: 'Chirping means a bird.' },
-      { id: 'l6e', label: 'Wags tail', name: 'Wags its tail', cls: 0, why: 'Tail-wagging means a dog.' },
-      { id: 'l6f', label: 'Whiskers', name: 'Whiskers and claws', cls: 1, why: 'Whiskers point to a cat.' },
-    ],
-  },
-  7: {
-    classes: ['Circle', 'Square', 'Triangle'],
-    examples: [
-      { id: 'l7a', label: 'No corners', name: 'Round, no corners', cls: 0, why: 'A circle has no corners.' },
-      { id: 'l7b', label: '4 equal sides', name: 'Four equal sides', cls: 1, why: 'A square has four equal sides.' },
-      { id: 'l7c', label: '3 corners', name: 'Three corners', cls: 2, why: 'A triangle has three corners.' },
-      { id: 'l7d', label: 'Perfectly round', name: 'Perfectly round edge', cls: 0, why: 'A circle is one curved edge.' },
-      { id: 'l7e', label: '4 right angles', name: 'Four right angles', cls: 1, why: 'A square has four right angles.' },
-      { id: 'l7f', label: '3 sides', name: 'Three straight sides', cls: 2, why: 'A triangle has three sides.' },
-    ],
-  },
-  8: {
-    classes: ['Ripe', 'Unripe'],
-    examples: [
-      { id: 'l8a', label: 'Yellow soft', name: 'Yellow and soft', cls: 0, why: 'Soft yellow fruit is ripe.' },
-      { id: 'l8b', label: 'Green hard', name: 'Green and hard', cls: 1, why: 'Hard green fruit is unripe.' },
-      { id: 'l8c', label: 'Sweet smell', name: 'Sweet smell', cls: 0, why: 'A sweet aroma means ripe.' },
-      { id: 'l8d', label: 'No smell', name: 'No smell yet', cls: 1, why: 'No aroma means unripe.' },
-      { id: 'l8e', label: 'Few brown spots', name: 'A few brown spots', cls: 0, why: 'Spots appear as fruit ripens.' },
-      { id: 'l8f', label: 'Bright green', name: 'Bright green all over', cls: 1, why: 'Fully green is still unripe.' },
-    ],
-  },
-  9: {
-    classes: ['Land', 'Water', 'Air', 'Space'],
-    examples: [
-      { id: 'l9a', label: 'Lion', name: 'A lion', cls: 0, why: 'Lions live on land.' },
-      { id: 'l9b', label: 'Shark', name: 'A shark', cls: 1, why: 'Sharks live in water.' },
-      { id: 'l9c', label: 'Eagle', name: 'An eagle', cls: 2, why: 'Eagles fly in the air.' },
-      { id: 'l9d', label: 'Satellite', name: 'A satellite', cls: 3, why: 'Satellites orbit in space.' },
-      { id: 'l9e', label: 'Dolphin', name: 'A dolphin', cls: 1, why: 'Dolphins live in water.' },
-      { id: 'l9f', label: 'Rover', name: 'A Mars rover', cls: 3, why: 'A rover operates in space.' },
-      { id: 'l9g', label: 'Tiger', name: 'A tiger', cls: 0, why: 'Tigers live on land.' },
-      { id: 'l9h', label: 'Sparrow', name: 'A sparrow', cls: 2, why: 'Sparrows fly in the air.' },
-    ],
-  },
-  10: {
-    classes: ['Vision', 'Language', 'Audio'],
-    examples: [
-      { id: 'l10a', label: 'Photo of a cat', name: 'A photo of a cat', cls: 0, why: 'An image is vision data.' },
-      { id: 'l10b', label: 'A sentence', name: 'A written sentence', cls: 1, why: 'Text is language data.' },
-      { id: 'l10c', label: 'A song clip', name: 'A song clip', cls: 2, why: 'Sound is audio data.' },
-      { id: 'l10d', label: 'A drawing', name: 'A hand drawing', cls: 0, why: 'A drawing is vision data.' },
-      { id: 'l10e', label: 'A chat message', name: 'A chat message', cls: 1, why: 'A message is language data.' },
-      { id: 'l10f', label: 'A voice note', name: 'A voice note', cls: 2, why: 'Speech is audio data.' },
-      { id: 'l10g', label: 'A video frame', name: 'A video frame', cls: 0, why: 'A frame is vision data.' },
-      { id: 'l10h', label: 'A podcast', name: 'A podcast clip', cls: 2, why: 'A podcast is audio data.' },
-    ],
-  },
-};
+function FeatureBars({ feat, names, color }: { feat: number[]; names: string[]; color: string }) {
+  return (
+    <div className="space-y-1.5" aria-hidden>
+      {feat.map((v, i) => (
+        <div key={i} className="flex items-center gap-2">
+          <span className="w-28 shrink-0 truncate" style={{ fontSize: '0.65rem', color: '#8C94AC' }}>{names[i]}</span>
+          <div className="h-1.5 flex-1 overflow-hidden rounded-full" style={{ background: '#0E1428' }}>
+            <div className="h-full rounded-full" style={{ width: `${Math.round(v * 100)}%`, background: color }} />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 // ════════════════════════════════════════════════════════════════════════
-// LEVEL RENDERER — the SORT board + accuracy meter
+// LEVEL RENDERER — welcome → label → train → test
 // ════════════════════════════════════════════════════════════════════════
+type Phase = 'welcome' | 'label' | 'train' | 'test';
+
 function LevelRenderer({
-  level, onComplete, onExit,
+  def, level, band, onComplete, onExit,
 }: {
-  level: LevelConfig; onComplete: (r: LevelResult) => void; onExit: () => void;
+  def: LevelDef; level: LevelConfig; band: Band;
+  onComplete: (r: LevelResult) => void; onExit: () => void;
 }) {
   const juice = useJuice();
   const prefersReducedMotion = useReducedMotion();
-  const data = LEVEL_DATA[level.id] || LEVEL_DATA[1];
-  const [phase, setPhase] = useState<'welcome' | 'sort'>('welcome');
-  const items = data.examples;
-  const bins = data.classes;
+  const reduced = !!prefersReducedMotion;
+
+  const [phase, setPhase] = useState<Phase>('welcome');
   const [assignments, setAssignments] = useState<Record<string, number | undefined>>({});
-  const [score, setScore] = useState(0);
-  const [combo, setCombo] = useState(0);
-  const [wrong, setWrong] = useState(0);
-  const [feedback, setFeedback] = useState<{ type: 'correct' | 'wrong' | 'info'; message: string; explanation?: string } | null>(null);
+  const [training, setTraining] = useState(false);     // TRAIN animation gate
+  const [trained, setTrained] = useState(false);
+  const [testStarted, setTestStarted] = useState(false);
+  const [revealed, setRevealed] = useState(0);         // number of test items shown
 
-  const maxScore = items.length * 10 + 20;
-  const sortedCount = items.filter((t) => assignments[t.id] !== undefined).length;
-  const allSorted = sortedCount >= items.length;
-  // Live accuracy: correctly-labelled examples ÷ examples labelled so far.
-  const correctCount = items.filter((t) => assignments[t.id] !== undefined && assignments[t.id] === t.cls).length;
-  const accuracy = sortedCount > 0 ? Math.round((correctCount / sortedCount) * 100) : 0;
+  const dim = def.featureNames.length;
+  const numClasses = def.classes.length;
+  const train = def.train;
+  const test = def.test;
+  const poison = def.poison ?? [];
 
+  const sortedCount = train.filter((t) => assignments[t.id] !== undefined).length;
+  const allLabelled = sortedCount >= train.length;
+
+  // Chips for the Pixi label board (poison chips are NOT here — they arrive
+  // pre-labelled and locked, shown in their own panel).
   const sceneItems = useMemo<BinSortItem[]>(
-    () => items.map((it, i) => ({ id: it.id, label: it.label, name: it.name, color: CHIP_PALETTE[i % CHIP_PALETTE.length] })),
-    [items],
+    () => train.map((it, i) => ({ id: it.id, label: it.label, name: it.name, color: CHIP_PALETTE[i % CHIP_PALETTE.length] })),
+    [train],
   );
 
-  const finishLevel = useCallback((finalScore: number, finalWrong: number) => {
-    const accuracyBonus = Math.max(0, 20 - finalWrong * 5);
-    const total = finalScore + accuracyBonus;
-    const stars = (total >= level.starThresholds[2] ? 3
-      : total >= level.starThresholds[1] ? 2
-        : total >= level.starThresholds[0] ? 1 : 0) as 0 | 1 | 2 | 3;
-    setTimeout(() => {
-      onComplete({ score: total, maxScore, stars, xpEarned: level.xpReward * (stars / 3), timeMs: 0 });
-    }, 1300);
-  }, [level, maxScore, onComplete]);
+  // ── The MODEL: prototypes from the child's labels + any poisoned rows. ──
+  const prototypes = useMemo(() => {
+    const labelled: { feat: number[]; cls: number }[] = [];
+    train.forEach((t) => {
+      const a = assignments[t.id];
+      if (a !== undefined) labelled.push({ feat: t.feat, cls: a });
+    });
+    poison.forEach((p) => labelled.push({ feat: p.item.feat, cls: p.forcedCls }));
+    return buildPrototypes(labelled, numClasses, dim);
+  }, [train, assignments, poison, numClasses, dim]);
+
+  // ── Predictions: pure output of the model on the unseen test items. ──
+  const predictions = useMemo(() => test.map((t) => {
+    const { pred, dists } = classify(t.feat, prototypes);
+    return { item: t, pred, dists, correct: pred === t.cls };
+  }), [test, prototypes]);
+
+  const correctPreds = predictions.slice(0, revealed).filter((p) => p.correct).length;
+  const accuracy = test.length > 0 ? correctPreds / test.length : 0;
+  const childLabelErrors = train.filter((t) => assignments[t.id] !== undefined && assignments[t.id] !== t.cls).length;
+
+  // ── Reveal test predictions one at a time (or instantly if reduced motion). ──
+  useEffect(() => {
+    if (phase !== 'test' || !testStarted) return;
+    if (reduced) { setRevealed(test.length); return; }
+    if (revealed >= test.length) return;
+    const t = setTimeout(() => setRevealed((r) => r + 1), 750);
+    return () => clearTimeout(t);
+  }, [phase, testStarted, revealed, reduced, test.length]);
+
+  // Fire celebration/thud as each prediction lands.
+  const lastFired = useRef(0);
+  useEffect(() => {
+    if (!testStarted || revealed === 0 || revealed === lastFired.current) return;
+    lastFired.current = revealed;
+    const p = predictions[revealed - 1];
+    if (!p) return;
+    if (p.correct) juice.onCorrect(revealed, 0); else juice.onWrong(0, 0);
+  }, [revealed, testStarted, predictions, juice]);
+
+  const allRevealed = revealed >= test.length;
 
   const handleAssign = useCallback((id: string, bin: number) => {
-    if (assignments[id] !== undefined) return;
-    const item = items.find((t) => t.id === id);
-    if (!item) return;
-    const nextAssign = { ...assignments, [id]: bin };
-    setAssignments(nextAssign);
-    const correct = item.cls === bin;
-    const doneCount = Object.keys(nextAssign).length;
+    // Honest labelling: record the child's choice as-is (right OR wrong). No
+    // correctness is revealed here — the consequence surfaces at TEST.
+    setAssignments((prev) => (prev[id] !== undefined ? prev : { ...prev, [id]: bin }));
+  }, []);
 
-    if (correct) {
-      const gained = 10 + combo;
-      const nextScore = score + gained;
-      const nextCombo = combo + 1;
-      setScore(nextScore);
-      setCombo(nextCombo);
-      setFeedback({ type: 'correct', message: nextCombo > 2 ? `${nextCombo}x combo! +${gained}` : `Labelled! +${gained}`, explanation: item.why });
-      juice.onCorrect(doneCount, nextScore);
-      if (doneCount >= items.length) finishLevel(nextScore, wrong);
-    } else {
-      setCombo(0);
-      const nextWrong = wrong + 1;
-      setWrong(nextWrong);
-      setFeedback({ type: 'wrong', message: `That example is class "${bins[item.cls]}".`, explanation: item.why });
-      juice.onWrong(0, score);
-      if (doneCount >= items.length) finishLevel(score, nextWrong);
-    }
-  }, [assignments, items, bins, combo, score, wrong, juice, finishLevel]);
+  const startTraining = useCallback(() => {
+    setPhase('train');
+    setTraining(true);
+    if (reduced) { setTraining(false); setTrained(true); return; }
+    const t = setTimeout(() => { setTraining(false); setTrained(true); }, 1400);
+    return () => clearTimeout(t);
+  }, [reduced]);
 
-  // ═══ WELCOME ═══
+  const runTest = useCallback(() => {
+    setPhase('test');
+    setTestStarted(true);
+  }, []);
+
+  const finishLevel = useCallback(() => {
+    const stars = (accuracy >= 1 ? 3 : accuracy >= 0.75 ? 2 : accuracy >= 0.5 ? 1 : 0) as 0 | 1 | 2 | 3;
+    const score = Math.round(accuracy * 100);
+    onComplete({ score, maxScore: 100, stars, xpEarned: level.xpReward * (stars / 3), timeMs: 0 });
+  }, [accuracy, level.xpReward, onComplete]);
+
+  // ═══════════════════════════════════════════════════════════════════════
+  // WELCOME
+  // ═══════════════════════════════════════════════════════════════════════
   if (phase === 'welcome') {
     return (
       <div className="relative z-10 space-y-5">
-        <GlowingTitle emoji="🧠" color={LAB_COLOR}>Level {level.id}: {level.name}</GlowingTitle>
-        <SFCard variant="elevated" className="p-5">
-          <p className="text-sm mb-3" style={{ color: '#5A6078' }}>{level.description}</p>
-          <div className="rounded-xl p-3 text-xs" style={{ background: `${LAB_COLOR}10`, color: LAB_COLOR }}>
-            <GraduationCap className="w-4 h-4 inline mr-1" />
-            <strong>Concept:</strong> {CONCEPTS[level.id] || CONCEPTS[1]}
+        <GlowingTitle emoji="🧠" color={LAB_COLOR}>Level {level.id}: {def.name}</GlowingTitle>
+
+        <div className="rounded-2xl p-5 space-y-3" style={{ background: '#0E1428', border: `1px solid ${LAB_COLOR}30` }}>
+          <div className="rounded-xl p-3 text-xs flex items-start gap-2" style={{ background: `${LAB_COLOR}14`, color: '#C9D2F0' }}>
+            <GraduationCap className="w-4 h-4 shrink-0 mt-0.5" style={{ color: LAB_COLOR }} aria-hidden />
+            <span><strong style={{ color: LAB_COLOR }}>Concept:</strong> {def.concept}</span>
           </div>
-          <div className="mt-3 rounded-xl p-3 text-xs flex items-start gap-2" style={{ background: '#FF6B3510', color: '#FF6B35' }}>
-            <Target className="w-4 h-4 shrink-0 mt-0.5" />
-            <span><strong>Train:</strong> Drag each example into its class: {bins.join(' · ')}. Push the accuracy meter up!</span>
+          <div className="rounded-xl p-3 text-xs flex items-start gap-2" style={{ background: '#FF6B3514', color: '#FFB08A' }}>
+            <Target className="w-4 h-4 shrink-0 mt-0.5" style={{ color: '#FF8A5B' }} aria-hidden />
+            <span>
+              <strong style={{ color: '#FF8A5B' }}>How it works:</strong> First <strong>Label</strong> the examples into
+              their classes ({def.classes.join(' · ')}). Then <strong>Train</strong> a model from your labels. Then
+              <strong> Test</strong> it on {def.test.length} brand-new examples it has never seen.
+            </span>
           </div>
-        </SFCard>
-        <SFButton variant="primary" size="lg" className="w-full" onClick={() => setPhase('sort')}>
-          Start Training <ChevronRight className="w-5 h-5 ml-2" />
+          {poison.length > 0 && (
+            <div className="rounded-xl p-3 text-xs flex items-start gap-2" style={{ background: '#EF444414', color: '#F7A9A9' }}>
+              <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" style={{ color: '#EF4444' }} aria-hidden />
+              <span><strong style={{ color: '#EF4444' }}>Heads up:</strong> this dataset already contains mislabelled data you cannot fix. See what it does to the model!</span>
+            </div>
+          )}
+        </div>
+
+        <SFButton variant="primary" size="lg" className="w-full" onClick={() => setPhase('label')}>
+          Start Labelling <ChevronRight className="w-5 h-5 ml-2" />
         </SFButton>
       </div>
     );
   }
 
-  // ═══ SORT ═══
+  // ═══════════════════════════════════════════════════════════════════════
+  // LABEL — Pixi sort board (kept). Child labels the training examples.
+  // ═══════════════════════════════════════════════════════════════════════
+  if (phase === 'label') {
+    return (
+      <div className="relative z-10 space-y-4">
+        <div className="flex items-center justify-between">
+          <GlowingTitle emoji="🏷️" color={LAB_COLOR}>Label the Training Set</GlowingTitle>
+          <span className="text-sm font-bold flex items-center gap-1" style={{ color: LAB_COLOR }}>
+            <Cpu className="w-4 h-4" aria-hidden />{sortedCount}/{train.length}
+          </span>
+        </div>
+
+        <div className="rounded-xl p-3 text-xs flex items-start gap-2" style={{ background: '#0E1428', border: `1px solid ${LAB_COLOR}22`, color: '#C9D2F0' }}>
+          <Target className="w-4 h-4 shrink-0 mt-0.5" style={{ color: LAB_COLOR }} aria-hidden />
+          <span>Sort each example into its true class. The model learns only from the labels YOU give — so label carefully.</span>
+        </div>
+
+        <PixiBinSortStage
+          items={sceneItems}
+          bins={def.classes}
+          assignments={assignments}
+          onAssign={handleAssign}
+          labColor={LAB_COLOR}
+          reducedMotion={reduced}
+        />
+
+        {/* Poisoned rows: pre-labelled, LOCKED, honestly shown as bad data. */}
+        {poison.length > 0 && (
+          <div className="rounded-xl p-3 space-y-2" style={{ background: '#EF444410', border: '1px solid #EF444433' }}>
+            <p className="text-xs font-bold flex items-center gap-1.5" style={{ color: '#EF4444' }}>
+              <AlertTriangle className="w-3.5 h-3.5" aria-hidden /> Pre-labelled data (locked — you cannot change it)
+            </p>
+            {poison.map((p) => (
+              <div key={p.item.id} className="flex items-center justify-between rounded-lg px-3 py-2" style={{ background: '#141B33' }}>
+                <span className="text-xs" style={{ color: '#E8ECFF' }}>{p.item.name}</span>
+                <span className="text-xs font-bold flex items-center gap-1" style={{ color: '#EF4444' }}>
+                  <AlertTriangle className="w-3 h-3" aria-hidden /> labelled “{def.classes[p.forcedCls]}”
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div className="flex gap-2">
+          <SFButton variant="primary" className="flex-1" onClick={startTraining} disabled={!allLabelled}>
+            <Brain className="w-4 h-4 mr-2" />
+            {allLabelled ? 'Train the Model' : `Label ${train.length - sortedCount} more…`}
+          </SFButton>
+          <SFButton variant="outline" onClick={onExit} aria-label="Exit level">
+            <RotateCcw className="w-4 h-4" />
+          </SFButton>
+        </div>
+      </div>
+    );
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════
+  // TRAIN — assemble the prototypes from the child's labels.
+  // ═══════════════════════════════════════════════════════════════════════
+  if (phase === 'train') {
+    const usedCounts = def.classes.map((_, c) => {
+      const childN = train.filter((t) => assignments[t.id] === c).length;
+      const poisonN = poison.filter((p) => p.forcedCls === c).length;
+      return childN + poisonN;
+    });
+
+    return (
+      <div className="relative z-10 space-y-4">
+        <GlowingTitle emoji="🧠" color={LAB_COLOR}>Training Sparky&apos;s Brain</GlowingTitle>
+
+        <div className="rounded-xl p-3 text-xs" style={{ background: '#0E1428', border: `1px solid ${LAB_COLOR}22`, color: '#C9D2F0' }} aria-live="polite">
+          {training
+            ? 'Building a prototype (an average) for each class from your labelled examples…'
+            : `Model trained. Each class prototype is the average of the ${train.length + poison.length} examples in the training set — built from YOUR labels.`}
+        </div>
+
+        <div className="grid gap-3" style={{ gridTemplateColumns: `repeat(${Math.min(numClasses, 2)}, minmax(0, 1fr))` }}>
+          {def.classes.map((cls, c) => {
+            const color = CLASS_COLORS[c % CLASS_COLORS.length];
+            const proto = prototypes[c];
+            return (
+              <motion.div
+                key={cls}
+                className="rounded-2xl p-3 space-y-2"
+                style={{ background: '#141B33', border: `1px solid ${color}40` }}
+                initial={reduced ? false : { opacity: 0, y: 12 }}
+                animate={{ opacity: training ? 0.5 : 1, y: 0 }}
+                transition={{ delay: reduced ? 0 : c * 0.15 }}
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-bold" style={{ color }}>{cls}</span>
+                  <span style={{ fontSize: '0.65rem', color: '#8C94AC' }}>{usedCounts[c]} example{usedCounts[c] === 1 ? '' : 's'}</span>
+                </div>
+                {proto
+                  ? <FeatureBars feat={proto} names={def.featureNames} color={color} />
+                  : <p style={{ fontSize: '0.7rem', color: '#8C94AC' }}>No examples labelled here — this class can never be predicted!</p>}
+              </motion.div>
+            );
+          })}
+        </div>
+
+        <SFButton variant="primary" size="lg" className="w-full" onClick={runTest} disabled={training}>
+          <Play className="w-5 h-5 mr-2" />
+          {training ? 'Training…' : 'Run the Classifier'}
+        </SFButton>
+      </div>
+    );
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════
+  // TEST — 4 unseen examples; the model guesses each. Confusion matrix (band C).
+  // ═══════════════════════════════════════════════════════════════════════
+  const liveMsg = allRevealed
+    ? `Testing complete. The classifier guessed ${predictions.filter((p) => p.correct).length} of ${test.length} unseen examples correctly.`
+    : revealed > 0
+      ? `Guessed "${def.classes[predictions[revealed - 1].pred] ?? '—'}" for ${predictions[revealed - 1].item.name}. That guess was ${predictions[revealed - 1].correct ? 'correct' : 'wrong'}.`
+      : 'Running the classifier on unseen examples…';
+
   return (
     <div className="relative z-10 space-y-4">
       <div className="flex items-center justify-between">
-        <GlowingTitle emoji="🧠" color={LAB_COLOR}>Label the Examples</GlowingTitle>
+        <GlowingTitle emoji="🔬" color={LAB_COLOR}>Test on Unseen Examples</GlowingTitle>
         <span className="text-sm font-bold flex items-center gap-1" style={{ color: LAB_COLOR }}>
-          <Cpu className="w-4 h-4" />{accuracy}% acc
+          <Cpu className="w-4 h-4" aria-hidden />{Math.round(accuracy * 100)}%
         </span>
       </div>
 
-      {/* Accuracy meter */}
-      <div className="h-2.5 w-full overflow-hidden rounded-full" style={{ background: '#0E1428' }} aria-hidden>
-        <div
-          className="h-full rounded-full transition-all duration-500"
-          style={{ width: `${accuracy}%`, background: `linear-gradient(90deg, ${LAB_COLOR}, #2ECC71)` }}
-        />
+      {/* Screen-reader live commentary of each guess. */}
+      <p className="sr-only" role="status" aria-live="polite">{liveMsg}</p>
+
+      <div className="space-y-2">
+        {predictions.map((p, i) => {
+          const shown = i < revealed;
+          const predColor = p.pred >= 0 ? CLASS_COLORS[p.pred % CLASS_COLORS.length] : '#8C94AC';
+          return (
+            <AnimatePresence key={p.item.id}>
+              {shown && (
+                <motion.div
+                  className="rounded-2xl p-3"
+                  style={{ background: '#141B33', border: `1px solid ${p.correct ? '#2ECC71' : '#EF4444'}55` }}
+                  initial={reduced ? false : { opacity: 0, x: 24 }}
+                  animate={{ opacity: 1, x: 0 }}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold truncate" style={{ color: '#F5F7FF' }}>{p.item.name}</p>
+                      <p style={{ fontSize: '0.7rem', color: '#8C94AC' }}>
+                        Guessed <strong style={{ color: predColor }}>{def.classes[p.pred] ?? '—'}</strong>
+                        {' · '}truly <strong style={{ color: '#C9D2F0' }}>{def.classes[p.item.cls]}</strong>
+                      </p>
+                    </div>
+                    <span
+                      className="shrink-0 rounded-full p-1.5"
+                      style={{ background: p.correct ? '#2ECC7122' : '#EF444422' }}
+                      aria-hidden
+                    >
+                      {p.correct
+                        ? <Check className="w-4 h-4" style={{ color: '#2ECC71' }} />
+                        : <X className="w-4 h-4" style={{ color: '#EF4444' }} />}
+                    </span>
+                  </div>
+                  {/* Distances to each prototype — the "why" behind the guess. */}
+                  <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1">
+                    {p.dists.map((d, c) => (
+                      <span key={c} style={{ fontSize: '0.65rem', color: c === p.pred ? CLASS_COLORS[c % CLASS_COLORS.length] : '#8C94AC' }}>
+                        {def.classes[c]}: {d === null ? 'n/a' : d.toFixed(2)}{c === p.pred ? ' ◀ nearest' : ''}
+                      </span>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          );
+        })}
+        {/* Queued placeholders for items not yet guessed. */}
+        {test.slice(revealed).map((t) => (
+          <div key={t.id} className="rounded-2xl p-3 flex items-center gap-2" style={{ background: '#0E1428', border: '1px dashed #2A3556' }}>
+            <span className="rounded-full px-2 py-0.5 text-sm font-bold" style={{ background: '#141B33', color: '#8C94AC' }} aria-hidden>?</span>
+            <span style={{ fontSize: '0.75rem', color: '#8C94AC' }}>Unseen example waiting…</span>
+          </div>
+        ))}
       </div>
 
-      <ScoreDisplay score={score} maxScore={maxScore} />
-      <ComboCounter combo={combo} />
+      {/* RESULTS — accuracy, GIGO explanation, confusion matrix (band C). */}
+      {allRevealed && (
+        <motion.div
+          className="rounded-2xl p-4 space-y-3"
+          style={{ background: '#0E1428', border: `1px solid ${LAB_COLOR}30` }}
+          initial={reduced ? false : { opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <p className="text-sm font-bold" style={{ color: '#F5F7FF' }}>
+            Accuracy: <span style={{ color: LAB_COLOR }}>{predictions.filter((p) => p.correct).length}/{test.length}</span>
+            {' '}({Math.round(accuracy * 100)}%)
+          </p>
 
-      <PixiBinSortStage
-        items={sceneItems}
-        bins={bins}
-        assignments={assignments}
-        onAssign={handleAssign}
-        labColor={LAB_COLOR}
-        reducedMotion={!!prefersReducedMotion}
-      />
+          <p className="text-xs" style={{ color: '#C9D2F0' }}>
+            {predictions.every((p) => p.correct)
+              ? 'Clean labels in, sharp model out — every unseen example was guessed correctly!'
+              : poison.length > 0
+                ? 'The dataset held examples labelled WRONG (the flagged rows). Those bad labels dragged a prototype into the wrong place, so the model mis-guessed a real example. Garbage in, garbage out.'
+                : childLabelErrors > 0
+                  ? `${childLabelErrors} training example${childLabelErrors === 1 ? ' was' : 's were'} labelled wrong — that shifted the prototypes and caused ${predictions.filter((p) => !p.correct).length} wrong guess${predictions.filter((p) => !p.correct).length === 1 ? '' : 'es'}. Re-label to fix it!`
+                  : 'A couple of examples sat right on the boundary between classes — that is where classifiers slip.'}
+          </p>
 
-      {feedback && <FeedbackPopup {...feedback} />}
+          {band === 'C' && (
+            <div className="space-y-1.5">
+              <p style={{ fontSize: '0.7rem', color: '#8C94AC' }}>Confusion matrix — rows = true class, columns = the model&apos;s guess:</p>
+              <div className="overflow-x-auto">
+                <table style={{ fontSize: '0.65rem', color: '#C9D2F0', borderCollapse: 'collapse' }}>
+                  <thead>
+                    <tr>
+                      <th className="p-1.5" aria-label="true class over guessed class">true ＼ guess</th>
+                      {def.classes.map((c, ci) => (
+                        <th key={c} className="p-1.5" style={{ color: CLASS_COLORS[ci % CLASS_COLORS.length] }}>{c}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {def.classes.map((rowCls, r) => (
+                      <tr key={rowCls}>
+                        <td className="p-1.5 font-bold" style={{ color: CLASS_COLORS[r % CLASS_COLORS.length] }}>{rowCls}</td>
+                        {def.classes.map((_, cc) => {
+                          const n = predictions.filter((p) => p.item.cls === r && p.pred === cc).length;
+                          const onDiag = r === cc;
+                          return (
+                            <td
+                              key={cc}
+                              className="p-1.5 text-center font-bold"
+                              style={{
+                                background: n === 0 ? '#141B33' : onDiag ? '#2ECC7126' : '#EF444426',
+                                color: n === 0 ? '#5A6078' : onDiag ? '#2ECC71' : '#EF4444',
+                                border: '1px solid #2A3556',
+                              }}
+                            >
+                              {n}
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+        </motion.div>
+      )}
 
       <div className="flex gap-2">
-        <SFButton variant="primary" className="flex-1" onClick={() => finishLevel(score, wrong)} disabled={!allSorted}>
+        <SFButton variant="primary" className="flex-1" onClick={finishLevel} disabled={!allRevealed}>
           <Sparkles className="w-4 h-4 mr-2" />
-          {allSorted ? 'Train!' : `Label ${items.length - sortedCount} more…`}
+          {allRevealed ? 'Finish Level' : 'Classifying…'}
         </SFButton>
         <SFButton variant="outline" onClick={onExit} aria-label="Exit level">
-          <RotateCcw className="w-4 h-4" />
+          <ArrowRight className="w-4 h-4" />
         </SFButton>
       </div>
     </div>
@@ -333,12 +671,19 @@ function LevelRenderer({
 // ════════════════════════════════════════════════════════════════════════
 export default function BuildClassifierGame() {
   const { awardXP, completeGame } = useGameActions();
+  const band = (useActiveChild()?.age_band || 'B') as Band;
+
+  const defs = useMemo(() => levelsForBand(band), [band]);
+  const levels = useMemo(() => toLevelConfigs(defs), [defs]);
 
   const handleComplete = useCallback((results: LevelResult[]) => {
     const totalXP = results.reduce((s, r) => s + r.xpEarned, 0);
     const totalStars = results.reduce((s, r) => s + r.stars, 0);
+    const maxStars = results.length * 3;
+    const frac = maxStars > 0 ? totalStars / maxStars : 0;
     awardXP(Math.round(totalXP));
-    completeGame('build-classifier', totalStars >= 25 ? 3 : totalStars >= 15 ? 2 : 1);
+    // Fires once, 1–3 stars, based on overall test accuracy across levels.
+    completeGame('build-classifier', frac >= 0.8 ? 3 : frac >= 0.5 ? 2 : 1);
   }, [awardXP, completeGame]);
 
   return (
@@ -347,10 +692,17 @@ export default function BuildClassifierGame() {
         gameTitle="Build a Classifier"
         gameEmoji="🧠"
         labColor={LAB_COLOR}
-        levels={LEVELS}
+        levels={levels}
         onComplete={handleComplete}
         renderLevel={(level, onComplete, onExit) => (
-          <LevelRenderer level={level} onComplete={onComplete} onExit={onExit} />
+          <LevelRenderer
+            key={level.id}
+            def={defs[level.id - 1]}
+            level={level}
+            band={band}
+            onComplete={onComplete}
+            onExit={onExit}
+          />
         )}
       />
     </GameShell>
