@@ -36,30 +36,6 @@ Pet Trainer (trial-based RL loop on ReactionArena), Robot Vacuum (rebuild on Pha
 
 ---
 
-## Status (end of session) — G3 substantially COMPLETE
+## Status — G3 COMPLETE (100%)
 
-**29 of 32 game-items shipped** across waves A–E (both branches). Every audit-**critical**
-issue is resolved library-wide: all cloned mechanics de-cloned into distinct verbs, all
-dishonest scoring/leaks fixed (G1 + the real-engine rebuilds), all orphaned engines wired (G2).
-
-**Shipped:** A (Human vs Machine, Career Explorer, Code Blocks, Lost in Translation) · B (Token
-Chopper, Prediction Market, Chatbot Builder, My First AI App) · C1 (AI Spy, Time Machine, Tool
-Picker, Data Shield, Word Predictor) · C2 (Sentiment Scanner, Emoji Decoder, Build Classifier,
-Ethics Courtroom, Data Detective) · D (Real or Fake, AI Art Detective, Pixel Investigator,
-Camera Quest, Fool the AI) · E1 (Pet Trainer, Robot Vacuum, Neural Builder, Sort Toy Box, Neuron
-Relay) · E2 (Bias Detective).
-
-**Deferred (E2 tail — 3 optional POLISH items on already-functional games; needs the parallel
-agent budget, which hit the daily limit):**
-- **Agent Architect** — give each mission a tiny world-state so Decide/Check depend on block
-  configs; surface the dead debug-challenge data as a "Fix the Broken Agent" mode; label Tool
-  blocks as MCP + add a token/cost budget. (G1 already made the branch deterministic; game is
-  honest + functional today.)
-- **API Explorer** — quest/bug-ticket structure over the sandbox; /agent tool-use endpoint +
-  streaming; surface-consistency pass. (Functional today.)
-- **Prompt Lab** — revive Prompt Battle (two prompts, Sparky judges via the existing scorer);
-  server-side multi-turn history + Claude-rubric challenge judging (API-route work). (The
-  library's strongest game; functional today — polish only, do carefully.)
-
-These are enhancements, not fixes: all 42 games are functional and honest. Complete them as a
-focused agent wave when the budget resets.
+All 32 game-items shipped across waves A–E to both branches. Every standard-tier clone de-cloned into a distinct verb with real consequences; all honesty/leak issues fixed; all orphaned engines wired; the 3 E2 flagship-polish items (Agent Architect config-driven world-state + Fix-the-Broken-Agent mode + MCP/token budget; API Explorer quest tickets + /agent endpoint + band gating; Prompt Lab Battle mode) landed in the final E2 wave. Next: G4 (new games + creation loop).
