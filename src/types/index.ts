@@ -393,6 +393,7 @@ export const LABS: LabMeta[] = [
       { slug: 'word-predictor', title: 'Word Predictor', emoji: '📝', description: 'Guess what word AI picks next', estimatedMinutes: 8, xpReward: 20, ageBands: ['A', 'B', 'C'] },
       { slug: 'token-chopper', title: 'Token Chopper', emoji: '✂️', description: 'See how AI chops up language', estimatedMinutes: 5, xpReward: 15, ageBands: ['A', 'B', 'C'] },
       { slug: 'ai-art-detective', title: 'AI Art Detective', emoji: '🖼️', description: 'Spot AI-made art vs human art', estimatedMinutes: 10, xpReward: 25, ageBands: ['A', 'B', 'C'] },
+      { slug: 'thinking-cap', title: 'Thinking Cap', emoji: '🧢', description: 'Blurt vs think — and check the AI\'s reasoning', estimatedMinutes: 10, xpReward: 25, ageBands: ['B', 'C'] },
     ],
   },
   {
@@ -410,6 +411,8 @@ export const LABS: LabMeta[] = [
       { slug: 'data-shield', title: 'Data Shield', emoji: '🛡️', description: 'Protect your personal data', estimatedMinutes: 10, xpReward: 20, ageBands: ['A', 'B', 'C'] },
       { slug: 'real-or-fake', title: 'Real or Fake?', emoji: '🎭', description: 'Spot deepfakes and AI content', estimatedMinutes: 10, xpReward: 25, ageBands: ['A', 'B', 'C'] },
       { slug: 'ethics-courtroom', title: 'AI Ethics Courtroom', emoji: '⚖️', description: 'Debate real AI dilemmas', estimatedMinutes: 25, xpReward: 35, ageBands: ['B', 'C'] },
+      { slug: 'just-a-friend', title: 'Just a Friend?', emoji: '🫂', description: 'Spot the tricks an AI companion uses to keep you hooked', estimatedMinutes: 12, xpReward: 25, ageBands: ['B', 'C'] },
+      { slug: 'code-word', title: 'Code Word', emoji: '🔐', description: 'Beat voice-clone scams with a family code word', estimatedMinutes: 10, xpReward: 25, ageBands: ['A', 'B', 'C'] },
     ],
   },
   {
@@ -439,6 +442,7 @@ export const LABS: LabMeta[] = [
       { slug: 'career-explorer', title: 'Career Explorer', emoji: '🧭', description: 'Discover AI career paths', estimatedMinutes: 10, xpReward: 20, ageBands: ['B', 'C'] },
       { slug: 'api-explorer', title: 'API Explorer', emoji: '🔌', description: 'Send real API requests to Claude', estimatedMinutes: 20, xpReward: 35, ageBands: ['C'] },
       { slug: 'my-first-ai-app', title: 'My First AI App', emoji: '📱', description: 'Build a simple AI-powered app from scratch', estimatedMinutes: 15, xpReward: 30, ageBands: ['A', 'B', 'C'] },
+      { slug: 'vibe-coder', title: 'Vibe Coder', emoji: '🎛️', description: 'Describe an app, then debug what the AI wrote', estimatedMinutes: 12, xpReward: 25, ageBands: ['B', 'C'] },
     ],
   },
   {
@@ -446,6 +450,7 @@ export const LABS: LabMeta[] = [
     games: [
       { slug: 'future-forge', title: 'Future Forge', emoji: '🔮', description: 'Design your dream AI invention', estimatedMinutes: 15, xpReward: 25, ageBands: ['A', 'B', 'C'] },
       { slug: 'ai-or-not', title: 'AI or Not?', emoji: '❓', description: 'Judge whether creative works were made by humans or AI', estimatedMinutes: 10, xpReward: 20, ageBands: ['A', 'B'] },
+      { slug: 'trace-it', title: 'Trace It', emoji: '🔎', description: 'Catch a confident-but-wrong AI answer by tracing its sources', estimatedMinutes: 12, xpReward: 25, ageBands: ['B', 'C'] },
     ],
   },
   {
