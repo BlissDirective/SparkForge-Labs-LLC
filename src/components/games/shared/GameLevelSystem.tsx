@@ -12,6 +12,8 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Star, Lock, ChevronRight, Trophy, RotateCcw, Sparkles } from 'lucide-react';
 import { SFButton } from '@/components/ui/SFButton';
 import CountUp from '@/components/bits/CountUp';
+import { useActiveChild } from '@/hooks/useChildren';
+import { FreePlayBanner } from '@/components/game/FreePlayBanner';
 
 // ── Types ──
 export interface LevelConfig {
@@ -127,9 +129,10 @@ function LevelNode({
 
 // ── Level Complete Overlay ──
 function LevelCompleteOverlay({
-  result, level, onNext, onReplay, onMap,
+  result, level, onNext, onReplay, onMap, freePlay = false,
 }: {
   result: LevelResult; level: LevelConfig; onNext: () => void; onReplay: () => void; onMap: () => void;
+  freePlay?: boolean;
 }) {
   return (
     <motion.div
@@ -147,7 +150,8 @@ function LevelCompleteOverlay({
         transition={{ type: 'spring', damping: 20 }}
       >
         <h3 className="text-lg font-bold mb-2" style={{ color: '#1A1D2B' }}>
-          {result.stars >= 2 ? 'Level Complete!' : 'Level Finished'}
+          {/* Free Play never "downgrades" the youngest kids — always warm. */}
+          {freePlay ? 'Nice exploring!' : result.stars >= 2 ? 'Level Complete!' : 'Level Finished'}
         </h3>
 
         {/* Stars */}
@@ -266,6 +270,12 @@ export default function GameLevelSystem({
   const [levelResults, setLevelResults] = useState<Record<number, LevelResult>>({});
   const [showComplete, setShowComplete] = useState<LevelResult | null>(null);
 
+  // G4c — Band-A no-fail Free Play. The youngest cohort roams every
+  // level freely (no lock gate) and never sees failure framing. XP and
+  // stars are still earned; there is simply no way to lose or be locked
+  // out. Bands B/C keep the standard gated progression untouched.
+  const freePlay = useActiveChild()?.age_band === 'A';
+
   const handleLevelResult = useCallback((result: LevelResult) => {
     const levelId = activeLevel!;
     const existing = levelResults[levelId];
@@ -299,10 +309,11 @@ export default function GameLevelSystem({
   }, []);
 
   const isUnlocked = useCallback((levelId: number, levelIndex: number) => {
+    if (freePlay) return true; // Band-A Free Play: every level open to roam
     if (levelIndex === 0) return true; // First level always unlocked
     const prevLevel = levels[levelIndex - 1];
     return (levelResults[prevLevel.id]?.stars || 0) >= 1 || (savedProgress[prevLevel.id]?.stars || 0) >= 1;
-  }, [levelResults, savedProgress, levels]);
+  }, [freePlay, levelResults, savedProgress, levels]);
 
   const totalStars = levels.reduce((s, l) => s + (levelResults[l.id]?.stars || savedProgress[l.id]?.stars || 0), 0);
   const maxStars = levels.length * 3;
@@ -322,6 +333,7 @@ export default function GameLevelSystem({
               onNext={goToNext}
               onReplay={replayLevel}
               onMap={goToMap}
+              freePlay={freePlay}
             />
           )}
         </AnimatePresence>
@@ -351,6 +363,9 @@ export default function GameLevelSystem({
           </div>
         </div>
       </div>
+
+      {/* G4c — Band-A Free Play banner: no losing, roam any level. */}
+      {freePlay && <FreePlayBanner color={labColor} className="mb-5" />}
 
       {/* Level grid */}
       <div
