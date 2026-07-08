@@ -25,6 +25,7 @@ import {
   Play, RotateCcw, Zap,
   GraduationCap, Target, Award, Star,
   Settings2, Code2, CheckCircle2, Cpu,
+  Bug, Coins, Plug, Wrench,
 } from 'lucide-react';
 import { useAIContent } from '@/hooks/useAIContent';
 import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
@@ -151,6 +152,21 @@ const ALL_BLOCK_TYPES: BlockType[] = [
     outputs: 1, category: 'advanced', unlockAfter: 15,
     description: 'Send alert/notification to user or another agent', configurable: true },
 ];
+
+// ================================================================
+// 2026: TOKEN / COST BUDGET \u2014 every executed step spends tokens.
+// Running under the mission's token budget is part of the grade,
+// mirroring how real agent harnesses are cost-constrained.
+// ================================================================
+const BLOCK_TOKEN_COST: Record<string, number> = {
+  goal: 5, search: 20, tool: 25, decide: 10, check: 12, loop: 8,
+  memory: 10, parallel: 18, human: 30, done: 2,
+  filter: 12, transform: 15, 'api-call': 28, validate: 12, notify: 8,
+};
+
+function tokenCost(typeId: string): number {
+  return BLOCK_TOKEN_COST[typeId] ?? 10;
+}
 
 const TOOL_OPTIONS = [
   { id: 'calculator', label: 'Calculator', emoji: '\ud83e\uddee' },
@@ -295,6 +311,72 @@ const MISSIONS: Mission[] = [
 ];
 
 // ================================================================
+// PER-MISSION WORLD-STATE (config-driven execution)
+// ----------------------------------------------------------------
+// G1 honesty: Decide / Check / Validate outcomes are computed from
+// the BLOCK CONFIGS against a tiny deterministic per-mission world —
+// no Math.random. Searching the RIGHT source makes the mission's
+// facts known (true); an agent that then Decides/Checks on a known
+// fact takes the YES/pass branch. A search of the wrong source (or an
+// unconfigured search) leaves facts false → NO/fail branch. This is
+// what makes configuring blocks correctly change the run + the grade.
+// ================================================================
+interface MissionWorld {
+  correctSource?: string; // search target that actually yields the info
+  correctTool?: string;   // tool that actually accomplishes the task
+  facts: string[];        // keyword facts that become true on a good search
+  hint: string;           // shown in the build header
+}
+
+// Representative subset gets an authored world; every other mission
+// falls back to DEFAULT_WORLD (any configured search finds its info).
+const MISSION_WORLDS: Record<string, MissionWorld> = {
+  m1: { correctSource: 'web', facts: ['weather', 'info'],
+    hint: 'Point Search at the Web to find the weather.' },
+  m2: { correctSource: 'web', correctTool: 'scheduler', facts: ['venue', 'booked'],
+    hint: 'Search the Web for a venue, then use the Scheduler tool to book it.' },
+  m3: { correctSource: 'database', facts: ['price', 'cheap'],
+    hint: 'Search the price Database, then Decide if the price is cheap enough.' },
+  m4: { correctSource: 'files', correctTool: 'code-runner', facts: ['bug', 'fixed'],
+    hint: 'Search the Files for the bug, fix with Code Runner, then Check it is fixed.' },
+  m5: { correctSource: 'web', facts: ['research', 'enough'],
+    hint: 'Search the Web, then Decide if you have enough research.' },
+  m6: { correctSource: 'database', facts: ['answer', 'found'],
+    hint: 'Search the knowledge Database, then Check if an answer was found.' },
+};
+
+const DEFAULT_WORLD: MissionWorld = {
+  facts: ['info', 'found', 'good'],
+  hint: 'Configure each Search with a source, then Decide/Check on what it found.',
+};
+
+function getMissionWorld(missionId: string | null | undefined): MissionWorld {
+  if (missionId && MISSION_WORLDS[missionId]) return MISSION_WORLDS[missionId];
+  return DEFAULT_WORLD;
+}
+
+// Deterministic evaluation of a Decide/Check/Validate condition against
+// the live world. Returns true (YES/pass), false (NO/fail), or null when
+// the condition text references nothing known — caller then falls back to
+// the stable block-id seed so the run stays deterministic either way.
+const POSITIVE_WORDS = ['found', 'good', 'enough', 'pass', 'passed', 'correct',
+  'valid', 'success', 'ready', 'done', 'ok', 'okay', 'yes', 'complete', 'right',
+  'cheap', 'fixed', 'works'];
+
+function evalCondition(
+  text: string | undefined,
+  world: Record<string, boolean>,
+): boolean | null {
+  if (!text || !text.trim()) return null;
+  const t = text.toLowerCase();
+  for (const key of Object.keys(world)) {
+    if (key !== 'info' && t.includes(key)) return world[key];
+  }
+  if (POSITIVE_WORDS.some((w) => t.includes(w))) return world.info ?? false;
+  return null;
+}
+
+// ================================================================
 // Phase D2: Themed Mission Packs + Game Modes
 // ================================================================
 
@@ -313,19 +395,139 @@ const _MISSION_PACKS = [
     missions: ['m13'], description: 'Virtual pet care agent', concept: 'Event-driven agents' },
 ];
 
-// Debug mode: pre-built broken pipelines
-const _DEBUG_CHALLENGES = [
-  { id: 'dbg1', title: 'Missing Connection', description: 'Goal has no output \u2014 the pipeline is broken!', difficulty: 'easy' },
-  { id: 'dbg2', title: 'Infinite Loop', description: 'Loop has no exit condition \u2014 runs forever!', difficulty: 'medium' },
-  { id: 'dbg3', title: 'Wrong Order', description: 'Search comes after Done \u2014 it never executes!', difficulty: 'easy' },
+// Reachability: which block ids are reachable by following arrows from `startId`.
+function reachableFrom(startId: string, arrows: Arrow[]): Set<string> {
+  const seen = new Set<string>([startId]);
+  const stack = [startId];
+  while (stack.length) {
+    const cur = stack.pop()!;
+    for (const a of arrows) {
+      if (a.fromId === cur && !seen.has(a.toId)) {
+        seen.add(a.toId);
+        stack.push(a.toId);
+      }
+    }
+  }
+  return seen;
+}
+
+// ================================================================
+// "FIX THE BROKEN AGENT" \u2014 playable debug challenges.
+// Each challenge loads a PRE-BUILT buggy pipeline. The child repairs
+// the wiring / config, then Runs; `verify` checks the fix against the
+// world-state (returns null when fixed, else the next hint).
+// A representative subset carries a `build`; the picker only offers those.
+// ================================================================
+interface DebugBuild {
+  blocks: { id: string; type: string; x: number; y: number; config?: BlockConfig }[];
+  arrows: Arrow[];
+  verify: (blocks: PlacedBlock[], arrows: Arrow[]) => string | null;
+}
+
+interface DebugChallenge {
+  id: string;
+  title: string;
+  description: string;
+  difficulty: 'easy' | 'medium' | 'hard';
+  build?: DebugBuild;
+}
+
+const DEBUG_CHALLENGES: DebugChallenge[] = [
+  { id: 'dbg1', title: 'Missing Connection', difficulty: 'easy',
+    description: 'The Goal is not wired to anything \u2014 the agent never starts!',
+    build: {
+      blocks: [
+        { id: 'd1-goal', type: 'goal', x: 140, y: 40, config: { text: 'Find the weather' } },
+        { id: 'd1-search', type: 'search', x: 140, y: 170, config: { searchTarget: 'web' } },
+        { id: 'd1-done', type: 'done', x: 140, y: 300 },
+      ],
+      arrows: [{ fromId: 'd1-search', toId: 'd1-done', outputIndex: 0 }],
+      verify: (b, a) => {
+        const goal = b.find((x) => x.type.id === 'goal');
+        if (!goal) return 'The Goal block is missing.';
+        if (!a.some((x) => x.fromId === goal.id)) return 'Wire the Goal into the pipeline \u2014 drag a connection out of it.';
+        const done = b.find((x) => x.type.id === 'done');
+        if (done && !reachableFrom(goal.id, a).has(done.id)) return 'The Goal still cannot reach Done.';
+        return null;
+      },
+    } },
+  { id: 'dbg2', title: 'Infinite Loop', difficulty: 'medium',
+    description: 'The Loop never exits and never reaches Done \u2014 it runs forever!',
+    build: {
+      blocks: [
+        { id: 'd2-goal', type: 'goal', x: 140, y: 40, config: { text: 'Keep trying until it works' } },
+        { id: 'd2-loop', type: 'loop', x: 140, y: 170, config: { text: 'answer is good' } },
+        { id: 'd2-done', type: 'done', x: 320, y: 300 },
+      ],
+      arrows: [
+        { fromId: 'd2-goal', toId: 'd2-loop', outputIndex: 0 },
+        { fromId: 'd2-loop', toId: 'd2-loop', outputIndex: 0 },
+      ],
+      verify: (b, a) => {
+        const goal = b.find((x) => x.type.id === 'goal');
+        const done = b.find((x) => x.type.id === 'done');
+        if (!goal || !done) return 'Keep the Goal and Done blocks.';
+        if (!reachableFrom(goal.id, a).has(done.id)) return 'Give the Loop an exit: connect it onward so it can reach Done.';
+        return null;
+      },
+    } },
+  { id: 'dbg3', title: 'Wrong Order', difficulty: 'easy',
+    description: 'Search is wired AFTER Done, so it never runs. Put it in the right order.',
+    build: {
+      blocks: [
+        { id: 'd3-goal', type: 'goal', x: 140, y: 40, config: { text: 'Look up a fact' } },
+        { id: 'd3-search', type: 'search', x: 320, y: 300, config: { searchTarget: 'web' } },
+        { id: 'd3-done', type: 'done', x: 140, y: 170 },
+      ],
+      arrows: [
+        { fromId: 'd3-goal', toId: 'd3-done', outputIndex: 0 },
+        { fromId: 'd3-done', toId: 'd3-search', outputIndex: 0 },
+      ],
+      verify: (b, a) => {
+        const goal = b.find((x) => x.type.id === 'goal');
+        const search = b.find((x) => x.type.id === 'search');
+        const done = b.find((x) => x.type.id === 'done');
+        if (!goal || !search || !done) return 'Keep Goal, Search and Done.';
+        const reach = reachableFrom(goal.id, a);
+        if (!reach.has(search.id)) return 'Search still never runs \u2014 put it on the path after the Goal.';
+        // Search must come before Done: Done should not lead into Search.
+        if (reachableFrom(done.id, a).has(search.id)) return 'Search is still after Done. Run Search first, then finish with Done.';
+        if (!reach.has(done.id)) return 'The pipeline must still reach Done.';
+        return null;
+      },
+    } },
+  { id: 'dbg9', title: 'Orphan Blocks', difficulty: 'easy',
+    description: 'Three blocks float unconnected. Wire them in or remove them.',
+    build: {
+      blocks: [
+        { id: 'd9-goal', type: 'goal', x: 60, y: 40, config: { text: 'Answer a question' } },
+        { id: 'd9-search', type: 'search', x: 60, y: 170, config: { searchTarget: 'database' } },
+        { id: 'd9-done', type: 'done', x: 60, y: 300 },
+        { id: 'd9-tool', type: 'tool', x: 300, y: 40, config: { tool: 'calculator' } },
+        { id: 'd9-decide', type: 'decide', x: 300, y: 170, config: { text: 'answer found' } },
+        { id: 'd9-memory', type: 'memory', x: 300, y: 300, config: { text: 'context' } },
+      ],
+      arrows: [
+        { fromId: 'd9-goal', toId: 'd9-search', outputIndex: 0 },
+        { fromId: 'd9-search', toId: 'd9-done', outputIndex: 0 },
+      ],
+      verify: (b, a) => {
+        const connected = new Set<string>();
+        a.forEach((x) => { connected.add(x.fromId); connected.add(x.toId); });
+        const orphan = b.find((x) => !connected.has(x.id));
+        if (orphan) return `"${orphan.type.label}" is still floating alone \u2014 wire it in or remove it.`;
+        return null;
+      },
+    } },
   { id: 'dbg4', title: 'Dead Branch', description: 'One Decide path leads nowhere.', difficulty: 'medium' },
   { id: 'dbg5', title: 'Missing Validation', description: 'API result used without checking if it succeeded.', difficulty: 'hard' },
   { id: 'dbg6', title: 'Memory Leak', description: 'Memory block stores but never reads \u2014 wasted work!', difficulty: 'medium' },
   { id: 'dbg7', title: 'Parallel Deadlock', description: 'Two parallel paths depend on each other.', difficulty: 'hard' },
   { id: 'dbg8', title: 'No Error Handling', description: 'API call with no Check/Decide for failures.', difficulty: 'medium' },
-  { id: 'dbg9', title: 'Orphan Blocks', description: 'Three blocks are not connected to anything.', difficulty: 'easy' },
   { id: 'dbg10', title: 'Wrong Goal', description: 'Goal says one thing but pipeline does another.', difficulty: 'hard' },
 ];
+
+const PLAYABLE_DEBUG = DEBUG_CHALLENGES.filter((c) => c.build);
 
 // ================================================================
 // LEARN CARDS
@@ -499,11 +701,11 @@ export function AgentArchitectGame() {
   const filteredMissions = useFilteredContent(MISSIONS as any[], tier, ageBand) as typeof MISSIONS;
 
   // Phase D2: Game mode + sandbox/debug/replay state
-  const [_gameMode, _setGameMode] = useState<AgentGameMode>('mission');
+  const [gameMode, setGameMode] = useState<AgentGameMode>('mission');
 
   // Phase F: AI-generated mission
   const _aiMission = useAIContent('agent-architect', 'agent-mission', ageBand);
-  const [_activeDebugChallenge, _setActiveDebugChallenge] = useState<string | null>(null);
+  const [activeDebugId, setActiveDebugId] = useState<string | null>(null);
   const [_replayStep, _setReplayStep] = useState(0);
   const [_replayPlaying, _setReplayPlaying] = useState(false);
   const [_sandboxTestInput, _setSandboxTestInput] = useState('');
@@ -527,7 +729,15 @@ export function AgentArchitectGame() {
   // Report state
   const [reportData, setReportData] = useState<{
     stars: number; pathLen: number; efficiency: string; tips: string[];
+    tokensUsed: number; tokenBudget: number; underBudget: boolean;
+    configGood: boolean; isDebug: boolean; bugFixed: boolean;
   } | null>(null);
+
+  // Genuine-end tracking: stars earned per mission + a one-shot guard so
+  // completeGame() fires exactly once, at the real end (mission goal met),
+  // never after a single mission run.
+  const [missionStars, setMissionStars] = useState<Record<string, number>>({});
+  const [gameFinished, setGameFinished] = useState(false);
 
   // S6-CRIT-002: Register 3D scene content with sceneStore (D3D-B1)
   const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
@@ -583,6 +793,29 @@ export function AgentArchitectGame() {
     MISSIONS.filter(m => BAND_ORDER[m.bandMin] <= BAND_ORDER[ageBand]),
     [ageBand]);
 
+  // Genuine end = finishing a meaningful arc of missions for this band,
+  // not just one run. Capped so it stays reachable for every band.
+  const missionsToWin = useMemo(
+    () => Math.min(availableMissions.length, 5),
+    [availableMissions],
+  );
+
+  const currentDebug = activeDebugId
+    ? DEBUG_CHALLENGES.find((c) => c.id === activeDebugId) ?? null
+    : null;
+
+  // World + token budget for the active mission/debug run.
+  const activeWorld = useMemo(() => getMissionWorld(activeMissionId), [activeMissionId]);
+  const tokenBudget = useMemo(() => {
+    const optimal = mission?.optimalBlocks ?? Math.max(blocks.length, 4);
+    return Math.round(optimal * 20);
+  }, [mission, blocks.length]);
+  // Live estimate of what the current layout would spend if every block ran once.
+  const estimatedTokens = useMemo(
+    () => blocks.reduce((sum, b) => sum + tokenCost(b.type.id), 0),
+    [blocks],
+  );
+
   const pseudocode = useMemo(() =>
     ageBand === 'C' ? generatePseudocode(blocks, arrows) : '',
     [blocks, arrows, ageBand]);
@@ -600,6 +833,8 @@ export function AgentArchitectGame() {
   function startMission(missionId: string) {
     const m = MISSIONS.find(mi => mi.id === missionId);
     if (!m) return;
+    setGameMode('mission');
+    setActiveDebugId(null);
     setActiveMissionId(missionId);
     setBlocks([]); setArrows([]); setRunPath([]); setRunSteps([]);
     setReportData(null); setSelectedBlock(null);
@@ -614,6 +849,25 @@ export function AgentArchitectGame() {
       });
       setBlocks(starters);
     }
+    setPhase('build');
+  }
+
+  // "Fix the Broken Agent": load a pre-built buggy pipeline into the canvas.
+  function startDebugChallenge(challengeId: string) {
+    const c = DEBUG_CHALLENGES.find((ch) => ch.id === challengeId);
+    if (!c || !c.build) return;
+    setGameMode('debug');
+    setActiveDebugId(challengeId);
+    setActiveMissionId(null);
+    setConnecting(null); setRunPath([]); setRunSteps([]);
+    setActiveRunBlock(null); setReportData(null); setSelectedBlock(null);
+    setValidationMsg(null);
+    const loaded: PlacedBlock[] = c.build.blocks.map((sb) => {
+      const type = ALL_BLOCK_TYPES.find((t) => t.id === sb.type)!;
+      return { id: sb.id, type, x: sb.x, y: sb.y, config: sb.config ? { ...sb.config } : {} };
+    });
+    setBlocks(loaded);
+    setArrows(c.build.arrows.map((a) => ({ ...a })));
     setPhase('build');
   }
 
@@ -704,11 +958,29 @@ export function AgentArchitectGame() {
       return;
     }
 
+    // Fix-the-Broken-Agent gate: the buggy pipeline must be repaired
+    // (verified against the world-state) before it is allowed to run.
+    const isDebug = gameMode === 'debug' && !!currentDebug?.build;
+    if (isDebug && currentDebug?.build) {
+      const bugHint = currentDebug.build.verify(blocks, arrows);
+      if (bugHint) {
+        setValidationMsg(`🐞 ${bugHint}`);
+        safeTimeout(() => setValidationMsg(null), 3600);
+        return;
+      }
+    }
+
     setIsRunning(true);
     setRunPath([]);
     setRunSteps([]);
     if (soundEnabled) agentAudio.playRunStart();
     broadcast({ type: 'button-press', source: 'agent-architect', value: 1, color: '#10B981', label: 'Pipeline Run' });
+
+    // Per-run world-state — facts start unknown; a correctly configured
+    // Search makes them known (true). Decide/Check then branch on config.
+    const mworld = activeWorld;
+    const world: Record<string, boolean> = { info: false, ready: false };
+    mworld.facts.forEach((f) => { world[f] = false; });
 
     const goal = blocks.find(b => b.type.id === 'goal')!;
     const path: string[] = [goal.id];
@@ -723,7 +995,26 @@ export function AgentArchitectGame() {
       setActiveRunBlock(current);
       setRunPath([...path]);
 
-      const narration = buildNarration(block);
+      // Apply this block's effect on the world (config-driven).
+      let narration = buildNarration(block);
+      if (block.type.id === 'search') {
+        const src = block.config.searchTarget;
+        const ok = mworld.correctSource ? src === mworld.correctSource : !!src;
+        if (ok) {
+          world.info = true;
+          mworld.facts.forEach((f) => { world[f] = true; });
+          narration = `🔍 Searched ${src || 'the web'} — found what the agent needs!`;
+        } else {
+          narration = `🔍 Searched ${src || 'nowhere set'} — nothing useful came back.`;
+        }
+      } else if (block.type.id === 'tool') {
+        const ok = mworld.correctTool ? block.config.tool === mworld.correctTool : !!block.config.tool;
+        world.ready = ok;
+        narration = ok
+          ? `🛠️ MCP tool "${block.config.tool}" did the job.`
+          : `🛠️ No MCP tool selected — nothing happened.`;
+      }
+
       steps.push({ blockId: current, narration });
       setRunSteps([...steps]);
 
@@ -735,11 +1026,17 @@ export function AgentArchitectGame() {
 
       let next: Arrow;
       if (block.type.outputs === 2 && outgoing.length >= 2) {
-        // Deterministic demo branch: seed the YES/NO path from the block's stable
-        // id so a given pipeline always runs the same way (no coin-flip pretending
-        // to be a real decision). Real branching logic is a later milestone.
+        // G1 honesty: the YES/NO (pass/fail) path is decided by the block's
+        // CONFIG evaluated against the live world-state. If the condition
+        // references nothing known, fall back to a stable block-id seed so a
+        // given pipeline still always runs the same way — never Math.random.
+        const verdict = (block.type.id === 'decide'
+          || block.type.id === 'check'
+          || block.type.id === 'validate')
+          ? evalCondition(block.config.text, world)
+          : null;
         const seed = block.id.split('').reduce((s, ch) => s + ch.charCodeAt(0), 0);
-        const pick = seed % 2;
+        const pick = verdict === true ? 0 : verdict === false ? 1 : seed % 2;
         next = outgoing.find(a => a.outputIndex === pick) || outgoing[0];
         steps[steps.length - 1].decision = pick === 0 ? 'yes' : 'no';
         setRunSteps([...steps]);
@@ -756,7 +1053,7 @@ export function AgentArchitectGame() {
     setRunPath([...path]);
     await new Promise<void>(r => safeTimeout(r, 1200));
 
-    // Report calculation
+    // ── Report calculation ──────────────────────────────────────
     const pathLen = path.length;
     const optimal = mission?.optimalBlocks || blocks.length;
     const efficiency = pathLen <= optimal ? 'Excellent'
@@ -766,11 +1063,36 @@ export function AgentArchitectGame() {
       ? mission.requiredBlockTypes.every(rt => blocks.some(b => b.type.id === rt))
       : true;
 
-    const stars = (pathLen <= optimal ? 1 : 0)
-      + (meetsReqs ? 1 : 0)
-      + (blocks.length <= (mission?.minBlocks || blocks.length) + 2 ? 1 : 0);
+    // 2026 token/cost budget — sum the cost of every executed step.
+    const tokensUsed = path.reduce((sum, id) => {
+      const b = blocks.find(bl => bl.id === id);
+      return sum + (b ? tokenCost(b.type.id) : 0);
+    }, 0);
+    const underBudget = tokensUsed <= tokenBudget;
+
+    // Config correctness: did every Search/Tool get wired up right so the
+    // agent actually reached a known state?
+    const searchBlocks = blocks.filter(b => b.type.id === 'search');
+    const toolBlocks = blocks.filter(b => b.type.id === 'tool');
+    const searchesOk = searchBlocks.every(b =>
+      mworld.correctSource ? b.config.searchTarget === mworld.correctSource : !!b.config.searchTarget);
+    const toolsOk = toolBlocks.every(b =>
+      mworld.correctTool ? b.config.tool === mworld.correctTool : !!b.config.tool);
+    const configGood = (searchBlocks.length === 0 || searchesOk)
+      && (toolBlocks.length === 0 || toolsOk)
+      && (searchBlocks.length === 0 || world.info);
+
+    const points = (meetsReqs ? 1 : 0)
+      + (pathLen <= optimal ? 1 : 0)
+      + (underBudget ? 1 : 0)
+      + (configGood ? 1 : 0);
+    const stars = points >= 4 ? 3 : points >= 2 ? 2 : 1;
 
     const tips: string[] = [];
+    if (!configGood && searchBlocks.length > 0)
+      tips.push(mworld.hint);
+    if (!underBudget)
+      tips.push(`Over token budget (${tokensUsed}/${tokenBudget}) — fewer or cheaper steps cost less.`);
     if (pathLen > optimal + 2)
       tips.push('Try using fewer blocks for a more efficient path');
     if (!blocks.some(b => b.type.id === 'check'))
@@ -779,23 +1101,50 @@ export function AgentArchitectGame() {
       && mission && mission.difficulty !== 'beginner')
       tips.push('Decide blocks help your agent handle different outcomes');
 
-    setReportData({ stars, pathLen, efficiency, tips });
+    setReportData({
+      stars, pathLen, efficiency, tips,
+      tokensUsed, tokenBudget, underBudget, configGood,
+      isDebug, bugFixed: isDebug,
+    });
     game.updateScore(10 + stars * 5);
     if (soundEnabled) agentAudio.playMissionComplete(stars);
     triggerCelebration(stars >= 3 ? 'streak' : 'confetti');
     broadcast({ type: 'celebration-start', source: 'agent-architect', value: stars, color: '#10B981' });
     broadcast({ type: 'dial-rotate', source: 'agent-architect', value: stars / 3, color: '#10B981' });
 
-    if (mission && !completedMissions.includes(mission.id))
-      setCompletedMissions(prev => [...prev, mission.id]);
+    // Track per-mission best stars and detect the genuine end of the game.
+    if (mission) {
+      const nextCompleted = completedMissions.includes(mission.id)
+        ? completedMissions
+        : [...completedMissions, mission.id];
+      if (!completedMissions.includes(mission.id)) setCompletedMissions(nextCompleted);
+      setMissionStars(prev => ({
+        ...prev,
+        [mission.id]: Math.max(prev[mission.id] ?? 0, stars),
+      }));
 
-    game.completeGame();
+      // Genuine end: enough distinct missions cleared. Fire completeGame
+      // exactly once, with an overall star rating — not after one mission.
+      if (!gameFinished && nextCompleted.length >= missionsToWin) {
+        const perMission = { ...missionStars, [mission.id]: Math.max(missionStars[mission.id] ?? 0, stars) };
+        const cleared = nextCompleted.map(id => perMission[id] ?? 1);
+        const avg = cleared.reduce((s, v) => s + v, 0) / cleared.length;
+        const overallStars = Math.max(1, Math.min(3, Math.round(avg)));
+        setGameFinished(true);
+        game.completeGame('agent-architect', overallStars);
+      }
+    }
+
     setIsRunning(false);
     setSpotlightPos(null);
     safeTimeout(() => setPhase('report'), 1500);
   }
 
   function resetCanvas() {
+    if (gameMode === 'debug' && activeDebugId) {
+      startDebugChallenge(activeDebugId);
+      return;
+    }
     setBlocks([]); setArrows([]); setConnecting(null);
     setRunPath([]); setRunSteps([]); setActiveRunBlock(null);
     setSelectedBlock(null); setReportData(null);
@@ -987,6 +1336,36 @@ export function AgentArchitectGame() {
                         );
                       })}
                     </div>
+
+                    {/* ======== FIX THE BROKEN AGENT ======== */}
+                    <div className="max-w-2xl mx-auto pt-2">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Bug className="w-4 h-4 text-rose-400" />
+                        <h4 className="font-display text-sm font-bold text-white">Fix the Broken Agent</h4>
+                        <span className="font-body text-2xs text-white/60">Debug a pre-built agent</span>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {PLAYABLE_DEBUG.map(c => (
+                          <motion.button key={c.id} onClick={() => startDebugChallenge(c.id)}
+                            className="p-3 rounded-xl border border-rose-500/20 bg-rose-500/[0.04] hover:border-rose-500/40 text-left transition-all"
+                            whileHover={{ y: -2 }} whileTap={{ scale: 0.98 }}
+                            aria-label={`Fix the broken agent: ${c.title}`}>
+                            <div className="flex items-center gap-2">
+                              <Wrench className="w-3.5 h-3.5 text-rose-400" />
+                              <p className="font-display text-sm font-bold text-white">{c.title}</p>
+                            </div>
+                            <p className="font-body text-xs text-white/70 mt-1">{c.description}</p>
+                            <span className={`inline-block mt-2 px-1.5 py-0.5 rounded text-2xs font-bold ${
+                              c.difficulty === 'easy' ? 'bg-emerald-500/10 text-emerald-400'
+                              : c.difficulty === 'medium' ? 'bg-amber-500/10 text-amber-400'
+                              : 'bg-red-500/10 text-red-400'
+                            }`}>
+                              {c.difficulty}
+                            </span>
+                          </motion.button>
+                        ))}
+                      </div>
+                    </div>
                   </motion.div>
                 )}
 
@@ -1009,6 +1388,37 @@ export function AgentArchitectGame() {
                         </button>
                       </div>
                     )}
+
+                    {/* Debug-mode header (Fix the Broken Agent) */}
+                    {gameMode === 'debug' && currentDebug && (
+                      <div className="px-4 py-2 bg-rose-500/5 border-b border-rose-500/10 flex items-center gap-2">
+                        <Bug className="w-4 h-4 text-rose-400" />
+                        <div className="flex-1">
+                          <span className="font-display text-xs font-bold text-rose-400">Fix: {currentDebug.title}</span>
+                          <span className="font-body text-2xs text-white/60 ml-2">{currentDebug.description}</span>
+                        </div>
+                        <button onClick={() => setPhase('missions')}
+                          className="font-body text-2xs text-white/55 hover:text-white/70">
+                          Back
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Config hint + token budget bar */}
+                    <div className="px-4 py-1.5 border-b border-white/5 flex items-center gap-3 flex-wrap">
+                      {gameMode === 'mission' && (
+                        <span className="font-body text-2xs text-white/60 flex items-center gap-1">
+                          <Plug className="w-3 h-3 text-emerald-400" /> {activeWorld.hint}
+                        </span>
+                      )}
+                      <div className="flex-1" />
+                      <span className={`font-body text-2xs flex items-center gap-1 ${
+                        estimatedTokens > tokenBudget ? 'text-rose-400' : 'text-emerald-400'
+                      }`}
+                        aria-label={`Token budget ${estimatedTokens} of ${tokenBudget}`}>
+                        <Coins className="w-3 h-3" /> {estimatedTokens} / {tokenBudget} tokens
+                      </span>
+                    </div>
 
                     {/* Block palette */}
                     <div className="px-3 py-2 border-b border-white/5 flex items-center gap-1.5 flex-wrap">
@@ -1150,9 +1560,13 @@ export function AgentArchitectGame() {
                                 aria-label="Block configuration text" />
                             )}
 
-                            {/* Tool selector */}
+                            {/* Tool selector — MCP tools (2026) */}
                             {selectedBlockData.type.id === 'tool' && (
                               <div className="flex flex-wrap gap-1.5">
+                                <span className="w-full flex items-center gap-1 font-body text-2xs text-white/60 mb-0.5">
+                                  <Plug className="w-3 h-3 text-orange-400" />
+                                  Pick an MCP tool — the agent calls a real service through it.
+                                </span>
                                 {TOOL_OPTIONS.map(tool => (
                                   <button key={tool.id}
                                     onClick={() => updateBlockConfig(selectedBlockData.id, { tool: tool.id })}
@@ -1227,9 +1641,21 @@ export function AgentArchitectGame() {
                     className="flex-1 flex flex-col items-center justify-center p-6 space-y-4">
 
                     <Award className="w-8 h-8 text-emerald-400" />
-                    <h3 className="font-display text-xl font-bold text-white">Mission Report</h3>
+                    <h3 className="font-display text-xl font-bold text-white">
+                      {reportData.isDebug ? 'Debug Report' : 'Mission Report'}
+                    </h3>
                     {mission && (
                       <p className="font-body text-xs text-white/70">{mission.emoji} {mission.title}</p>
+                    )}
+                    {reportData.isDebug && currentDebug && (
+                      <p className="font-body text-xs text-rose-300 flex items-center gap-1">
+                        <Wrench className="w-3.5 h-3.5" /> Bug fixed: {currentDebug.title}
+                      </p>
+                    )}
+                    {gameFinished && (
+                      <span className="px-2.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 font-body text-2xs font-bold text-amber-300">
+                        🏆 Lab complete — you mastered Agent Architect!
+                      </span>
                     )}
 
                     {/* Stars */}
@@ -1262,6 +1688,16 @@ export function AgentArchitectGame() {
                           {reportData.efficiency}
                         </p>
                         <p className="font-body text-2xs text-white/60">Efficiency</p>
+                      </div>
+                      <div>
+                        <p className={`font-display text-2xl font-bold ${
+                          reportData.underBudget ? 'text-emerald-400' : 'text-red-400'
+                        }`}>
+                          {reportData.tokensUsed}
+                        </p>
+                        <p className="font-body text-2xs text-white/60 flex items-center gap-0.5 justify-center">
+                          <Coins className="w-3 h-3" /> / {reportData.tokenBudget}
+                        </p>
                       </div>
                     </div>
 

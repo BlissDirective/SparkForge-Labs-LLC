@@ -1,30 +1,34 @@
 // ════════════════════════════════════════════════════════════════════════
-// API EXPLORER — Lab 9 (Build with AI) — STANDARD POLISH — BAND C ONLY
+// API EXPLORER — Lab 9 (Build with AI) — STANDARD POLISH — QUEST REDESIGN
 //
-// Concept: Send simulated API requests to an AI service.
-// Choose endpoints, set parameters, see JSON responses.
-// Teaches REST APIs, request/response cycle, JSON format.
+// Concept: A simulated-API sandbox turned into a game. Sparky files
+// "mission tickets" (quests) — get a sentiment score over 0.8, trip a 429
+// on purpose, chain /embed into /classify, make moderation flag something,
+// run the agent tool-loop, stream a response live. Every quest is verified
+// against the ACTUAL request the child built and the ACTUAL response it
+// produced (real deterministic checks — G1 honesty). Completing quests
+// drives progression + stars, and completeGame('api-explorer', stars)
+// fires once when the mission board is cleared (or the child chooses to
+// finish early).
 //
 // Features:
-// • Chrome bezel (orange, Lab 9)
-// • Particle background
-// • Welcome + learn phases
-// • 5 endpoints: /classify, /generate, /translate, /sentiment, /chat
-// • Request builder with parameter inputs
-// • Animated "sending" state
-// • JSON response viewer with syntax highlighting
-// • Status codes explained (200, 400, 429, 500)
-// • Request history log
-// • ARIA labels
-//
-// ENH: Send/receive animation + method badges + typewriter response + status colors
+// • Chrome bezel (orange, Lab 9) + particle background
+// • Welcome + learn phases (age-band aware badge)
+// • 11 endpoints: /classify, /generate, /translate, /sentiment, /chat,
+//   /summarize, /moderate, /embed, /image-describe, /detect-objects, and
+//   the 2026 /agent endpoint (tool-use loop: request→tool_call→result→answer)
+// • Streaming response toggle (SSE-style incremental reveal)
+// • Param-reactive fake JSON, typewriter viewer, method badges
+// • Real 429 rate-limit sim + random 500s + status codes explained
+// • Request history log + ARIA labels + keyboard-operable controls
+// • Age-band gating: band A/B see simpler endpoints + quests, band C all
 // ════════════════════════════════════════════════════════════════════════
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import { GameShell } from '@/components/game/GameShell';
-import { useGame } from '@/stores/gameStore';
+import { useGameActions } from '@/stores/gameStore';
 import { useActiveChild } from '@/hooks/useChildren';
 import { useGameContent } from '@/hooks/useContent';
 import { useSafeTimeout } from '@/hooks/useSafeTimeout';
@@ -36,6 +40,14 @@ import {
   History,
   AlertCircle,
   CheckCircle2,
+  Target,
+  Zap,
+  ShieldAlert,
+  Workflow,
+  Bot,
+  Radio,
+  ListChecks,
+  type LucideIcon,
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { useSceneStore } from '@/stores/sceneStore';
@@ -54,6 +66,10 @@ type Phase = 'welcome' | 'learn' | 'explore' | 'complete';
 interface Endpoint {
   path: string;
   method: 'GET' | 'POST';
+  /** Minimum age band that sees this endpoint (A < B < C). */
+  band?: 'A' | 'B' | 'C';
+  /** Difficulty tag for the DifficultySelector filter. */
+  difficulty?: 'easy' | 'medium' | 'hard' | 'expert';
   description: string;
   params: { name: string; type: string; placeholder: string; required: boolean }[];
   exampleResponse: (params: Record<string, string>) => {
@@ -76,6 +92,8 @@ const ENDPOINTS: Endpoint[] = [
   {
     path: '/api/v1/classify',
     method: 'POST',
+    band: 'A',
+    difficulty: 'easy',
     description: 'Classify an image or text into categories',
     params: [
       { name: 'input', type: 'text', placeholder: 'e.g., "a photo of a sunset"', required: true },
@@ -108,6 +126,8 @@ const ENDPOINTS: Endpoint[] = [
   {
     path: '/api/v1/generate',
     method: 'POST',
+    band: 'A',
+    difficulty: 'medium',
     description: 'Generate text from a prompt',
     params: [
       { name: 'prompt', type: 'text', placeholder: 'e.g., "Write a haiku about robots"', required: true },
@@ -145,6 +165,8 @@ const ENDPOINTS: Endpoint[] = [
   {
     path: '/api/v1/translate',
     method: 'POST',
+    band: 'B',
+    difficulty: 'medium',
     description: 'Translate text between languages',
     params: [
       { name: 'text', type: 'text', placeholder: 'e.g., "Hello, how are you?"', required: true },
@@ -181,6 +203,8 @@ const ENDPOINTS: Endpoint[] = [
   {
     path: '/api/v1/sentiment',
     method: 'POST',
+    band: 'A',
+    difficulty: 'easy',
     description: 'Analyze sentiment of text',
     params: [
       { name: 'text', type: 'text', placeholder: 'e.g., "I love this product!"', required: true },
@@ -215,6 +239,8 @@ const ENDPOINTS: Endpoint[] = [
   {
     path: '/api/v1/chat',
     method: 'POST',
+    band: 'A',
+    difficulty: 'easy',
     description: 'Send a message to an AI chatbot',
     params: [
       { name: 'message', type: 'text', placeholder: 'e.g., "What is machine learning?"', required: true },
@@ -254,6 +280,8 @@ const ENDPOINTS: Endpoint[] = [
   {
     path: '/api/v1/summarize',
     method: 'POST',
+    band: 'B',
+    difficulty: 'medium',
     description: 'Summarize a long text into key points',
     params: [
       { name: 'text', type: 'text', placeholder: 'e.g., "Paste a long article here..."', required: true },
@@ -279,28 +307,61 @@ const ENDPOINTS: Endpoint[] = [
   {
     path: '/api/v1/moderate',
     method: 'POST',
+    band: 'B',
+    difficulty: 'medium',
     description: 'Check text for harmful or inappropriate content',
     params: [
-      { name: 'text', type: 'text', placeholder: 'e.g., "Check this message for safety"', required: true },
+      { name: 'text', type: 'text', placeholder: 'e.g., "you are so stupid"', required: true },
     ],
-    exampleResponse: (p) => ({
-      status: p.text ? 200 : 400,
-      latency: 50 + Math.floor(Math.random() * 40),
-      body: p.text
-        ? {
-            flagged: false,
-            categories: { hate: false, violence: false, self_harm: false, sexual: false, harassment: false },
-            scores: { hate: Number((Math.random() * 0.05).toFixed(4)), violence: Number((Math.random() * 0.03).toFixed(4)), harassment: Number((Math.random() * 0.04).toFixed(4)) },
-            model: 'moderation-v1',
-          }
-        : { error: 'Missing required parameter: text', code: 'INVALID_REQUEST' },
-    }),
+    exampleResponse: (p) => {
+      const text = (p.text || '').toLowerCase();
+      // Deterministic: certain words flip `flagged` to true so the
+      // "make moderation flag something" quest is a real function of input.
+      const FLAG_WORDS: { word: string; category: 'hate' | 'violence' | 'harassment' }[] = [
+        { word: 'hate', category: 'hate' },
+        { word: 'stupid', category: 'harassment' },
+        { word: 'idiot', category: 'harassment' },
+        { word: 'dumb', category: 'harassment' },
+        { word: 'loser', category: 'harassment' },
+        { word: 'ugly', category: 'harassment' },
+        { word: 'kill', category: 'violence' },
+        { word: 'destroy', category: 'violence' },
+      ];
+      const hit = FLAG_WORDS.find((f) => text.includes(f.word));
+      const flagged = Boolean(p.text) && Boolean(hit);
+      const cat = hit?.category;
+      return {
+        status: p.text ? 200 : 400,
+        latency: 50 + Math.floor(Math.random() * 40),
+        body: p.text
+          ? {
+              flagged,
+              flagged_word: flagged ? hit?.word : null,
+              categories: {
+                hate: flagged && cat === 'hate',
+                violence: flagged && cat === 'violence',
+                self_harm: false,
+                sexual: false,
+                harassment: flagged && cat === 'harassment',
+              },
+              scores: {
+                hate: Number((flagged && cat === 'hate' ? 0.8 + Math.random() * 0.15 : Math.random() * 0.05).toFixed(4)),
+                violence: Number((flagged && cat === 'violence' ? 0.8 + Math.random() * 0.15 : Math.random() * 0.03).toFixed(4)),
+                harassment: Number((flagged && cat === 'harassment' ? 0.75 + Math.random() * 0.2 : Math.random() * 0.04).toFixed(4)),
+              },
+              model: 'moderation-v1',
+            }
+          : { error: 'Missing required parameter: text', code: 'INVALID_REQUEST' },
+      };
+    },
     teachingNote:
-      'Content moderation APIs scan text for harmful content. They return scores for different harm categories — platforms use these to filter dangerous content automatically.',
+      'Content moderation APIs scan text for harmful content. Try a word like "stupid" to watch the `flagged` flag flip to true — platforms use these scores to filter dangerous content automatically.',
   },
   {
     path: '/api/v1/embed',
     method: 'POST',
+    band: 'B',
+    difficulty: 'hard',
     description: 'Convert text into a numerical vector (embedding)',
     params: [
       { name: 'text', type: 'text', placeholder: 'e.g., "artificial intelligence"', required: true },
@@ -325,6 +386,8 @@ const ENDPOINTS: Endpoint[] = [
   {
     path: '/api/v1/image-describe',
     method: 'POST',
+    band: 'C',
+    difficulty: 'hard',
     description: 'Describe what is in an image',
     params: [
       { name: 'image_url', type: 'text', placeholder: 'e.g., "https://example.com/photo.jpg"', required: true },
@@ -349,6 +412,8 @@ const ENDPOINTS: Endpoint[] = [
   {
     path: '/api/v1/detect-objects',
     method: 'POST',
+    band: 'C',
+    difficulty: 'hard',
     description: 'Detect and locate objects in an image',
     params: [
       { name: 'image_url', type: 'text', placeholder: 'e.g., "https://example.com/photo.jpg"', required: true },
@@ -372,6 +437,62 @@ const ENDPOINTS: Endpoint[] = [
     }),
     teachingNote:
       'Object detection APIs find objects in images and draw boxes around them (bounding boxes). Each detection includes a label, confidence score, and coordinates.',
+  },
+  {
+    path: '/api/v1/agent',
+    method: 'POST',
+    band: 'C',
+    difficulty: 'expert',
+    description: 'Give an AI agent a goal — watch it use a tool in a loop, then answer',
+    params: [
+      { name: 'goal', type: 'text', placeholder: 'e.g., "What is 128 times 47?"', required: true },
+      { name: 'max_steps', type: 'number', placeholder: '5', required: false },
+    ],
+    exampleResponse: (p) => {
+      const goal = (p.goal || '').toLowerCase();
+      // Pick a tool + trajectory that actually fits the goal so the loop
+      // reads as a real request → tool_call → result → answer cycle.
+      const plan = goal.includes('weather')
+        ? {
+            tool: 'get_weather',
+            args: { location: 'Paris', unit: 'celsius' },
+            result: { temp_c: 18, condition: 'partly cloudy', humidity: 0.61 },
+            answer: 'It is 18°C and partly cloudy in Paris right now.',
+          }
+        : /\d/.test(goal) || goal.includes('times') || goal.includes('calculate') || goal.includes('math')
+          ? {
+              tool: 'calculator',
+              args: { expression: '128 * 47' },
+              result: { value: 6016 },
+              answer: 'The answer is 6016.',
+            }
+          : {
+              tool: 'web_search',
+              args: { query: p.goal || 'latest AI news' },
+              result: { top_result: 'A relevant source was found and read.', sources: 3 },
+              answer: "I searched, read the top sources, and here's a grounded summary for your goal.",
+            };
+      return {
+        status: p.goal ? 200 : 400,
+        latency: 1200 + Math.floor(Math.random() * 800),
+        body: p.goal
+          ? {
+              goal: p.goal,
+              model: 'claude-agent-v1',
+              steps: 2,
+              trajectory: [
+                { step: 1, type: 'tool_call', tool: plan.tool, arguments: plan.args },
+                { step: 2, type: 'tool_result', tool: plan.tool, result: plan.result },
+                { step: 3, type: 'final_answer', content: plan.answer },
+              ],
+              stop_reason: 'goal_reached',
+              tokens_used: { input: Math.floor(Math.random() * 60) + 30, output: Math.floor(Math.random() * 90) + 40 },
+            }
+          : { error: 'Missing required parameter: goal', code: 'INVALID_REQUEST' },
+      };
+    },
+    teachingNote:
+      'Agentic APIs run a LOOP: the model decides to call a tool, reads the result, then decides again — repeating until it can answer. This request→tool_call→result→answer cycle is how modern AI agents (2026\'s big shift) get real work done.',
   },
 ];
 
@@ -404,6 +525,101 @@ const LEARN_CARDS = [
     desc: '200 = Success, 400 = Bad request, 429 = Too many requests, 500 = Server error. These tell you what happened.',
   },
 ];
+
+// ─── GAME-surface palette (dark, sibling-redesign convention) ───────────
+const SURFACE = '#0E1428';
+const SURFACE_2 = '#141B33';
+const TEXT_MUTED = '#9AA4BE';
+const ACCENT = '#E68E28'; // Lab 9 canonical (Orange family)
+
+// ─── Quest / mission-ticket system ──────────────────────────────────────
+// Each quest is verified against the ACTUAL request the child built and the
+// ACTUAL response it produced — a real deterministic function, never a
+// self-report. `bands` gates which quests each age band sees.
+interface QuestContext {
+  path: string;
+  params: Record<string, string>;
+  status: number;
+  body: Record<string, unknown>;
+  streaming: boolean;
+  prevSuccessPath: string | null;
+}
+
+interface Quest {
+  id: string;
+  title: string;
+  hint: string;
+  bands: Array<'A' | 'B' | 'C'>;
+  icon: LucideIcon;
+  check: (ctx: QuestContext) => boolean;
+}
+
+const XP_PER_QUEST = 45;
+
+const QUESTS: Quest[] = [
+  {
+    id: 'bad-request',
+    title: 'Break it on purpose',
+    hint: 'Send a request with a required field (marked *) left blank to get a 400.',
+    bands: ['A', 'B', 'C'],
+    icon: AlertCircle,
+    check: (c) => c.status === 400,
+  },
+  {
+    id: 'happy-sentiment',
+    title: 'Push sentiment past 0.8',
+    hint: 'Call /sentiment with a very positive message like "I love this!".',
+    bands: ['A', 'B', 'C'],
+    icon: Target,
+    check: (c) => c.path === '/api/v1/sentiment' && c.status === 200 && Number(c.body.score) > 0.8,
+  },
+  {
+    id: 'go-live',
+    title: 'Stream a response live',
+    hint: 'Flip the Streaming toggle on, then send any request.',
+    bands: ['A', 'B', 'C'],
+    icon: Radio,
+    check: (c) => c.streaming && c.status === 200,
+  },
+  {
+    id: 'rate-limited',
+    title: 'Trip the rate limiter (429)',
+    hint: 'Hammer Send several times fast until the API pushes back with a 429.',
+    bands: ['B', 'C'],
+    icon: Zap,
+    check: (c) => c.status === 429,
+  },
+  {
+    id: 'flag-it',
+    title: 'Make moderation flag something',
+    hint: 'Call /moderate with a mean word like "stupid" so `flagged` turns true.',
+    bands: ['B', 'C'],
+    icon: ShieldAlert,
+    check: (c) => c.path === '/api/v1/moderate' && c.status === 200 && c.body.flagged === true,
+  },
+  {
+    id: 'chain-it',
+    title: 'Chain /embed into /classify',
+    hint: 'Run /embed successfully, then run /classify right after it.',
+    bands: ['C'],
+    icon: Workflow,
+    check: (c) => c.prevSuccessPath === '/api/v1/embed' && c.path === '/api/v1/classify' && c.status === 200,
+  },
+  {
+    id: 'agent-loop',
+    title: "Run the agent's tool loop",
+    hint: 'Give /agent a goal and watch it call a tool, read the result, then answer.',
+    bands: ['C'],
+    icon: Bot,
+    check: (c) => c.path === '/api/v1/agent' && c.status === 200 && Number(c.body.steps) >= 1,
+  },
+];
+
+function starsFor(done: number, total: number): 1 | 2 | 3 {
+  if (done >= total) return 3;
+  if (done >= Math.ceil(total * 0.6)) return 2;
+  return 1;
+}
 
 function JsonViewer({ data, depth = 0, maxDepth = 5 }: { data: unknown; depth?: number; maxDepth?: number }) {
   const indent = '  '.repeat(depth);
@@ -455,34 +671,64 @@ function JsonViewer({ data, depth = 0, maxDepth = 5 }: { data: unknown; depth?: 
 
 export function ApiExplorerGame() {
   const prefersReducedMotion = useReducedMotion();
-  const game = useGame();
+  const { awardXP, completeGame } = useGameActions();
   const activeChild = useActiveChild();
   const { safeTimeout, safeInterval } = useSafeTimeout();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
   const { data: _dynamicContent } = useGameContent('api-explorer', ageBand);
   // Phase 2: Dynamic scenarios available via _dynamicContent?.scenarios and _dynamicContent?.challenges
 
+  // Quests visible to this child's age band (band A/B get a simpler set).
+  const bandQuests = useMemo(() => QUESTS.filter((q) => q.bands.includes(ageBand)), [ageBand]);
+
   const [phase, setPhase] = useState<Phase>('welcome');
   const [learnIdx, setLearnIdx] = useState(0);
-  const [selectedEndpoint, setSelectedEndpoint] = useState(0);
+  const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
+  const filteredEndpoints = useFilteredContent(ENDPOINTS, tier, ageBand);
+  const [selectedPath, setSelectedPath] = useState<string>(ENDPOINTS[0].path);
   const [params, setParams] = useState<Record<string, string>>({});
   const [response, setResponse] = useState<{ status: number; body: object; latency: number } | null>(null);
+  const [responseStreamed, setResponseStreamed] = useState(false);
   const [sending, setSending] = useState(false);
   const [history, setHistory] = useState<RequestLog[]>([]);
   const [showHistory, setShowHistory] = useState(false);
-  const [endpointsUsed, setEndpointsUsed] = useState<Set<number>>(new Set());
+  const [endpointsUsed, setEndpointsUsed] = useState<Set<string>>(new Set());
   const [recentRequests, setRecentRequests] = useState<number[]>([]);
+  const [streaming, setStreaming] = useState(false);
   // ENH: Typewriter effect state for response display
   const [typewriterText, setTypewriterText] = useState('');
   const [typewriterDone, setTypewriterDone] = useState(false);
   // ENH: Track request animation state
   const [requestSent, setRequestSent] = useState(false);
-  const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
-  const filteredEndpoints = useFilteredContent(ENDPOINTS as any[], tier, ageBand) as typeof ENDPOINTS;
+
+  // Quest progress. `completedRef` mirrors the state so the async
+  // sendRequest handler reads the live set without a stale closure.
+  const [completedQuests, setCompletedQuests] = useState<Set<string>>(new Set());
+  const completedRef = useRef<Set<string>>(new Set());
+  const prevSuccessRef = useRef<string | null>(null);
+  const finishedRef = useRef(false);
+  const [questToast, setQuestToast] = useState<{ id: string; title: string } | null>(null);
+  const [finalStars, setFinalStars] = useState<1 | 2 | 3>(1);
 
   const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
 
-  const endpoint = ENDPOINTS[selectedEndpoint];
+  const endpoint =
+    ENDPOINTS.find((e) => e.path === selectedPath) ?? filteredEndpoints[0] ?? ENDPOINTS[0];
+  const questsDone = completedQuests.size;
+  const totalQuests = bandQuests.length;
+
+  // If the difficulty filter or band hides the selected endpoint, fall
+  // back to the first still-visible one.
+  useEffect(() => {
+    if (!filteredEndpoints.some((e) => e.path === selectedPath)) {
+      const first = filteredEndpoints[0]?.path;
+      if (first) {
+        setSelectedPath(first);
+        setParams({});
+        setResponse(null);
+      }
+    }
+  }, [filteredEndpoints, selectedPath]);
 
   const particles = useMemo(
     () =>
@@ -506,10 +752,18 @@ export function ApiExplorerGame() {
     setParams((prev) => ({ ...prev, [name]: value }));
   }
 
-  // ENH: Typewriter effect for JSON response
+  // ENH: Typewriter effect for JSON response. When Streaming is OFF (or the
+  // child prefers reduced motion) the body arrives instantly; when ON it
+  // reveals incrementally like a real SSE stream — so the toggle actually
+  // changes behavior the "stream a response" quest verifies.
   useEffect(() => {
     if (!response) { setTypewriterText(''); setTypewriterDone(false); return; }
     const fullText = JSON.stringify(response.body, null, 2);
+    if (!responseStreamed || prefersReducedMotion) {
+      setTypewriterText(fullText);
+      setTypewriterDone(true);
+      return;
+    }
     let idx = 0;
     setTypewriterText('');
     setTypewriterDone(false);
@@ -524,7 +778,16 @@ export function ApiExplorerGame() {
       }
     }, 12);
     return () => clearInterval(interval);
-  }, [response, safeInterval]);
+  }, [response, responseStreamed, prefersReducedMotion, safeInterval]);
+
+  function finishGame(stars: 1 | 2 | 3) {
+    if (finishedRef.current) return;
+    finishedRef.current = true;
+    setFinalStars(stars);
+    awardXP(60); // completion bonus on top of per-quest XP
+    completeGame('api-explorer', stars);
+    setPhase('complete');
+  }
 
   async function sendRequest() {
     // ENH: Trigger request send animation
@@ -532,10 +795,11 @@ export function ApiExplorerGame() {
     safeTimeout(() => setRequestSent(false), 400);
     setSending(true);
     setResponse(null);
+    const wasStreaming = streaming;
 
     await new Promise<void>((r) => safeTimeout(r, 600 + Math.random() * 400));
 
-    // Check for rate limiting: 3+ requests to the same endpoint in rapid succession
+    // Check for rate limiting: several requests in rapid succession.
     const now = Date.now();
     const recentSame = recentRequests.filter((t) => now - t < 5000);
     setRecentRequests([...recentSame, now]);
@@ -560,6 +824,7 @@ export function ApiExplorerGame() {
       result = endpoint.exampleResponse(params);
     }
 
+    setResponseStreamed(wasStreaming);
     setResponse(result);
     setSending(false);
 
@@ -576,23 +841,43 @@ export function ApiExplorerGame() {
       ].slice(0, 10)
     );
 
-    const isNew = !endpointsUsed.has(selectedEndpoint);
-    if (isNew) {
-      setEndpointsUsed((prev) => new Set(prev).add(selectedEndpoint));
-      game.updateScore(10);
-      game.advanceRound();
-    } else {
-      game.updateScore(3);
+    // Small exploration reward the first time each endpoint is used.
+    if (!endpointsUsed.has(endpoint.path)) {
+      setEndpointsUsed((prev) => new Set(prev).add(endpoint.path));
+      awardXP(8);
     }
 
-    const totalUsed = isNew ? endpointsUsed.size + 1 : endpointsUsed.size;
-    if (totalUsed >= ENDPOINTS.length) {
-      safeTimeout(() => { setPhase('complete'); game.completeGame(); }, 2000);
+    // ─── Quest verification: real functions of the ACTUAL request/response ──
+    const prevSuccessPath = prevSuccessRef.current;
+    const ctx: QuestContext = {
+      path: endpoint.path,
+      params: { ...params },
+      status: result.status,
+      body: result.body as Record<string, unknown>,
+      streaming: wasStreaming,
+      prevSuccessPath,
+    };
+    const newlyDone = bandQuests.filter((q) => !completedRef.current.has(q.id) && q.check(ctx));
+    if (newlyDone.length > 0) {
+      newlyDone.forEach((q) => completedRef.current.add(q.id));
+      setCompletedQuests(new Set(completedRef.current));
+      awardXP(newlyDone.length * XP_PER_QUEST);
+      const first = newlyDone[0];
+      setQuestToast({ id: first.id, title: first.title });
+      safeTimeout(() => setQuestToast(null), 2600);
+    }
+
+    // Track the last successful endpoint so chaining quests can verify order.
+    if (result.status === 200) prevSuccessRef.current = endpoint.path;
+
+    // Clear the whole mission board → auto-complete with 3 stars.
+    if (completedRef.current.size >= bandQuests.length) {
+      safeTimeout(() => finishGame(3), 1400);
     }
   }
 
-  function selectEndpoint(idx: number) {
-    setSelectedEndpoint(idx);
+  function selectEndpoint(path: string) {
+    setSelectedPath(path);
     setParams({});
     setResponse(null);
   }
@@ -662,7 +947,7 @@ export function ApiExplorerGame() {
                       and learn how real AI services work under the hood.
                     </p>
                     <span className="px-3 py-1 rounded-full bg-orange-500/10 border border-orange-500/20 font-body text-2xs text-orange-400">
-                      Advanced — Ages 14-16
+                      {ageBand === 'A' ? 'Explorer — Ages 7-9' : ageBand === 'B' ? 'Builder — Ages 10-13' : 'Advanced — Ages 14-16'}
                     </span>
                     <div className="flex gap-2 justify-center">
                       {['REST APIs', 'JSON', 'HTTP', 'AI Services'].map((t) => (
@@ -742,43 +1027,106 @@ export function ApiExplorerGame() {
                   >
                     <div className="flex items-center gap-3 mb-3 px-4">
                       <DifficultySelector value={tier} onChange={setTier} ageBand={ageBand} />
-                      <GameProgressTracker current={endpointsUsed.size} total={ENDPOINTS.length} labColor="#F97316" />
+                      <GameProgressTracker current={questsDone} total={totalQuests} labColor={ACCENT} />
                     </div>
+
+                    {/* Sparky's Mission Board — real quests verified against the actual request/response */}
+                    <div
+                      className="rounded-xl p-3 border"
+                      style={{ borderColor: `${ACCENT}40`, background: SURFACE_2 }}
+                    >
+                      <div className="flex items-center gap-2 mb-2">
+                        <ListChecks className="w-4 h-4" style={{ color: ACCENT }} />
+                        <span className="font-display text-xs font-bold" style={{ color: '#EAF0F6' }}>
+                          Sparky&apos;s Mission Board
+                        </span>
+                        <span className="font-mono text-2xs ml-auto" style={{ color: TEXT_MUTED }}>
+                          {questsDone}/{totalQuests} done
+                        </span>
+                      </div>
+                      <ul className="space-y-1.5" aria-label="Mission quests">
+                        {bandQuests.map((q) => {
+                          const done = completedQuests.has(q.id);
+                          const Icon = q.icon;
+                          return (
+                            <li
+                              key={q.id}
+                              className="flex items-start gap-2 rounded-lg px-2 py-1.5 border"
+                              style={{
+                                borderColor: done ? '#10B98140' : 'rgba(255,255,255,0.08)',
+                                background: done ? '#10B98114' : SURFACE,
+                              }}
+                            >
+                              {done ? (
+                                <CheckCircle2 className="w-3.5 h-3.5 mt-0.5 shrink-0" style={{ color: '#10B981' }} />
+                              ) : (
+                                <Icon className="w-3.5 h-3.5 mt-0.5 shrink-0" style={{ color: ACCENT }} aria-hidden="true" />
+                              )}
+                              <div className="min-w-0">
+                                <p
+                                  className="font-body text-2xs font-bold"
+                                  style={{ color: done ? '#7FE9BE' : '#EAF0F6' }}
+                                >
+                                  {done ? '✓ ' : ''}{q.title}
+                                </p>
+                                {!done && (
+                                  <p className="font-body text-2xs" style={{ color: TEXT_MUTED }}>
+                                    {q.hint}
+                                  </p>
+                                )}
+                              </div>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                      {questsDone >= 1 && (
+                        <button
+                          onClick={() => finishGame(starsFor(questsDone, totalQuests))}
+                          className="mt-2 w-full py-1.5 rounded-lg font-display font-bold text-2xs text-white"
+                          style={{ background: `linear-gradient(135deg, ${ACCENT}, #C56E1A)` }}
+                          aria-label="Finish exploring and collect your stars"
+                        >
+                          Finish mission — collect {starsFor(questsDone, totalQuests)} ★
+                        </button>
+                      )}
+                    </div>
+
                     {/* Endpoint tabs */}
                     <div className="flex gap-1 mb-2 overflow-x-auto pb-1">
-                      {ENDPOINTS.map((ep, i) => (
-                        <button
-                          key={i}
-                          onClick={() => selectEndpoint(i)}
-                          className={`flex-shrink-0 px-2 py-1 rounded-lg font-mono text-2xs transition-all ${
-                            i === selectedEndpoint
-                              ? 'bg-orange-500/20 border border-orange-500/40 text-orange-300'
-                              : endpointsUsed.has(i)
-                                ? 'bg-green-500/10 border border-green-500/20 text-green-400/60'
-                                : 'bg-white/[0.02] border border-white/10 text-white/60'
-                          }`}
-                          aria-label={`Select endpoint ${ep.path}`}
-                        >
-                          {endpointsUsed.has(i) && '✓ '}
-                          {ep.path.split('/').pop()}
-                        </button>
-                      ))}
+                      {filteredEndpoints.map((ep) => {
+                        const active = ep.path === selectedPath;
+                        const used = endpointsUsed.has(ep.path);
+                        return (
+                          <button
+                            key={ep.path}
+                            onClick={() => selectEndpoint(ep.path)}
+                            className="flex-shrink-0 px-2 py-1 rounded-lg font-mono text-2xs transition-all border"
+                            style={{
+                              borderColor: active ? `${ACCENT}66` : used ? '#10B98133' : 'rgba(255,255,255,0.12)',
+                              background: active ? `${ACCENT}26` : used ? '#10B9811A' : SURFACE,
+                              color: active ? '#F7B267' : used ? '#7FE9BE' : TEXT_MUTED,
+                            }}
+                            aria-label={`Select endpoint ${ep.path}`}
+                            aria-pressed={active}
+                          >
+                            {used && '✓ '}
+                            {ep.path.split('/').pop()}
+                          </button>
+                        );
+                      })}
                       <button
                         onClick={() => setShowHistory(!showHistory)}
-                        className="flex-shrink-0 px-2 py-1 rounded-lg bg-white/[0.02] border border-white/10 text-white/55 font-mono text-2xs"
+                        className="flex-shrink-0 px-2 py-1 rounded-lg font-mono text-2xs border"
+                        style={{ borderColor: 'rgba(255,255,255,0.12)', background: SURFACE, color: TEXT_MUTED }}
                         aria-label="Toggle request history"
+                        aria-pressed={showHistory}
                       >
                         <History className="inline w-2.5 h-2.5" /> {history.length}
                       </button>
                     </div>
 
-                    {/* Progress */}
-                    <p className="font-body text-2xs text-white/15 mb-2">
-                      {endpointsUsed.size}/{ENDPOINTS.length} endpoints explored
-                    </p>
-
                     {/* Request builder */}
-                    <div className="rounded-xl p-3 border border-orange-500/15 bg-orange-500/5">
+                    <div className="rounded-xl p-3 border" style={{ borderColor: `${ACCENT}26`, background: SURFACE }}>
                       <div className="flex items-center gap-2 mb-2">
                         {/* ENH: HTTP method color badges (GET=green, POST=blue, PUT=orange, DELETE=red) */}
                         <motion.span
@@ -787,18 +1135,18 @@ export function ApiExplorerGame() {
                             : endpoint.method === 'POST' ? 'bg-blue-500/20 text-blue-400'
                             : endpoint.method === 'PUT' ? 'bg-orange-500/20 text-orange-400'
                             : endpoint.method === 'DELETE' ? 'bg-red-500/20 text-red-400'
-                            : 'bg-white/10 text-white/50'
+                            : 'bg-white/10 text-white/60'
                           }`}
                           whileHover={{ scale: 1.1 }}
                         >
                           {endpoint.method}
                         </motion.span>
-                        <code className="font-mono text-xs text-orange-300 flex-1">
+                        <code className="font-mono text-xs flex-1" style={{ color: '#F7B267' }}>
                           {endpoint.path}
                         </code>
-                        <Globe className="w-3 h-3 text-white/15" />
+                        <Globe className="w-3 h-3" style={{ color: TEXT_MUTED }} />
                       </div>
-                      <p className="font-body text-2xs text-white/60 mb-2">
+                      <p className="font-body text-2xs mb-2" style={{ color: TEXT_MUTED }}>
                         {endpoint.description}
                       </p>
 
@@ -806,20 +1154,48 @@ export function ApiExplorerGame() {
                       <div className="space-y-1.5">
                         {endpoint.params.map((p) => (
                           <div key={p.name} className="flex items-center gap-2">
-                            <label className="font-mono text-2xs text-white/70 w-24 text-right">
+                            <label
+                              htmlFor={`param-${p.name}`}
+                              className="font-mono text-2xs text-white/70 w-24 text-right"
+                            >
                               {p.name}
                               {p.required && <span className="text-red-400">*</span>}
                             </label>
                             <input
+                              id={`param-${p.name}`}
                               value={params[p.name] || ''}
                               onChange={(e) => updateParam(p.name, e.target.value)}
                               placeholder={p.placeholder}
                               type={p.type === 'number' ? 'number' : 'text'}
-                              className="flex-1 px-2 py-1 rounded bg-black/30 border border-white/10 font-mono text-2xs text-white/70 placeholder:text-white/15 focus:border-orange-500/40 outline-none"
+                              className="flex-1 px-2 py-1 rounded border border-white/10 font-mono text-2xs text-white/70 placeholder:text-white/50 focus:border-orange-500/40 outline-none"
+                              style={{ background: 'rgba(0,0,0,0.35)' }}
                               aria-label={`${p.name} parameter`}
                             />
                           </div>
                         ))}
+                      </div>
+
+                      {/* Streaming toggle */}
+                      <div className="flex items-center gap-2 mt-2">
+                        <button
+                          type="button"
+                          role="switch"
+                          aria-checked={streaming}
+                          onClick={() => setStreaming((s) => !s)}
+                          className="flex items-center gap-1.5 px-2 py-1 rounded-lg border font-body text-2xs"
+                          style={{
+                            borderColor: streaming ? `${ACCENT}66` : 'rgba(255,255,255,0.12)',
+                            background: streaming ? `${ACCENT}1F` : SURFACE_2,
+                            color: streaming ? '#F7B267' : TEXT_MUTED,
+                          }}
+                          aria-label={`Streaming responses ${streaming ? 'on' : 'off'}`}
+                        >
+                          <Radio className="w-3 h-3" />
+                          Streaming {streaming ? 'ON' : 'OFF'}
+                        </button>
+                        <span className="font-body text-2xs" style={{ color: TEXT_MUTED }}>
+                          {streaming ? 'Response arrives live, chunk by chunk' : 'Response arrives all at once'}
+                        </span>
                       </div>
 
                       {/* ENH: Request sends with slide-up transition */}
@@ -886,7 +1262,17 @@ export function ApiExplorerGame() {
                             >
                               {statusInfo.label}
                             </motion.span>
-                            <span className="font-mono text-2xs text-white/55 ml-auto">
+                            {responseStreamed && (
+                              <span
+                                className="flex items-center gap-1 font-mono text-2xs px-1.5 py-0.5 rounded ml-auto"
+                                style={{ color: '#F7B267', background: `${ACCENT}1F` }}
+                              >
+                                <Radio className="w-2.5 h-2.5" /> streamed
+                              </span>
+                            )}
+                            <span
+                              className={`font-mono text-2xs text-white/55 ${responseStreamed ? '' : 'ml-auto'}`}
+                            >
                               {response.latency}ms
                             </span>
                           </motion.div>
@@ -904,7 +1290,7 @@ export function ApiExplorerGame() {
 
                           {/* Teaching note */}
                           <div className="px-3 py-1.5 border-t border-white/5">
-                            <p className="font-body text-2xs text-white/25">
+                            <p className="font-body text-2xs" style={{ color: TEXT_MUTED }}>
                               💡 {endpoint.teachingNote}
                             </p>
                           </div>
@@ -921,21 +1307,21 @@ export function ApiExplorerGame() {
                           exit={{ opacity: 0, height: 0 }}
                           className="rounded-xl border border-white/5 p-2 space-y-1 overflow-hidden"
                         >
-                          <p className="font-display text-2xs font-bold text-white/25">
+                          <p className="font-display text-2xs font-bold" style={{ color: TEXT_MUTED }}>
                             Request History
                           </p>
                           {history.map((h, i) => (
                             <div key={i} className="flex items-center gap-2 text-2xs">
-                              <span className="font-mono text-white/15">{h.timestamp}</span>
-                              <code className="font-mono text-orange-300/50">{h.endpoint}</code>
+                              <span className="font-mono text-white/50">{h.timestamp}</span>
+                              <code className="font-mono text-orange-300/70">{h.endpoint}</code>
                               <span
                                 className={`font-mono font-bold ${
-                                  h.status === 200 ? 'text-green-400/50' : 'text-amber-400/50'
+                                  h.status === 200 ? 'text-green-400' : h.status === 429 ? 'text-orange-400' : h.status >= 500 ? 'text-red-400' : 'text-amber-400'
                                 }`}
                               >
                                 {h.status}
                               </span>
-                              <span className="font-mono text-white/15">{h.latency}ms</span>
+                              <span className="font-mono text-white/50">{h.latency}ms</span>
                             </div>
                           ))}
                         </motion.div>
@@ -952,18 +1338,22 @@ export function ApiExplorerGame() {
                     className="flex-1 flex flex-col items-center justify-center text-center space-y-4"
                   >
                     <motion.span className="text-6xl" animate={prefersReducedMotion ? {} : { rotate: [0, 10, -10, 0] }} transition={prefersReducedMotion ? { duration: 0 } : { duration: 1.5, repeat: Infinity }}>🏆</motion.span>
-                    <h2 className="font-display text-2xl font-bold text-white">API Explorer Complete!</h2>
-                    <p className="font-body text-sm text-white/50 max-w-sm">You explored real AI service endpoints, sent requests with parameters, and read JSON responses — this is exactly how developers integrate AI into their applications!</p>
-                    <div className="rounded-xl px-6 py-3 bg-[#F97316]/10 border border-[#F97316]/20">
-                      <p className="font-data text-2xl" style={{ color: '#F97316' }}>{game.score}</p>
-                      <p className="font-body text-2xs text-white/60">Total Points</p>
+                    <h2 className="font-display text-2xl font-bold text-white">Mission Complete!</h2>
+                    <div className="text-3xl tracking-widest" aria-label={`${finalStars} out of 3 stars`}>
+                      <span style={{ color: ACCENT }}>{'★'.repeat(finalStars)}</span>
+                      <span style={{ color: TEXT_MUTED }}>{'☆'.repeat(3 - finalStars)}</span>
+                    </div>
+                    <p className="font-body text-sm text-white/50 max-w-sm">You cleared {questsDone} of {totalQuests} mission tickets — sending real requests, reading JSON, and even running an agent tool-loop. This is exactly how developers integrate AI into their apps!</p>
+                    <div className="rounded-xl px-6 py-3" style={{ background: `${ACCENT}1A`, border: `1px solid ${ACCENT}33` }}>
+                      <p className="font-data text-2xl" style={{ color: ACCENT }}>{questsDone}/{totalQuests}</p>
+                      <p className="font-body text-2xs" style={{ color: TEXT_MUTED }}>Quests Completed</p>
                     </div>
                     <div className="mt-4 space-y-2 text-left max-w-sm">
                       <h3 className="font-display text-sm font-bold text-white/70">What You Learned:</h3>
                       <ul className="space-y-1 text-2xs font-body text-white/70">
                         <li>• APIs let programs communicate using structured requests and responses</li>
-                        <li>• HTTP methods (GET, POST) and status codes (200, 400, 500) form the language of the web</li>
-                        <li>• REST patterns and JSON data interchange are the backbone of modern AI services</li>
+                        <li>• HTTP methods (GET, POST) and status codes (200, 400, 429, 500) form the language of the web</li>
+                        <li>• Agents run a tool-use loop — request, tool_call, result, answer — to get real work done</li>
                       </ul>
                     </div>
                   </motion.div>
@@ -972,6 +1362,28 @@ export function ApiExplorerGame() {
             </div>
           </div>
         </div>
+
+        {/* Quest-complete toast */}
+        <AnimatePresence>
+          {questToast && (
+            <motion.div
+              key={questToast.id}
+              initial={{ opacity: 0, y: 24 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 24 }}
+              className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 px-4 py-2 rounded-xl border shadow-lg"
+              style={{ background: SURFACE_2, borderColor: `${ACCENT}66` }}
+              role="status"
+              aria-live="polite"
+            >
+              <CheckCircle2 className="w-4 h-4" style={{ color: '#10B981' }} />
+              <span className="font-display text-xs font-bold" style={{ color: '#EAF0F6' }}>
+                Quest done: {questToast.title}
+              </span>
+              <span className="font-mono text-2xs" style={{ color: ACCENT }}>+{XP_PER_QUEST} XP</span>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </GameShell>
   );
