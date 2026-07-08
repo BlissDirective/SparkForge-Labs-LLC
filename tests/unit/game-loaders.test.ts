@@ -17,9 +17,9 @@ import {
 import { GAME_REGISTRY as GAMES } from '@/config/gameRegistry';
 
 describe('T14 — game-loader map', () => {
-  it('exports 42 slugs matching GAMES', () => {
-    expect(GAME_SLUG_COUNT).toBe(42);
-    expect(GAMES.length).toBe(42);
+  it('exports 47 slugs matching GAMES', () => {
+    expect(GAME_SLUG_COUNT).toBe(47);
+    expect(GAMES.length).toBe(47);
   });
 
   it('every gameRegistry slug has a loader', () => {

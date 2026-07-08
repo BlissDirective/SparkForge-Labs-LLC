@@ -113,6 +113,12 @@ export const GAME_LOADERS: Record<string, GameLoaderFn> = {
   'pocket-brain': () => import('@/components/games/PocketBrainGame').then((m) => def(m)),
   'context-architect': () => import('@/components/games/ContextArchitectGame').then((m) => def(m)),
   'pixel-witness': () => import('@/components/games/PixelWitnessGame').then((m) => def(m)),
+  // ── G4 new-2026-curriculum games (ids 43–47) ──
+  'just-a-friend': () => import('@/components/games/JustAFriendGame').then((m) => def(m)),
+  'trace-it': () => import('@/components/games/TraceItGame').then((m) => def(m)),
+  'vibe-coder': () => import('@/components/games/VibeCoderGame').then((m) => def(m)),
+  'code-word': () => import('@/components/games/CodeWordGame').then((m) => def(m)),
+  'thinking-cap': () => import('@/components/games/ThinkingCapGame').then((m) => def(m)),
 };
 
 /** Return the lazy loader for a slug, or undefined if unknown. */
