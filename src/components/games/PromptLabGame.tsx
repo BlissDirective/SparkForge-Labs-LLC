@@ -27,7 +27,7 @@ import {
   ChevronRight, Lightbulb, GraduationCap,
   MessageSquare, Target, Copy, Check,
   Thermometer, ArrowRight, Eye, Brain,
-  RotateCcw, Sparkles,
+  RotateCcw, Sparkles, Swords, Trophy,
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { extractKeywords } from '@/components/3d/PromptBubble3D';
@@ -50,7 +50,7 @@ const PromptScore3D = dynamic(
 // TYPES
 // ================================================================
 
-type Phase = 'welcome' | 'learn' | 'sandbox' | 'challenge' | 'report';
+type Phase = 'welcome' | 'learn' | 'sandbox' | 'challenge' | 'battle' | 'report';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -678,6 +678,50 @@ interface PromptRecipeStep {
   response: string | null;
 }
 
+// Prompt Battle: two prompts run against the real model, judged by scorePrompt
+interface BattleResult {
+  responseA: string;
+  responseB: string;
+  scoreA: PromptScore;
+  scoreB: PromptScore;
+  winner: 'A' | 'B' | 'tie';
+  explanation: string;
+}
+
+// Judge A vs B using the EXISTING 5-axis heuristic scorePrompt output.
+// Picks a winner and explains which prompt signals made the difference.
+function explainBattle(a: PromptScore, b: PromptScore): { winner: 'A' | 'B' | 'tie'; explanation: string } {
+  const dims: { key: keyof PromptScore; label: string }[] = [
+    { key: 'specificity', label: 'specificity' },
+    { key: 'clarity', label: 'clarity' },
+    { key: 'creativity', label: 'creativity' },
+    { key: 'constraints', label: 'constraints' },
+    { key: 'technique', label: 'technique' },
+  ];
+  if (a.total === b.total) {
+    return {
+      winner: 'tie',
+      explanation: `Both prompts scored ${a.total}/25 — evenly matched! Try adding a constraint (like “in 3 sentences”) or a persona to one of them to break the tie.`,
+    };
+  }
+  const winner: 'A' | 'B' = a.total > b.total ? 'A' : 'B';
+  const win = winner === 'A' ? a : b;
+  const lose = winner === 'A' ? b : a;
+  const gaps = dims
+    .map((d) => ({ label: d.label, diff: (win[d.key] as number) - (lose[d.key] as number) }))
+    .filter((g) => g.diff > 0)
+    .sort((x, y) => y.diff - x.diff)
+    .slice(0, 2)
+    .map((g) => `${g.label} (+${g.diff})`);
+  const reasonText = gaps.length > 0
+    ? `It scored higher on ${gaps.join(' and ')}.`
+    : 'It edged ahead on overall balance across all five signals.';
+  return {
+    winner,
+    explanation: `Prompt ${winner} won ${win.total}/25 vs ${lose.total}/25. ${reasonText} A stronger prompt gives the AI clearer signals, so you get a more useful answer.`,
+  };
+}
+
 // Real-world scenario packs
 const _SCENARIO_PACKS = [
   {
@@ -1142,14 +1186,22 @@ export function PromptLabGame() {
   const [activeChallengeId, setActiveChallengeId] = useState<string | null>(null);
   const [challengeResults, setChallengeResults] = useState<Record<string, { passed: boolean; feedback: string }>>({});
 
-  // Phase D2: Extended mode state
+  // Phase D2: Extended mode state.
+  // History / Recipes / scenario packs remain parked (dead) — see report notes.
   const [_labMode, _setLabMode] = useState<PromptLabMode>('sandbox');
   const [_promptHistory, _setPromptHistory] = useState<PromptHistoryEntry[]>([]);
-  const [_battlePromptA, _setBattlePromptA] = useState('');
-  const [_battlePromptB, _setBattlePromptB] = useState('');
-  const [_battleResults, _setBattleResults] = useState<{ a: string; b: string; scoreA: number; scoreB: number } | null>(null);
   const [_recipeSteps, _setRecipeSteps] = useState<PromptRecipeStep[]>([{ id: 1, prompt: '', response: null }]);
   const [_activeScenarioPack, _setActiveScenarioPack] = useState<string | null>(null);
+
+  // Prompt Battle mode — surfaced from the previously-dead _Battle code.
+  // Two prompts, one goal, both run against the real model via the SAME
+  // /api/ai/prompt-lab path; judged by the client-side 5-axis scorePrompt heuristic.
+  const [battlePromptA, setBattlePromptA] = useState('');
+  const [battlePromptB, setBattlePromptB] = useState('');
+  const [battleResult, setBattleResult] = useState<BattleResult | null>(null);
+  const [battleLoading, setBattleLoading] = useState(false);
+  const [battleError, setBattleError] = useState<string | null>(null);
+  const [battleGoalId, setBattleGoalId] = useState<string | null>(null);
 
   // --- X-Ray & Explainer ---
   const [showXRay, setShowXRay] = useState<number | null>(null);
@@ -1258,6 +1310,11 @@ export function PromptLabGame() {
   const activeChallenge = activeChallengeId
     ? CHALLENGES.find((c) => c.id === activeChallengeId) || null
     : null;
+  // Battle goals reuse the existing (band-gated) challenge goals — no new content.
+  const battleGoal = useMemo(
+    () => availableChallenges.find((c) => c.id === battleGoalId) ?? availableChallenges[0] ?? null,
+    [availableChallenges, battleGoalId]
+  );
 
   // Scroll to bottom
   useEffect(() => {
@@ -1423,6 +1480,111 @@ export function PromptLabGame() {
     (idx: number | null) => setShowExplainer(idx),
     []
   );
+
+  // ================================================================
+  // PROMPT BATTLE — reuse the SAME model call + client scorer
+  // ================================================================
+
+  // Compact Chat/Battle mode switcher (used in both sandbox + battle headers).
+  const renderModeSwitch = (active: 'chat' | 'battle') => (
+    <div
+      className="flex rounded-lg border border-amber-500/20 overflow-hidden shrink-0"
+      role="tablist"
+      aria-label="Prompt Lab mode"
+    >
+      <button
+        type="button"
+        role="tab"
+        aria-selected={active === 'chat'}
+        onClick={() => setPhase('sandbox')}
+        className={`flex items-center gap-1 px-2.5 py-1 font-display text-2xs font-bold transition-colors ${
+          active === 'chat' ? 'bg-amber-500/20 text-amber-300' : 'text-white/60 hover:text-white/80'
+        }`}
+      >
+        <MessageSquare className="w-3 h-3" /> Chat
+      </button>
+      <button
+        type="button"
+        role="tab"
+        aria-selected={active === 'battle'}
+        onClick={() => { setActiveChallengeId(null); setPhase('battle'); }}
+        className={`flex items-center gap-1 px-2.5 py-1 font-display text-2xs font-bold transition-colors ${
+          active === 'battle' ? 'bg-amber-500/20 text-amber-300' : 'text-white/60 hover:text-white/80'
+        }`}
+      >
+        <Swords className="w-3 h-3" /> Battle
+      </button>
+    </div>
+  );
+
+  // Single-prompt run against the EXISTING /api/ai/prompt-lab endpoint
+  // (same contract as sendMessage; independent single turn for battle).
+  async function runBattlePrompt(promptText: string): Promise<string> {
+    if (!activeChild) throw new Error('generic');
+    const res = await fetch('/api/ai/prompt-lab', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...csrfHeader() },
+      body: JSON.stringify({
+        childId: activeChild.id,
+        prompt: promptText,
+        temperature,
+        ageBand: activeChild.age_band,
+        conversationHistory: [],
+      }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(
+        res.status === 429
+          ? 'daily-limit'
+          : data.error?.includes('moderation')
+            ? 'moderation'
+            : 'generic'
+      );
+    }
+    return data.reply as string;
+  }
+
+  async function runBattle() {
+    if (!battlePromptA.trim() || !battlePromptB.trim() || battleLoading || !activeChild) return;
+    const now = Date.now();
+    if (now - lastSentAt < SEND_COOLDOWN_MS) return;
+    if (promptsUsed + 2 > MAX_DAILY_PROMPTS) {
+      setBattleError(`Daily limit reached (${MAX_DAILY_PROMPTS} prompts). Try again tomorrow!`);
+      return;
+    }
+    setLastSentAt(now);
+    setBattleLoading(true);
+    setBattleError(null);
+    setBattleResult(null);
+    try {
+      // Real model, both prompts, via the existing call path.
+      const responseA = await runBattlePrompt(battlePromptA.trim());
+      const responseB = await runBattlePrompt(battlePromptB.trim());
+      // Judge with the EXISTING client-side 5-axis heuristic scorer.
+      const scoreA = scorePrompt(battlePromptA.trim());
+      const scoreB = scorePrompt(battlePromptB.trim());
+      const { winner, explanation } = explainBattle(scoreA, scoreB);
+      setBattleResult({ responseA, responseB, scoreA, scoreB, winner, explanation });
+      setPromptsUsed((p) => p + 2);
+      game.updateScore(Math.max(1, Math.floor((scoreA.total + scoreB.total) / 10)));
+      game.advanceRound();
+      if (soundEnabled) promptAudio.playResponse();
+      broadcast({ type: 'button-press', source: 'prompt-lab', value: Math.max(scoreA.total, scoreB.total), color: '#F59E0B' });
+      if (winner !== 'tie') triggerCelebration('confetti');
+    } catch (e) {
+      const kind = e instanceof Error ? e.message : 'generic';
+      setBattleError(
+        kind === 'daily-limit'
+          ? "You’ve used all your prompts today! Come back tomorrow."
+          : kind === 'moderation'
+            ? "Let’s try a different topic! Keep prompts about AI, science, or learning."
+            : 'Sparky had a hiccup. Try again!'
+      );
+    } finally {
+      setBattleLoading(false);
+    }
+  }
 
   // ================================================================
   // RENDER
@@ -1650,7 +1812,8 @@ export function PromptLabGame() {
                   exit={{ opacity: 0 }}
                   className="flex-1 flex flex-col min-h-0 relative"
                 >
-                  <div className="flex items-center gap-3 mb-3 px-4">
+                  <div className="flex items-center gap-3 mb-3 px-4 flex-wrap">
+                    {renderModeSwitch('chat')}
                     <DifficultySelector value={tier} onChange={setTier} ageBand={ageBand} />
                     <GameProgressTracker current={completedChallenges} total={availableChallenges.length} labColor="#FFAA44" />
                   </div>
@@ -1745,6 +1908,13 @@ export function PromptLabGame() {
                             aria-label="Open challenges"
                           >
                             <Target className="w-3 h-3" /> Challenges
+                          </button>
+                          <button
+                            onClick={() => setPhase('battle')}
+                            className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-amber-500/10 text-amber-300 text-xs font-display"
+                            aria-label="Open Prompt Battle mode"
+                          >
+                            <Swords className="w-3 h-3" /> Battle
                           </button>
                           {(completedChallenges >= 1 || messages.length >= 4) && (
                             <button
@@ -2329,6 +2499,212 @@ export function PromptLabGame() {
                       </motion.div>
                     )}
                   </AnimatePresence>
+                </motion.div>
+              )}
+
+              {/* ===== BATTLE — Two prompts, one goal, real model, heuristic judge ===== */}
+              {phase === 'battle' && (
+                <motion.div
+                  key="battle"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="flex-1 flex flex-col min-h-0"
+                >
+                  <div className="flex items-center gap-3 mb-2 px-4 pt-3 flex-wrap">
+                    {renderModeSwitch('battle')}
+                    <div className="flex items-center gap-1.5">
+                      <Swords className="w-4 h-4 text-amber-400" />
+                      <span className="font-display text-sm font-bold text-white">Prompt Battle</span>
+                    </div>
+                  </div>
+
+                  <div className="flex-1 overflow-y-auto px-4 pb-4 space-y-3">
+                    <p className="font-body text-xs text-white/70 leading-relaxed">
+                      Write TWO prompts for the same goal. Sparky runs both against the real AI,
+                      then judges which prompt is stronger and explains why.
+                    </p>
+
+                    {/* Goal selector (reuses challenge goals) */}
+                    <div>
+                      <p className="font-data text-2xs text-amber-400 uppercase tracking-wider mb-1.5">
+                        Battle Goal
+                      </p>
+                      <div className="flex gap-1.5 flex-wrap">
+                        {availableChallenges.map((c) => (
+                          <button
+                            key={c.id}
+                            type="button"
+                            onClick={() => setBattleGoalId(c.id)}
+                            aria-pressed={battleGoal?.id === c.id}
+                            className={`px-2.5 py-1 rounded-lg border font-body text-2xs transition-colors ${
+                              battleGoal?.id === c.id
+                                ? 'border-amber-500/40 bg-amber-500/10 text-amber-300'
+                                : 'border-white/10 bg-white/[0.02] text-white/60 hover:text-white/80'
+                            }`}
+                          >
+                            {c.emoji} {c.title}
+                          </button>
+                        ))}
+                      </div>
+                      {battleGoal && (
+                        <p className="font-body text-xs text-white/70 mt-1.5 flex items-start gap-1">
+                          <Target className="w-3 h-3 mt-0.5 text-amber-400 flex-shrink-0" />
+                          <span>{battleGoal.goal}</span>
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Two prompt inputs */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {(['A', 'B'] as const).map((slot) => {
+                        const val = slot === 'A' ? battlePromptA : battlePromptB;
+                        const setVal = slot === 'A' ? setBattlePromptA : setBattlePromptB;
+                        const live = val.trim().length > 3 ? scorePrompt(val) : null;
+                        const res = battleResult
+                          ? slot === 'A'
+                            ? { score: battleResult.scoreA, response: battleResult.responseA }
+                            : { score: battleResult.scoreB, response: battleResult.responseB }
+                          : null;
+                        const isWinner = !!battleResult && battleResult.winner !== 'tie' && battleResult.winner === slot;
+                        return (
+                          <div
+                            key={slot}
+                            className={`rounded-xl p-3 border ${isWinner ? 'border-spark-green/40' : 'border-white/10'}`}
+                            style={{ background: slot === 'A' ? 'rgba(245,158,11,0.05)' : 'rgba(139,92,246,0.05)' }}
+                          >
+                            <div className="flex items-center justify-between mb-1.5">
+                              <span className="font-display text-xs font-bold text-white">Prompt {slot}</span>
+                              {isWinner && (
+                                <span className="flex items-center gap-1 font-display text-2xs font-bold text-spark-green">
+                                  <Trophy className="w-3 h-3" /> Winner
+                                </span>
+                              )}
+                            </div>
+                            <textarea
+                              value={val}
+                              onChange={(e) => setVal(e.target.value)}
+                              rows={3}
+                              placeholder={`Write prompt ${slot} for the goal above...`}
+                              className="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white/80 font-body text-xs resize-none focus:outline-none focus:border-amber-500/30 placeholder:text-white/50"
+                              aria-label={`Battle prompt ${slot}`}
+                              disabled={battleLoading}
+                            />
+                            {live && !battleResult && (
+                              <div className="flex items-center gap-1 mt-1.5">
+                                {Array.from({ length: 5 }).map((_, s) => (
+                                  <Star
+                                    key={s}
+                                    className={`w-2.5 h-2.5 ${
+                                      s < Math.round(live.total / 5)
+                                        ? 'text-amber-400 fill-amber-400'
+                                        : 'text-white/50'
+                                    }`}
+                                  />
+                                ))}
+                                <span className="font-mono text-2xs text-white/60 ml-1">{live.total}/25</span>
+                              </div>
+                            )}
+                            {res && (
+                              <div className="mt-2 space-y-1.5">
+                                <div className="flex items-center gap-1">
+                                  {Array.from({ length: 5 }).map((_, s) => (
+                                    <Star
+                                      key={s}
+                                      className={`w-2.5 h-2.5 ${
+                                        s < Math.round(res.score.total / 5)
+                                          ? 'text-amber-400 fill-amber-400'
+                                          : 'text-white/50'
+                                      }`}
+                                    />
+                                  ))}
+                                  <span className="font-mono text-2xs text-white/60 ml-1">{res.score.total}/25</span>
+                                </div>
+                                <div className="rounded-lg p-2 bg-white/[0.03] border border-white/5 max-h-40 overflow-y-auto">
+                                  <span className="text-2xs font-display font-bold text-purple-400/70 block mb-1">
+                                    {'\u{1F916}'} Sparky&apos;s reply
+                                  </span>
+                                  <p className="font-body text-xs text-white/70 whitespace-pre-wrap leading-relaxed">
+                                    {res.response}
+                                  </p>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {battleLoading && (
+                      <div className="flex justify-center py-2">
+                        <AIThinkingViz temperature={temperature} />
+                      </div>
+                    )}
+
+                    {battleError && (
+                      <div className="px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20 text-center">
+                        <AlertTriangle className="w-4 h-4 text-red-400 inline mr-2" />
+                        <span className="font-body text-sm text-red-400">{battleError}</span>
+                      </div>
+                    )}
+
+                    {/* Judge verdict */}
+                    {battleResult && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="rounded-xl p-3 border border-amber-500/20"
+                        style={{ background: 'rgba(245,158,11,0.05)' }}
+                      >
+                        <p className="font-display text-sm font-bold text-amber-300 flex items-center gap-1.5 mb-1">
+                          <Trophy className="w-4 h-4" />
+                          {battleResult.winner === 'tie'
+                            ? "It's a tie!"
+                            : `Prompt ${battleResult.winner} wins!`}
+                        </p>
+                        <p className="font-body text-xs text-white/70 leading-relaxed">
+                          {battleResult.explanation}
+                        </p>
+                      </motion.div>
+                    )}
+
+                    {/* Actions */}
+                    <div className="flex gap-2 flex-wrap">
+                      <motion.button
+                        onClick={runBattle}
+                        disabled={!battlePromptA.trim() || !battlePromptB.trim() || battleLoading}
+                        className="flex-1 py-2.5 rounded-xl font-display font-bold text-sm text-white shadow-lg shadow-amber-500/20 disabled:opacity-30 flex items-center justify-center gap-1.5"
+                        style={{ background: 'linear-gradient(135deg, #F59E0B, #D97706)' }}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        aria-label="Run the prompt battle"
+                      >
+                        <Swords className="w-4 h-4" /> {battleResult ? 'Battle Again' : 'Start Battle'}
+                      </motion.button>
+                      {battleResult && (
+                        <button
+                          onClick={() => { setBattleResult(null); setBattlePromptA(''); setBattlePromptB(''); }}
+                          className="px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 font-display font-bold text-sm text-white/70 flex items-center gap-1.5"
+                          aria-label="Reset battle prompts"
+                        >
+                          <RotateCcw className="w-4 h-4" /> Reset
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="flex items-center justify-between pt-1">
+                      <p className="font-body text-2xs text-white/50">
+                        {promptsUsed} prompts used this session
+                      </p>
+                      <button
+                        onClick={() => setPhase('report')}
+                        className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-spark-green/10 text-spark-green text-xs font-display"
+                        aria-label="Finish Prompt Lab and view report"
+                      >
+                        <GraduationCap className="w-3 h-3" /> Finish Lab
+                      </button>
+                    </div>
+                  </div>
                 </motion.div>
               )}
             </AnimatePresence>
