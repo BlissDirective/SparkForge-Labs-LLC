@@ -14,6 +14,8 @@ import { SFButton } from '@/components/ui/SFButton';
 import CountUp from '@/components/bits/CountUp';
 import { useActiveChild } from '@/hooks/useChildren';
 import { FreePlayBanner } from '@/components/game/FreePlayBanner';
+import { useRecommendedDifficulty } from '@/hooks/useRecommendedDifficulty';
+import { useGameLab } from '@/components/game/gameLabContext';
 
 // ── Types ──
 export interface LevelConfig {
@@ -43,14 +45,21 @@ interface GameLevelSystemProps {
   savedProgress?: Record<number, { stars: number; bestScore: number }>;
   onComplete: (results: LevelResult[]) => void;
   renderLevel: (level: LevelConfig, onComplete: (result: LevelResult) => void, onExit: () => void) => React.ReactNode;
+  /**
+   * G5 — pass the game's lab id to surface an invisible-adaptive
+   * "Recommended for you" hint on the level whose difficulty matches the
+   * child's recent performance in that lab. Omit to disable the hint;
+   * everything else works unchanged.
+   */
+  labId?: number;
 }
 
 // ── Level Map Node ──
 function LevelNode({
-  level, isUnlocked, bestStars, bestScore, onClick, index,
+  level, isUnlocked, bestStars, bestScore, onClick, index, recommended = false,
 }: {
   level: LevelConfig; isUnlocked: boolean; bestStars: number; bestScore: number;
-  onClick: () => void; index: number;
+  onClick: () => void; index: number; recommended?: boolean;
 }) {
   const difColors = {
     easy: '#2ECC71', medium: '#4F6EF7', hard: '#FF6B35', expert: '#E945F5',
@@ -62,7 +71,7 @@ function LevelNode({
       aria-disabled={!isUnlocked}
       aria-label={
         isUnlocked
-          ? `Level ${level.id}: ${level.name}, ${level.difficulty}${bestStars > 0 ? `, best ${bestStars} of 3 stars` : ''}${bestScore > 0 ? `, best score ${bestScore}` : ''}`
+          ? `Level ${level.id}: ${level.name}, ${level.difficulty}${recommended ? ', recommended for you' : ''}${bestStars > 0 ? `, best ${bestStars} of 3 stars` : ''}${bestScore > 0 ? `, best score ${bestScore}` : ''}`
           : `Level ${level.id}: ${level.name}, locked — earn a star on the previous level to unlock`
       }
       className={`relative flex flex-col items-center gap-1 p-3 rounded-2xl transition-all
@@ -115,6 +124,17 @@ function LevelNode({
       {level.isBonus && isUnlocked && (
         <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full" style={{ background: '#FFD93D20', color: '#B8860B' }}>
           BONUS
+        </span>
+      )}
+
+      {/* G5 — invisible-adaptive nudge: this level's difficulty matches the
+          child's recent performance in this lab. Subtle, non-blocking. */}
+      {recommended && isUnlocked && (
+        <span
+          className="font-bold px-1.5 py-0.5 rounded-full"
+          style={{ fontSize: 9, background: '#4F6EF720', color: '#3B57D6' }}
+        >
+          FOR YOU
         </span>
       )}
 
@@ -264,7 +284,7 @@ function GameCompleteOverlay({
 
 // ── Main Component ──
 export default function GameLevelSystem({
-  gameTitle, gameEmoji, labColor, levels, savedProgress = {}, onComplete, renderLevel,
+  gameTitle, gameEmoji, labColor, levels, savedProgress = {}, onComplete, renderLevel, labId,
 }: GameLevelSystemProps) {
   const [activeLevel, setActiveLevel] = useState<number | null>(null);
   const [levelResults, setLevelResults] = useState<Record<number, LevelResult>>({});
@@ -275,6 +295,19 @@ export default function GameLevelSystem({
   // stars are still earned; there is simply no way to lose or be locked
   // out. Bands B/C keep the standard gated progression untouched.
   const freePlay = useActiveChild()?.age_band === 'A';
+
+  // G5 — invisible adaptive hint. Read the child's recommended difficulty
+  // for this lab (null until enough history) and flag the FIRST level whose
+  // difficulty matches, so bands B/C see a gentle "For You" nudge. Free Play
+  // (band A) roams freely, so no nudge there. The lab id comes from the
+  // explicit prop, else GameShell's context (covers all level-based games).
+  const ctxLab = useGameLab();
+  const effectiveLabId = labId ?? ctxLab ?? 0;
+  const rec = useRecommendedDifficulty(effectiveLabId);
+  const recommendedLevelId =
+    !freePlay && rec.level
+      ? levels.find((l) => l.difficulty === rec.level)?.id ?? null
+      : null;
 
   const handleLevelResult = useCallback((result: LevelResult) => {
     const levelId = activeLevel!;
@@ -381,6 +414,7 @@ export default function GameLevelSystem({
             isUnlocked={isUnlocked(level.id, i)}
             bestStars={levelResults[level.id]?.stars || savedProgress[level.id]?.stars || 0}
             bestScore={levelResults[level.id]?.score || savedProgress[level.id]?.bestScore || 0}
+            recommended={level.id === recommendedLevelId}
             onClick={() => setActiveLevel(level.id)}
           />
         ))}

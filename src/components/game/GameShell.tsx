@@ -39,6 +39,16 @@ import { GameErrorBoundary } from '@/components/game/GameErrorBoundary';
 import { JuiceProvider } from '@/components/juice/JuiceProvider';
 import ConfettiBurst from '@/components/bits/Confetti';
 import { publishGameSnapshot, clearGameSnapshot } from '@/lib/dev/gameInspector';
+import { useAdaptiveStore } from '@/stores/adaptiveStore';
+import { GameLabContext } from '@/components/game/gameLabContext';
+import { GAME_REGISTRY } from '@/config/gameRegistry';
+
+// Slug → lab id, built once. Powers the universal adaptive feed: every
+// game completion records a performance sample for that game's lab so
+// the invisible adaptive controller has real data (G5).
+const LAB_BY_SLUG: Record<string, number> = Object.fromEntries(
+  GAME_REGISTRY.map((g) => [g.slug, g.lab]),
+);
 
 interface GameShellProps {
   title: string;
@@ -155,6 +165,28 @@ export function GameShell({
       const stars = snap.lastStars;
       const celebrationType = stars >= 3 ? 'level' : stars >= 2 ? 'confetti' : 'xp';
       useUIStore.getState().triggerCelebration(celebrationType);
+
+      // G5 — feed the invisible adaptive controller + telemetry. Accuracy
+      // is score/maxScore when the game tracks a max, else stars/3. Any
+      // failure here must never break the reward path, so it's guarded.
+      try {
+        const labId = LAB_BY_SLUG[resolvedGameId];
+        if (labId) {
+          const accuracy =
+            snap.maxScore > 0
+              ? Math.max(0, Math.min(1, snap.score / snap.maxScore))
+              : Math.max(0, Math.min(1, stars / 3));
+          useAdaptiveStore.getState().recordOutcome({
+            childId: activeChild.id,
+            gameSlug: resolvedGameId,
+            labId,
+            accuracy,
+            stars,
+          });
+        }
+      } catch {
+        /* adaptive telemetry is best-effort — never block completion */
+      }
     };
 
     rewardAsync();
@@ -235,7 +267,11 @@ export function GameShell({
                   opacity: 0.7,
                 }}
               />
-              {children}
+              {/* G5 — publish the lab id so nested frameworks (GameLevelSystem)
+                  can surface the adaptive nudge without per-game wiring. */}
+              <GameLabContext.Provider value={labNumber ?? null}>
+                {children}
+              </GameLabContext.Provider>
             </div>
           </FocusTrap>
           <ConfettiBurst trigger={confettiTrigger} colors={confettiColors} originY={0.35} />
