@@ -12,6 +12,7 @@ import { Zap, Menu, X } from 'lucide-react';
 const NAV_LINKS = [
   { href: '/', label: 'Home' },
   { href: '/pricing', label: 'Pricing' },
+  { href: '/competencies', label: 'Competencies' },
 ];
 
 export function MarketingHeader() {
