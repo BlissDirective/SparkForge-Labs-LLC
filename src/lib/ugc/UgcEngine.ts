@@ -10,6 +10,41 @@
 
 export type ModerationStatus = 'draft' | 'pending' | 'approved' | 'rejected';
 
+// ─── Content kinds (G4b) ──────────────────────────────────────────────────
+// The arcade creation loop now spans three kinds, all flowing through the
+// SAME moderation pipeline (submit → automated screen → parent approval →
+// approved/world-readable):
+//   • 'quiz'   — assembled from the pre-approved bank (no free text).
+//   • 'agent'  — a saved Agent Architect / Atelier composition.
+//   • 'prompt' — a free-text Prompt Lab prompt (the only child-authored
+//                text kind; double-gated by moderation + parent approval).
+export type ContentKind = 'quiz' | 'agent' | 'prompt';
+
+/** Structured payload for an 'agent' publication. */
+export interface AgentPayload {
+  /** The owned agent_compositions row this publication snapshots. */
+  compositionId: string;
+  /** Display name shown in the arcade (validated, not free-form safe). */
+  name: string;
+  /** Optional one-line summary of what the agent does. */
+  summary?: string;
+}
+
+/** Structured payload for a 'prompt' publication. */
+export interface PromptPayload {
+  /** The child-authored prompt text (moderated before it is ever public). */
+  text: string;
+  /** Age band the prompt was written for. */
+  band: 'A' | 'B' | 'C';
+}
+
+/** Bounds for a publishable free-text prompt. */
+export const PROMPT_MIN_LEN = 3;
+export const PROMPT_MAX_LEN = 280;
+/** Bounds for a published agent's display name. */
+export const AGENT_NAME_MIN_LEN = 2;
+export const AGENT_NAME_MAX_LEN = 48;
+
 export interface BankQuestion {
   id: string;
   labId: number;
@@ -126,4 +161,57 @@ export function earnedCreatorBadges(stats: { published: number; totalRatings: nu
 export function getCreatorGreeting(published: number): string {
   if (published === 0) return 'Create your first quiz — pick questions and share it (with a grown-up’s OK)!';
   return `You have ${published} published quiz${published === 1 ? '' : 'zes'} in the community library!`;
+}
+
+// ─── G4b: agent + prompt publication validation ───────────────────────────
+// These run first (structural / PII), before the server's content-safety
+// moderation (blocklist + Haiku). They are intentionally strict: this is a
+// children's platform, so anything ambiguous is rejected client- and
+// server-side rather than shared.
+
+export interface PublishValidation {
+  valid: boolean;
+  reason?: string;
+}
+
+// Block obvious personal-info / off-platform linking in child-authored text.
+const EMAIL_RE = /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i;
+const URL_RE = /\b(?:https?:\/\/|www\.)\S+/i;
+const PHONE_RE = /\b(?:\+?\d[\s-]?){7,}\b/;
+
+/**
+ * Structural + PII validation for a free-text prompt. Content-safety
+ * screening (blocklist + Haiku) happens server-side in the publish route;
+ * this catches empty/overlong text and obvious personal info early so the
+ * child gets instant feedback and unsafe text never leaves the device.
+ */
+export function validatePromptText(text: string): PublishValidation {
+  const trimmed = text.trim();
+  if (trimmed.length < PROMPT_MIN_LEN) return { valid: false, reason: 'Write a little more first.' };
+  if (trimmed.length > PROMPT_MAX_LEN) return { valid: false, reason: `Keep it under ${PROMPT_MAX_LEN} characters.` };
+  if (EMAIL_RE.test(trimmed)) return { valid: false, reason: 'Please don’t include email addresses.' };
+  if (URL_RE.test(trimmed)) return { valid: false, reason: 'Please don’t include web links.' };
+  if (PHONE_RE.test(trimmed)) return { valid: false, reason: 'Please don’t include phone numbers.' };
+  return { valid: true };
+}
+
+/** Validation for an agent publication (structured; name is the only text). */
+export function validateAgentPublish(payload: Partial<AgentPayload>): PublishValidation {
+  if (!payload.compositionId) return { valid: false, reason: 'Save your agent first.' };
+  const name = (payload.name ?? '').trim();
+  if (name.length < AGENT_NAME_MIN_LEN) return { valid: false, reason: 'Give your agent a name.' };
+  if (name.length > AGENT_NAME_MAX_LEN) return { valid: false, reason: `Name must be under ${AGENT_NAME_MAX_LEN} characters.` };
+  if (EMAIL_RE.test(name) || URL_RE.test(name) || PHONE_RE.test(name)) {
+    return { valid: false, reason: 'Name can’t contain contact info.' };
+  }
+  return { valid: true };
+}
+
+/** Human-legible label for a content kind (arcade + hub chips). */
+export function kindLabel(kind: ContentKind): string {
+  switch (kind) {
+    case 'quiz': return 'Quiz';
+    case 'agent': return 'Agent';
+    case 'prompt': return 'Prompt';
+  }
 }

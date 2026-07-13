@@ -42,6 +42,7 @@ import { publishGameSnapshot, clearGameSnapshot } from '@/lib/dev/gameInspector'
 import { useAdaptiveStore } from '@/stores/adaptiveStore';
 import { GameLabContext } from '@/components/game/gameLabContext';
 import { GAME_REGISTRY } from '@/config/gameRegistry';
+import { apiFetchResponse } from '@/lib/api';
 
 // Slug → lab id, built once. Powers the universal adaptive feed: every
 // game completion records a performance sample for that game's lab so
@@ -49,6 +50,27 @@ import { GAME_REGISTRY } from '@/config/gameRegistry';
 const LAB_BY_SLUG: Record<string, number> = Object.fromEntries(
   GAME_REGISTRY.map((g) => [g.slug, g.lab]),
 );
+
+// G5 server persistence — best-effort mirror of each sample to
+// /api/adaptive/record so the parent's learning-curve card gets real,
+// cross-device history. A session circuit-breaker disables the mirror
+// after the first failure (e.g. the adaptive_difficulty table not yet
+// applied) so we never spam the network or server logs. The client
+// adaptive store is authoritative for gameplay regardless.
+let adaptiveServerDisabled = false;
+function mirrorSampleToServer(childId: string, labId: number, accuracy: number): void {
+  if (adaptiveServerDisabled) return;
+  void apiFetchResponse('/api/adaptive/record', {
+    method: 'POST',
+    body: JSON.stringify({ childId, labId, accuracy }),
+  })
+    .then((res) => {
+      if (!res.ok) adaptiveServerDisabled = true;
+    })
+    .catch(() => {
+      adaptiveServerDisabled = true;
+    });
+}
 
 interface GameShellProps {
   title: string;
@@ -183,6 +205,9 @@ export function GameShell({
             accuracy,
             stars,
           });
+          // Mirror to the server so the parent learning-curve card fills in
+          // (best-effort; self-disables if the table isn't applied yet).
+          mirrorSampleToServer(activeChild.id, labId, accuracy);
         }
       } catch {
         /* adaptive telemetry is best-effort — never block completion */
