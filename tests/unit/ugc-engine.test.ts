@@ -18,6 +18,11 @@ import {
   isRatingValid,
   earnedCreatorBadges,
   getCreatorGreeting,
+  validatePromptText,
+  validateAgentPublish,
+  kindLabel,
+  PROMPT_MAX_LEN,
+  AGENT_NAME_MAX_LEN,
 } from '@/lib/ugc/UgcEngine';
 
 const validIds = QUESTION_BANK.slice(0, MIN_QUESTIONS).map((q) => q.id);
@@ -87,5 +92,38 @@ describe('ratings + badges', () => {
   it('adapts the creator greeting', () => {
     expect(getCreatorGreeting(0)).toMatch(/first quiz/i);
     expect(getCreatorGreeting(2)).toMatch(/2 published/i);
+  });
+});
+
+// ─── G4b: agent + prompt publication validation ───
+describe('G4b — publish validation', () => {
+  it('accepts a reasonable prompt', () => {
+    expect(validatePromptText('Explain how a robot learns to see').valid).toBe(true);
+  });
+
+  it('rejects empty / whitespace / overlong prompts', () => {
+    expect(validatePromptText('  ').valid).toBe(false);
+    expect(validatePromptText('ab').valid).toBe(false); // below PROMPT_MIN_LEN
+    expect(validatePromptText('x'.repeat(PROMPT_MAX_LEN + 1)).valid).toBe(false);
+  });
+
+  it('rejects prompts containing PII / links', () => {
+    expect(validatePromptText('email me at kid@example.com').valid).toBe(false);
+    expect(validatePromptText('see https://evil.example/x').valid).toBe(false);
+    expect(validatePromptText('call me 555 123 4567 now').valid).toBe(false);
+  });
+
+  it('validates agent publications', () => {
+    expect(validateAgentPublish({ compositionId: 'c1', name: 'Helper Bot' }).valid).toBe(true);
+    expect(validateAgentPublish({ name: 'Helper Bot' }).valid).toBe(false); // no compositionId
+    expect(validateAgentPublish({ compositionId: 'c1', name: 'a' }).valid).toBe(false); // too short
+    expect(validateAgentPublish({ compositionId: 'c1', name: 'x'.repeat(AGENT_NAME_MAX_LEN + 1) }).valid).toBe(false);
+    expect(validateAgentPublish({ compositionId: 'c1', name: 'visit www.x.com' }).valid).toBe(false);
+  });
+
+  it('labels kinds', () => {
+    expect(kindLabel('quiz')).toBe('Quiz');
+    expect(kindLabel('agent')).toBe('Agent');
+    expect(kindLabel('prompt')).toBe('Prompt');
   });
 });
