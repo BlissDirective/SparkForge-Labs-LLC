@@ -541,26 +541,114 @@ All §0.2 gates. E2E: keyboard-only user reaches and enters every one of the 11 
 
 ---
 
-## PART 10 — PHASE F6: CINEMATIC MARKETING HERO
+## PART 10 — PHASE F6: CINEMATIC MARKETING HERO (v1.1 — owner-amended 2026-07-18)
 
-**Files:** `src/app/(marketing)`/landing components (locate the current landing page component; restyle in place behind `FORGE_HERO`), new `src/components/marketing/ForgeHeroScene.tsx` (R3F, `next/dynamic`, `ssr: false`).
+**Amendment log (v1.0 → v1.1, all owner-approved):**
+- The v1.0 R3F anvil/particle-assembly scene is REPLACED by the **Lightfall** shader background (React Bits) + the **light-forged wordmark** sequence.
+- The Sparky/hologram title sequence (`HeroHologram.tsx`) is RETIRED — no mascot appears in the hero title.
+- Canonical tagline (already live in `HeroContent.tsx:33`, carried forward verbatim): **"Sparking Curiosity, and Forging Skills with AI"**.
+- The existing 5-act `ScrollJourney` engineering is RETAINED and rethemed (v1.0's 3-section spec is dropped).
+- New **Molten Thread** scroll transition binds hero → sections → CTA into one continuous circuit.
+- The hero micro-game is REPLACED — final game choice is **DECISION PENDING** (§10.6); "Light the Network" is the spec'd default.
 
-This is the ONE surface where full 3D is authorized (invariant 0.1.2a).
+**Files:** `src/app/(marketing)/page.tsx`, `src/components/landing/HeroSection.tsx`, `HeroContent.tsx`, `ScrollJourney.tsx` (restyle in place behind `FORGE_HERO`); new `src/components/bits/Lightfall.tsx`, `src/components/landing/ForgedWordmark.tsx`, `src/components/landing/MoltenThread.tsx`, `src/components/landing/NetworkMicroDemo.tsx` (§10.6).
 
-### 10.1 Structure
+This is the ONE surface where WebGL is authorized (invariant 0.1.2a).
 
-1. **Server-rendered HTML first:** headline "Forge Your Intelligence" (Exo 2, `--glow-text`), subline, CTA `ForgeButton molten lg` "Enter the Forge" (→ signup/login), nav — all present without JS. The LCP element is the headline over an **eager static poster** (`/public/marketing/forge-hero-poster.webp` — export one frame of the 3D scene during development; a dark-amber gradient placeholder until then).
-2. **`ForgeHeroScene` hydrates post-LCP** (dynamic import inside a `requestIdleCallback`-guarded mount, plus `useForgeTier`: mobile gets the poster only, never the canvas): an R3F scene —
-   - a stylized low-poly anvil-crucible centerpiece (≤ 30 k tris, procedural or a small GLB in `/public/models/marketing/`), emissive molten pool (animated emissive intensity),
-   - **logo particle assembly**: ~1,200 points (THREE.Points, one buffer geometry) that drift and converge into the "SPARKFORGE" wordmark point-cloud (precompute target positions from text rendered to an offscreen canvas sampled at build of the component), loop: assemble → hold 4 s → gentle dissolve → reassemble,
-   - postprocessing: **Bloom only** (no DoF, no chromatic aberration — policy §1.5/review),
-   - slow orbital camera drift (no user controls).
-3. **Scroll journey** (GSAP ScrollTrigger + Lenis — both installed): 3 sections pinned/fading — "42 games" (game tile collage), "11 labs" (lab chip ring graphic, DOM), "For parents" (trust copy). All DOM/CSS; scroll effects disabled under reduced-motion (sections render stacked, fully readable).
-4. **Portal transition:** clicking "Enter the Forge" plays a 500 ms radial amber wipe (a fixed div scaling from the button, `clip-path: circle()`) then routes. Reduced-motion: instant route.
+### 10.1 Lightfall — dependency & vendoring
 
-### 10.2 Acceptance (F6)
+1. `npm install ogl` (small WebGL library, no three.js overlap; log size + license in PROGRESS.md per Part 13 policy).
+2. **Vendor** the React Bits Lightfall source (reactbits.dev/backgrounds/lightfall; repo `DavidHDev/react-bits`, `src/content/Backgrounds/Lightfall/`) into `src/components/bits/Lightfall.tsx`, converted to TypeScript, following the established bits pattern (`withReducedMotion`/`withDeviceProfile` wrappers available in that folder). We own the copy — modifications below are expected.
+3. Required adaptations to the vendored copy:
+   - **Imperative handle**: `forwardRef` exposing `setUniforms({ speed?, density?, opacity? })` so scroll choreography (§10.4) can drive shader uniforms per-frame WITHOUT React re-renders.
+   - **`dpr` clamp**: `Math.min(devicePixelRatio, 1.5)` desktop, `1` on `tier ∈ {mobile, tablet}` (via `useForgeTier`).
+   - **Auto-pause**: internal IntersectionObserver sets `paused=true` when < 5% visible; also pause on `visibilitychange`.
+   - **Reduced-motion**: render one static frame then pause (the still frame IS the fallback art).
+   - **No-WebGL fallback**: context-creation failure → render nothing; the CSS poster layer beneath (§10.2) is always present.
 
-LCP < 2.5 s with canvas enabled (poster/headline is LCP — verify in trace). Scene ≤ 60 fps desktop / gracefully absent on mobile. Page fully readable & navigable with JS disabled. SEO: headline/copy in initial HTML (verify with `curl`). `FORGE_HERO=false` restores current landing. Snapshot at 3 breakpoints.
+### 10.2 Hero viewport (`HeroSection` v2 — layer stack, bottom → top)
+
+| z | Layer | Spec |
+|---|---|---|
+| 0 | **Poster** (always present) | CSS gradient: `radial-gradient(ellipse 80% 70% at 50% 30%, #33261C 0%, #1E1610 45%, #16100B 100%)` — this is the no-JS / no-WebGL / pre-hydration state and prevents any flash |
+| 1 | **Lightfall canvas** (post-LCP dynamic import, `ssr:false`) | Props: `colors={['#FFC24A','#FF8C1A','#35E0FF']}` (two molten streams + ONE spark-cyan — the signature tension; hero is a sanctioned triad surface), `backgroundColor='#16100B'` (≡ `--sf-surface-alt` → seamless ground continuity with the app), `speed=0.5`, `density=0.6` (`0.4` mobile), `glow=1`, `twinkle=0.6`, `backgroundGlow=0.35`, `mouseInteraction` on (`mouseStrength=0.5, mouseRadius=1, mouseDampening=0.15`) — the light bends around the cursor; touch devices simply never update the mouse uniform. Fades in over 800 ms once ready. |
+| 2 | **Readability scrim** | Keep the existing scrim pattern, retuned warm: `radial-gradient(ellipse 70% 60% at 50% 45%, rgba(22,16,11,0.72) 0%, rgba(22,16,11,0.35) 55%, transparent 100%)`, `aria-hidden`, `pointer-events:none` |
+| 3 | **Content** | `ForgedWordmark` (§10.3) + tagline + CTA `ForgeButton molten lg` "Enter the Forge" (→ signup) + scroll cue |
+
+LCP element = the `<h1>` wordmark text (renders immediately, server-side). CLS 0: every layer is absolutely positioned within the `100dvh` section.
+
+### 10.3 The light-forged wordmark (`ForgedWordmark.tsx`)
+
+**Concept:** no mascot. The falling light forges the brand name itself — the title *enacts* the product promise.
+
+- **Markup:** one real `<h1>` — `SPARKFORGE` (Exo 2, weight 800, `clamp(3rem, 9vw, 7.5rem)`) with `LABS` beneath (Exo 2, weight 600, `letter-spacing: 0.42em`, ~1/4 size). Real HTML text at all times (SEO + screen readers get it instantly; the animation is purely presentational).
+- **Sequence** (CSS custom-property timeline driven by GSAP; total ≈ 2.5 s, starts on mount, loosely synced to Lightfall — NEVER reads canvas state, so it runs identically if WebGL is absent):
+
+| t (s) | Beat | Technique |
+|---|---|---|
+| 0.0 | **Unlit alloy**: letters visible but dark-embossed | `background-clip: text` with a static dark-alloy gradient (`#33261C → #291E16`) + 1 px `#4A3A2C` text-stroke equivalent (layered text-shadow) — readable from frame one (contrast ≥ 3:1 vs ground) |
+| 0.3–1.6 | **The pour**: molten fill rises bottom-up through the glyphs with a bright heat-edge at the fill line | animate `background-position` of a two-stop stacked gradient (alloy above, `--forge-molten-vert` below, 8 px `#FFC24A` band at the boundary) from 100% → 0% |
+| 1.6–2.2 | **Temper**: glow settles — molten fill cools into a chrome-amber finish with a soft breathing rim | crossfade to the settled gradient (`#F5EBDC → #FFC24A → #C87B3B` vertical); add `--glow-text` shadow easing to a 4 s breathing loop (±20% opacity) |
+| 2.2 | **LABS** letterspaces in (tracking 0.6em → 0.42em + fade) | motion/react |
+| 2.4 | **Tagline** fades up: "Sparking Curiosity, and Forging Skills with AI" | existing `SplitText`/`BlurText` bits, word-stagger, `text-sf-text-secondary`, Sora 18–20 px |
+| 2.7 | CTA + scroll cue fade in | — |
+
+- **Settled-state option:** trial `MetallicPaint` (already in `src/components/bits/`) for the LABS chrome finish before hand-rolling; adopt whichever reads better at the owner checkpoint.
+- **Reduced-motion / no-JS:** render the t=2.7 end-state immediately (tempered wordmark, tagline, CTA — fully composed, zero animation). This is the same markup, not a fork.
+- The breathing rim is the ONLY persistent animation after settle (≤ 0.25 Hz — flash-safe by two orders of magnitude).
+
+### 10.4 The Molten Thread (`MoltenThread.tsx`) — hero → page transition
+
+**Concept:** scrolling off the title, the falling light collects into a single molten seam that runs down the entire page; every section taps it. Hero → sections → CTA reads as one continuous circuit, previewing the app's `CircuitTraces` design language.
+
+1. **Hero handoff (pin + scrub):** GSAP ScrollTrigger pins `HeroSection` for ~70vh of scroll. Scrub progress `p` drives, via the Lightfall imperative handle (§10.1.3): `speed: 0.5→0.1`, `density: 0.6→0.15`, `opacity: 1→0` (cyan streak fades first — reduce `colors` weighting by swapping to the 2-color warm set at p>0.4). Simultaneously the thread's head draws downward from behind the wordmark (SVG `stroke-dashoffset` scrubbed 0→drawn over the pin range). At p=1 the hero unpins; Lightfall sets `paused=true`.
+2. **The thread:** one full-page-height SVG path (center-line, 3 px, `--forge-molten` gradient stroke via `<linearGradient>`, soft `filter: drop-shadow(0 0 6px rgba(255,140,26,0.5))`), absolutely positioned behind content (`z-index` between page background and section panels), `aria-hidden`, `pointer-events:none`. It meanders gently (±60 px bezier sway) so it reads as a seam, not a ruler.
+3. **Section ignition contract:** each ScrollJourney act registers its entry with the thread (context or simple ref registry). When an act's panel crosses 60% viewport entry, ONE current pulse (the `CircuitTraces` pulse pattern: 40-unit bright dash traveling the thread segment, ~600 ms) runs from the previous tap-point to this act's tap-point, then the act's panel "ignites": bezel glow flares once (`glow=active` for 400 ms → ambient) as its content snaps in (`--forge-snap`). One pulse at a time globally (queue, drop if busy — restraint rule).
+4. **Terminal:** the thread ends by flowing INTO the final CTA button ("Your Station Awaits" act) — the button's molten gradient visually continues the stroke; on click, the existing portal wipe (radial amber `clip-path: circle()` from the button, 500 ms) then routes.
+5. **Reduced-motion:** no pin, no scrub, no pulses — thread renders fully drawn and static, sections appear without ignition. Page fully readable stacked.
+6. **Mobile:** thread persists (it's one SVG — cheap) but the pin/scrub is shortened to 40vh and Lightfall may be poster-only per §10.1.3 measurement.
+
+### 10.5 ScrollJourney reconciliation (retheme, keep the engineering)
+
+The existing `ScrollJourney.tsx` 5-act structure, lazy-loading with CLS-safe skeleton heights, IntersectionObserver fallback, and reduced-motion handling are all KEPT. Changes are thematic only:
+
+| Act | Current | Forge retheme |
+|---|---|---|
+| 1 | Crystal Hero (R3F crystal) | REMOVED — the hero viewport (§10.2–10.3) is Act 1; delete the crystal scene mount |
+| 2 | Lab Discovery Ring (11 hex tiles) | Keep structure; tiles become `ForgePanel alloy` crucible chips with lab colors + `ForgeDial` accents; ignition via thread (§10.4.3) |
+| 3 | Feature Showcase (4 holo cards) | Keep; cards → `ForgePanel glass` with `HoloChip` labels |
+| 4 | Station Preview | Re-shoot: static forge-dashboard screenshot (F4 workbench) + CSS glow + existing counters |
+| 5 | CTA "Your Station Awaits" | Keep copy; CTA becomes the thread terminal (§10.4.4) |
+
+The micro-game section (currently between hero and journey in `page.tsx`) is replaced per §10.6.
+
+### 10.6 Hero micro-demo — ⚠ DECISION PENDING (owner choosing the featured game)
+
+The current "Teach Sparky to Sort" `LandingMicroGame` is retired (it also stars the removed mascot). Its replacement must obey the micro-demo architecture contract regardless of which game is chosen: **pure DOM/SVG, self-contained, zero stores/auth, zero new deps, ~25 s, playable, ends in a "you just did AI" payoff + signup CTA**. Full games are NEVER embedded on the landing page.
+
+**Spec'd default — "Light the Network" (`NetworkMicroDemo.tsx`), distilled from Neural Builder:**
+- 3-layer SVG network: 3 input feature nodes (👂 pointy ears · 🐟 likes fish · 🧶 chases yarn) → 2 hidden → 1 output ("It's a CAT!").
+- **Round 1 — Wire it:** tap connections to link the layers; each connection draws in (stroke-dash). A valid input→output path fires a signal pulse (amber dash-pulse, the app's current-flow language) and the output node ignites (SparkBurst ≤ 12).
+- **Round 2 — Weight it:** a mis-weighted preset classifies a 🐶 as a cat; child taps a connection to strengthen/weaken (3 visible thickness states), re-fires, gets it right — real weight intuition in two taps.
+- **Round 3 — Fire it:** new animal's features light up, full cascade animation, correct classification. Payoff: "**You just built a neural network.**" → CTA "Forge the real thing — Neural Builder is waiting inside" (→ signup).
+- A11y: every node/connection is a focusable SVG element with labels; pulses decorative; reduced-motion = instant connection states + static result, still fully playable.
+- If the owner selects a different game, re-derive a micro-demo under the same contract and log the decision here.
+
+### 10.7 Housekeeping (superseded-artifact policy)
+
+On F6 ship: `git mv` `HeroHologram.tsx` and `LandingMicroGame.tsx` to `src/components/landing/_SUPERSEDED/` with the standard `SUPERSEDED_BY.md` manifest (per CLAUDE.md §3.2; `CrystalShatter` precedent). `AuroraGalaxy` comes off the hero but REMAINS in `src/components/bits/` (used elsewhere / future use). `BrandHero3D`/crystal-scene mounts referenced by ScrollJourney Act 1 are unmounted (archive only if nothing else imports them — verify first).
+
+### 10.8 Acceptance (F6)
+
+- LCP < 2.5 s with canvas enabled (h1 wordmark is LCP — verify in trace); CLS = 0 through hero + full scroll.
+- Page fully readable & navigable with JS disabled (poster + end-state wordmark + stacked sections).
+- SEO: h1 + tagline + section copy in initial HTML (`curl` check).
+- 60 fps desktop during scrub (DevTools trace over the pin range); Lightfall paused when off-screen (verify via `performance` timeline — zero rAF activity past the hero).
+- Reduced-motion e2e: hero end-state + static thread + stacked sections, micro-demo playable.
+- Mouse-interaction verified desktop; touch scroll unimpeded (canvas has `pointer-events:none` — mouse tracking via window listener, never intercepting).
+- `FORGE_HERO=false` restores the current landing page exactly.
+- Snapshots at 375/768/1440: hero settled state, mid-scrub, each act ignited, micro-demo rounds.
+- HARD-STOP owner checkpoint: Lightfall tint, wordmark sequence, thread transition, micro-demo feel.
 
 ---
 
