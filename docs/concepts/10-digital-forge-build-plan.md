@@ -549,9 +549,10 @@ All §0.2 gates. E2E: keyboard-only user reaches and enters every one of the 11 
 - Canonical tagline (already live in `HeroContent.tsx:33`, carried forward verbatim): **"Sparking Curiosity, and Forging Skills with AI"**.
 - The existing 5-act `ScrollJourney` engineering is RETAINED and rethemed (v1.0's 3-section spec is dropped).
 - New **Molten Thread** scroll transition binds hero → sections → CTA into one continuous circuit.
-- The hero micro-game is REPLACED — final game choice is **DECISION PENDING** (§10.6); "Light the Network" is the spec'd default.
+- The hero micro-game is REPLACED by **"Light the Network"** (Neural Builder distillation) — owner-confirmed 2026-07-18, ~2-minute guided demo (§10.6).
+- ScrollJourney Act 4 gains an OWNER-GATED self-playing **Treat Trainer vignette** (§10.5.1).
 
-**Files:** `src/app/(marketing)/page.tsx`, `src/components/landing/HeroSection.tsx`, `HeroContent.tsx`, `ScrollJourney.tsx` (restyle in place behind `FORGE_HERO`); new `src/components/bits/Lightfall.tsx`, `src/components/landing/ForgedWordmark.tsx`, `src/components/landing/MoltenThread.tsx`, `src/components/landing/NetworkMicroDemo.tsx` (§10.6).
+**Files:** `src/app/(marketing)/page.tsx`, `src/components/landing/HeroSection.tsx`, `HeroContent.tsx`, `ScrollJourney.tsx` (restyle in place behind `FORGE_HERO`); new `src/components/bits/Lightfall.tsx`, `src/components/landing/ForgedWordmark.tsx`, `src/components/landing/MoltenThread.tsx`, `src/components/landing/NetworkMicroDemo.tsx` (§10.6), `src/components/landing/TreatTrainerVignette.tsx` (§10.5.1, owner-gated).
 
 This is the ONE surface where WebGL is authorized (invariant 0.1.2a).
 
@@ -622,17 +623,31 @@ The existing `ScrollJourney.tsx` 5-act structure, lazy-loading with CLS-safe ske
 
 The micro-game section (currently between hero and journey in `page.tsx`) is replaced per §10.6.
 
-### 10.6 Hero micro-demo — ⚠ DECISION PENDING (owner choosing the featured game)
+#### 10.5.1 Act 4 bonus — Treat Trainer "Watch It Learn" vignette (⚠ OWNER GATE)
 
-The current "Teach Sparky to Sort" `LandingMicroGame` is retired (it also stars the removed mascot). Its replacement must obey the micro-demo architecture contract regardless of which game is chosen: **pure DOM/SVG, self-contained, zero stores/auth, zero new deps, ~25 s, playable, ends in a "you just did AI" payoff + signup CTA**. Full games are NEVER embedded on the landing page.
+> **⚠ OWNER GATE (HS-style hard stop):** before implementing this vignette during the F6 build, the implementer MUST pause and ask the owner: *"Act 4 is ready for the Treat Trainer 'Watch It Learn' vignette — do you want it fully built in this pass, or deferred?"* Do not build it without an explicit "yes". If deferred, Act 4 ships with the re-shot Station Preview only and this section stays in the plan for a later pass.
 
-**Spec'd default — "Light the Network" (`NetworkMicroDemo.tsx`), distilled from Neural Builder:**
-- 3-layer SVG network: 3 input feature nodes (👂 pointy ears · 🐟 likes fish · 🧶 chases yarn) → 2 hidden → 1 output ("It's a CAT!").
-- **Round 1 — Wire it:** tap connections to link the layers; each connection draws in (stroke-dash). A valid input→output path fires a signal pulse (amber dash-pulse, the app's current-flow language) and the output node ignites (SparkBurst ≤ 12).
-- **Round 2 — Weight it:** a mis-weighted preset classifies a 🐶 as a cat; child taps a connection to strengthen/weaken (3 visible thickness states), re-fires, gets it right — real weight intuition in two taps.
-- **Round 3 — Fire it:** new animal's features light up, full cascade animation, correct classification. Payoff: "**You just built a neural network.**" → CTA "Forge the real thing — Neural Builder is waiting inside" (→ signup).
-- A11y: every node/connection is a focusable SVG element with labels; pulses decorative; reduced-motion = instant connection states + static result, still fully playable.
-- If the owner selects a different game, re-derive a micro-demo under the same contract and log the decision here.
+Spec (when approved): a **self-playing, non-interactive** ~12-second loop embedded in the Act 4 panel (`src/components/landing/TreatTrainerVignette.tsx`) showing reinforcement learning at a glance:
+- A 5×5 DOM grid maze (forge-styled: alloy walls, one 🍖 treat, a small bot agent).
+- **Run 1:** the agent wanders badly (random-ish path, 2 dead ends), leaving a faint amber heat-trail on visited cells; misses or barely finds the treat.
+- **Run 2:** prior trail persists dimly (its "memory"); the agent's path is visibly better; trail brightens on the good route.
+- **Run 3:** near-optimal path, confident and quick; the winning route glows molten; treat sparkles (SparkBurst ≤ 8). Caption cycles beneath: "Watch AI learn by trying → remembering → improving."
+- Loops with a 2 s pause + soft reset (trail fades). Pure DOM/CSS + one GSAP timeline; `aria-hidden` decorative with the caption as real text; reduced-motion shows the Run-3 end-state statically with all three captions listed; paused off-screen via IntersectionObserver.
+
+### 10.6 Hero micro-demo — "Light the Network" (OWNER-CONFIRMED: Neural Builder, ~2 minutes)
+
+The current "Teach Sparky to Sort" `LandingMicroGame` is retired (it also stars the removed mascot). The replacement obeys the micro-demo architecture contract: **pure DOM/SVG, self-contained, zero stores/auth, zero new deps, playable, ends in a "you just did AI" payoff + signup CTA**. Full games are NEVER embedded on the landing page.
+
+**`NetworkMicroDemo.tsx` — a ~2-minute guided build, distilled from Neural Builder.** Four rounds, auto-advancing, with progress dots. Because 2 minutes is long for a landing visitor, TWO escape valves are mandatory: (a) the signup CTA is persistently visible beside the demo from Round 1 (never gated behind completion), and (b) a subtle "Skip to the finale ▸" link jumps to the Round-4 cascade + payoff at any time. The demo must reward the visitor who stays, never trap the one who won't.
+
+- **Stage:** a 3-layer SVG network, forge-styled — nodes are small crucible orbs (alloy rim, dark core that ignites molten when active), connections are alloy seams that light amber when signal flows (the app's current-flow language throughout).
+- **Round 1 — Wire it (~25 s):** 3 input feature nodes (👂 pointy ears · 🐟 likes fish · 🧶 chases yarn) → 2 hidden → 1 output ("It's a CAT!"). Tap connections to link layers; each draws in (stroke-dash). First valid input→output path fires a signal pulse and the output node ignites (SparkBurst ≤ 12). Micro-copy teaches: "Neurons only fire when they're connected."
+- **Round 2 — Weight it (~30 s):** a mis-weighted preset classifies a 🐶 as a cat. Tap a connection to cycle its strength (3 visible thickness/brightness states), re-fire, watch the classification flip correct. Micro-copy: "Stronger connections shout. Weaker ones whisper."
+- **Round 3 — Grow it (~30 s):** a tricky case two hidden neurons can't separate ("🐰 fluffy AND hops?"). The child taps a pulsing socket to forge a **third hidden neuron** (it materializes molten → tempers to alloy), wires it with 2 taps, re-fires, and the network now handles the case. Micro-copy: "Bigger networks can learn trickier patterns." (This is the round that earns the 2-minute length — the visitor grows the brain, not just tunes it.)
+- **Round 4 — Fire it (~30 s):** three rapid-fire animals (🐱 🐶 🐰) light their feature nodes in sequence; the full network cascades each time, classifying all three correctly — score-free, pure spectacle, each cascade slightly grander (more pulse particles, capped ≤ 24).
+- **The finale — pulse escape:** on the third cascade, the signal does NOT stop at the output node — it **jumps off the demo onto the Molten Thread** (§10.4) and races down the page toward the CTA sections, pulling the visitor's eye (and scroll) with it. Payoff text: "**You just built a neural network.**" → CTA "Forge the real thing — Neural Builder is waiting inside" (→ signup). If the user has `prefers-reduced-motion` or the thread is absent, the payoff renders without the escape.
+- **A11y:** every node/connection/socket is a focusable SVG element with labels ("connection from pointy-ears to hidden neuron 1, strength 2 of 3"); pulses decorative + `aria-hidden`; the `A11yAnnouncer` pattern announces round results; reduced-motion = instant connection states + static results, all four rounds fully playable; touch targets ≥ 44 px.
+- **Perf:** single GSAP timeline per round, ≤ 30 animated SVG nodes, paused off-screen.
 
 ### 10.7 Housekeeping (superseded-artifact policy)
 
@@ -647,8 +662,10 @@ On F6 ship: `git mv` `HeroHologram.tsx` and `LandingMicroGame.tsx` to `src/compo
 - Reduced-motion e2e: hero end-state + static thread + stacked sections, micro-demo playable.
 - Mouse-interaction verified desktop; touch scroll unimpeded (canvas has `pointer-events:none` — mouse tracking via window listener, never intercepting).
 - `FORGE_HERO=false` restores the current landing page exactly.
-- Snapshots at 375/768/1440: hero settled state, mid-scrub, each act ignited, micro-demo rounds.
-- HARD-STOP owner checkpoint: Lightfall tint, wordmark sequence, thread transition, micro-demo feel.
+- Micro-demo e2e: all 4 rounds completable (mouse, touch-emulated, keyboard-only); "Skip to the finale" works from every round; persistent CTA clickable at all times; pulse-escape fires on the final cascade (and is absent under reduced-motion).
+- §10.5.1 owner gate honored: the Treat Trainer vignette is NOT built unless the owner answered "yes" when asked; the ask + answer logged in PROGRESS.md.
+- Snapshots at 375/768/1440: hero settled state, mid-scrub, each act ignited, all 4 micro-demo rounds + finale.
+- HARD-STOP owner checkpoint: Lightfall tint, wordmark sequence, thread transition, 2-minute micro-demo pacing (does Round 3 hold attention?), vignette (if built).
 
 ---
 
