@@ -751,7 +751,7 @@ The concept's "forge prompts in real-time while racing" is amended (owner-accept
 | Ceremony | ≤ 4.5 s, ≤ 24 particles/burst, canvas-confetti single burst only |
 | Marketing hero canvas | ≤ 30 k tris + 1,200 points, Bloom only, absent on mobile, never LCP |
 | Core Ignition | ≤ 40 animated DOM nodes, 60 fps desktop / 30 fps floor mobile |
-| Bundle | No new dependencies in ANY phase (everything is already installed). `next build` first-load JS for dashboard routes must not grow > 10 KB per phase (check build output; primitives are shared, tree-shaken). |
+| Bundle | New dependencies are PERMITTED when they bring a unique visual/design capability the existing stack can't match (per CLAUDE.md Tech Quality Mandate). Requirements: stable release channel, license verified, size + purpose logged in PROGRESS.md, and — for React Bits-style copy-paste components — vendor the source into `src/components/bits/` (established pattern) so we own and can modify it. `next build` first-load JS for dashboard routes must not grow > 10 KB per phase without a logged justification (marketing routes exempt). |
 | Backdrop-filter caps | ≤ 6 simultaneous blurred panels per viewport (blur is compositor-expensive); nested blur forbidden |
 
 ---
@@ -792,7 +792,6 @@ The concept's "forge prompts in real-time while racing" is amended (owner-accept
 - ❌ Scanlines/distortion on text or reading surfaces
 - ❌ R3F orbit-controls lab navigation as the primary path (CSS ring + grid only; `FORGE_RING_3D` reserved for a future flag)
 - ❌ Persistent canvas overlays above game viewports
-- ❌ Any new npm dependency
 - ❌ Edits to existing game components (F0–F7); Core Ignition adds files only
 - ❌ "Forge Echoes" customizable AI companions — great future feature, separate design doc, not this build
 
