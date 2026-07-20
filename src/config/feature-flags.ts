@@ -10,6 +10,11 @@
 
 const isDev = process.env.NODE_ENV === 'development';
 
+// Vercel preview deployments (branch pushes) — NEXT_PUBLIC_VERCEL_ENV is
+// auto-exposed when "Automatically expose System Environment Variables"
+// is enabled (Vercel default). Production is never 'preview'.
+const isPreview = process.env.NEXT_PUBLIC_VERCEL_ENV === 'preview';
+
 function flag(key: string, defaultValue: boolean): boolean {
   const env = process.env[`NEXT_PUBLIC_${key}`];
   if (env === 'true') return true;
@@ -41,25 +46,28 @@ export const FEATURE_FLAGS = {
 
   /* ── DIGITAL FORGE RETHEME (Concept 10 — docs/concepts/10-digital-forge-build-plan.md) ──
      Sub-surface flags AND with FORGE_THEME at their call sites: forge
-     surfaces never render against the light theme. */
+     surfaces never render against the light theme.
+     Default ON in dev AND on Vercel PREVIEW deployments (ship-dark
+     model: production stays light until NEXT_PUBLIC_FORGE_*=true is
+     set in the Production environment). */
   /** Master token flip: <html data-theme="forge"> (F1) */
-  FORGE_THEME: flag('FORGE_THEME', isDev),
+  FORGE_THEME: flag('FORGE_THEME', isDev || isPreview),
   /** Forge Chamber game shell restyle (F2) */
-  FORGE_CHAMBER: flag('FORGE_CHAMBER', isDev),
+  FORGE_CHAMBER: flag('FORGE_CHAMBER', isDev || isPreview),
   /** Forge Complete ceremony overlay (F3) */
-  FORGE_CEREMONY: flag('FORGE_CEREMONY', isDev),
+  FORGE_CEREMONY: flag('FORGE_CEREMONY', isDev || isPreview),
   /** Dashboard Workbench layout + home (F4) */
-  FORGE_DASHBOARD: flag('FORGE_DASHBOARD', isDev),
+  FORGE_DASHBOARD: flag('FORGE_DASHBOARD', isDev || isPreview),
   /** Forge Ring lab selection (F5) */
-  FORGE_RING: flag('FORGE_RING', isDev),
+  FORGE_RING: flag('FORGE_RING', isDev || isPreview),
   /** Cinematic marketing hero (F6) */
-  FORGE_HERO: flag('FORGE_HERO', isDev),
+  FORGE_HERO: flag('FORGE_HERO', isDev || isPreview),
   /** ForgeSpark mascot replaces Sparky visuals (F7) */
-  FORGE_MASCOT: flag('FORGE_MASCOT', isDev),
+  FORGE_MASCOT: flag('FORGE_MASCOT', isDev || isPreview),
   /** Canvas/particle ambience layers — global kill-switch */
-  FORGE_AMBIENCE: flag('FORGE_AMBIENCE', isDev),
+  FORGE_AMBIENCE: flag('FORGE_AMBIENCE', isDev || isPreview),
   /** Core Ignition game #43 visible in arcade (F8) */
-  GAME_CORE_IGNITION: flag('GAME_CORE_IGNITION', isDev),
+  GAME_CORE_IGNITION: flag('GAME_CORE_IGNITION', isDev || isPreview),
 } as const;
 
 export type FeatureFlagKey = keyof typeof FEATURE_FLAGS;

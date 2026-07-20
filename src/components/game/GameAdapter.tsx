@@ -29,6 +29,24 @@ export function GameAdapter({
   totalQuestions,
   ...gameProps
 }: GameAdapterProps) {
+  // Forge F2 (Concept 10 Part 6): the Forge Chamber replaces the HTML
+  // shell when both forge flags are on. Prop contract is identical —
+  // FORGE_CHAMBER=false restores HtmlGameShell exactly.
+  if (FEATURE_FLAGS.USE_HTML_GAME_SHELL && FEATURE_FLAGS.FORGE_THEME && FEATURE_FLAGS.FORGE_CHAMBER) {
+    const ForgeChamberShell = require('./ForgeChamberShell').ForgeChamberShell;
+    return (
+      <ForgeChamberShell
+        {...gameProps}
+        title={title}
+        category={category}
+        difficulty={difficulty}
+        totalQuestions={totalQuestions}
+      >
+        <GameComponent {...gameProps} />
+      </ForgeChamberShell>
+    );
+  }
+
   if (FEATURE_FLAGS.USE_HTML_GAME_SHELL) {
     // New HTML shell — import dynamically to avoid bundling both
     const HtmlGameShell = require('./HtmlGameShell').HtmlGameShell;

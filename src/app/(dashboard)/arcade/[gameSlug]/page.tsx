@@ -26,6 +26,11 @@ import { getGameBySlug } from '@/config/gameRegistry';
 import { LAB_COLORS, LAB_NAMES } from '@/config/labs';
 import { GAME_LOADERS } from './game-loaders';
 import { FEATURE_FLAGS } from '@/config/feature-flags';
+import { ForgePanel, ForgeButton, HoloChip } from '@/components/forge';
+
+// Forge F2: chamber restyle gate — FORGE_CHAMBER=false restores the
+// pre-forge play page exactly.
+const FORGE_CHAMBER_ON = FEATURE_FLAGS.FORGE_THEME && FEATURE_FLAGS.FORGE_CHAMBER;
 import { SFBadge } from '@/components/ui/SFBadge';
 import { SFButton } from '@/components/ui/SFButton';
 import { SFSkeleton } from '@/components/ui/SFSkeleton';
@@ -69,7 +74,7 @@ function GameLoaderFallback() {
     <div className="flex items-center justify-center min-h-[400px]">
       <div className="text-center">
         <SFSkeleton variant="avatar" className="w-12 h-12 mx-auto mb-4 rounded-full" />
-        <p className="text-sm font-medium" style={{ color: '#8C94AC' }}>Loading game...</p>
+        <p className="text-sm font-medium" style={{ color: 'rgb(var(--sf-text-muted) / 1)' }}>Loading game...</p>
       </div>
     </div>
   );
@@ -169,7 +174,7 @@ export default function GamePlayPage() {
             <Link
               href="/arcade"
               className="inline-flex items-center gap-1.5 text-sm font-medium transition-colors hover:underline"
-              style={{ color: '#8C94AC' }}
+              style={{ color: 'rgb(var(--sf-text-muted) / 1)' }}
             >
               <ArrowLeft className="w-4 h-4" /> Back to Arcade
             </Link>
@@ -196,7 +201,7 @@ export default function GamePlayPage() {
 
               <h1
                 className="text-2xl sm:text-3xl font-extrabold mb-2"
-                style={{ fontFamily: 'var(--font-display)', color: '#1A1D2B' }}
+                style={{ fontFamily: 'var(--font-display)', color: 'rgb(var(--sf-text-primary) / 1)' }}
               >
                 <BlurText text={gameConfig.name} />
               </h1>
@@ -213,7 +218,7 @@ export default function GamePlayPage() {
                 </SFBadge>
               </div>
 
-              <p className="text-sm max-w-md mx-auto" style={{ color: '#8C94AC' }}>
+              <p className="text-sm max-w-md mx-auto" style={{ color: 'rgb(var(--sf-text-muted) / 1)' }}>
                 {gameConfig.description}
               </p>
             </div>
@@ -234,8 +239,8 @@ export default function GamePlayPage() {
                   style={{ backgroundColor: `${info.color}08` }}
                 >
                   <info.icon className="w-5 h-5 mx-auto mb-1" style={{ color: info.color }} />
-                  <p className="text-xs font-bold" style={{ color: '#1A1D2B' }}>{info.value}</p>
-                  <p className="text-[10px]" style={{ color: '#8C94AC' }}>{info.label}</p>
+                  <p className="text-xs font-bold" style={{ color: 'rgb(var(--sf-text-primary) / 1)' }}>{info.value}</p>
+                  <p className="text-[10px]" style={{ color: 'rgb(var(--sf-text-muted) / 1)' }}>{info.label}</p>
                 </motion.div>
               ))}
             </div>
@@ -248,7 +253,7 @@ export default function GamePlayPage() {
             >
               <h2
                 className="text-lg font-bold text-center mb-5"
-                style={{ fontFamily: 'var(--font-display)', color: '#1A1D2B' }}
+                style={{ fontFamily: 'var(--font-display)', color: 'rgb(var(--sf-text-primary) / 1)' }}
               >
                 <BlurText text="Choose Your Challenge" />
               </h2>
@@ -269,7 +274,7 @@ export default function GamePlayPage() {
                     aria-pressed={selectedDifficulty === d.id}
                     className="relative w-full h-full p-5 rounded-sf-lg text-left transition-all border-2"
                     style={{
-                      backgroundColor: selectedDifficulty === d.id ? `${d.color}12` : '#FFFFFF',
+                      backgroundColor: selectedDifficulty === d.id ? `${d.color}12` : 'rgb(var(--sf-surface) / 1)',
                       borderColor: selectedDifficulty === d.id ? d.color : '#EEF2FA',
                       boxShadow: selectedDifficulty === d.id
                         ? `0 0 0 3px ${d.color}33, 0 4px 20px ${d.color}26`
@@ -290,10 +295,10 @@ export default function GamePlayPage() {
                       ))}
                     </div>
 
-                    <h3 className="text-base font-bold mb-1" style={{ color: '#1A1D2B' }}>
+                    <h3 className="text-base font-bold mb-1" style={{ color: 'rgb(var(--sf-text-primary) / 1)' }}>
                       {d.label}
                     </h3>
-                    <p className="text-xs mb-3" style={{ color: '#8C94AC' }}>
+                    <p className="text-xs mb-3" style={{ color: 'rgb(var(--sf-text-muted) / 1)' }}>
                       {d.description}
                     </p>
 
@@ -326,20 +331,33 @@ export default function GamePlayPage() {
                 animate={{ opacity: selectedDifficulty ? 1 : 0 }}
                 className="text-center mt-6"
               >
-                <SFButton
-                  variant="primary"
-                  size="lg"
-                  shape="pill"
-                  leftIcon={<Play className="w-5 h-5" />}
-                  onClick={() => setGameState('playing')}
-                  className="px-10"
-                  style={{
-                    background: `linear-gradient(135deg, ${labColor}, #4F6EF7)`,
-                    boxShadow: `0 4px 20px ${labColor}40`,
-                  }}
-                >
-                  Start Game
-                </SFButton>
+                {FORGE_CHAMBER_ON ? (
+                  <ForgeButton
+                    variant="molten"
+                    size="lg"
+                    onClick={() => setGameState('playing')}
+                    className="px-10"
+                    aria-label="Start game"
+                  >
+                    <Play className="w-5 h-5" />
+                    IGNITE
+                  </ForgeButton>
+                ) : (
+                  <SFButton
+                    variant="primary"
+                    size="lg"
+                    shape="pill"
+                    leftIcon={<Play className="w-5 h-5" />}
+                    onClick={() => setGameState('playing')}
+                    className="px-10"
+                    style={{
+                      background: `linear-gradient(135deg, ${labColor}, rgb(var(--sf-primary) / 1))`,
+                      boxShadow: `0 4px 20px ${labColor}40`,
+                    }}
+                  >
+                    Start Game
+                  </SFButton>
+                )}
               </motion.div>
             </motion.div>
 
@@ -354,16 +372,16 @@ export default function GamePlayPage() {
               <div
                 className="p-5 rounded-sf-lg"
                 style={{
-                  backgroundColor: '#FFFFFF',
+                  backgroundColor: 'rgb(var(--sf-surface) / 1)',
                   border: `1px solid ${labColor}26`,
                   boxShadow: 'var(--shadow-sm)',
                 }}
               >
-                <h3 className="text-sm font-bold mb-3" style={{ color: '#1A1D2B' }}>
+                <h3 className="text-sm font-bold mb-3" style={{ color: 'rgb(var(--sf-text-primary) / 1)' }}>
                   <Target className="w-4 h-4 inline mr-1" style={{ color: labColor }} />
                   How to Play
                 </h3>
-                <ul className="space-y-2 text-xs" style={{ color: '#8C94AC' }}>
+                <ul className="space-y-2 text-xs" style={{ color: 'rgb(var(--sf-text-muted) / 1)' }}>
                   <li className="flex items-start gap-2">
                     <span className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold text-white shrink-0 mt-0.5" style={{ backgroundColor: labColor }}>1</span>
                     Read the instructions at the start of each round
@@ -391,46 +409,100 @@ export default function GamePlayPage() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
-            {/* Game shell header */}
-            <div
-              className="flex items-center justify-between px-4 py-3 mb-4 rounded-sf-xl"
-              style={{ backgroundColor: '#FFFFFF', boxShadow: 'var(--shadow-sm)' }}
-            >
-              <button
-                onClick={() => {
-                  if (confirm('Exit game? Your progress will be saved.')) {
-                    setGameState('selecting');
-                  }
-                }}
-                className="flex items-center gap-1.5 text-sm font-medium transition-colors hover:underline"
-                style={{ color: '#8C94AC' }}
-              >
-                <ArrowLeft className="w-4 h-4" /> Exit
-              </button>
+            {FORGE_CHAMBER_ON ? (
+              /* Forge F2 (Concept 10 Part 6): the Forge Chamber frame.
+                 Pure DOM/CSS; nothing overlays the game viewport. */
+              <ForgePanel variant="alloy" as="div" className="overflow-hidden">
+                {/* corner rivets */}
+                {(['top-2 left-2', 'top-2 right-2', 'bottom-2 left-2', 'bottom-2 right-2'] as const).map((pos) => (
+                  <span
+                    key={pos}
+                    aria-hidden="true"
+                    className={`absolute ${pos} w-1.5 h-1.5 rounded-full z-10`}
+                    style={{
+                      background:
+                        'radial-gradient(circle at 35% 35%, var(--forge-chrome-hi, rgba(255,255,255,0.2)), rgb(var(--sf-border) / 1))',
+                    }}
+                  />
+                ))}
+                {/* chamber header */}
+                <div
+                  className="flex items-center justify-between px-4 h-14 border-b"
+                  style={{ borderColor: 'rgb(var(--sf-border) / 1)' }}
+                >
+                  <ForgeButton
+                    variant="ghost"
+                    size="sm"
+                    sparks={false}
+                    onClick={() => {
+                      if (confirm('Exit game? Your progress will be saved.')) {
+                        setGameState('selecting');
+                      }
+                    }}
+                    aria-label="Exit game"
+                  >
+                    <ArrowLeft className="w-4 h-4" /> Exit
+                  </ForgeButton>
+                  <div className="flex items-center gap-2">
+                    <HoloChip tone="amber">{gameConfig.name}</HoloChip>
+                    {diff && <HoloChip tone="cyan">{diff.label}</HoloChip>}
+                  </div>
+                </div>
+                {/* chamber viewport — the untouched game */}
+                <div
+                  className="overflow-hidden"
+                  style={{
+                    backgroundColor: 'rgb(var(--sf-surface) / 1)',
+                    minHeight: '500px',
+                  }}
+                >
+                  <GameComponent />
+                </div>
+              </ForgePanel>
+            ) : (
+              <>
+                {/* Game shell header */}
+                <div
+                  className="flex items-center justify-between px-4 py-3 mb-4 rounded-sf-xl"
+                  style={{ backgroundColor: 'rgb(var(--sf-surface) / 1)', boxShadow: 'var(--shadow-sm)' }}
+                >
+                  <button
+                    onClick={() => {
+                      if (confirm('Exit game? Your progress will be saved.')) {
+                        setGameState('selecting');
+                      }
+                    }}
+                    className="flex items-center gap-1.5 text-sm font-medium transition-colors hover:underline"
+                    style={{ color: 'rgb(var(--sf-text-muted) / 1)' }}
+                  >
+                    <ArrowLeft className="w-4 h-4" /> Exit
+                  </button>
 
-              <div className="flex items-center gap-2">
-                <SFBadge variant="primary" size="sm" style={{ backgroundColor: `${labColor}15`, color: labColor }}>
-                  {gameConfig.name}
-                </SFBadge>
-                {diff && (
-                  <SFBadge size="sm" style={{ backgroundColor: `${diff.color}15`, color: diff.color }}>
-                    {diff.label}
-                  </SFBadge>
-                )}
-              </div>
-            </div>
+                  <div className="flex items-center gap-2">
+                    <SFBadge variant="primary" size="sm" style={{ backgroundColor: `${labColor}15`, color: labColor }}>
+                      {gameConfig.name}
+                    </SFBadge>
+                    {diff && (
+                      <SFBadge size="sm" style={{ backgroundColor: `${diff.color}15`, color: diff.color }}>
+                        {diff.label}
+                      </SFBadge>
+                    )}
+                  </div>
+                </div>
 
-            {/* Game container */}
-            <div
-              className="rounded-sf-xl overflow-hidden"
-              style={{
-                backgroundColor: '#FFFFFF',
-                boxShadow: 'var(--shadow-md)',
-                minHeight: '500px',
-              }}
-            >
-              <GameComponent />
-            </div>
+                {/* Game container */}
+                <div
+                  className="rounded-sf-xl overflow-hidden"
+                  style={{
+                    backgroundColor: 'rgb(var(--sf-surface) / 1)',
+                    boxShadow: 'var(--shadow-md)',
+                    minHeight: '500px',
+                  }}
+                >
+                  <GameComponent />
+                </div>
+              </>
+            )}
 
             {/* Completion trigger (games call this via a global event or callback) */}
             {/* The actual completion is handled by the game's internal GameShell calling the gamification hooks */}
@@ -460,7 +532,7 @@ export default function GamePlayPage() {
                 animate={{ opacity: 1, y: 0 }}
                 className="text-center space-y-4"
               >
-                <h2 className="text-xl font-bold" style={{ fontFamily: 'var(--font-display)', color: '#1A1D2B' }}>
+                <h2 className="text-xl font-bold" style={{ fontFamily: 'var(--font-display)', color: 'rgb(var(--sf-text-primary) / 1)' }}>
                   Great job! Want to play another game?
                 </h2>
                 <div className="flex items-center justify-center gap-3">
@@ -499,10 +571,10 @@ function AgeRestricted({ gameConfig }: { gameConfig: { ageBands: string[] } }) {
         <div className="text-6xl mb-4">
           <Lock className="w-16 h-16 mx-auto" style={{ color: '#DAE0F0' }} />
         </div>
-        <h2 className="text-xl font-bold mb-2" style={{ fontFamily: 'var(--font-display)', color: '#1A1D2B' }}>
+        <h2 className="text-xl font-bold mb-2" style={{ fontFamily: 'var(--font-display)', color: 'rgb(var(--sf-text-primary) / 1)' }}>
           Age Restricted
         </h2>
-        <p className="text-sm mb-6" style={{ color: '#8C94AC' }}>
+        <p className="text-sm mb-6" style={{ color: 'rgb(var(--sf-text-muted) / 1)' }}>
           This game is designed for ages {gameConfig.ageBands.map((b) =>
             b === 'A' ? '7-10' : b === 'B' ? '11-13' : '14-16'
           ).join(', ')}.
@@ -524,10 +596,10 @@ function GameNotFound() {
         className="text-center max-w-md p-8"
       >
         <div className="text-6xl mb-4">&#x2753;</div>
-        <h2 className="text-xl font-bold mb-2" style={{ fontFamily: 'var(--font-display)', color: '#1A1D2B' }}>
+        <h2 className="text-xl font-bold mb-2" style={{ fontFamily: 'var(--font-display)', color: 'rgb(var(--sf-text-primary) / 1)' }}>
           Game Not Found
         </h2>
-        <p className="text-sm mb-6" style={{ color: '#8C94AC' }}>
+        <p className="text-sm mb-6" style={{ color: 'rgb(var(--sf-text-muted) / 1)' }}>
           This game may have been moved or removed.
         </p>
         <Link href="/arcade">
