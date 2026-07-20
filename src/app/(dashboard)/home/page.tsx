@@ -38,6 +38,11 @@ import { SFCircularProgress } from '@/components/ui/SFCircularProgress';
 import { DailyMissionCard } from '@/components/mission/DailyMissionCard';
 import { DashboardTour } from '@/components/onboarding/DashboardTour';
 import { QuickStatsBar } from '@/components/home/QuickStatsBar';
+import { ForgePanel } from '@/components/forge';
+import { FEATURE_FLAGS } from '@/config/feature-flags';
+
+// Forge F4: workbench hero gate — flag-off restores the original header.
+const FORGE_WORKBENCH_ON = FEATURE_FLAGS.FORGE_THEME && FEATURE_FLAGS.FORGE_DASHBOARD;
 import { ActivityFeed } from '@/components/home/ActivityFeed';
 import { LeaderboardPanel } from '@/components/leaderboard/LeaderboardPanel';
 import { PetWidget } from '@/components/pet/PetWidget';
@@ -212,24 +217,43 @@ export default function HomePage() {
       {/* ═══ First-Login Onboarding Tour (runs once per child) ═══ */}
       <DashboardTour />
 
-      {/* ═══ Welcome Header ═══ */}
-      <motion.section
-        initial={{ opacity: 0, y: 15 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
-        <div className="flex items-center gap-3 mb-1">
-          <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight" style={{ fontFamily: 'var(--font-display)' }}>
-            <span className="text-white">Hey </span>
-            <BlurText className="text-white">{childName}</BlurText>
-            <span className="text-white">! </span>
-            <span className="inline-block animate-bounce">&#128075;</span>
-          </h1>
-        </div>
-        <p className="text-sm text-sf-console-text-dim">
-          Ready to continue your AI learning adventure today?
-        </p>
-      </motion.section>
+      {/* ═══ Welcome Header (Forge F4: workbench hero panel) ═══ */}
+      {FORGE_WORKBENCH_ON ? (
+        <ForgePanel variant="glass" glow="ambient" animateIn className="p-5">
+          <div className="flex items-center gap-3 mb-1">
+            <h1
+              className="text-xl sm:text-2xl font-extrabold tracking-tight"
+              style={{ fontFamily: 'var(--font-display)', textShadow: 'var(--glow-text, none)' }}
+            >
+              <span className="text-sf-text-primary">Back to the forge, </span>
+              <BlurText className="text-sf-text-primary">{childName}</BlurText>
+              <span className="text-sf-text-primary">! </span>
+              <span className="inline-block">&#9889;</span>
+            </h1>
+          </div>
+          <p className="text-sm text-sf-text-secondary">
+            The fire&apos;s hot — ready to craft some intelligence today?
+          </p>
+        </ForgePanel>
+      ) : (
+        <motion.section
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <div className="flex items-center gap-3 mb-1">
+            <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight" style={{ fontFamily: 'var(--font-display)' }}>
+              <span className="text-white">Hey </span>
+              <BlurText className="text-white">{childName}</BlurText>
+              <span className="text-white">! </span>
+              <span className="inline-block animate-bounce">&#128075;</span>
+            </h1>
+          </div>
+          <p className="text-sm text-sf-console-text-dim">
+            Ready to continue your AI learning adventure today?
+          </p>
+        </motion.section>
+      )}
 
       {/* ═══ Daily Mission (Phase 3 Centerpiece) — FIRST content block ═══ */}
       <motion.section

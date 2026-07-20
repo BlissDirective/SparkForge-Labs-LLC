@@ -18,6 +18,8 @@ import { SkipLink } from '@/components/shared/SkipLink';
 import { A11yAnnouncer } from '@/components/shared/A11yAnnouncer';
 import { RealtimeChildrenBridge } from '@/components/providers/RealtimeChildrenBridge';
 import { useSessionTracker } from '@/hooks/useSessionTracker';
+import { FEATURE_FLAGS } from '@/config/feature-flags';
+import { CircuitTraces, EmberField } from '@/components/forge';
 import { AITutorProvider } from '@/components/ai-tutor/AITutorContext';
 import { AITutor } from '@/components/ai-tutor/AITutor';
 
@@ -45,13 +47,26 @@ export default function DashboardLayout({
               fontFamily: 'var(--font-body)',
             }}
           >
+            {/* Forge F4 (Concept 10 §8.1): the ENTIRE dashboard ambient
+                budget — one fixed traces layer + one ember field, behind
+                all content, decorative, flag-gated. */}
+            {FEATURE_FLAGS.FORGE_THEME && FEATURE_FLAGS.FORGE_DASHBOARD && (
+              <>
+                <CircuitTraces
+                  density="low"
+                  className="fixed inset-0 w-full h-full opacity-40 z-0"
+                />
+                <EmberField className="fixed inset-0 z-0" />
+              </>
+            )}
+
             {/* Desktop Sidebar — hidden on mobile */}
-            <div className="hidden lg:block">
+            <div className="hidden lg:block relative z-10">
               <Sidebar />
             </div>
 
             {/* Main Content Area */}
-            <div className="flex-1 flex flex-col min-w-0">
+            <div className="flex-1 flex flex-col min-w-0 relative z-10">
               {/* Top Bar */}
               <TopBar />
 

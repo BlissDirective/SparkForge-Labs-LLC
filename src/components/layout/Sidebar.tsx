@@ -114,6 +114,8 @@ export function Sidebar() {
             style={{
               fontFamily: 'var(--font-display)',
               color: 'rgb(var(--sf-text-primary) / 1)',
+              // Forge theme defines --glow-text; light theme falls back to none.
+              textShadow: 'var(--glow-text, none)',
             }}
           >
             SparkForge
