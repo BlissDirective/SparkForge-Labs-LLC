@@ -1,0 +1,198 @@
+/* ════════════════════════════════════════════════════════════════
+   SPARKFORGE FORGE THEME v1.0 — "The Digital Forge" (Molten-Warm)
+   Forge plan (docs/concepts/10-digital-forge-build-plan.md) Part 2.
+   Applies when <html data-theme="forge"> (FEATURE_FLAGS.FORGE_THEME).
+   Overrides design-tokens.css. Ground is warm brown-black (ember
+   charcoal) — NEVER blue-black. Removing the attribute (or setting
+   NEXT_PUBLIC_FORGE_THEME=false) restores the light theme exactly.
+   ════════════════════════════════════════════════════════════════ */
+@layer base {
+  :root[data-theme='forge'] {
+    /* ── Surfaces (warm charcoal ladder) ── */
+    --sf-surface: 30 22 16;              /* #1E1610 panel ground        */
+    --sf-surface-alt: 22 16 11;          /* #16100B app background      */
+    --sf-surface-elevated: 41 30 22;     /* #291E16 raised panels       */
+    --sf-surface-muted: 51 38 28;        /* #33261C wells, inputs       */
+    --sf-surface-inverse: 245 235 220;   /* #F5EBDC cream               */
+
+    /* ── Text (AA-checked on #1E1610 / #16100B) ── */
+    --sf-text-primary: 245 235 220;      /* #F5EBDC ≈14:1               */
+    --sf-text-secondary: 211 194 172;    /* #D3C2AC ≈9:1                */
+    --sf-text-muted: 172 152 130;        /* #AC9882 ≈5.6:1 (AA body)    */
+    --sf-text-inverse: 30 22 16;
+
+    /* ── Primary energy: MOLTEN (amber/gold) ── */
+    --sf-primary: 255 140 26;            /* #FF8C1A molten amber        */
+    --sf-primary-light: 255 194 74;      /* #FFC24A molten gold         */
+    --sf-primary-dark: 199 94 12;        /* #C75E0C cooled ember        */
+
+    /* ── Secondary energy: SPARK (electric cyan accent) ── */
+    --sf-secondary: 53 224 255;          /* #35E0FF spark cyan          */
+    --sf-secondary-light: 154 240 255;   /* #9AF0FF                     */
+
+    /* ── Accents (semantic, re-tempered for warm dark) ── */
+    --sf-accent-green: 127 226 74;       /* #7FE24A success / powered   */
+    --sf-accent-purple: 196 140 255;     /* #C48CFF                     */
+    --sf-accent-pink: 255 61 165;        /* #FF3DA5 PLASMA — ceremony   */
+    --sf-accent-yellow: 255 217 61;      /* #FFD93D                     */
+    --sf-accent-cyan: 53 224 255;        /* alias of secondary          */
+    --sf-accent-red: 255 107 92;         /* #FF6B5C errors (warm red)   */
+
+    /* ── Borders ── */
+    --sf-border: 74 58 44;               /* #4A3A2C alloy seam          */
+    --sf-border-focus: 255 140 26;       /* molten focus ring           */
+    --sf-border-subtle: 54 42 32;        /* #362A20                     */
+
+    /* ── Console (dark panel idiom) — warm-forge re-temper ── */
+    --sf-console: 22 16 11;              /* deepest ember               */
+    --sf-console-raised: 41 30 22;
+    --sf-console-well: 51 38 28;
+    --sf-console-border: 74 58 44;
+    --sf-console-text: 245 235 220;
+    --sf-console-text-dim: 211 194 172;
+    --sf-console-text-faint: 172 152 130;
+    --sf-console-accent: 255 140 26;     /* molten replaces cyan        */
+    --sf-console-accent-bright: 255 194 74;
+    --sf-console-accent-alt: 196 140 255;
+    --sf-console-info: 53 224 255;       /* spark cyan                  */
+
+    /* ── Metallics (bezel gradients) ── */
+    --forge-bronze: #C87B3B;
+    --forge-bronze-deep: #8A5426;
+    --forge-chrome-hi: rgba(255 236 210 / 0.28);
+    --forge-chrome-mid: rgba(255 220 180 / 0.10);
+    --forge-chrome-lo: rgba(0 0 0 / 0.45);
+
+    /* ── Glass ── */
+    --forge-glass-bg: rgba(41 30 22 / 0.62);
+    --forge-glass-border: rgba(255 194 74 / 0.14);
+    --forge-glass-blur: 14px;
+
+    /* ── Glow & shadow ── */
+    --shadow-sm: 0 1px 2px rgba(0 0 0 / 0.5);
+    --shadow-md: 0 4px 16px rgba(0 0 0 / 0.55);
+    --shadow-lg: 0 10px 32px rgba(0 0 0 / 0.6);
+    --shadow-xl: 0 20px 56px rgba(0 0 0 / 0.65);
+    --shadow-glow-primary: 0 0 24px rgba(255 140 26 / 0.35);
+    --shadow-glow-green: 0 0 24px rgba(127 226 74 / 0.30);
+    --shadow-glow-pink: 0 0 24px rgba(255 61 165 / 0.30);
+    --shadow-glow-orange: 0 0 24px rgba(255 140 26 / 0.35);
+    --glow-text: 0 0 18px rgba(255 194 74 / 0.35);
+
+    /* ── Molten gradient (the signature fill) ── */
+    --forge-molten: linear-gradient(90deg,
+      #C75E0C 0%, #FF8C1A 35%, #FFC24A 60%, #FF8C1A 85%, #C75E0C 100%);
+    --forge-molten-vert: linear-gradient(180deg,
+      #FFC24A 0%, #FF8C1A 55%, #C75E0C 100%);
+
+    /* ── Motion (forge feel) ── */
+    --transition-fast: 140ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-base: 240ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-slow: 400ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: 480ms cubic-bezier(0.34, 1.56, 0.64, 1);
+    --forge-press: 90ms cubic-bezier(0.6, 0, 0.4, 1);
+    --forge-release: 260ms cubic-bezier(0.22, 1.4, 0.36, 1);
+    --forge-snap: 360ms cubic-bezier(0.22, 1.2, 0.36, 1);
+    --forge-flow-dur: 2400ms;
+  }
+
+  /* High-contrast override (a11y toolbar) — flattens glass, boosts text */
+  :root[data-theme='forge'][data-contrast='high'] {
+    --forge-glass-bg: rgba(22 16 11 / 0.96);
+    --sf-text-muted: 211 194 172;
+    --glow-text: none;
+  }
+}
+
+/* ════════════════════════════════════════════════════════════════
+   Forge primitive keyframes — used by src/components/forge/*.
+   Defined unconditionally (they only run where the classes mount).
+   All looping animations pause under prefers-reduced-motion via the
+   consuming components (JS gate) AND the global guard below.
+   ════════════════════════════════════════════════════════════════ */
+@keyframes forge-molten-flow {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes forge-ember-rise {
+  0% { transform: translateY(0) translateX(0); opacity: 0; }
+  8% { opacity: var(--ember-opacity, 0.7); }
+  90% { opacity: var(--ember-opacity, 0.7); }
+  100% {
+    transform: translateY(calc(-1 * var(--ember-travel, 60vh)))
+      translateX(var(--ember-sway, 12px));
+    opacity: 0;
+  }
+}
+
+@keyframes forge-spark-fly {
+  0% { transform: translate(0, 0) scale(1); opacity: 1; }
+  100% {
+    transform: translate(
+        calc(cos(var(--spark-angle, 0deg)) * var(--spark-dist, 18px)),
+        calc(sin(var(--spark-angle, 0deg)) * var(--spark-dist, 18px)))
+      scale(0.4);
+    opacity: 0;
+  }
+}
+
+@keyframes forge-glow-breathe {
+  0%, 100% { opacity: 0.75; }
+  50% { opacity: 1; }
+}
+
+@keyframes forge-indeterminate-sweep {
+  0% { left: -30%; }
+  100% { left: 100%; }
+}
+
+@keyframes forge-trace-pulse {
+  0% { stroke-dashoffset: 40; opacity: 0; }
+  8% { opacity: 1; }
+  92% { opacity: 1; }
+  100% { stroke-dashoffset: -1000; opacity: 0; }
+}
+
+/* ── Chrome bezel ring (ForgePanel bezel prop) ──
+   A masked gradient ring drawn by an absolutely-positioned span so it
+   never affects layout. Pure CSS, zero JS (plan §4.1). */
+.forge-bezel {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 2px;
+  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    var(--forge-chrome-hi, rgba(255 255 255 / 0.14)),
+    var(--forge-chrome-mid, rgba(255 255 255 / 0.05)) 30%,
+    var(--forge-chrome-lo, rgba(0 0 0 / 0.35))
+  );
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+}
+
+/* ── Molten fill (MoltenProgress, ForgeButton molten) ── */
+.forge-molten-fill {
+  background: var(--forge-molten, linear-gradient(90deg, #c75e0c, #ff8c1a, #ffc24a, #ff8c1a, #c75e0c));
+  background-size: 200% 100%;
+}
+.forge-molten-fill.forge-anim {
+  animation: forge-molten-flow var(--forge-flow-dur, 2400ms) ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .forge-anim,
+  .forge-anim::before,
+  .forge-anim::after {
+    animation: none !important;
+  }
+}

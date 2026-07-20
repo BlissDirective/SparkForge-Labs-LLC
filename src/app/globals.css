@@ -3,6 +3,10 @@
 /* ═══ SparkForge v3 Design Tokens ═══ */
 @import "../styles/design-tokens.css";
 
+/* ═══ Digital Forge theme (Concept 10, flag: FORGE_THEME) ═══
+   Overrides the tokens above under <html data-theme="forge">. */
+@import "../styles/forge-theme.css";
+
 /* AUDIT-G7: Tailwind CSS v4 migration — use @import instead of @tailwind directives */
 @import "tailwindcss";
 

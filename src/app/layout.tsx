@@ -13,6 +13,7 @@ import QueryProvider from '@/components/providers/QueryProvider';
 import { NextIntlClientProvider } from 'next-intl';
 import { getLocale, getMessages } from 'next-intl/server';
 import { A11yProvider } from '@/components/accessibility/A11yProvider';
+import { FEATURE_FLAGS } from '@/config/feature-flags';
 import { BrightnessEffect } from '@/components/accessibility/BrightnessEffect';
 import { LenisProvider } from '@/components/providers/LenisProvider';
 import { OfflineBanner } from '@/components/ui/OfflineBanner';
@@ -107,6 +108,10 @@ export default async function RootLayout({
     <html
       lang={locale}
       className="dark"
+      // Forge F1 (Concept 10 §2.1): the theme flip. All sf-* utilities
+      // route through CSS custom properties, so this one attribute
+      // rethemes the app; NEXT_PUBLIC_FORGE_THEME=false reverts it.
+      data-theme={FEATURE_FLAGS.FORGE_THEME ? 'forge' : undefined}
       style={{ colorScheme: 'dark' }}
       suppressHydrationWarning
     >

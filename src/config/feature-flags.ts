@@ -38,6 +38,28 @@ export const FEATURE_FLAGS = {
 
   /** Use React Bits components throughout the app */
   USE_REACT_BITS: flag('USE_REACT_BITS', isDev),
+
+  /* ── DIGITAL FORGE RETHEME (Concept 10 — docs/concepts/10-digital-forge-build-plan.md) ──
+     Sub-surface flags AND with FORGE_THEME at their call sites: forge
+     surfaces never render against the light theme. */
+  /** Master token flip: <html data-theme="forge"> (F1) */
+  FORGE_THEME: flag('FORGE_THEME', isDev),
+  /** Forge Chamber game shell restyle (F2) */
+  FORGE_CHAMBER: flag('FORGE_CHAMBER', isDev),
+  /** Forge Complete ceremony overlay (F3) */
+  FORGE_CEREMONY: flag('FORGE_CEREMONY', isDev),
+  /** Dashboard Workbench layout + home (F4) */
+  FORGE_DASHBOARD: flag('FORGE_DASHBOARD', isDev),
+  /** Forge Ring lab selection (F5) */
+  FORGE_RING: flag('FORGE_RING', isDev),
+  /** Cinematic marketing hero (F6) */
+  FORGE_HERO: flag('FORGE_HERO', isDev),
+  /** ForgeSpark mascot replaces Sparky visuals (F7) */
+  FORGE_MASCOT: flag('FORGE_MASCOT', isDev),
+  /** Canvas/particle ambience layers — global kill-switch */
+  FORGE_AMBIENCE: flag('FORGE_AMBIENCE', isDev),
+  /** Core Ignition game #43 visible in arcade (F8) */
+  GAME_CORE_IGNITION: flag('GAME_CORE_IGNITION', isDev),
 } as const;
 
 export type FeatureFlagKey = keyof typeof FEATURE_FLAGS;
