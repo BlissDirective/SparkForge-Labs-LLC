@@ -12,6 +12,7 @@
 // ════════════════════════════════════════════════════
 
 import type { ComponentType } from 'react';
+import { FEATURE_FLAGS } from '@/config/feature-flags';
 
 export type GameLoaderFn = () => Promise<{ default: ComponentType }>;
 
@@ -119,10 +120,14 @@ export const GAME_LOADERS: Record<string, GameLoaderFn> = {
   'vibe-coder': () => import('@/components/games/VibeCoderGame').then((m) => def(m)),
   'code-word': () => import('@/components/games/CodeWordGame').then((m) => def(m)),
   'thinking-cap': () => import('@/components/games/ThinkingCapGame').then((m) => def(m)),
+  'core-ignition': () => import('@/components/games/CoreIgnitionGame').then((m) => def(m)),
 };
 
 /** Return the lazy loader for a slug, or undefined if unknown. */
 export function getGameLoader(slug: string): GameLoaderFn | undefined {
+  // Forge F8: Core Ignition ships behind GAME_CORE_IGNITION — direct
+  // URLs resolve to "game not found" while the flag is off.
+  if (slug === 'core-ignition' && !FEATURE_FLAGS.GAME_CORE_IGNITION) return undefined;
   return GAME_LOADERS[slug];
 }
 

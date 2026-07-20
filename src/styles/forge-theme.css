@@ -197,6 +197,13 @@
   100% { transform: rotate(360deg); }
 }
 
+/* Core Ignition mote travel (F8 §12.6): right → avatar zone */
+@keyframes forge-mote-travel {
+  0% { right: -3%; opacity: 0; }
+  10% { opacity: 1; }
+  100% { right: 82%; opacity: 1; }
+}
+
 /* NetworkMicroDemo firing pulse (F6 §10.6) */
 @keyframes forge-conn-pulse {
   0% { stroke-dashoffset: 200; opacity: 0; }

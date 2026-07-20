@@ -17,9 +17,10 @@ import {
 import { GAME_REGISTRY as GAMES } from '@/config/gameRegistry';
 
 describe('T14 — game-loader map', () => {
-  it('exports 47 slugs matching GAMES', () => {
-    expect(GAME_SLUG_COUNT).toBe(47);
-    expect(GAMES.length).toBe(47);
+  it('exports 48 slugs matching GAMES', () => {
+    // 47 + Core Ignition (Forge F8, game #43 in the canonical count)
+    expect(GAME_SLUG_COUNT).toBe(48);
+    expect(GAMES.length).toBe(48);
   });
 
   it('every gameRegistry slug has a loader', () => {

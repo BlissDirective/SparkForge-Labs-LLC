@@ -24,6 +24,7 @@ import {
   ChevronRight,
   Info,
 } from 'lucide-react';
+import { FEATURE_FLAGS } from '@/config/feature-flags';
 import { GAME_REGISTRY } from '@/config/gameRegistry';
 import type { GameRegistryEntry } from '@/config/gameRegistry';
 import { LAB_COLORS } from '@/config/labs';
@@ -122,7 +123,10 @@ export default function ArcadePage() {
 
   // Filter and sort games
   const filteredGames = useMemo(() => {
-    let games = [...GAME_REGISTRY];
+    // Forge F8: Core Ignition ships behind its flag.
+    let games = GAME_REGISTRY.filter(
+      (g) => g.slug !== 'core-ignition' || FEATURE_FLAGS.GAME_CORE_IGNITION
+    );
 
     // Category filter
     if (activeCategory !== 'all') {

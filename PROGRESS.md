@@ -2653,3 +2653,44 @@ fixes land continuously; root-cause fix above is version-independent).
 `--ignore-scripts` because org egress policy 403-blocks the `ffmpeg-static`
 binary download (github.com releases); affects only the local branding
 render script, not the Vercel deploy.
+
+---
+
+## DIGITAL FORGE BUILD — F0–F8 COMPLETE (2026-07-20)
+
+Full execution of docs/concepts/10-digital-forge-build-plan.md. Each phase
+committed + merged to setup-sparkforge-dev individually; all Vercel deploys
+green. Forge flags default ON in dev + Vercel PREVIEW, OFF in production
+(flip NEXT_PUBLIC_FORGE_*=true in the Production env to launch).
+
+| Phase | Delivered | Verification |
+|---|---|---|
+| F0 | Token sweep: sf-* Tailwind palette var()-routed; console tokens; 28 files, ~230 classes | build + 828 tests + emitted-CSS check |
+| F1 | forge-theme.css (full override sheet), data-theme flip, 9 flags, 9 primitives + useForgeTier, /dev/forge, parity test | 831 tests + live screenshot |
+| F2 | ForgeChamberShell + arcade play page chamber/IGNITE; preview-flag defaults | build + tests |
+| F3 | ForgeCompleteCeremony (GSAP, skippable, flash-safe, RM instant) | build + tests |
+| F4 | Dashboard ambience (traces+embers), workbench hero, wordmark glow | build + tests |
+| F5 | ForgeRing CSS-3D listbox + Grid toggle, molten overall progress | build + tests |
+| F6 | Lightfall (vendored, ogl dep), ForgedWordmark, MoltenThread, NetworkMicroDemo (4 rounds) | live screenshot + tests |
+| F7 | ForgeSparkCore (9 expressions), SparkyCore switch, Rive path swap, voice file | live screenshot + tests |
+| F8 | CoreIgnitionGame #43 (bullet-time gates, 3 bands, 30 scenarios, deterministic rubric), registry/loader/flag gating, 22 scoring tests | 853 tests + build |
+
+### Discrepancies / deviations log
+- F0: dark-panel classes mapped to NEW sf-console role tokens (light values =
+  old hexes exactly) rather than light-surface tokens; rare-shade tolerances
+  documented in docs/concepts/10-forge-sweep-audit.md.
+- F1: ForgePanel `as` prop is a narrow intrinsic-tag union — React.ElementType<P>
+  widening OOMed the tsc build worker (bisected; do not reintroduce).
+- F2: chamber progress bar omitted from the arcade page-level frame (games track
+  progress internally); ForgeChamberShell retains it for GameAdapter consumers.
+- F3: Tone.js ceremony sounds deferred (audio-manager wiring TBD; visuals ship).
+- F6: hero pin/scrub simplified to scroll-scrubbed thread + self-pausing
+  Lightfall (v1); section ignition via existing whileInView reveals.
+  HeroHologram/LandingMicroGame NOT archived — flag-off must restore them
+  (supersede at flag cleanup, plan Part 17.3).
+- F6: Treat Trainer vignette NOT built — OWNER GATE pending (plan §10.5.1).
+- F7: forgespark.riv not yet authored (Rive editor asset) — SparkyRive
+  placeholder covers (HS-8 pattern).
+- F8: 2 scenarios per gate-type per band shipped (30 total); expansion to ≥6
+  per cell follows the Standard-tier content pipeline. In-container e2e not
+  runnable (no Supabase env); covered by unit tests + preview verification.

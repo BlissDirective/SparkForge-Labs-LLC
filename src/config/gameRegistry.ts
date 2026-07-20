@@ -861,6 +861,24 @@ export const GAME_REGISTRY: readonly GameRegistryEntry[] = [
     triangleBudget: null,
     cameraPreset: null,
   },
+  {
+    // Forge F8 (Concept 10 Part 12) — game #43. Arcade visibility is
+    // gated by FEATURE_FLAGS.GAME_CORE_IGNITION (see arcade pages).
+    id: 43,
+    name: 'Core Ignition',
+    slug: 'core-ignition',
+    lab: 9,
+    labName: LAB_NAMES[9],
+    tier: 'flagship',
+    has3D: false,
+    component3D: null,
+    ageBands: ['A', 'B', 'C'],
+    stage: 'F8',
+    description: 'Race a molten data stream and forge prompts in mid-run to break through the walls that stop weak prompts cold.',
+    icon: '🔥',
+    triangleBudget: null,
+    cameraPreset: null,
+  },
 ] as const;
 
 // ---------------------------------------------------------------------------
