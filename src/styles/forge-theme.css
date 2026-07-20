@@ -187,6 +187,16 @@
   100% { stroke-dashoffset: -1000; opacity: 0; }
 }
 
+/* ForgeSpark (F7): tail flicker + thinking gear */
+@keyframes forge-fox-tail {
+  0%, 100% { transform: rotate(-6deg); }
+  50% { transform: rotate(6deg); }
+}
+@keyframes forge-fox-gear {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
 /* NetworkMicroDemo firing pulse (F6 §10.6) */
 @keyframes forge-conn-pulse {
   0% { stroke-dashoffset: 200; opacity: 0; }

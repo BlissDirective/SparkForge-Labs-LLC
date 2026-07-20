@@ -20,6 +20,8 @@
 
 import { useId, useMemo } from 'react';
 import { motion } from 'motion/react';
+import { FEATURE_FLAGS } from '@/config/feature-flags';
+import { ForgeSparkCore } from './ForgeSparkCore';
 
 // ════════════════════════════════════════════════════════════════════════════
 // TYPES
@@ -367,7 +369,18 @@ function SparkyRobot({
 // MAIN EXPORT — SparkyCore
 // ════════════════════════════════════════════════════════════════════════════
 
-export function SparkyCore({
+export function SparkyCore(props: SparkyCoreProps) {
+  // Forge F7 (Concept 10 §11.2): ForgeSpark replaces the visual, not
+  // the API. One-line switch — every consumer (Floating, Presenter,
+  // Static, AITutor, onboarding, games) gets the fox automatically;
+  // FORGE_MASCOT=false restores the robot everywhere.
+  if (FEATURE_FLAGS.FORGE_THEME && FEATURE_FLAGS.FORGE_MASCOT) {
+    return <ForgeSparkCore {...props} />;
+  }
+  return <SparkyRobotCore {...props} />;
+}
+
+function SparkyRobotCore({
   expression = 'idle',
   size = 'md',
   pixelSize,

@@ -20,6 +20,7 @@ import {
   HeatShimmer,
 } from '@/components/forge';
 import { FEATURE_FLAGS } from '@/config/feature-flags';
+import { ForgeSparkCore } from '@/components/sparky/ForgeSparkCore';
 
 export default function ForgeDevPage() {
   const [progress, setProgress] = useState(0.35);
@@ -123,6 +124,29 @@ export default function ForgeDevPage() {
               <HoloChip tone="green">Powered</HoloChip>
               <HoloChip tone="neutral">Lab 3</HoloChip>
             </div>
+          </div>
+        </section>
+
+        {/* ── ForgeSpark mascot wall (F7) ── */}
+        <section className="space-y-4">
+          <h2 className="font-display text-xl font-semibold">ForgeSpark — all 9 expressions</h2>
+          <div className="flex flex-wrap gap-6 items-end">
+            {(['idle', 'happy', 'thinking', 'speaking', 'excited', 'sleepy', 'sad', 'celebrating', 'surprised'] as const).map(
+              (exp) => (
+                <div key={exp} className="text-center space-y-1">
+                  <ForgeSparkCore expression={exp} size="lg" />
+                  <p className="text-xs" style={{ color: 'rgb(var(--sf-text-muted) / 1)' }}>{exp}</p>
+                </div>
+              )
+            )}
+          </div>
+          <div className="flex gap-6 items-end">
+            {(['sm', 'md', 'lg', 'xl'] as const).map((s) => (
+              <div key={s} className="text-center space-y-1">
+                <ForgeSparkCore expression="happy" size={s} />
+                <p className="text-xs" style={{ color: 'rgb(var(--sf-text-muted) / 1)' }}>{s}</p>
+              </div>
+            ))}
           </div>
         </section>
 

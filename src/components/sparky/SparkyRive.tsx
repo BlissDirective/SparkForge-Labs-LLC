@@ -23,7 +23,15 @@ import { useEffect, useRef, useState } from 'react';
 import { motion, useReducedMotion } from 'motion/react';
 import { useRive, useStateMachineInput } from '@rive-app/react-canvas';
 
-const RIV_SRC = '/rive/sparky.riv';
+// Forge F7 (Concept 10 §11.2): the ForgeSpark .riv keeps the SAME
+// state machine name + input contract, so only the asset path swaps.
+// Until forgespark.riv is authored in the Rive editor, the procedural
+// placeholder below covers both paths (HS-8 pattern, non-blocking).
+import { FEATURE_FLAGS } from '@/config/feature-flags';
+const RIV_SRC =
+  FEATURE_FLAGS.FORGE_THEME && FEATURE_FLAGS.FORGE_MASCOT
+    ? '/rive/forgespark.riv'
+    : '/rive/sparky.riv';
 const STATE_MACHINE = 'SparkyMachine';
 
 export interface SparkyRiveProps {
