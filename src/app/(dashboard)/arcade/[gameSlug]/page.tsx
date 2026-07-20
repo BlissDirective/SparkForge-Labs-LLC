@@ -35,6 +35,7 @@ import { SFBadge } from '@/components/ui/SFBadge';
 import { SFButton } from '@/components/ui/SFButton';
 import { SFSkeleton } from '@/components/ui/SFSkeleton';
 import { CelebrationOverlay } from '@/components/celebrations/CelebrationOverlay';
+import { ForgeCompleteCeremony } from '@/components/celebrations/ForgeCompleteCeremony';
 import BlurText from '@/components/bits/BlurText';
 import GlareHover from '@/components/bits/GlareHover';
 import type { GameResult } from '@/types/game';
@@ -517,13 +518,25 @@ export default function GamePlayPage() {
             animate={{ opacity: 1 }}
             className="space-y-6"
           >
-            <CelebrationOverlay
-              result={gameResult}
-              onDismiss={() => {
-                setShowCelebration(false);
-                router.push('/arcade');
-              }}
-            />
+            {/* Forge F3: ceremony switch — FORGE_CEREMONY=false restores
+                the original CelebrationOverlay exactly. */}
+            {FEATURE_FLAGS.FORGE_THEME && FEATURE_FLAGS.FORGE_CEREMONY ? (
+              <ForgeCompleteCeremony
+                result={gameResult}
+                onDismiss={() => {
+                  setShowCelebration(false);
+                  router.push('/arcade');
+                }}
+              />
+            ) : (
+              <CelebrationOverlay
+                result={gameResult}
+                onDismiss={() => {
+                  setShowCelebration(false);
+                  router.push('/arcade');
+                }}
+              />
+            )}
 
             {/* Post-game actions (shown after celebration dismiss) */}
             {!showCelebration && (
