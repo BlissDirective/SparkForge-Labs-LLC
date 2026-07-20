@@ -148,6 +148,33 @@
   100% { left: 100%; }
 }
 
+/* ── ForgedWordmark (F6): the pour + temper sequence ──
+   Layered text: alloy base → molten overlay revealed bottom-up via
+   clip-path → settled chrome-amber layer crossfades in. Reduced-motion
+   renders the settled end-state instantly (media query below). */
+@keyframes forge-pour {
+  0% { clip-path: inset(100% 0 0 0); }
+  100% { clip-path: inset(0 0 0 0); }
+}
+@keyframes forge-settle-in {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+.forge-wordmark-molten {
+  animation: forge-pour 1.3s cubic-bezier(0.4, 0, 0.2, 1) 0.3s both;
+}
+.forge-wordmark-settled {
+  animation: forge-settle-in 0.6s ease 1.6s both;
+}
+.forge-wordmark-breathe {
+  animation: forge-glow-breathe 4s ease-in-out 2.4s infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .forge-wordmark-molten { animation: none; clip-path: inset(100% 0 0 0); }
+  .forge-wordmark-settled { animation: none; opacity: 1; }
+  .forge-wordmark-breathe { animation: none; }
+}
+
 @keyframes forge-blob-wobble {
   0%, 100% { border-radius: 46% 54% 52% 48% / 50% 46% 54% 50%; }
   50% { border-radius: 52% 48% 46% 54% / 46% 54% 50% 52%; }
@@ -158,6 +185,23 @@
   8% { opacity: 1; }
   92% { opacity: 1; }
   100% { stroke-dashoffset: -1000; opacity: 0; }
+}
+
+/* NetworkMicroDemo firing pulse (F6 §10.6) */
+@keyframes forge-conn-pulse {
+  0% { stroke-dashoffset: 200; opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { stroke-dashoffset: -200; opacity: 0; }
+}
+
+/* MoltenThread finale pulse (F6 §10.4/§10.6): a bright segment racing
+   the full thread length once. Long dash gap ensures a single head. */
+@keyframes forge-thread-escape {
+  0% { stroke-dashoffset: 120; opacity: 0; }
+  5% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { stroke-dashoffset: -12000; opacity: 0; }
 }
 
 /* ── Chrome bezel ring (ForgePanel bezel prop) ──

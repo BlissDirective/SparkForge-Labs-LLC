@@ -12,15 +12,19 @@ import { LandingFeatures } from '@/components/landing/LandingFeatures';
 import { LandingAITutor } from '@/components/landing/LandingAITutor';
 import { LandingCTA } from '@/components/landing/LandingCTA';
 import { LandingHowItWorks } from '@/components/landing/LandingHowItWorks';
+import { NetworkMicroDemo } from '@/components/landing/NetworkMicroDemo';
+import { MoltenThreadSection } from '@/components/landing/MoltenThread';
+import { FEATURE_FLAGS } from '@/config/feature-flags';
+
+// Forge F6: hero + micro-demo + thread gate. Flag-off restores the
+// hologram hero, the sort micro-game, and the plain section stack.
+const FORGE_HERO_ON = FEATURE_FLAGS.FORGE_THEME && FEATURE_FLAGS.FORGE_HERO;
 
 export default function LandingPage() {
-  return (
+  const sections = (
     <>
-      {/* Hero — hologram reveal over the AuroraGalaxy background */}
-      <HeroSection />
-
-      {/* "Teach Sparky to Sort" — 20-second playable classifier demo */}
-      <LandingMicroGame />
+      {/* Playable demo under the hero */}
+      {FORGE_HERO_ON ? <NetworkMicroDemo /> : <LandingMicroGame />}
 
       {/* AI Tutor Feature Showcase */}
       <LandingAITutor />
@@ -33,6 +37,16 @@ export default function LandingPage() {
 
       {/* Login CTA Banner */}
       <LandingCTA />
+    </>
+  );
+
+  return (
+    <>
+      {/* Hero — Lightfall forge (F6) or hologram over AuroraGalaxy */}
+      <HeroSection />
+
+      {/* Forge F6: the Molten Thread seams the sections together */}
+      {FORGE_HERO_ON ? <MoltenThreadSection>{sections}</MoltenThreadSection> : sections}
     </>
   );
 }

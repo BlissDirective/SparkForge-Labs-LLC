@@ -2,8 +2,16 @@
 
 import { HeroContent } from './HeroContent';
 import AuroraGalaxy from '@/components/bits/AuroraGalaxy';
+import { ForgeHero } from './ForgeHero';
+import { FEATURE_FLAGS } from '@/config/feature-flags';
 
 export function HeroSection() {
+  // Forge F6: the Lightfall hero — FORGE_HERO=false restores the
+  // AuroraGalaxy + HeroHologram composition exactly.
+  if (FEATURE_FLAGS.FORGE_THEME && FEATURE_FLAGS.FORGE_HERO) {
+    return <ForgeHero />;
+  }
+
   return (
     <section
       className="relative w-full min-h-[100dvh] flex items-center justify-center overflow-hidden"
