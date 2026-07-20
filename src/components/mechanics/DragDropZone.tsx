@@ -100,8 +100,8 @@ export function DragDropZone({ zones: initialZones, poolItems, onComplete, onSco
   return (
     <div className="space-y-4">
       {/* Item Pool */}
-      <div className="rounded-xl bg-slate-800/40 border border-slate-700/30 p-3 min-h-[80px]">
-        <p className="text-xs text-slate-400 mb-2">Drag items into the correct zones:</p>
+      <div className="rounded-xl bg-sf-console-raised/40 border border-sf-console-border/30 p-3 min-h-[80px]">
+        <p className="text-xs text-sf-console-text-dim mb-2">Drag items into the correct zones:</p>
         <div className="flex flex-wrap gap-2">
           <AnimatePresence mode="popLayout">
             {pool.map(item => (
@@ -142,7 +142,7 @@ export function DragDropZone({ zones: initialZones, poolItems, onComplete, onSco
           </AnimatePresence>
 
           {pool.length === 0 && !submitted && (
-            <p className="text-xs text-slate-500 italic">All items placed!</p>
+            <p className="text-xs text-sf-console-text-faint italic">All items placed!</p>
           )}
         </div>
       </div>
@@ -164,8 +164,8 @@ export function DragDropZone({ zones: initialZones, poolItems, onComplete, onSco
                     ? 'border-emerald-500/40 bg-emerald-500/5'
                     : hasMisplaced
                       ? 'border-red-500/40 bg-red-500/5'
-                      : 'border-slate-700/30 bg-slate-800/20'
-                  : 'border-slate-700/30 bg-slate-800/20 hover:border-slate-600/40'
+                      : 'border-sf-console-border/30 bg-sf-console-raised/20'
+                  : 'border-sf-console-border/30 bg-sf-console-raised/20 hover:border-sf-console-border/40'
                 }
               `}
               onDragOver={e => { e.preventDefault(); }}
@@ -181,7 +181,7 @@ export function DragDropZone({ zones: initialZones, poolItems, onComplete, onSco
                 {submitted && isZoneCorrect && <Check className="w-3.5 h-3.5 text-emerald-400 ml-auto" />}
                 {submitted && hasMisplaced && <X className="w-3.5 h-3.5 text-red-400 ml-auto" />}
                 {zone.maxItems && (
-                  <span className="text-[10px] text-slate-500 ml-auto">{zone.items.length}/{zone.maxItems}</span>
+                  <span className="text-[10px] text-sf-console-text-faint ml-auto">{zone.items.length}/{zone.maxItems}</span>
                 )}
               </div>
 
@@ -223,7 +223,7 @@ export function DragDropZone({ zones: initialZones, poolItems, onComplete, onSco
                 </AnimatePresence>
 
                 {zone.items.length === 0 && (
-                  <p className="text-[10px] text-slate-600 italic">Drop items here</p>
+                  <p className="text-[10px] text-sf-console-text-faint italic">Drop items here</p>
                 )}
               </div>
             </motion.div>
@@ -243,7 +243,7 @@ export function DragDropZone({ zones: initialZones, poolItems, onComplete, onSco
               px-4 py-2 rounded-lg text-sm font-semibold transition-all
               ${pool.length === 0
                 ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-lg shadow-emerald-500/20'
-                : 'bg-slate-800 text-slate-500 cursor-not-allowed'
+                : 'bg-sf-console-raised text-sf-console-text-faint cursor-not-allowed'
               }
             `}
           >
@@ -254,14 +254,14 @@ export function DragDropZone({ zones: initialZones, poolItems, onComplete, onSco
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={handleReset}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 transition-all"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold bg-sf-console-raised text-sf-console-text hover:bg-sf-console-well transition-all"
           >
             <RotateCcw className="w-4 h-4" /> Try Again
           </motion.button>
         )}
 
         {showHints && !submitted && (
-          <button className="p-2 rounded-lg bg-slate-800/50 text-slate-400 hover:text-slate-300 transition-colors" title="Hint: Read each item carefully and think about what type of data it is.">
+          <button className="p-2 rounded-lg bg-sf-console-raised/50 text-sf-console-text-dim hover:text-sf-console-text transition-colors" title="Hint: Read each item carefully and think about what type of data it is.">
             <HelpCircle className="w-4 h-4" />
           </button>
         )}

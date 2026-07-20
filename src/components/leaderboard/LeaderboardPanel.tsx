@@ -34,7 +34,7 @@ export function LeaderboardPanel({
   const userEntry = entries.find(e => e.isCurrentUser);
 
   return (
-    <div className="rounded-2xl bg-slate-900/60 border border-slate-700/30 overflow-hidden">
+    <div className="rounded-2xl bg-sf-console/60 border border-sf-console-border/30 overflow-hidden">
       {/* Header */}
       <div className="p-4 pb-3">
         <div className="flex items-center justify-between">
@@ -49,7 +49,7 @@ export function LeaderboardPanel({
               <h3 className="text-sm font-semibold text-white">
                 {config?.label || 'Leaderboard'}
               </h3>
-              <p className="text-[10px] text-slate-400 flex items-center gap-1">
+              <p className="text-[10px] text-sf-console-text-dim flex items-center gap-1">
                 <Clock className="w-3 h-3" />
                 Resets in {timeUntilReset}
               </p>
@@ -57,7 +57,7 @@ export function LeaderboardPanel({
           </div>
           <button
             onClick={onViewFull}
-            className="text-xs text-cyan-400 hover:text-cyan-300 transition-colors"
+            className="text-xs text-sf-console-accent hover:text-sf-console-accent-bright transition-colors"
           >
             View All
           </button>
@@ -79,9 +79,9 @@ export function LeaderboardPanel({
         {userEntry && !topEntries.find(e => e.isCurrentUser) && (
           <>
             <div className="flex items-center justify-center py-1">
-              <div className="w-8 h-px bg-slate-700/50" />
-              <span className="px-2 text-[10px] text-slate-500">You</span>
-              <div className="w-8 h-px bg-slate-700/50" />
+              <div className="w-8 h-px bg-sf-console-well/50" />
+              <span className="px-2 text-[10px] text-sf-console-text-faint">You</span>
+              <div className="w-8 h-px bg-sf-console-well/50" />
             </div>
             <LeaderboardRow entry={userEntry} index={-1} isUser />
           </>
@@ -132,9 +132,9 @@ function LeaderboardRow({
 
   const getRankStyle = () => {
     if (entry.rank === 1) return 'text-amber-400 font-bold';
-    if (entry.rank === 2) return 'text-slate-300 font-semibold';
+    if (entry.rank === 2) return 'text-sf-console-text font-semibold';
     if (entry.rank === 3) return 'text-amber-600 font-semibold';
-    return 'text-slate-400';
+    return 'text-sf-console-text-dim';
   };
 
   return (
@@ -144,7 +144,7 @@ function LeaderboardRow({
       transition={{ delay: index >= 0 ? index * 0.05 : 0 }}
       className={`
         flex items-center gap-3 px-2 py-2 rounded-lg
-        ${isUser ? 'bg-cyan-500/10 border border-cyan-500/20' : 'hover:bg-slate-800/50'}
+        ${isUser ? 'bg-sf-console-accent/10 border border-sf-console-accent/20' : 'hover:bg-sf-console-raised/50'}
         transition-colors
       `}
     >
@@ -154,13 +154,13 @@ function LeaderboardRow({
       </div>
 
       {/* Avatar */}
-      <div className="w-7 h-7 rounded-full bg-slate-700 flex items-center justify-center text-sm">
+      <div className="w-7 h-7 rounded-full bg-sf-console-well flex items-center justify-center text-sm">
         {entry.avatarEmoji}
       </div>
 
       {/* Name */}
       <div className="flex-1 min-w-0">
-        <p className={`text-xs truncate ${isUser ? 'text-cyan-300 font-medium' : 'text-white'}`}>
+        <p className={`text-xs truncate ${isUser ? 'text-sf-console-accent-bright font-medium' : 'text-white'}`}>
           {entry.displayName}
           {isUser && ' (You)'}
         </p>
@@ -168,8 +168,8 @@ function LeaderboardRow({
 
       {/* XP */}
       <div className="flex items-center gap-1">
-        <TrendingUp className="w-3 h-3 text-slate-500" />
-        <span className="text-xs text-slate-300">{entry.xpEarned.toLocaleString()}</span>
+        <TrendingUp className="w-3 h-3 text-sf-console-text-faint" />
+        <span className="text-xs text-sf-console-text">{entry.xpEarned.toLocaleString()}</span>
       </div>
 
       {/* Zone indicator */}
@@ -180,7 +180,7 @@ function LeaderboardRow({
         <ArrowDown className="w-3 h-3 text-red-400" />
       )}
       {!entry.promotionZone && !entry.demotionZone && (
-        <Minus className="w-3 h-3 text-slate-600" />
+        <Minus className="w-3 h-3 text-sf-console-text-faint" />
       )}
     </motion.div>
   );

@@ -105,7 +105,7 @@ export function PetAvatar({ pet, size = 'md', animate = true, onClick }: PetAvat
 
       {/* Name label */}
       <p className="mt-2 text-xs font-semibold text-white">{pet.name}</p>
-      <p className="text-[10px] text-slate-500">
+      <p className="text-[10px] text-sf-console-text-faint">
         {STAGE_LABELS[pet.stage]} · {moodCfg.emoji} {moodCfg.label}
       </p>
     </motion.div>

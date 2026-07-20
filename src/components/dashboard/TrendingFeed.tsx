@@ -37,7 +37,7 @@ export default function TrendingFeed({ maxItems = 3, compact = false }: Trending
   if (items.length === 0) {
     return (
       <div className="rounded-xl bg-white/5 border border-white/10 p-6 text-center">
-        <TrendingUp className="w-8 h-8 text-cyan-400/40 mx-auto mb-2" />
+        <TrendingUp className="w-8 h-8 text-sf-console-accent/40 mx-auto mb-2" />
         <p className="text-white/70 font-body text-sm">
           No trending topics yet. Check back soon!
         </p>
@@ -50,9 +50,9 @@ export default function TrendingFeed({ maxItems = 3, compact = false }: Trending
       {/* Section Header */}
       {!compact && (
         <div className="flex items-center gap-2 mb-4">
-          <TrendingUp className="w-5 h-5 text-cyan-400" />
+          <TrendingUp className="w-5 h-5 text-sf-console-accent" />
           <h3 className="font-display text-lg text-white">Trending in AI</h3>
-          <Sparkles className="w-4 h-4 text-cyan-400/60" />
+          <Sparkles className="w-4 h-4 text-sf-console-accent/60" />
         </div>
       )}
 
@@ -65,12 +65,12 @@ export default function TrendingFeed({ maxItems = 3, compact = false }: Trending
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ delay: index * 0.1 }}
-            className="group relative rounded-xl bg-gradient-to-r from-cyan-500/5 to-blue-500/5 border border-cyan-400/10 hover:border-cyan-400/30 p-4 transition-all duration-300"
+            className="group relative rounded-xl bg-gradient-to-r from-cyan-500/5 to-blue-500/5 border border-sf-console-accent/10 hover:border-sf-console-accent/30 p-4 transition-all duration-300"
           >
             <div className="flex items-start gap-3">
               {/* Trending indicator */}
-              <div className="shrink-0 w-8 h-8 rounded-lg bg-cyan-400/10 flex items-center justify-center">
-                <TrendingUp className="w-4 h-4 text-cyan-400" />
+              <div className="shrink-0 w-8 h-8 rounded-lg bg-sf-console-accent/10 flex items-center justify-center">
+                <TrendingUp className="w-4 h-4 text-sf-console-accent" />
               </div>
 
               {/* Content */}
@@ -96,7 +96,7 @@ export default function TrendingFeed({ maxItems = 3, compact = false }: Trending
 
                 {/* Meta row */}
                 <div className="flex items-center gap-3 mt-2">
-                  <span className="text-xs text-cyan-400/60 font-data">
+                  <span className="text-xs text-sf-console-accent/60 font-data">
                     Lab {item.world}
                   </span>
                   <span className="text-xs text-white/60">|</span>
@@ -107,7 +107,7 @@ export default function TrendingFeed({ maxItems = 3, compact = false }: Trending
               </div>
 
               {/* Action arrow */}
-              <ChevronRight className="w-4 h-4 text-white/55 group-hover:text-cyan-400 transition-colors shrink-0 mt-1" />
+              <ChevronRight className="w-4 h-4 text-white/55 group-hover:text-sf-console-accent transition-colors shrink-0 mt-1" />
             </div>
           </motion.div>
         ))}
@@ -117,7 +117,7 @@ export default function TrendingFeed({ maxItems = 3, compact = false }: Trending
       {!compact && items.length >= maxItems && (
         <Link
           href="/arcade?filter=trending"
-          className="flex items-center gap-2 text-xs text-cyan-400/60 hover:text-cyan-400 transition-colors font-body mt-2"
+          className="flex items-center gap-2 text-xs text-sf-console-accent/60 hover:text-sf-console-accent transition-colors font-body mt-2"
         >
           <ExternalLink className="w-3 h-3" />
           View all trending topics

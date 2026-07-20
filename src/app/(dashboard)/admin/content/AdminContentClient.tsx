@@ -129,14 +129,14 @@ function TypeIcon({ type }: { type: string }) {
     case 'game_challenge':
       return <Trophy className="w-4 h-4 text-amber-400" />;
     case 'trending_topic':
-      return <TrendingUp className="w-4 h-4 text-cyan-400" />;
+      return <TrendingUp className="w-4 h-4 text-sf-console-accent" />;
     case 'branching_lesson':
       return <GitBranch className="w-4 h-4 text-pink-400" />;
     // Flagship game AI content types (Phase E+ integration)
     case 'flagship_pet_category':
-      return <Sparkles className="w-4 h-4 text-purple-400" />;
+      return <Sparkles className="w-4 h-4 text-sf-console-accent-alt" />;
     case 'flagship_sort_criterion':
-      return <BarChart3 className="w-4 h-4 text-purple-400" />;
+      return <BarChart3 className="w-4 h-4 text-sf-console-accent-alt" />;
     case 'flagship_neural_challenge':
       return <Zap className="w-4 h-4 text-pink-400" />;
     case 'flagship_agent_mission':
@@ -145,11 +145,11 @@ function TypeIcon({ type }: { type: string }) {
       return <Shield className="w-4 h-4 text-red-400" />;
     // FL-Lite game AI content types (Phase F+ integration)
     case 'fll_data_detective':
-      return <Search className="w-4 h-4 text-purple-300" />;
+      return <Search className="w-4 h-4 text-sf-console-accent-alt" />;
     case 'fll_robot_vacuum':
       return <Gamepad2 className="w-4 h-4 text-green-300" />;
     case 'fll_camera_quest':
-      return <Eye className="w-4 h-4 text-cyan-300" />;
+      return <Eye className="w-4 h-4 text-sf-console-accent-bright" />;
     case 'fll_chatbot_builder':
       return <Mail className="w-4 h-4 text-indigo-300" />;
     case 'fll_emoji_decoder':
@@ -159,9 +159,9 @@ function TypeIcon({ type }: { type: string }) {
     case 'fll_my_first_ai_app':
       return <Zap className="w-4 h-4 text-orange-300" />;
     case 'fll_future_forge':
-      return <TrendingUp className="w-4 h-4 text-fuchsia-300" />;
+      return <TrendingUp className="w-4 h-4 text-sf-accent-pink" />;
     case 'fll_ai_or_not':
-      return <HelpCircle className="w-4 h-4 text-fuchsia-300" />;
+      return <HelpCircle className="w-4 h-4 text-sf-accent-pink" />;
     default:
       return <FileText className="w-4 h-4 text-white/70" />;
   }
@@ -1244,7 +1244,7 @@ export default function AdminReviewPage() {
                     addToast('error', 'Could not reach architect API.');
                   }
                 }}
-                className="w-full mt-3 py-2.5 rounded-xl bg-purple-500/15 text-purple-400 font-display text-xs flex items-center justify-center gap-2 hover:bg-purple-500/25 transition-colors"
+                className="w-full mt-3 py-2.5 rounded-xl bg-sf-console-accent-alt/15 text-sf-console-accent-alt font-display text-xs flex items-center justify-center gap-2 hover:bg-sf-console-accent-alt/25 transition-colors"
                 whileTap={{ scale: 0.98 }}
               >
                 <Sparkles className="w-3.5 h-3.5" /> Generate 3D Architecture
@@ -1336,7 +1336,7 @@ export default function AdminReviewPage() {
               <p className="font-body text-xs text-white/60">Labs Covered</p>
             </div>
             <div className="bg-[var(--surface-card)] border border-[var(--surface-border)] rounded-xl p-4 text-center">
-              <p className="font-display text-3xl font-bold text-purple-400">{Object.keys(analytics.byBand).length}</p>
+              <p className="font-display text-3xl font-bold text-sf-console-accent-alt">{Object.keys(analytics.byBand).length}</p>
               <p className="font-body text-xs text-white/60">Age Bands</p>
             </div>
           </div>

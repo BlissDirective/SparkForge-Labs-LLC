@@ -70,7 +70,7 @@ export function StreakCounter({
           {streakCount}
         </span>
         {freezesEquipped > 0 && (
-          <Shield className="w-3 h-3 text-cyan-400" />
+          <Shield className="w-3 h-3 text-sf-console-accent" />
         )}
       </motion.button>
     );
@@ -127,10 +127,10 @@ export function StreakCounter({
             <motion.div
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
-              className="flex items-center gap-1 px-2 py-1 bg-cyan-500/20 rounded-full border border-cyan-500/30"
+              className="flex items-center gap-1 px-2 py-1 bg-sf-console-accent/20 rounded-full border border-sf-console-accent/30"
             >
-              <Shield className="w-4 h-4 text-cyan-400" />
-              <span className="text-xs text-cyan-300">{freezesEquipped}</span>
+              <Shield className="w-4 h-4 text-sf-console-accent" />
+              <span className="text-xs text-sf-console-accent-bright">{freezesEquipped}</span>
             </motion.div>
           )}
         </div>

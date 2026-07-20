@@ -69,15 +69,15 @@ export function StreakWagerModal({
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.9, opacity: 0, y: 20 }}
             onClick={e => e.stopPropagation()}
-            className="w-full max-w-md rounded-2xl bg-slate-900 border border-slate-700/50 shadow-2xl overflow-hidden"
+            className="w-full max-w-md rounded-2xl bg-sf-console border border-sf-console-border/50 shadow-2xl overflow-hidden"
           >
             {/* Header */}
             <div className="relative p-6 pb-4">
               <button
                 onClick={onClose}
-                className="absolute top-4 right-4 p-1 rounded-lg hover:bg-slate-800 transition-colors"
+                className="absolute top-4 right-4 p-1 rounded-lg hover:bg-sf-console-raised transition-colors"
               >
-                <X className="w-5 h-5 text-slate-400" />
+                <X className="w-5 h-5 text-sf-console-text-dim" />
               </button>
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center">
@@ -85,7 +85,7 @@ export function StreakWagerModal({
                 </div>
                 <div>
                   <h2 className="text-lg font-bold text-white">Streak Wager</h2>
-                  <p className="text-xs text-slate-400">Free to enter · Win gems</p>
+                  <p className="text-xs text-sf-console-text-dim">Free to enter · Win gems</p>
                 </div>
               </div>
             </div>
@@ -113,7 +113,7 @@ export function StreakWagerModal({
                   w-full p-4 rounded-xl border-2 transition-all text-left
                   ${selectedType === '7-day' && !hasActiveWager
                     ? 'border-amber-500 bg-amber-500/10'
-                    : 'border-slate-700 bg-slate-800/50 hover:border-slate-600'
+                    : 'border-sf-console-border bg-sf-console-raised/50 hover:border-sf-console-border'
                   }
                   ${hasActiveWager ? 'opacity-50 cursor-not-allowed' : ''}
                 `}
@@ -125,12 +125,12 @@ export function StreakWagerModal({
                     </div>
                     <div>
                       <p className="text-sm font-semibold text-white">7-Day Wager</p>
-                      <p className="text-xs text-slate-400">Maintain streak for 7 days</p>
+                      <p className="text-xs text-sf-console-text-dim">Maintain streak for 7 days</p>
                     </div>
                   </div>
                   <div className="text-right">
                     <p className="text-lg font-bold text-amber-400">+50</p>
-                    <p className="text-xs text-slate-500">gems</p>
+                    <p className="text-xs text-sf-console-text-faint">gems</p>
                   </div>
                 </div>
               </button>
@@ -142,27 +142,27 @@ export function StreakWagerModal({
                 className={`
                   w-full p-4 rounded-xl border-2 transition-all text-left
                   ${selectedType === '14-day' && !hasActiveWager
-                    ? 'border-purple-500 bg-purple-500/10'
-                    : 'border-slate-700 bg-slate-800/50 hover:border-slate-600'
+                    ? 'border-sf-console-accent-alt bg-sf-console-accent-alt/10'
+                    : 'border-sf-console-border bg-sf-console-raised/50 hover:border-sf-console-border'
                   }
                   ${(!canPlace14Day || hasActiveWager) ? 'opacity-50 cursor-not-allowed' : ''}
                 `}
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center">
-                      <Target className="w-4 h-4 text-purple-400" />
+                    <div className="w-8 h-8 rounded-lg bg-sf-console-accent-alt/20 flex items-center justify-center">
+                      <Target className="w-4 h-4 text-sf-console-accent-alt" />
                     </div>
                     <div>
                       <p className="text-sm font-semibold text-white">14-Day Wager</p>
-                      <p className="text-xs text-slate-400">
+                      <p className="text-xs text-sf-console-text-dim">
                         {canPlace14Day ? 'Maintain streak for 14 days' : 'Requires 14-day streak history'}
                       </p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="text-lg font-bold text-purple-400">+100</p>
-                    <p className="text-xs text-slate-500">gems</p>
+                    <p className="text-lg font-bold text-sf-console-accent-alt">+100</p>
+                    <p className="text-xs text-sf-console-text-faint">gems</p>
                   </div>
                 </div>
               </button>
@@ -206,7 +206,7 @@ export function StreakWagerModal({
                 )}
               </motion.button>
 
-              <p className="mt-3 text-center text-xs text-slate-500">
+              <p className="mt-3 text-center text-xs text-sf-console-text-faint">
                 Your streak must remain unbroken to win. Freezes can help!
               </p>
             </div>

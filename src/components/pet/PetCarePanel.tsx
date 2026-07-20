@@ -50,12 +50,12 @@ function NeedBar({ label, value, color }: { label: string; value: number; color:
   return (
     <div className="space-y-1">
       <div className="flex items-center justify-between">
-        <span className="text-xs text-slate-400">{label}</span>
-        <span className={`text-xs font-semibold ${isCritical ? 'text-red-400' : isLow ? 'text-amber-400' : 'text-slate-300'}`}>
+        <span className="text-xs text-sf-console-text-dim">{label}</span>
+        <span className={`text-xs font-semibold ${isCritical ? 'text-red-400' : isLow ? 'text-amber-400' : 'text-sf-console-text'}`}>
           {Math.round(value)}%
         </span>
       </div>
-      <div className="w-full h-2 bg-slate-700/50 rounded-full overflow-hidden">
+      <div className="w-full h-2 bg-sf-console-well/50 rounded-full overflow-hidden">
         <motion.div
           className="h-full rounded-full relative"
           style={{
@@ -98,7 +98,7 @@ export function PetCarePanel({ pet, onCare, onSleep }: PetCarePanelProps) {
   };
 
   return (
-    <div className="relative rounded-2xl bg-slate-900/60 border border-slate-700/30 p-4 space-y-4">
+    <div className="relative rounded-2xl bg-sf-console/60 border border-sf-console-border/30 p-4 space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
@@ -112,7 +112,7 @@ export function PetCarePanel({ pet, onCare, onSleep }: PetCarePanelProps) {
           <span className="text-xs text-amber-400 font-semibold">{pet.carePoints} CP</span>
           <button
             onClick={onSleep}
-            className="p-1.5 rounded-lg hover:bg-slate-700 transition-colors"
+            className="p-1.5 rounded-lg hover:bg-sf-console-well transition-colors"
             title={pet.isSleeping ? 'Wake up' : 'Sleep'}
           >
             {pet.isSleeping ? (
@@ -152,7 +152,7 @@ export function PetCarePanel({ pet, onCare, onSleep }: PetCarePanelProps) {
       </AnimatePresence>
 
       {/* Recommended action */}
-      <div className="flex items-center gap-2 text-xs text-slate-400">
+      <div className="flex items-center gap-2 text-xs text-sf-console-text-dim">
         <Sparkles className="w-3 h-3 text-indigo-400" />
         Recommended: <span className="text-indigo-400 font-medium capitalize">{recommended}</span>
       </div>
@@ -175,7 +175,7 @@ export function PetCarePanel({ pet, onCare, onSleep }: PetCarePanelProps) {
               className={`
                 flex flex-col items-center gap-1 py-2.5 px-1 rounded-xl transition-all
                 ${pet.isSleeping || !canAfford
-                  ? 'opacity-40 cursor-not-allowed bg-slate-800'
+                  ? 'opacity-40 cursor-not-allowed bg-sf-console-raised'
                   : 'hover:shadow-lg'
                 }
                 ${isRecommended && canAfford && !pet.isSleeping ? 'ring-1 ring-offset-1 ring-offset-slate-900' : ''}
@@ -196,9 +196,9 @@ export function PetCarePanel({ pet, onCare, onSleep }: PetCarePanelProps) {
               >
                 <Icon className="w-5 h-5" style={{ color: canAfford ? color : '#64748B' }} />
               </motion.div>
-              <span className="text-[10px] font-medium text-slate-300">{label}</span>
+              <span className="text-[10px] font-medium text-sf-console-text">{label}</span>
               {cost > 0 && (
-                <span className="text-[9px] text-slate-500">{cost} CP</span>
+                <span className="text-[9px] text-sf-console-text-faint">{cost} CP</span>
               )}
             </motion.button>
           );
@@ -212,12 +212,12 @@ export function PetCarePanel({ pet, onCare, onSleep }: PetCarePanelProps) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="absolute inset-0 bg-slate-900/60 rounded-2xl flex items-center justify-center backdrop-blur-sm"
+            className="absolute inset-0 bg-sf-console/60 rounded-2xl flex items-center justify-center backdrop-blur-sm"
           >
             <div className="text-center">
               <Moon className="w-8 h-8 text-indigo-400 mx-auto mb-2" />
               <p className="text-sm text-white font-semibold">Sleeping...</p>
-              <p className="text-xs text-slate-400">Energy recovering</p>
+              <p className="text-xs text-sf-console-text-dim">Energy recovering</p>
             </div>
           </motion.div>
         )}

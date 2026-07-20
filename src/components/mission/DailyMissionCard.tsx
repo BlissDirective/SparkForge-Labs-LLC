@@ -150,7 +150,7 @@ export function DailyMissionCard({
                       </div>
                     )}
                   </div>
-                  <div className="flex items-center gap-1.5 text-xs text-slate-400">
+                  <div className="flex items-center gap-1.5 text-xs text-sf-console-text-dim">
                     <Clock className="w-3.5 h-3.5" />
                     Resets in {timeLeft}
                   </div>
@@ -168,16 +168,16 @@ export function DailyMissionCard({
                     <div className="text-3xl shrink-0">{challenge.icon}</div>
                     <div className="flex-1 min-w-0">
                       <h3 className="text-base font-bold text-white mb-1">{challenge.title}</h3>
-                      <p className="text-sm text-slate-300 mb-3">{challenge.description}</p>
+                      <p className="text-sm text-sf-console-text mb-3">{challenge.description}</p>
 
                       {/* Progress bar (if in progress) */}
                       {!isComplete && progress > 0 && (
                         <div className="mb-3">
                           <div className="flex items-center justify-between text-xs mb-1">
-                            <span className="text-slate-400">Progress</span>
+                            <span className="text-sf-console-text-dim">Progress</span>
                             <span className="text-indigo-400">{progress}/{challenge.requirementCount}</span>
                           </div>
-                          <div className="w-full h-2 bg-slate-700/50 rounded-full overflow-hidden">
+                          <div className="w-full h-2 bg-sf-console-well/50 rounded-full overflow-hidden">
                             <motion.div
                               className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-purple-500"
                               initial={{ width: 0 }}
@@ -194,9 +194,9 @@ export function DailyMissionCard({
                           <Zap className="w-3.5 h-3.5 text-amber-400" />
                           <span className="text-xs font-semibold text-amber-400">+{challenge.xpReward} XP</span>
                         </div>
-                        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-purple-500/10 border border-purple-500/20">
-                          <Target className="w-3.5 h-3.5 text-purple-400" />
-                          <span className="text-xs font-semibold text-purple-400">
+                        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-sf-console-accent-alt/10 border border-sf-console-accent-alt/20">
+                          <Target className="w-3.5 h-3.5 text-sf-console-accent-alt" />
+                          <span className="text-xs font-semibold text-sf-console-accent-alt">
                             {challenge.requirementCount} {challenge.requirementCount === 1 ? 'task' : 'tasks'}
                           </span>
                         </div>

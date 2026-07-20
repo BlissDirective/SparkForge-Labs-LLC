@@ -238,13 +238,13 @@ function NodeRenderer({
 function NodeTypeIcon({ type }: { type: string }) {
   switch (type) {
     case 'content':
-      return <BookOpen className="w-4 h-4 text-blue-400" />;
+      return <BookOpen className="w-4 h-4 text-sf-console-info" />;
     case 'choice':
       return <GitBranch className="w-4 h-4 text-pink-400" />;
     case 'outcome':
       return <CheckCircle2 className="w-4 h-4 text-green-400" />;
     case 'interactive':
-      return <Gamepad2 className="w-4 h-4 text-purple-400" />;
+      return <Gamepad2 className="w-4 h-4 text-sf-console-accent-alt" />;
     default:
       return <BookOpen className="w-4 h-4 text-white/70" />;
   }

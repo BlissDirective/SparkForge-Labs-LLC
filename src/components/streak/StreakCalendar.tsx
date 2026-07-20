@@ -29,14 +29,14 @@ export function StreakCalendar({ days, streakCount, className = '' }: StreakCale
   const weekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
   return (
-    <div className={`rounded-2xl bg-slate-900/60 border border-slate-700/30 p-4 ${className}`}>
+    <div className={`rounded-2xl bg-sf-console/60 border border-sf-console-border/30 p-4 ${className}`}>
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-sm font-semibold text-white flex items-center gap-2">
           <Flame className="w-4 h-4 text-orange-400" />
           30-Day Activity
         </h3>
-        <span className="text-xs text-slate-400">
+        <span className="text-xs text-sf-console-text-dim">
           {streakCount} day{streakCount !== 1 ? 's' : ''} active
         </span>
       </div>
@@ -44,7 +44,7 @@ export function StreakCalendar({ days, streakCount, className = '' }: StreakCale
       {/* Week day labels */}
       <div className="grid grid-cols-7 gap-1 mb-2">
         {weekDays.map(day => (
-          <div key={day} className="text-center text-[10px] text-slate-500 font-medium">
+          <div key={day} className="text-center text-[10px] text-sf-console-text-faint font-medium">
             {day}
           </div>
         ))}
@@ -58,11 +58,11 @@ export function StreakCalendar({ days, streakCount, className = '' }: StreakCale
       </div>
 
       {/* Legend */}
-      <div className="flex items-center gap-4 mt-4 pt-3 border-t border-slate-700/30">
+      <div className="flex items-center gap-4 mt-4 pt-3 border-t border-sf-console-border/30">
         <LegendItem color="bg-emerald-500" label="Active" />
-        <LegendItem color="bg-cyan-500" label="Freeze" />
+        <LegendItem color="bg-sf-console-accent" label="Freeze" />
         <LegendItem color="bg-orange-500" label="Streak" />
-        <LegendItem color="bg-slate-700" label="Missed" />
+        <LegendItem color="bg-sf-console-well" label="Missed" />
       </div>
     </div>
   );
@@ -71,16 +71,16 @@ export function StreakCalendar({ days, streakCount, className = '' }: StreakCale
 function CalendarCell({ day, index }: { day: CalendarDay; index: number }) {
   const getCellStyle = () => {
     if (day.isFuture) {
-      return 'bg-slate-800/30 border-slate-700/10';
+      return 'bg-sf-console-raised/30 border-sf-console-border/10';
     }
     if (day.isToday) {
       if (day.active) {
         return 'bg-emerald-500 border-emerald-400 shadow-lg shadow-emerald-500/30';
       }
-      return 'bg-slate-700 border-orange-400 ring-2 ring-orange-400/50';
+      return 'bg-sf-console-well border-orange-400 ring-2 ring-orange-400/50';
     }
     if (day.freezeUsed) {
-      return 'bg-cyan-500/40 border-cyan-400/60';
+      return 'bg-sf-console-accent/40 border-sf-console-accent/60';
     }
     if (day.active && day.partOfStreak) {
       return 'bg-gradient-to-br from-orange-500 to-amber-500 border-orange-400';
@@ -91,11 +91,11 @@ function CalendarCell({ day, index }: { day: CalendarDay; index: number }) {
     if (day.partOfStreak) {
       return 'bg-orange-500/20 border-orange-500/30';
     }
-    return 'bg-slate-800 border-slate-700/30';
+    return 'bg-sf-console-raised border-sf-console-border/30';
   };
 
   const getIcon = () => {
-    if (day.freezeUsed) return <Snowflake className="w-2.5 h-2.5 text-cyan-300" />;
+    if (day.freezeUsed) return <Snowflake className="w-2.5 h-2.5 text-sf-console-accent-bright" />;
     if (day.active && day.partOfStreak) return <Flame className="w-2.5 h-2.5 text-white" />;
     if (day.active) return <Circle className="w-2 h-2 text-emerald-300 fill-emerald-300" />;
     return null;
@@ -135,7 +135,7 @@ function LegendItem({ color, label }: { color: string; label: string }) {
   return (
     <div className="flex items-center gap-1.5">
       <div className={`w-2.5 h-2.5 rounded-sm ${color}`} />
-      <span className="text-[10px] text-slate-400">{label}</span>
+      <span className="text-[10px] text-sf-console-text-dim">{label}</span>
     </div>
   );
 }

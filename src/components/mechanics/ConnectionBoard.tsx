@@ -114,7 +114,7 @@ export function ConnectionBoard({ nodes: initialNodes, targetConnections, onComp
   return (
     <div className="space-y-4">
       {/* SVG Board */}
-      <div className="relative rounded-xl bg-slate-900/60 border border-slate-700/30 overflow-hidden" style={{ minHeight: 300 }}>
+      <div className="relative rounded-xl bg-sf-console/60 border border-sf-console-border/30 overflow-hidden" style={{ minHeight: 300 }}>
         <svg ref={svgRef} className="absolute inset-0 w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
           {/* Connection lines */}
           {lines.map((line, i) => {
@@ -167,7 +167,7 @@ export function ConnectionBoard({ nodes: initialNodes, targetConnections, onComp
                 absolute transform -translate-x-1/2 -translate-y-1/2
                 flex flex-col items-center gap-1 p-2 rounded-xl border-2 transition-all
                 ${isSelected ? 'border-indigo-400 shadow-lg shadow-indigo-500/30 z-10' : ''}
-                ${isConnected ? 'border-emerald-400/50' : 'border-slate-600/40'}
+                ${isConnected ? 'border-emerald-400/50' : 'border-sf-console-border/40'}
                 ${submitted ? 'cursor-default' : 'cursor-pointer hover:scale-110'}
               `}
               style={{
@@ -181,7 +181,7 @@ export function ConnectionBoard({ nodes: initialNodes, targetConnections, onComp
             >
               <span className="text-xl">{node.emoji || '🔵'}</span>
               <span className="text-[9px] font-semibold text-white whitespace-nowrap">{node.label}</span>
-              <span className="text-[8px] text-slate-500 capitalize">{node.type}</span>
+              <span className="text-[8px] text-sf-console-text-faint capitalize">{node.type}</span>
               {node.connections.length > 0 && (
                 <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-indigo-500 text-[9px] text-white flex items-center justify-center">
                   {node.connections.length}
@@ -194,7 +194,7 @@ export function ConnectionBoard({ nodes: initialNodes, targetConnections, onComp
 
       {/* Instructions */}
       {!submitted && (
-        <p className="text-xs text-slate-400 text-center">
+        <p className="text-xs text-sf-console-text-dim text-center">
           {selectedNode
             ? 'Click another node to connect (or click the same node to cancel)'
             : 'Click a node to start a connection, then click another to connect them'}
@@ -211,10 +211,10 @@ export function ConnectionBoard({ nodes: initialNodes, targetConnections, onComp
             </span>
           </div>
           {validation.missingConnections.length > 0 && (
-            <p className="text-slate-400 mt-1">Orange dashed lines show missing connections</p>
+            <p className="text-sf-console-text-dim mt-1">Orange dashed lines show missing connections</p>
           )}
           {validation.extraConnections.length > 0 && (
-            <p className="text-slate-400 mt-1">Red dashed lines are extra/incorrect connections</p>
+            <p className="text-sf-console-text-dim mt-1">Red dashed lines are extra/incorrect connections</p>
           )}
         </div>
       )}
@@ -235,7 +235,7 @@ export function ConnectionBoard({ nodes: initialNodes, targetConnections, onComp
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={handleReset}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 transition-all"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold bg-sf-console-raised text-sf-console-text hover:bg-sf-console-well transition-all"
           >
             <RotateCcw className="w-4 h-4" /> Try Again
           </motion.button>

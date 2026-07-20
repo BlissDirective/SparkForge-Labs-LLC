@@ -68,16 +68,16 @@ export function QuestPanel({
       {/* Completion summary bar */}
       {totalCount > 0 && (
         <motion.div
-          className="flex items-center gap-3 mb-4 px-3 py-2 rounded-xl bg-slate-800/50 border border-slate-700/30"
+          className="flex items-center gap-3 mb-4 px-3 py-2 rounded-xl bg-sf-console-raised/50 border border-sf-console-border/30"
           layout
         >
           <div className="flex items-center gap-2">
             <Target className="w-4 h-4 text-indigo-400" />
-            <span className="text-xs text-slate-300">
+            <span className="text-xs text-sf-console-text">
               {completedCount}/{totalCount} completed
             </span>
           </div>
-          <div className="flex-1 h-1.5 rounded-full bg-slate-700 overflow-hidden">
+          <div className="flex-1 h-1.5 rounded-full bg-sf-console-well overflow-hidden">
             <motion.div
               className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-purple-500"
               initial={{ width: 0 }}
@@ -112,7 +112,7 @@ export function QuestPanel({
         </AnimatePresence>
 
         {quests.length === 0 && (
-          <div className="text-center py-6 text-slate-500 text-sm">
+          <div className="text-center py-6 text-sf-console-text-faint text-sm">
             <Scroll className="w-8 h-8 mx-auto mb-2 opacity-40" />
             <p>No quests available today.</p>
           </div>
@@ -134,11 +134,11 @@ function WeeklyChainDisplay({ chain }: { chain: WeeklyQuestChain }) {
   const isChainComplete = chain.status === 'completed';
 
   return (
-    <div className="border-t border-slate-700/30 pt-4">
+    <div className="border-t border-sf-console-border/30 pt-4">
       <div className="flex items-center gap-2 mb-3">
         <Trophy className="w-4 h-4 text-amber-400" />
         <h3 className="text-sm font-semibold text-white">Weekly Quest Chain</h3>
-        <span className="text-[10px] text-slate-500">
+        <span className="text-[10px] text-sf-console-text-faint">
           {completedSteps}/{chain.totalSteps} steps
         </span>
         {isChainComplete && (
@@ -164,12 +164,12 @@ function WeeklyChainDisplay({ chain }: { chain: WeeklyQuestChain }) {
                   ? 'bg-gradient-to-r from-amber-500 to-orange-500'
                   : step.status === 'active'
                     ? 'bg-amber-500/30 animate-pulse'
-                    : 'bg-slate-700'
+                    : 'bg-sf-console-well'
                 }
               `}
             />
             {i < chain.steps.length - 1 && (
-              <div className={`w-1 h-1 rounded-full ${step.status === 'completed' ? 'bg-amber-500' : 'bg-slate-700'}`} />
+              <div className={`w-1 h-1 rounded-full ${step.status === 'completed' ? 'bg-amber-500' : 'bg-sf-console-well'}`} />
             )}
           </div>
         ))}
@@ -185,7 +185,7 @@ function WeeklyChainDisplay({ chain }: { chain: WeeklyQuestChain }) {
           <p className="text-xs font-medium text-amber-300">
             Step {chain.currentStep}: {chain.steps[chain.currentStep - 1].title}
           </p>
-          <p className="text-[10px] text-slate-400 mt-0.5">
+          <p className="text-[10px] text-sf-console-text-dim mt-0.5">
             {chain.steps[chain.currentStep - 1].description}
           </p>
         </motion.div>

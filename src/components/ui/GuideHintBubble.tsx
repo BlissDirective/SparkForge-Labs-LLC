@@ -63,14 +63,14 @@ export default function GuideHintBubble() {
               show();
               dismissHint(hintKey);
             }}
-            className="w-full text-left rounded-xl border border-cyan-400/30 bg-[#0c1425]/95 px-4 py-3 pr-9
+            className="w-full text-left rounded-xl border border-sf-console-accent/30 bg-[#0c1425]/95 px-4 py-3 pr-9
                        shadow-[0_0_32px_rgba(34,211,238,0.15)] backdrop-blur
                        hover:bg-[#12182c]/95 focus-visible:outline-none
                        focus-visible:ring-2 focus-visible:ring-cyan-400/60"
             aria-label="Open Sparky for more help"
           >
             <div className="flex items-start gap-2">
-              <Sparkles className="w-4 h-4 mt-0.5 text-cyan-300 shrink-0" aria-hidden="true" />
+              <Sparkles className="w-4 h-4 mt-0.5 text-sf-console-accent-bright shrink-0" aria-hidden="true" />
               <p className="text-sm text-white/90 leading-snug">{hintText}</p>
             </div>
           </button>

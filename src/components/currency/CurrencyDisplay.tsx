@@ -80,7 +80,7 @@ export function CurrencyDisplay({
           whileHover={{ scale: 1.05 }}
           onClick={onOpenShop}
           className="flex items-center gap-1.5 px-2.5 py-1 rounded-full
-            bg-slate-800/80 border border-slate-700/50
+            bg-sf-console-raised/80 border border-sf-console-border/50
             hover:border-amber-500/30 transition-all"
         >
           <Gem className="w-3.5 h-3.5 text-amber-400" />
@@ -100,7 +100,7 @@ export function CurrencyDisplay({
   }
 
   return (
-    <div className="rounded-2xl bg-slate-900/60 border border-slate-700/30 p-4">
+    <div className="rounded-2xl bg-sf-console/60 border border-sf-console-border/30 p-4">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
@@ -109,13 +109,13 @@ export function CurrencyDisplay({
           </div>
           <div>
             <h3 className="text-sm font-semibold text-white">Gems</h3>
-            <p className="text-[10px] text-slate-400">Spend in the shop</p>
+            <p className="text-[10px] text-sf-console-text-dim">Spend in the shop</p>
           </div>
         </div>
         {onOpenShop && (
           <button
             onClick={onOpenShop}
-            className="flex items-center gap-1 text-xs text-cyan-400 hover:text-cyan-300 transition-colors"
+            className="flex items-center gap-1 text-xs text-sf-console-accent hover:text-sf-console-accent-bright transition-colors"
           >
             Shop <ChevronRight className="w-3 h-3" />
           </button>
@@ -174,7 +174,7 @@ export function CurrencyDisplay({
         </motion.button>
       ) : (
         <div className="flex items-center justify-center gap-2 py-2.5 rounded-xl
-          bg-slate-800 text-slate-400 text-sm">
+          bg-sf-console-raised text-sf-console-text-dim text-sm">
           <Gift className="w-4 h-4" />
           Daily reward claimed — come back tomorrow!
         </div>

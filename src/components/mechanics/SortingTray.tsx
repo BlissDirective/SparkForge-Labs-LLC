@@ -56,7 +56,7 @@ export function SortingTray({ items: initialItems, onComplete, onScore, title }:
 
   return (
     <div className="space-y-4">
-      {title && <p className="text-xs text-slate-400">{title}</p>}
+      {title && <p className="text-xs text-sf-console-text-dim">{title}</p>}
 
       <Reorder.Group axis="y" values={items} onReorder={handleReorder} className="space-y-2">
         <AnimatePresence>
@@ -73,7 +73,7 @@ export function SortingTray({ items: initialItems, onComplete, onScore, title }:
                   ${submitted ? '' : 'cursor-grab active:cursor-grabbing hover:shadow-lg'}
                   ${isCorrect ? 'border-emerald-500/40 bg-emerald-500/10' : ''}
                   ${isWrong ? 'border-red-500/30 bg-red-500/5' : ''}
-                  ${!submitted ? 'border-slate-700/30 bg-slate-800/40' : ''}
+                  ${!submitted ? 'border-sf-console-border/30 bg-sf-console-raised/40' : ''}
                 `}
                 whileDrag={{ scale: 1.03, boxShadow: '0 8px 24px rgba(0,0,0,0.3)' }}
               >
@@ -82,7 +82,7 @@ export function SortingTray({ items: initialItems, onComplete, onScore, title }:
                   w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0
                   ${isCorrect ? 'bg-emerald-500/20 text-emerald-400' : ''}
                   ${isWrong ? 'bg-red-500/20 text-red-400' : ''}
-                  ${!submitted ? 'bg-slate-700/50 text-slate-400' : ''}
+                  ${!submitted ? 'bg-sf-console-well/50 text-sf-console-text-dim' : ''}
                 `}>
                   {submitted && isCorrect ? <Check className="w-3.5 h-3.5" /> : index + 1}
                 </div>
@@ -97,7 +97,7 @@ export function SortingTray({ items: initialItems, onComplete, onScore, title }:
 
                 {/* Drag handle */}
                 {!submitted && (
-                  <ArrowUpDown className="w-4 h-4 text-slate-600 shrink-0" />
+                  <ArrowUpDown className="w-4 h-4 text-sf-console-text-faint shrink-0" />
                 )}
 
                 {/* Feedback */}
@@ -107,7 +107,7 @@ export function SortingTray({ items: initialItems, onComplete, onScore, title }:
                 {submitted && isWrong && (
                   <div className="flex items-center gap-1 shrink-0">
                     <X className="w-4 h-4 text-red-400" />
-                    <span className="text-[10px] text-slate-500">#{item.correctPosition + 1}</span>
+                    <span className="text-[10px] text-sf-console-text-faint">#{item.correctPosition + 1}</span>
                   </div>
                 )}
               </Reorder.Item>
@@ -132,7 +132,7 @@ export function SortingTray({ items: initialItems, onComplete, onScore, title }:
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={handleReset}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 transition-all"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold bg-sf-console-raised text-sf-console-text hover:bg-sf-console-well transition-all"
           >
             <RotateCcw className="w-4 h-4" /> Reshuffle
           </motion.button>

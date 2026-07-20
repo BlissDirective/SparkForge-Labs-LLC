@@ -92,21 +92,21 @@ export function QuestCard({ quest, onClaim, streakDays }: QuestCardProps) {
             </div>
 
             {/* Description */}
-            <p className="text-xs text-slate-400 mb-2.5">
+            <p className="text-xs text-sf-console-text-dim mb-2.5">
               {quest.description ?? ''}
             </p>
 
             {/* Progress bar */}
             <div className="mb-2.5">
               <div className="flex items-center justify-between mb-1">
-                <span className="text-[10px] text-slate-500">
+                <span className="text-[10px] text-sf-console-text-faint">
                   {quest.progress} / {quest.requirementCount}
                 </span>
                 <span className="text-[10px] font-semibold" style={{ color: rarityColor }}>
                   {progressPercent}%
                 </span>
               </div>
-              <div className="h-1.5 rounded-full bg-slate-800 overflow-hidden">
+              <div className="h-1.5 rounded-full bg-sf-console-raised overflow-hidden">
                 <motion.div
                   className="h-full rounded-full"
                   initial={{ width: 0 }}
@@ -126,11 +126,11 @@ export function QuestCard({ quest, onClaim, streakDays }: QuestCardProps) {
             {/* Footer: Rewards + Action */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <span className="flex items-center gap-1 text-[10px] text-cyan-400">
+                <span className="flex items-center gap-1 text-[10px] text-sf-console-accent">
                   <Zap className="w-3 h-3" />
                   {quest.xpReward ?? 0} XP
                 </span>
-                <span className="flex items-center gap-1 text-[10px] text-purple-400">
+                <span className="flex items-center gap-1 text-[10px] text-sf-console-accent-alt">
                   <Star className="w-3 h-3" fill="#A78BFA" />
                   {quest.gemReward ?? 0} gems
                 </span>
@@ -158,7 +158,7 @@ export function QuestCard({ quest, onClaim, streakDays }: QuestCardProps) {
                   Claim
                 </SFButton>
               ) : (
-                <span className="flex items-center gap-1 px-2 py-1 rounded-lg bg-slate-800 text-slate-500 text-[10px] font-medium">
+                <span className="flex items-center gap-1 px-2 py-1 rounded-lg bg-sf-console-raised text-sf-console-text-faint text-[10px] font-medium">
                   <Lock className="w-3 h-3" />
                   In Progress
                 </span>

@@ -80,16 +80,16 @@ export function QuickStatsBar({
       {/* Badges */}
       <motion.div
         whileHover={{ scale: 1.03 }}
-        className="flex items-center gap-2.5 px-3 py-2 rounded-xl bg-slate-900/60 border border-slate-700/30 cursor-pointer"
+        className="flex items-center gap-2.5 px-3 py-2 rounded-xl bg-sf-console/60 border border-sf-console-border/30 cursor-pointer"
       >
         <div className="w-9 h-9 rounded-lg bg-amber-500/10 flex items-center justify-center shrink-0">
           <Trophy className="w-4.5 h-4.5 text-amber-400" />
         </div>
         <div>
-          <p className="text-xs text-slate-400">Badges</p>
+          <p className="text-xs text-sf-console-text-dim">Badges</p>
           <p className="text-sm font-bold text-white">
             {stats.earnedBadges}
-            <span className="text-slate-500 font-normal">/{stats.totalBadges}</span>
+            <span className="text-sf-console-text-faint font-normal">/{stats.totalBadges}</span>
           </p>
         </div>
       </motion.div>
@@ -97,13 +97,13 @@ export function QuickStatsBar({
       {/* League */}
       <motion.div
         whileHover={{ scale: 1.03 }}
-        className="flex items-center gap-2.5 px-3 py-2 rounded-xl bg-slate-900/60 border border-slate-700/30 cursor-pointer"
+        className="flex items-center gap-2.5 px-3 py-2 rounded-xl bg-sf-console/60 border border-sf-console-border/30 cursor-pointer"
       >
-        <div className="w-9 h-9 rounded-lg bg-purple-500/10 flex items-center justify-center shrink-0">
-          <Target className="w-4.5 h-4.5 text-purple-400" />
+        <div className="w-9 h-9 rounded-lg bg-sf-console-accent-alt/10 flex items-center justify-center shrink-0">
+          <Target className="w-4.5 h-4.5 text-sf-console-accent-alt" />
         </div>
         <div>
-          <p className="text-xs text-slate-400">League</p>
+          <p className="text-xs text-sf-console-text-dim">League</p>
           <p className="text-sm font-bold text-white capitalize">
             {stats.leagueTier || 'Bronze'}
           </p>
@@ -111,16 +111,16 @@ export function QuickStatsBar({
       </motion.div>
 
       {/* XP / Level (hidden on mobile) */}
-      <div className="hidden lg:flex items-center gap-2.5 px-3 py-2 rounded-xl bg-slate-900/60 border border-slate-700/30">
+      <div className="hidden lg:flex items-center gap-2.5 px-3 py-2 rounded-xl bg-sf-console/60 border border-sf-console-border/30">
         <div className="w-9 h-9 rounded-lg bg-emerald-500/10 flex items-center justify-center shrink-0">
           <TrendingUp className="w-4.5 h-4.5 text-emerald-400" />
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between mb-1">
-            <p className="text-xs text-slate-400">Level {stats.level}</p>
-            <p className="text-[10px] text-slate-500">{Math.round(xpProgress)}%</p>
+            <p className="text-xs text-sf-console-text-dim">Level {stats.level}</p>
+            <p className="text-[10px] text-sf-console-text-faint">{Math.round(xpProgress)}%</p>
           </div>
-          <div className="w-full h-1.5 bg-slate-700 rounded-full overflow-hidden">
+          <div className="w-full h-1.5 bg-sf-console-well rounded-full overflow-hidden">
             <motion.div
               className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-teal-400"
               initial={{ width: 0 }}

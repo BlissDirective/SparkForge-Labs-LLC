@@ -55,16 +55,16 @@ export function StreakFreezeCard({
 
   return (
     <TooltipProvider>
-      <div className="rounded-2xl bg-slate-900/60 border border-slate-700/30 p-4">
+      <div className="rounded-2xl bg-sf-console/60 border border-sf-console-border/30 p-4">
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <Shield className="w-5 h-5 text-cyan-400" />
+            <Shield className="w-5 h-5 text-sf-console-accent" />
             <h3 className="text-sm font-semibold text-white">Streak Freezes</h3>
           </div>
           <Tooltip>
             <TooltipTrigger asChild>
-              <button className="text-slate-400 hover:text-white transition-colors">
+              <button className="text-sf-console-text-dim hover:text-white transition-colors">
                 <Info className="w-4 h-4" />
               </button>
             </TooltipTrigger>
@@ -91,10 +91,10 @@ export function StreakFreezeCard({
                   relative w-14 h-14 rounded-xl flex items-center justify-center
                   border-2 transition-all duration-300
                   ${isActive
-                    ? 'bg-cyan-500/20 border-cyan-400 shadow-lg shadow-cyan-500/20'
+                    ? 'bg-sf-console-accent/20 border-sf-console-accent shadow-lg shadow-cyan-500/20'
                     : isAvailable
-                      ? 'bg-slate-800 border-slate-600 cursor-pointer hover:border-cyan-400/50'
-                      : 'bg-slate-800/50 border-slate-700/30 opacity-50'
+                      ? 'bg-sf-console-raised border-sf-console-border cursor-pointer hover:border-sf-console-accent/50'
+                      : 'bg-sf-console-raised/50 border-sf-console-border/30 opacity-50'
                   }
                 `}
                 whileHover={isAvailable && !isActive ? { scale: 1.1 } : {}}
@@ -109,7 +109,7 @@ export function StreakFreezeCard({
                       animate={{ scale: 1, rotate: 0 }}
                       exit={{ scale: 0, rotate: 180 }}
                     >
-                      <ShieldCheck className="w-7 h-7 text-cyan-400" />
+                      <ShieldCheck className="w-7 h-7 text-sf-console-accent" />
                     </motion.div>
                   ) : isAvailable ? (
                     <motion.div
@@ -118,7 +118,7 @@ export function StreakFreezeCard({
                       animate={{ scale: 1 }}
                       exit={{ scale: 0 }}
                     >
-                      <Shield className="w-7 h-7 text-slate-500" />
+                      <Shield className="w-7 h-7 text-sf-console-text-faint" />
                     </motion.div>
                   ) : (
                     <motion.div
@@ -127,7 +127,7 @@ export function StreakFreezeCard({
                       animate={{ scale: 1 }}
                       exit={{ scale: 0 }}
                     >
-                      <ShieldOff className="w-7 h-7 text-slate-600" />
+                      <ShieldOff className="w-7 h-7 text-sf-console-text-faint" />
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -135,7 +135,7 @@ export function StreakFreezeCard({
                 {/* Pulse ring for equipped */}
                 {isActive && (
                   <motion.div
-                    className="absolute inset-0 rounded-xl border-2 border-cyan-400"
+                    className="absolute inset-0 rounded-xl border-2 border-sf-console-accent"
                     animate={{ scale: [1, 1.15, 1], opacity: [0.5, 0, 0.5] }}
                     transition={{ duration: 2, repeat: Infinity }}
                   />
@@ -147,9 +147,9 @@ export function StreakFreezeCard({
 
         {/* Status text */}
         <div className="flex items-center justify-between">
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-sf-console-text-dim">
             {freezesEquipped > 0 ? (
-              <span className="text-cyan-400">
+              <span className="text-sf-console-accent">
                 {freezesEquipped} freeze{freezesEquipped !== 1 ? 's' : ''} equipped
               </span>
             ) : (

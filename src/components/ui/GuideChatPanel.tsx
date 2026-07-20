@@ -181,10 +181,10 @@ export default function GuideChatPanel() {
         whileTap={{ scale: 0.95 }}
         aria-label="Expand guide chat"
       >
-        <Sparkles className="w-4 h-4 text-cyan-400" />
+        <Sparkles className="w-4 h-4 text-sf-console-accent" />
         Spark
         {messages.length > 0 && (
-          <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+          <span className="w-2 h-2 rounded-full bg-sf-console-accent animate-pulse" />
         )}
       </motion.button>
     );
@@ -200,7 +200,7 @@ export default function GuideChatPanel() {
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-white/5 bg-gradient-to-r from-cyan-500/10 to-blue-500/10">
         <div className="flex items-center gap-2">
-          <Sparkles className="w-4 h-4 text-cyan-400" />
+          <Sparkles className="w-4 h-4 text-sf-console-accent" />
           <span className="font-display text-sm text-white">Spark</span>
           <span className="text-xs text-white/60 font-mono">{context}</span>
         </div>
@@ -218,7 +218,7 @@ export default function GuideChatPanel() {
       <div className="flex-1 overflow-y-auto p-4 space-y-3 min-h-[200px] max-h-[400px]">
         {messages.length === 0 && !isStreaming && (
           <div className="text-center text-white/60 text-sm font-body py-8">
-            <Sparkles className="w-8 h-8 mx-auto mb-2 text-cyan-400/30" />
+            <Sparkles className="w-8 h-8 mx-auto mb-2 text-sf-console-accent/30" />
             Hi! I&apos;m Spark, your AI guide.<br />Ask me anything about AI!
           </div>
         )}
@@ -230,7 +230,7 @@ export default function GuideChatPanel() {
           >
             <div className={`max-w-[80%] rounded-xl px-3 py-2 text-sm font-body ${
               msg.role === 'user'
-                ? 'bg-cyan-500/20 text-white/90'
+                ? 'bg-sf-console-accent/20 text-white/90'
                 : 'bg-white/5 text-white/80'
             }`}>
               {msg.content}
@@ -243,7 +243,7 @@ export default function GuideChatPanel() {
           <div className="flex justify-start">
             <div className="max-w-[80%] rounded-xl px-3 py-2 text-sm font-body bg-white/5 text-white/80">
               {streamingContent}
-              <span className="inline-block w-1.5 h-4 bg-cyan-400 ml-0.5 animate-pulse" />
+              <span className="inline-block w-1.5 h-4 bg-sf-console-accent ml-0.5 animate-pulse" />
             </div>
           </div>
         )}
@@ -251,9 +251,9 @@ export default function GuideChatPanel() {
         {isStreaming && !streamingContent && (
           <div className="flex justify-start">
             <div className="rounded-xl px-3 py-2 bg-white/5 flex gap-1">
-              <span className="w-2 h-2 rounded-full bg-cyan-400/40 animate-bounce" style={{ animationDelay: '0ms' }} />
-              <span className="w-2 h-2 rounded-full bg-cyan-400/40 animate-bounce" style={{ animationDelay: '150ms' }} />
-              <span className="w-2 h-2 rounded-full bg-cyan-400/40 animate-bounce" style={{ animationDelay: '300ms' }} />
+              <span className="w-2 h-2 rounded-full bg-sf-console-accent/40 animate-bounce" style={{ animationDelay: '0ms' }} />
+              <span className="w-2 h-2 rounded-full bg-sf-console-accent/40 animate-bounce" style={{ animationDelay: '150ms' }} />
+              <span className="w-2 h-2 rounded-full bg-sf-console-accent/40 animate-bounce" style={{ animationDelay: '300ms' }} />
             </div>
           </div>
         )}
@@ -267,7 +267,7 @@ export default function GuideChatPanel() {
           {/* Voice toggle */}
           <button
             onClick={() => useGuideStore.setState(s => ({ voiceEnabled: !s.voiceEnabled }))}
-            className={`p-2 rounded-lg transition-colors ${voiceEnabled ? 'bg-cyan-500/20 text-cyan-400' : 'bg-white/5 text-white/60'}`}
+            className={`p-2 rounded-lg transition-colors ${voiceEnabled ? 'bg-sf-console-accent/20 text-sf-console-accent' : 'bg-white/5 text-white/60'}`}
             aria-label={voiceEnabled ? 'Disable voice' : 'Enable voice'}
           >
             {voiceEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
@@ -301,7 +301,7 @@ export default function GuideChatPanel() {
           <button
             onClick={sendMessage}
             disabled={!input.trim() || isStreaming}
-            className="p-2 rounded-lg bg-cyan-500/20 text-cyan-400 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-cyan-500/30 transition-colors"
+            className="p-2 rounded-lg bg-sf-console-accent/20 text-sf-console-accent disabled:opacity-30 disabled:cursor-not-allowed hover:bg-sf-console-accent/30 transition-colors"
             aria-label="Send message"
           >
             <Send className="w-4 h-4" />
@@ -310,7 +310,7 @@ export default function GuideChatPanel() {
 
         {/* Voice interim feedback */}
         {voice.isListening && voice.interimTranscript && (
-          <p className="text-xs text-cyan-400/60 font-body mt-1 truncate">
+          <p className="text-xs text-sf-console-accent/60 font-body mt-1 truncate">
             {voice.interimTranscript}...
           </p>
         )}

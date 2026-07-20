@@ -27,7 +27,7 @@ const STRENGTH_COLOR: Record<PasswordScore['strength'], string> = {
   none: 'bg-white/15',
   weak: 'bg-red-500',
   fair: 'bg-amber-500',
-  good: 'bg-blue-500',
+  good: 'bg-sf-console-info',
   strong: 'bg-emerald-500',
 };
 
@@ -35,7 +35,7 @@ const STRENGTH_TEXT: Record<PasswordScore['strength'], string> = {
   none: 'text-white/70',
   weak: 'text-red-400',
   fair: 'text-amber-400',
-  good: 'text-blue-400',
+  good: 'text-sf-console-info',
   strong: 'text-emerald-400',
 };
 

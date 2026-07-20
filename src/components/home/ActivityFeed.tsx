@@ -94,17 +94,17 @@ export function ActivityFeed({ activities, isLoading, maxItems = 5 }: ActivityFe
 
   if (isLoading) {
     return (
-      <div className="rounded-2xl bg-slate-900/40 border border-slate-700/20 p-4 space-y-3">
+      <div className="rounded-2xl bg-sf-console/40 border border-sf-console-border/20 p-4 space-y-3">
         <div className="flex items-center gap-2 mb-3">
-          <div className="w-4 h-4 rounded bg-slate-700 animate-pulse" />
-          <div className="w-24 h-4 rounded bg-slate-700 animate-pulse" />
+          <div className="w-4 h-4 rounded bg-sf-console-well animate-pulse" />
+          <div className="w-24 h-4 rounded bg-sf-console-well animate-pulse" />
         </div>
         {Array.from({ length: 4 }, (_, i) => (
           <div key={i} className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-slate-700 animate-pulse" />
+            <div className="w-8 h-8 rounded-full bg-sf-console-well animate-pulse" />
             <div className="flex-1 space-y-1.5">
-              <div className="w-3/4 h-3 rounded bg-slate-700 animate-pulse" />
-              <div className="w-1/2 h-2.5 rounded bg-slate-700 animate-pulse" />
+              <div className="w-3/4 h-3 rounded bg-sf-console-well animate-pulse" />
+              <div className="w-1/2 h-2.5 rounded bg-sf-console-well animate-pulse" />
             </div>
           </div>
         ))}
@@ -114,18 +114,18 @@ export function ActivityFeed({ activities, isLoading, maxItems = 5 }: ActivityFe
 
   if (displayItems.length === 0) {
     return (
-      <div className="rounded-2xl bg-slate-900/40 border border-slate-700/20 p-6 text-center">
-        <div className="w-12 h-12 rounded-full bg-slate-800 flex items-center justify-center mx-auto mb-3">
-          <Circle className="w-5 h-5 text-slate-600" />
+      <div className="rounded-2xl bg-sf-console/40 border border-sf-console-border/20 p-6 text-center">
+        <div className="w-12 h-12 rounded-full bg-sf-console-raised flex items-center justify-center mx-auto mb-3">
+          <Circle className="w-5 h-5 text-sf-console-text-faint" />
         </div>
-        <p className="text-sm text-slate-400 mb-1">No activity yet</p>
-        <p className="text-xs text-slate-500">Start playing to see your activity here!</p>
+        <p className="text-sm text-sf-console-text-dim mb-1">No activity yet</p>
+        <p className="text-xs text-sf-console-text-faint">Start playing to see your activity here!</p>
       </div>
     );
   }
 
   return (
-    <div className="rounded-2xl bg-slate-900/40 border border-slate-700/20 p-4">
+    <div className="rounded-2xl bg-sf-console/40 border border-sf-console-border/20 p-4">
       <h3 className="text-sm font-semibold text-white mb-4 flex items-center gap-2">
         <Zap className="w-4 h-4 text-amber-400" />
         Recent Activity
@@ -142,7 +142,7 @@ export function ActivityFeed({ activities, isLoading, maxItems = 5 }: ActivityFe
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: index * 0.05 }}
-              className="flex items-center gap-3 px-2 py-2.5 rounded-lg hover:bg-slate-800/40 transition-colors"
+              className="flex items-center gap-3 px-2 py-2.5 rounded-lg hover:bg-sf-console-raised/40 transition-colors"
             >
               {/* Icon */}
               <div
@@ -159,10 +159,10 @@ export function ActivityFeed({ activities, isLoading, maxItems = 5 }: ActivityFe
               {/* Content */}
               <div className="flex-1 min-w-0">
                 <p className="text-sm text-white font-medium truncate">
-                  {cfg.label} <span className="text-slate-300">{item.title}</span>
+                  {cfg.label} <span className="text-sf-console-text">{item.title}</span>
                 </p>
                 {item.description && (
-                  <p className="text-xs text-slate-500 truncate">{item.description}</p>
+                  <p className="text-xs text-sf-console-text-faint truncate">{item.description}</p>
                 )}
               </div>
 
@@ -171,7 +171,7 @@ export function ActivityFeed({ activities, isLoading, maxItems = 5 }: ActivityFe
                 {item.xp && item.xp > 0 && (
                   <span className="text-xs font-semibold text-amber-400">+{item.xp} XP</span>
                 )}
-                <p className="text-[10px] text-slate-500">{formatTimeAgo(item.timestamp)}</p>
+                <p className="text-[10px] text-sf-console-text-faint">{formatTimeAgo(item.timestamp)}</p>
               </div>
             </motion.div>
           );

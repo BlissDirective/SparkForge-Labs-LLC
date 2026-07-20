@@ -52,11 +52,11 @@ export function PetEvolutionModal({ pet, isOpen, onClose, onEvolve }: PetEvoluti
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.9, opacity: 0 }}
             onClick={(e) => e.stopPropagation()}
-            className="w-full max-w-sm rounded-2xl bg-slate-900 border border-slate-700/50 p-6 relative overflow-hidden"
+            className="w-full max-w-sm rounded-2xl bg-sf-console border border-sf-console-border/50 p-6 relative overflow-hidden"
           >
             {/* Close */}
-            <button onClick={onClose} className="absolute top-4 right-4 p-1 rounded-lg hover:bg-slate-800 transition-colors z-10">
-              <X className="w-4 h-4 text-slate-400" />
+            <button onClick={onClose} className="absolute top-4 right-4 p-1 rounded-lg hover:bg-sf-console-raised transition-colors z-10">
+              <X className="w-4 h-4 text-sf-console-text-dim" />
             </button>
 
             {/* Celebration overlay */}
@@ -66,7 +66,7 @@ export function PetEvolutionModal({ pet, isOpen, onClose, onEvolve }: PetEvoluti
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  className="absolute inset-0 z-20 flex items-center justify-center bg-slate-900/95"
+                  className="absolute inset-0 z-20 flex items-center justify-center bg-sf-console/95"
                 >
                   <motion.div
                     initial={{ scale: 0 }}
@@ -82,7 +82,7 @@ export function PetEvolutionModal({ pet, isOpen, onClose, onEvolve }: PetEvoluti
                       ✨
                     </motion.div>
                     <h3 className="text-xl font-bold text-white mb-2">Evolution Complete!</h3>
-                    <p className="text-sm text-slate-400">
+                    <p className="text-sm text-sf-console-text-dim">
                       {pet.name} grew into a {check.toEvolution
                         ? EVOLUTION_PATHS.find(e => e.evolution === check.toEvolution)?.label
                         : ''}{' '}
@@ -117,27 +117,27 @@ export function PetEvolutionModal({ pet, isOpen, onClose, onEvolve }: PetEvoluti
               </div>
               <div>
                 <h3 className="text-lg font-bold text-white">{pet.name}</h3>
-                <p className="text-xs text-slate-400">
+                <p className="text-xs text-sf-console-text-dim">
                   {STAGE_LABELS[pet.stage]} · Day {pet.ageDays}
                 </p>
               </div>
             </div>
 
             {/* Current Stage */}
-            <div className="mb-4 p-3 rounded-xl bg-slate-800/50 border border-slate-700/30">
-              <p className="text-xs text-slate-400 mb-1">Current Stage</p>
+            <div className="mb-4 p-3 rounded-xl bg-sf-console-raised/50 border border-sf-console-border/30">
+              <p className="text-xs text-sf-console-text-dim mb-1">Current Stage</p>
               <div className="flex items-center gap-2">
                 <span className="text-lg">{pet.stage === 'egg' ? '🥚' : speciesCfg.emoji}</span>
                 <div>
                   <p className="text-sm font-semibold text-white">{STAGE_LABELS[pet.stage]}</p>
-                  <p className="text-xs text-slate-500">Day {pet.ageDays}</p>
+                  <p className="text-xs text-sf-console-text-faint">Day {pet.ageDays}</p>
                 </div>
               </div>
             </div>
 
             {/* Arrow */}
             <div className="flex justify-center my-3">
-              <ChevronRight className="w-5 h-5 text-slate-600 rotate-90" />
+              <ChevronRight className="w-5 h-5 text-sf-console-text-faint rotate-90" />
             </div>
 
             {/* Next Stage */}
@@ -159,7 +159,7 @@ export function PetEvolutionModal({ pet, isOpen, onClose, onEvolve }: PetEvoluti
                 {check.canEvolve ? (
                   <Check className="w-4 h-4 text-emerald-400 ml-auto" />
                 ) : (
-                  <Lock className="w-4 h-4 text-slate-600 ml-auto" />
+                  <Lock className="w-4 h-4 text-sf-console-text-faint ml-auto" />
                 )}
               </div>
             </div>
@@ -173,7 +173,7 @@ export function PetEvolutionModal({ pet, isOpen, onClose, onEvolve }: PetEvoluti
                   ) : (
                     <Star className="w-3.5 h-3.5 text-amber-400 shrink-0" />
                   )}
-                  <span className={req.startsWith('✅') ? 'text-emerald-400' : 'text-slate-400'}>
+                  <span className={req.startsWith('✅') ? 'text-emerald-400' : 'text-sf-console-text-dim'}>
                     {req.replace('✅ ', '')}
                   </span>
                 </div>
@@ -190,7 +190,7 @@ export function PetEvolutionModal({ pet, isOpen, onClose, onEvolve }: PetEvoluti
                 w-full py-2.5 rounded-xl font-semibold text-sm transition-all
                 ${check.canEvolve
                   ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white hover:from-emerald-400 hover:to-teal-400 shadow-lg shadow-emerald-500/20'
-                  : 'bg-slate-800 text-slate-500 cursor-not-allowed'
+                  : 'bg-sf-console-raised text-sf-console-text-faint cursor-not-allowed'
                 }
               `}
             >

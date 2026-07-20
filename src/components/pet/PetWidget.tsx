@@ -97,7 +97,7 @@ export function PetWidget({ pet, childName, onCare, onSleep, onEvolve }: PetWidg
 
             <div className="flex-1 min-w-0">
               {/* Greeting */}
-              <p className="text-xs text-slate-300 mb-2 line-clamp-2">
+              <p className="text-xs text-sf-console-text mb-2 line-clamp-2">
                 {getDailyGreeting(pet, childName)}
               </p>
 
@@ -105,12 +105,12 @@ export function PetWidget({ pet, childName, onCare, onSleep, onEvolve }: PetWidg
               <div className="flex items-center gap-3">
                 <div className="flex-1">
                   <div className="flex items-center justify-between mb-1">
-                    <span className="text-[10px] text-slate-500">Needs</span>
+                    <span className="text-[10px] text-sf-console-text-faint">Needs</span>
                     <span className="text-[10px] font-semibold" style={{ color: moodCfg.color }}>
                       {Math.round(avgNeeds)}%
                     </span>
                   </div>
-                  <div className="w-full h-1.5 bg-slate-700/50 rounded-full overflow-hidden">
+                  <div className="w-full h-1.5 bg-sf-console-well/50 rounded-full overflow-hidden">
                     <motion.div
                       className="h-full rounded-full"
                       style={{
@@ -129,11 +129,11 @@ export function PetWidget({ pet, childName, onCare, onSleep, onEvolve }: PetWidg
                 <div className="flex gap-2 shrink-0">
                   <div className="text-center">
                     <Heart className="w-3.5 h-3.5 text-pink-400 mx-auto" />
-                    <span className="text-[9px] text-slate-400">{pet.consecutiveCareDays}d</span>
+                    <span className="text-[9px] text-sf-console-text-dim">{pet.consecutiveCareDays}d</span>
                   </div>
                   <div className="text-center">
                     <Zap className="w-3.5 h-3.5 text-amber-400 mx-auto" />
-                    <span className="text-[9px] text-slate-400">{pet.tricksLearned.length}</span>
+                    <span className="text-[9px] text-sf-console-text-dim">{pet.tricksLearned.length}</span>
                   </div>
                 </div>
               </div>
@@ -150,7 +150,7 @@ export function PetWidget({ pet, childName, onCare, onSleep, onEvolve }: PetWidg
                 transition={{ duration: 0.3 }}
                 className="overflow-hidden"
               >
-                <div className="mt-4 pt-4 border-t border-slate-700/30">
+                <div className="mt-4 pt-4 border-t border-sf-console-border/30">
                   <PetCarePanel pet={pet} onCare={onCare} onSleep={onSleep} />
                 </div>
               </motion.div>

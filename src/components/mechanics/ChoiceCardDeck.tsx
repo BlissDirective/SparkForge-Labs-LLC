@@ -51,10 +51,10 @@ export function ChoiceCardDeck({ scenario, emoji, cards, onComplete, onScore }: 
   return (
     <div className="space-y-5">
       {/* Scenario */}
-      <div className="flex items-start gap-3 p-4 rounded-xl bg-slate-800/40 border border-slate-700/30">
+      <div className="flex items-start gap-3 p-4 rounded-xl bg-sf-console-raised/40 border border-sf-console-border/30">
         <span className="text-3xl">{emoji}</span>
         <div>
-          <p className="text-xs text-slate-400 mb-1 uppercase tracking-wide">Scenario</p>
+          <p className="text-xs text-sf-console-text-dim mb-1 uppercase tracking-wide">Scenario</p>
           <p className="text-sm text-white font-medium leading-relaxed">{scenario}</p>
         </div>
       </div>
@@ -76,8 +76,8 @@ export function ChoiceCardDeck({ scenario, emoji, cards, onComplete, onScore }: 
                 ${isSelected
                   ? 'border-indigo-400 bg-indigo-500/10 shadow-lg shadow-indigo-500/15'
                   : isOtherSelected && revealed
-                    ? 'border-slate-700/20 opacity-40'
-                    : 'border-slate-700/30 bg-slate-800/40 hover:border-slate-600/50'
+                    ? 'border-sf-console-border/20 opacity-40'
+                    : 'border-sf-console-border/30 bg-sf-console-raised/40 hover:border-sf-console-border/50'
                 }
               `}
             >
@@ -92,7 +92,7 @@ export function ChoiceCardDeck({ scenario, emoji, cards, onComplete, onScore }: 
 
               <div className="text-2xl mb-2">{card.emoji}</div>
               <h4 className="text-sm font-bold text-white mb-1.5">{card.title}</h4>
-              <p className="text-xs text-slate-400 leading-relaxed">{card.description}</p>
+              <p className="text-xs text-sf-console-text-dim leading-relaxed">{card.description}</p>
             </motion.button>
           );
         })}
@@ -109,7 +109,7 @@ export function ChoiceCardDeck({ scenario, emoji, cards, onComplete, onScore }: 
             w-full py-3 rounded-xl text-sm font-semibold transition-all
             ${selectedId
               ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-lg shadow-indigo-500/20'
-              : 'bg-slate-800 text-slate-500 cursor-not-allowed'
+              : 'bg-sf-console-raised text-sf-console-text-faint cursor-not-allowed'
             }
           `}
         >
@@ -126,7 +126,7 @@ export function ChoiceCardDeck({ scenario, emoji, cards, onComplete, onScore }: 
             exit={{ opacity: 0 }}
             className="space-y-2"
           >
-            <p className="text-xs text-slate-400 flex items-center gap-1.5">
+            <p className="text-xs text-sf-console-text-dim flex items-center gap-1.5">
               <Sparkles className="w-3.5 h-3.5 text-amber-400" /> Consequences:
             </p>
 
@@ -142,7 +142,7 @@ export function ChoiceCardDeck({ scenario, emoji, cards, onComplete, onScore }: 
                   ${cons.type === 'penalty' ? 'bg-red-500/10 border-red-500/20 text-red-400' : ''}
                   ${cons.type === 'hint' ? 'bg-amber-500/10 border-amber-500/20 text-amber-400' : ''}
                   ${cons.type === 'story' ? 'bg-indigo-500/10 border-indigo-500/20 text-indigo-400' : ''}
-                  ${cons.type === 'unlock' ? 'bg-purple-500/10 border-purple-500/20 text-purple-400' : ''}
+                  ${cons.type === 'unlock' ? 'bg-sf-console-accent-alt/10 border-sf-console-accent-alt/20 text-sf-console-accent-alt' : ''}
                 `}
               >
                 <ArrowRight className="w-4 h-4 shrink-0" />

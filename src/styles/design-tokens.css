@@ -50,6 +50,24 @@
     --sf-border-focus: 79 110 247;
     --sf-border-subtle: 232 238 248;
 
+    /* ── Console (dark panel idiom) ──
+       F0 (Forge plan §5): role tokens for the deliberately-dark panels
+       (activity feed, leaderboard, streak/pet/quest cards) that predate
+       the light theme. Light-theme values are EXACTLY the slate/cyan/
+       purple hexes those panels hardcoded before the sweep — a visual
+       no-op — so the forge theme can restyle them via override. */
+    --sf-console: 15 23 42;              /* slate-900 — panel ground   */
+    --sf-console-raised: 30 41 59;       /* slate-800 — raised/hover   */
+    --sf-console-well: 51 65 85;         /* slate-700 — wells/inputs   */
+    --sf-console-border: 51 65 85;       /* slate-700 — borders        */
+    --sf-console-text: 203 213 225;      /* slate-300 — primary text   */
+    --sf-console-text-dim: 148 163 184;  /* slate-400 — secondary      */
+    --sf-console-text-faint: 100 116 139;/* slate-500 — muted          */
+    --sf-console-accent: 34 211 238;     /* cyan-400 — primary accent  */
+    --sf-console-accent-bright: 103 232 249; /* cyan-300 — bright      */
+    --sf-console-accent-alt: 192 132 252;/* purple-400 — alt accent    */
+    --sf-console-info: 96 165 250;       /* blue-400 — info accent     */
+
     /* ── Shadows ── */
     --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
     --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.06);

@@ -72,7 +72,7 @@ export default function GuideMobileAvatar({
       )}
 
       {/* Icon */}
-      <Sparkles className={`${ICON_SIZES[size]} text-cyan-400`} />
+      <Sparkles className={`${ICON_SIZES[size]} text-sf-console-accent`} />
     </motion.button>
   );
 }

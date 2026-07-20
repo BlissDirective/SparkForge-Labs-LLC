@@ -192,7 +192,7 @@ export default function HomePage() {
         <h2 className="text-2xl font-bold mb-2 text-white" style={{ fontFamily: 'var(--font-display)' }}>
           Welcome to SparkForge!
         </h2>
-        <p className="text-base mb-6 text-slate-400">
+        <p className="text-base mb-6 text-sf-console-text-dim">
           Create a profile to start your AI learning journey.
         </p>
         <Link
@@ -226,7 +226,7 @@ export default function HomePage() {
             <span className="inline-block animate-bounce">&#128075;</span>
           </h1>
         </div>
-        <p className="text-sm text-slate-400">
+        <p className="text-sm text-sf-console-text-dim">
           Ready to continue your AI learning adventure today?
         </p>
       </motion.section>
@@ -277,7 +277,7 @@ export default function HomePage() {
                     {game.icon}
                   </div>
                   <h3 className="text-sm font-bold text-white mb-1 group-hover:text-indigo-400 transition-colors">{game.name}</h3>
-                  <p className="text-xs line-clamp-2 mb-2 text-slate-400">{game.description}</p>
+                  <p className="text-xs line-clamp-2 mb-2 text-sf-console-text-dim">{game.description}</p>
                   <SFBadge variant="primary" size="sm">{game.labName}</SFBadge>
                 </SFCard>
               </Link>
@@ -337,20 +337,20 @@ export default function HomePage() {
                 </SFCircularProgress>
                 <div>
                   <p className="text-sm font-bold text-white">Overall</p>
-                  <p className="text-xs text-slate-400">Across all labs</p>
+                  <p className="text-xs text-sf-console-text-dim">Across all labs</p>
                 </div>
               </SFCard>
 
               {/* Games */}
               <SFCard variant="default" className="flex items-center gap-4">
                 <div className="w-14 h-14 rounded-full bg-fuchsia-500/10 flex items-center justify-center shrink-0">
-                  <Gamepad2 className="w-6 h-6 text-fuchsia-400" />
+                  <Gamepad2 className="w-6 h-6 text-sf-accent-pink" />
                 </div>
                 <div>
                   <p className="text-2xl font-extrabold text-white" style={{ fontFamily: 'var(--font-display)' }}>
                     {recentGames.length}
                   </p>
-                  <p className="text-xs text-slate-400">Games played</p>
+                  <p className="text-xs text-sf-console-text-dim">Games played</p>
                 </div>
               </SFCard>
 
@@ -363,7 +363,7 @@ export default function HomePage() {
                   <p className="text-2xl font-extrabold text-white" style={{ fontFamily: 'var(--font-display)' }}>
                     {Math.round((child.xp ?? 0) / 10)}m
                   </p>
-                  <p className="text-xs text-slate-400">Time learning</p>
+                  <p className="text-xs text-sf-console-text-dim">Time learning</p>
                 </div>
               </SFCard>
             </div>
@@ -377,7 +377,7 @@ export default function HomePage() {
           >
             <div className="flex items-center justify-between mb-3">
               <h2 className="text-base font-bold text-white flex items-center gap-2" style={{ fontFamily: 'var(--font-display)' }}>
-                <Sparkles className="w-4 h-4 text-fuchsia-400" />
+                <Sparkles className="w-4 h-4 text-sf-accent-pink" />
                 Featured Games
               </h2>
               <Link href="/arcade" className="text-xs font-semibold text-indigo-400 hover:text-indigo-300 flex items-center gap-1 transition-colors">
@@ -411,7 +411,7 @@ export default function HomePage() {
                         />
                         <div className="relative text-4xl mb-3">{game.icon}</div>
                         <h3 className="relative text-sm font-bold text-white group-hover:text-indigo-300 transition-colors">{game.name}</h3>
-                        <p className="relative text-[10px] mt-1 text-slate-500">{game.labName}</p>
+                        <p className="relative text-[10px] mt-1 text-sf-console-text-faint">{game.labName}</p>
                       </motion.div>
                     </Link>
                   </motion.div>
@@ -519,7 +519,7 @@ function DailyChallengeQuickCard({ childId }: { childId: string }) {
         <div className="text-2xl shrink-0">{challenge.icon}</div>
         <div className="flex-1 min-w-0">
           <p className="text-sm font-medium text-white mb-0.5">{challenge.title}</p>
-          <p className="text-xs text-slate-400 mb-2">{challenge.description}</p>
+          <p className="text-xs text-sf-console-text-dim mb-2">{challenge.description}</p>
           <div className="flex items-center gap-2">
             <span className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-400 text-[10px] font-semibold">
               <Zap className="w-3 h-3" /> +{challenge.xpReward} XP

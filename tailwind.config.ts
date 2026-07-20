@@ -14,41 +14,63 @@ const config: Config = {
     extend: {
       colors: {
         // ═══ SparkForge v3 — Kid-Friendly Design System ═══
+        // F0 (Forge plan §2.3/§5): values route through the CSS custom
+        // properties in src/styles/design-tokens.css instead of hardcoded
+        // hex, so <html data-theme="forge"> rethemes every sf-* utility.
+        // The var() light-theme values are byte-identical to the old hexes.
         sf: {
           primary: {
-            DEFAULT: '#4F6EF7',
-            light: '#8B9FFF',
-            dark: '#2F4BC0',
+            DEFAULT: 'rgb(var(--sf-primary) / <alpha-value>)',
+            light: 'rgb(var(--sf-primary-light) / <alpha-value>)',
+            dark: 'rgb(var(--sf-primary-dark) / <alpha-value>)',
           },
           secondary: {
-            DEFAULT: '#FF6B35',
-            light: '#FF9D6E',
+            DEFAULT: 'rgb(var(--sf-secondary) / <alpha-value>)',
+            light: 'rgb(var(--sf-secondary-light) / <alpha-value>)',
           },
           accent: {
-            green: '#2ECC71',
-            purple: '#9B59B6',
-            pink: '#E945F5',
-            yellow: '#FFD93D',
-            cyan: '#00D2FF',
-            red: '#FF5252',
+            green: 'rgb(var(--sf-accent-green) / <alpha-value>)',
+            purple: 'rgb(var(--sf-accent-purple) / <alpha-value>)',
+            pink: 'rgb(var(--sf-accent-pink) / <alpha-value>)',
+            yellow: 'rgb(var(--sf-accent-yellow) / <alpha-value>)',
+            cyan: 'rgb(var(--sf-accent-cyan) / <alpha-value>)',
+            red: 'rgb(var(--sf-accent-red) / <alpha-value>)',
           },
           surface: {
-            DEFAULT: '#FFFFFF',
-            alt: '#F8FAFF',
-            elevated: '#FFFFFF',
-            muted: '#EEF2FA',
-            inverse: '#0F1123',
+            DEFAULT: 'rgb(var(--sf-surface) / <alpha-value>)',
+            alt: 'rgb(var(--sf-surface-alt) / <alpha-value>)',
+            elevated: 'rgb(var(--sf-surface-elevated) / <alpha-value>)',
+            muted: 'rgb(var(--sf-surface-muted) / <alpha-value>)',
+            inverse: 'rgb(var(--sf-surface-inverse) / <alpha-value>)',
           },
           text: {
-            primary: '#1A1D2B',
-            secondary: '#52586E',
-            muted: '#8C94AC',
-            inverse: '#F8FAFF',
+            primary: 'rgb(var(--sf-text-primary) / <alpha-value>)',
+            secondary: 'rgb(var(--sf-text-secondary) / <alpha-value>)',
+            muted: 'rgb(var(--sf-text-muted) / <alpha-value>)',
+            inverse: 'rgb(var(--sf-text-inverse) / <alpha-value>)',
           },
           border: {
-            DEFAULT: '#DAE0F0',
-            focus: '#4F6EF7',
-            subtle: '#E8EEF8',
+            DEFAULT: 'rgb(var(--sf-border) / <alpha-value>)',
+            focus: 'rgb(var(--sf-border-focus) / <alpha-value>)',
+            subtle: 'rgb(var(--sf-border-subtle) / <alpha-value>)',
+          },
+          // F0: dark "console" panel idiom (see design-tokens.css)
+          console: {
+            DEFAULT: 'rgb(var(--sf-console) / <alpha-value>)',
+            raised: 'rgb(var(--sf-console-raised) / <alpha-value>)',
+            well: 'rgb(var(--sf-console-well) / <alpha-value>)',
+            border: 'rgb(var(--sf-console-border) / <alpha-value>)',
+            text: {
+              DEFAULT: 'rgb(var(--sf-console-text) / <alpha-value>)',
+              dim: 'rgb(var(--sf-console-text-dim) / <alpha-value>)',
+              faint: 'rgb(var(--sf-console-text-faint) / <alpha-value>)',
+            },
+            accent: {
+              DEFAULT: 'rgb(var(--sf-console-accent) / <alpha-value>)',
+              bright: 'rgb(var(--sf-console-accent-bright) / <alpha-value>)',
+              alt: 'rgb(var(--sf-console-accent-alt) / <alpha-value>)',
+            },
+            info: 'rgb(var(--sf-console-info) / <alpha-value>)',
           },
         },
         // ═══ Legacy Frost-Prismatic (backward compat during migration) ═══

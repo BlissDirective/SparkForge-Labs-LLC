@@ -102,7 +102,7 @@ export function BadgeUnlockAnimation({
             />
 
             <div
-              className="relative rounded-3xl bg-slate-900/95 border-2 p-8 text-center overflow-hidden"
+              className="relative rounded-3xl bg-sf-console/95 border-2 p-8 text-center overflow-hidden"
               style={{
                 borderColor: rarityColor,
                 boxShadow: `${rarityGlow}, 0 0 60px ${rarityColor}20`,
@@ -111,9 +111,9 @@ export function BadgeUnlockAnimation({
               {/* Close button */}
               <button
                 onClick={onClose}
-                className="absolute top-4 right-4 p-1.5 rounded-lg hover:bg-slate-800 transition-colors z-10"
+                className="absolute top-4 right-4 p-1.5 rounded-lg hover:bg-sf-console-raised transition-colors z-10"
               >
-                <X className="w-4 h-4 text-slate-400" />
+                <X className="w-4 h-4 text-sf-console-text-dim" />
               </button>
 
               {/* Badge Icon */}
@@ -195,7 +195,7 @@ export function BadgeUnlockAnimation({
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.7 }}
-                className="text-sm text-slate-400 mb-6"
+                className="text-sm text-sf-console-text-dim mb-6"
               >
                 {badge.description}
               </motion.p>
@@ -214,9 +214,9 @@ export function BadgeUnlockAnimation({
                   </div>
                 )}
                 {badge.xpReward > 0 && (
-                  <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-purple-500/10 border border-purple-500/20">
-                    <Sparkles className="w-4 h-4 text-purple-400" />
-                    <span className="text-sm font-semibold text-purple-400">+{badge.xpReward} XP</span>
+                  <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-sf-console-accent-alt/10 border border-sf-console-accent-alt/20">
+                    <Sparkles className="w-4 h-4 text-sf-console-accent-alt" />
+                    <span className="text-sm font-semibold text-sf-console-accent-alt">+{badge.xpReward} XP</span>
                   </div>
                 )}
               </motion.div>
