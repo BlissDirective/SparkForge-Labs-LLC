@@ -150,6 +150,15 @@ export function LoadingScreen({
             >
               Try refreshing
             </button>
+            {/* AUTH-CRIT-003: a refresh can't recover when a frozen
+                sibling tab holds the shared auth lock — a plain anchor
+                (full page load, fresh auth flow) is the reliable escape. */}
+            <a
+              href="/login"
+              className="block text-xs text-[#FFAA44]/80 underline underline-offset-2 hover:text-[#FFAA44] font-body focus:outline-none focus:ring-2 focus:ring-[#FFAA44]/60 rounded"
+            >
+              Sign in again
+            </a>
             <p className="text-[10px] text-white/70 font-body">
               If this keeps happening, check your internet connection or try again in a few minutes.
             </p>

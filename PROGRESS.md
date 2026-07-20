@@ -2618,3 +2618,38 @@ Branch: `claude/brand-hero-phase-3-e9kYF` (continued).
   plan's "slow-rotate" spec. Single full sine cycle per loop, so MP4 loops seamlessly.
 - The `render:branding` script auto-boots a dev server if one isn't running,
   and shuts it down on exit. Idempotent: re-runs do not double-start.
+
+---
+
+### AUTH-CRIT-003 — post-login infinite LoadingScreen fix (2026-07-20)
+
+**Symptom (owner-reported, prod mobile Safari):** after login, stuck on the
+LoadingScreen "Something may have gone wrong" tier; network confirmed fine.
+
+**Root cause:** supabase-js emits auth events while holding its internal
+Navigator-lock and awaits the `onAuthStateChange` callback before releasing
+it. `AuthProvider`'s callback was async and awaited `hydrateUserData` →
+`.from()` → `getSession()` → same lock ⇒ deadlock. All subsequent auth calls
+(incl. `initializeAuth`'s) queue behind the dead lock, so `isInitialized`
+never flips. A frozen sibling tab holding the shared per-origin lock produces
+the same hang cross-tab (iOS Safari tab freezing).
+
+**Three-layer fix:**
+1. `AuthProvider.tsx` — `onAuthStateChange` callback is now synchronous;
+   all work deferred via `setTimeout(0)` (`handleAuthEvent`) so the lock is
+   released before any Supabase call runs. (Root cause.)
+2. `AuthProvider.tsx` — 10 s init watchdog (`INIT_WATCHDOG_MS`) with
+   per-step Sentry breadcrumbs (`auth-init` category) + a
+   `AuthProvider: init watchdog fired` warning tagged with the stalled step;
+   rendering is unblocked on timeout instead of stranding the user.
+3. `LoadingScreen.tsx` — stalled tier gains a "Sign in again" plain-anchor
+   escape (full page load, fresh auth flow) since refresh can't recover a
+   lock held by another frozen tab.
+
+**Dependency:** `@supabase/supabase-js` ^2.98.0 → ^2.110.7 (lock handling
+fixes land continuously; root-cause fix above is version-independent).
+
+**Verification:** `npm run build` clean. Note: container npm install used
+`--ignore-scripts` because org egress policy 403-blocks the `ffmpeg-static`
+binary download (github.com releases); affects only the local branding
+render script, not the Vercel deploy.
