@@ -10,8 +10,9 @@
 
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { motion } from 'motion/react';
 import { FlaskConical, Gamepad2, Sparkles } from 'lucide-react';
 import { LAB_NAMES, LAB_COLORS, LAB_ICONS } from '@/config/labs';
@@ -23,6 +24,13 @@ import CountUp from '@/components/bits/CountUp';
 import MagicBento, { type BentoItem } from '@/components/bits/MagicBento';
 import GlareHover from '@/components/bits/GlareHover';
 import BlurText from '@/components/bits/BlurText';
+import { ForgeRing } from '@/components/labs/ForgeRing';
+import { MoltenProgress } from '@/components/forge';
+import { useForgeTier } from '@/hooks/useForgeTier';
+import { FEATURE_FLAGS } from '@/config/feature-flags';
+
+// Forge F5: ring gate — flag-off restores the bento grid exactly.
+const FORGE_RING_ON = FEATURE_FLAGS.FORGE_THEME && FEATURE_FLAGS.FORGE_RING;
 
 // ── Types ──
 interface LabData {
@@ -141,6 +149,10 @@ export default function LabsPage() {
   const child = useActiveChild();
   const childId = child?.id ?? '';
   const { data: labsProgress } = useAllLabsProgress(childId);
+  const router = useRouter();
+  const { isCompact } = useForgeTier();
+  // Ring is the desktop default under the forge; Grid always available.
+  const [view, setView] = useState<'ring' | 'grid'>('ring');
 
   // Build lab data from registry + progress (wiring unchanged from v2).
   const labs = useMemo((): LabData[] => {
@@ -185,16 +197,44 @@ export default function LabsPage() {
   return (
     <div className="max-w-6xl mx-auto pb-20 lg:pb-0">
       {/* ── Header ── */}
-      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
-        <h1
-          className="text-2xl sm:text-3xl font-extrabold mb-1"
-          style={{ fontFamily: 'var(--font-display)', color: '#1A1D2B' }}
-        >
-          <BlurText text="Learning Labs" />
-        </h1>
-        <p className="text-sm" style={{ color: '#52586E' }}>
-          <CountUp to={11} /> labs, <CountUp to={totalGames} /> games — explore and master AI topic by topic
-        </p>
+      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="flex items-end justify-between gap-4 flex-wrap">
+        <div>
+          <h1
+            className="text-2xl sm:text-3xl font-extrabold mb-1"
+            style={{ fontFamily: 'var(--font-display)', color: 'rgb(var(--sf-text-primary) / 1)', textShadow: 'var(--glow-text, none)' }}
+          >
+            <BlurText text="Learning Labs" />
+          </h1>
+          <p className="text-sm" style={{ color: 'rgb(var(--sf-text-secondary) / 1)' }}>
+            <CountUp to={11} /> labs, <CountUp to={totalGames} /> games — explore and master AI topic by topic
+          </p>
+        </div>
+
+        {/* Forge F5: Ring/Grid view toggle (desktop-class tiers only) */}
+        {FORGE_RING_ON && !isCompact && (
+          <div
+            role="group"
+            aria-label="Lab view"
+            className="flex rounded-xl overflow-hidden border"
+            style={{ borderColor: 'rgb(var(--sf-border) / 1)' }}
+          >
+            {(['ring', 'grid'] as const).map((v) => (
+              <button
+                key={v}
+                type="button"
+                aria-pressed={view === v}
+                onClick={() => setView(v)}
+                className="px-4 py-1.5 text-xs font-semibold font-display uppercase tracking-wide transition-colors"
+                style={{
+                  backgroundColor: view === v ? 'rgb(var(--sf-primary) / 0.15)' : 'transparent',
+                  color: view === v ? 'rgb(var(--sf-primary-light) / 1)' : 'rgb(var(--sf-text-muted) / 1)',
+                }}
+              >
+                {v === 'ring' ? 'Forge Ring' : 'Grid'}
+              </button>
+            ))}
+          </div>
+        )}
       </motion.div>
 
       {/* ── Overall Progress Bar ── */}
@@ -203,25 +243,46 @@ export default function LabsPage() {
           className="mt-5"
           initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
         >
-          <div className="flex items-center gap-3 p-4 rounded-2xl" style={{ background: '#F8F7FF' }}>
-            <FlaskConical className="w-5 h-5 shrink-0" style={{ color: '#4F6EF7' }} />
+          <div className="flex items-center gap-3 p-4 rounded-2xl" style={{ background: 'rgb(var(--sf-surface-muted) / 1)' }}>
+            <FlaskConical className="w-5 h-5 shrink-0" style={{ color: 'rgb(var(--sf-primary) / 1)' }} />
             <div className="flex-1">
               <div className="flex justify-between text-xs mb-1">
-                <span className="font-semibold" style={{ color: '#1A1D2B' }}>Overall Progress</span>
-                <span className="font-bold" style={{ color: '#4F6EF7' }}>{overallProgress}%</span>
+                <span className="font-semibold" style={{ color: 'rgb(var(--sf-text-primary) / 1)' }}>Overall Progress</span>
+                <span className="font-bold" style={{ color: 'rgb(var(--sf-primary) / 1)' }}>{overallProgress}%</span>
               </div>
-              <SFProgressBar value={overallProgress} max={100} variant="primary" />
+              {FORGE_RING_ON ? (
+                <MoltenProgress value={overallProgress / 100} height={8} label="Overall lab progress" />
+              ) : (
+                <SFProgressBar value={overallProgress} max={100} variant="primary" />
+              )}
             </div>
           </div>
         </motion.div>
       )}
 
-      {/* ── Bento Lab Grid ── */}
-      <section aria-label="All labs">
-        {/* minCell 150 keeps ≥2 columns down to 360px viewports so the
-            colSpan-2 tiles (Labs 2 + 11) never exceed the track count. */}
-        <MagicBento items={bentoItems} minCell={150} className="mt-6" />
-      </section>
+      {/* ── Lab views: Forge Ring (desktop, flag) or Bento Grid (baseline) ── */}
+      {FORGE_RING_ON && !isCompact && view === 'ring' ? (
+        <section aria-label="All labs" className="mt-8">
+          <ForgeRing
+            labs={labs.map((l) => ({
+              num: l.num,
+              name: l.name,
+              color: l.color,
+              icon: l.icon,
+              poetic: l.poetic,
+              gamesCount: l.gamesCount,
+              progress: l.progress,
+            }))}
+            onEnter={(num) => router.push(`/labs/${num}`)}
+          />
+        </section>
+      ) : (
+        <section aria-label="All labs">
+          {/* minCell 150 keeps ≥2 columns down to 360px viewports so the
+              colSpan-2 tiles (Labs 2 + 11) never exceed the track count. */}
+          <MagicBento items={bentoItems} minCell={150} className="mt-6" />
+        </section>
+      )}
     </div>
   );
 }
