@@ -2694,3 +2694,23 @@ green. Forge flags default ON in dev + Vercel PREVIEW, OFF in production
 - F8: 2 scenarios per gate-type per band shipped (30 total); expansion to ≥6
   per cell follows the Standard-tier content pipeline. In-container e2e not
   runnable (no Supabase env); covered by unit tests + preview verification.
+
+### OVERLAY-CRIT-001 — body filter broke all fixed overlays (2026-07-21)
+
+**Symptom (owner-reported, prod):** tapping a game card on /arcade showed only
+a blurred page — no detail modal.
+
+**Root cause:** `body { filter: brightness(var(--sf-brightness,1)) }`
+(UX-MED-005). Per the CSS Filter Effects spec, any non-none filter — even
+identity brightness(1) — makes the element the containing block for all
+`position: fixed` descendants. Every fixed overlay (GameDetailModal, Forge
+ceremony, pause overlays, mobile menu) was sized/centered against the full
+PAGE height: backdrop blurred the whole page, modal card centered thousands
+of px below the fold on tall pages. Verified empirically: fixed inset-0
+element measured 9,379px vs the 844px viewport.
+
+**Fix:** brightness dimming reimplemented as a `body::after` fixed dim veil
+(`opacity: calc(1 - var(--sf-brightness))`, pointer-events none, top z).
+Body is filter-free again → fixed = viewport (verified: 844px). Slider +
+BrightnessEffect unchanged. Guard comment added: never put filters/
+transforms/backdrop-filters on html/body/app-shell wrappers.

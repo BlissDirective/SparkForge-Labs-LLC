@@ -65,17 +65,32 @@ body {
   color-scheme: dark;
 }
 
-body {
-  filter: brightness(var(--sf-brightness, 1));
-  transition: filter 200ms ease;
-  will-change: filter;
-}
+/* AUTH-CRIT-004 / OVERLAY-CRIT-001 (2026-07-21): the previous
+   implementation put `filter: brightness(var(--sf-brightness))` on
+   <body>. Per the CSS Filter Effects spec, ANY non-none filter — even
+   the identity brightness(1) — makes the element the containing block
+   for every `position: fixed` descendant. Result: all fixed overlays
+   (game-detail modal, Forge ceremony, pause overlays, mobile menu)
+   were positioned relative to the full PAGE height instead of the
+   viewport — on tall pages the modal card centered thousands of px
+   below the fold while its backdrop blurred the whole page.
 
-body canvas {
-  /* Hard exclusion — cockpit + game + auth portal canvases must
-     render at their authored brightness. filter: none cascades
-     correctly under CSS spec. */
-  filter: none !important;
+   Replacement: a fixed, non-interactive dim veil whose opacity is
+   (1 - brightness). Perceptually equivalent across the slider's
+   0.7–1.0 range, costs one composited quad, needs no canvas
+   exemption, and — critically — leaves <body> filter-free so fixed
+   positioning means the viewport again. Do NOT reintroduce filters,
+   transforms, or backdrop-filters on <html>/<body> or any app-shell
+   wrapper: they silently break every fixed overlay. */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background: #000;
+  opacity: calc(1 - var(--sf-brightness, 1));
+  transition: opacity 200ms ease;
+  z-index: 2147483647;
 }
 
 :root {
