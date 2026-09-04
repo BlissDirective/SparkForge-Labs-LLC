@@ -176,7 +176,7 @@ export function ForgeLabHub({
           <HoloPanel side="left" phase={phase} title="Labs">
             <div
               id={listId}
-              className="fl-lab-list"
+              className="fl-lab-list fl-panel__scroll"
               role="listbox"
               aria-label="Learning labs"
               aria-activedescendant={`fl-lab-${selected}`}
@@ -206,7 +206,9 @@ export function ForgeLabHub({
             </div>
           </HoloPanel>
           <HoloPanel side="right" phase={phase} title="Bay">
-            <GameBayStub lab={selectedLab} />
+            <div className="fl-panel__scroll">
+              <GameBayStub lab={selectedLab} />
+            </div>
             <div className="fl-tools">
               <button
                 type="button"

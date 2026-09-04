@@ -359,6 +359,7 @@
   flex-wrap: wrap;
   gap: 6px;
   margin-top: 8px;
+  flex-shrink: 0;
 }
 
 .fl-chip,

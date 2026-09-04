@@ -44,7 +44,7 @@ export function HoloPanel({
       <header className="fl-panel__head">
         <h2>{title}</h2>
       </header>
-      <div className="fl-panel__scroll">{children}</div>
+      {children}
     </aside>
   );
 }
