@@ -64,6 +64,14 @@ export const FEATURE_FLAGS = {
   FORGE_AMBIENCE: flag('FORGE_AMBIENCE', true),
   /** Core Ignition game #43 visible in arcade (F8) */
   GAME_CORE_IGNITION: flag('GAME_CORE_IGNITION', true),
+
+  /* ── MISSION CONTROL HUB (kid-hub prototype) ──
+     Constrained holographic instrument console for /mission-control.
+     Default OFF in every environment so the working HTML dashboard is
+     unchanged. Enable with NEXT_PUBLIC_MISSION_CONTROL_HUB=true.
+     /dev/mission-control is a public preview and does not require the flag. */
+  /** Spatial kid-hub shell (lab entry). Does not restyle parent/settings. */
+  MISSION_CONTROL_HUB: flag('MISSION_CONTROL_HUB', false),
 } as const;
 
 export type FeatureFlagKey = keyof typeof FEATURE_FLAGS;
