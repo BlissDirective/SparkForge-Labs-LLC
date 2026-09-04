@@ -1,0 +1,552 @@
+/* Forge Lab hotspot hub — scoped under .fl-hub. Indoor forge, not a cockpit. */
+
+.fl-hub {
+  --fl-cyan: #00d4ff;
+  --fl-cyan-deep: #0077aa;
+  --fl-cyan-soft: #9eecff;
+  --fl-amber: #ff8c32;
+  --fl-void: #05070b;
+  --fl-glass: rgba(4, 14, 22, 0.72);
+  --fl-text: #e8f7ff;
+  --fl-text-dim: #b7d4e4;
+  --fl-focus: #7ef0ff;
+  position: relative;
+  isolation: isolate;
+  width: 100%;
+  min-height: 100dvh;
+  overflow: hidden;
+  color: var(--fl-text);
+  background: var(--fl-void);
+  font-family: var(--font-body);
+}
+
+.fl-hub *,
+.fl-hub *::before,
+.fl-hub *::after {
+  box-sizing: border-box;
+}
+
+.fl-stage {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: min(100vw, calc(100dvh * 1.5));
+  height: min(100dvh, calc(100vw / 1.5));
+  aspect-ratio: 1536 / 1024;
+  max-width: 100vw;
+  max-height: 100dvh;
+}
+
+.fl-z0,
+.fl-z1,
+.fl-z2 {
+  position: absolute;
+  inset: 0;
+}
+
+.fl-z0 { z-index: 0; }
+.fl-z1 { z-index: 1; }
+.fl-z2 { z-index: 2; pointer-events: none; }
+
+.fl-z2 > * { pointer-events: auto; }
+
+.fl-plate {
+  position: absolute;
+  inset: 0;
+}
+
+.fl-plate img,
+.fl-plate video {
+  object-fit: contain;
+  object-position: center;
+}
+
+.fl-plate__layer {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 280ms ease;
+}
+
+.fl-plate__layer.is-on {
+  opacity: 1;
+}
+
+.fl-hub[data-reduced-motion='true'] .fl-plate__layer {
+  transition: none;
+}
+
+.fl-hotspot-map {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.fl-hotspot {
+  position: absolute;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  appearance: none;
+}
+
+.fl-hotspot--circle {
+  border-radius: 50%;
+}
+
+.fl-hotspot:focus-visible {
+  outline: 2px solid var(--fl-focus);
+  outline-offset: 3px;
+}
+
+.fl-hotspot.is-calibrate {
+  box-shadow: inset 0 0 0 1px rgba(0, 212, 255, 0.7);
+  background: rgba(0, 212, 255, 0.08);
+}
+
+.fl-core {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  filter: drop-shadow(0 0 18px rgba(0, 212, 255, 0.45));
+}
+
+.fl-core__rings,
+.fl-core__glyph {
+  position: absolute;
+  inset: 6%;
+}
+
+.fl-core__ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 1.5px solid rgba(0, 212, 255, 0.45);
+}
+
+.fl-core__ring--dash {
+  inset: 8%;
+  border-style: dashed;
+  opacity: 0.7;
+}
+
+.fl-core__ring--inner {
+  inset: 18%;
+  border-width: 1px;
+}
+
+.fl-hub:not([data-reduced-motion='true']) .fl-core.is-idle .fl-core__ring {
+  animation: fl-spin 16s linear infinite;
+}
+
+.fl-hub:not([data-reduced-motion='true']) .fl-core.is-idle .fl-core__ring--dash {
+  animation: fl-spin 11s linear infinite reverse;
+}
+
+.fl-hub:not([data-reduced-motion='true']) .fl-core.is-charge {
+  animation: fl-charge 420ms ease-out both;
+}
+
+.fl-hub:not([data-reduced-motion='true']) .fl-core.is-emit {
+  animation: fl-emit 560ms ease-out both;
+}
+
+.fl-core.is-docked {
+  filter: drop-shadow(0 0 28px rgba(0, 212, 255, 0.7));
+}
+
+.fl-core__glyph {
+  width: 58%;
+  height: 58%;
+  margin: auto;
+}
+
+.fl-monitor {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 4px;
+  padding: 2.4% 3.2%;
+  overflow: hidden;
+  background: linear-gradient(180deg, rgba(4, 18, 28, 0.55), rgba(4, 12, 20, 0.78));
+  color: var(--fl-text);
+  opacity: 0;
+  transform: translateY(-6px);
+  transition: opacity 280ms ease, transform 280ms ease;
+}
+
+.fl-monitor.is-lit {
+  opacity: 1;
+  transform: none;
+}
+
+.fl-hub[data-reduced-motion='true'] .fl-monitor {
+  transition: none;
+}
+
+.fl-monitor__kicker,
+.fl-monitor__line,
+.fl-gauge__label {
+  margin: 0;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-size: clamp(8px, 1.05vw, 11px);
+  font-weight: 700;
+  color: var(--fl-text-dim);
+}
+
+.fl-monitor__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(13px, 1.8vw, 22px);
+  font-weight: 800;
+  color: var(--fl-text);
+  text-shadow: 0 0 12px rgba(0, 212, 255, 0.35);
+}
+
+.fl-monitor__row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.fl-gauges {
+  display: flex;
+  gap: 10px;
+}
+
+.fl-gauge {
+  min-width: 72px;
+}
+
+.fl-gauge__track {
+  height: 5px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+  overflow: hidden;
+}
+
+.fl-gauge__fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--fl-cyan), #7ef0ff);
+  box-shadow: 0 0 8px var(--fl-cyan);
+}
+
+.fl-gauge--streak .fl-gauge__fill {
+  background: linear-gradient(90deg, var(--fl-amber), #ffd08a);
+  box-shadow: 0 0 8px var(--fl-amber);
+}
+
+.fl-gauge__value {
+  display: block;
+  font-family: var(--font-display);
+  font-size: clamp(11px, 1.3vw, 15px);
+  font-weight: 700;
+  color: var(--fl-text);
+}
+
+.fl-monitor__line {
+  color: var(--fl-cyan-soft);
+  letter-spacing: 0.04em;
+  text-transform: none;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.fl-panel {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 10px 12px;
+  overflow: hidden;
+  border: 1px solid rgba(0, 212, 255, 0.55);
+  background: linear-gradient(180deg, rgba(6, 28, 40, 0.78), rgba(4, 12, 20, 0.82));
+  box-shadow:
+    inset 0 0 0 1px rgba(0, 212, 255, 0.12),
+    0 0 28px rgba(0, 212, 255, 0.16);
+  color: var(--fl-text);
+  clip-path: polygon(8px 0, calc(100% - 8px) 0, 100% 8px, 100% calc(100% - 8px), calc(100% - 8px) 100%, 8px 100%, 0 calc(100% - 8px), 0 8px);
+  transform-origin: center;
+  opacity: 0;
+}
+
+.fl-panel.is-emit,
+.fl-panel.is-docked {
+  opacity: 1;
+}
+
+.fl-hub:not([data-reduced-motion='true']) .fl-panel.is-emit {
+  animation: fl-fly-in 560ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.fl-panel__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.fl-panel__head h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(12px, 1.4vw, 16px);
+  font-weight: 800;
+}
+
+.fl-panel__scroll {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+
+.fl-lab-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.fl-lab {
+  display: grid;
+  grid-template-columns: 18px 1fr auto;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--fl-text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.fl-lab:hover,
+.fl-lab[aria-selected='true'] {
+  border-color: color-mix(in srgb, var(--lab-color, var(--fl-cyan)) 70%, white);
+  background: rgba(0, 212, 255, 0.1);
+}
+
+.fl-lab:focus-visible {
+  outline: 2px solid var(--fl-focus);
+  outline-offset: 2px;
+}
+
+.fl-lab__name {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.fl-lab__meta {
+  font-size: 10px;
+  color: var(--fl-text-dim);
+}
+
+.fl-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.fl-chip,
+.fl-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 0 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(0, 212, 255, 0.5);
+  background: rgba(0, 20, 32, 0.65);
+  color: var(--fl-text);
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.fl-chip:hover,
+.fl-icon-btn:hover {
+  border-color: var(--fl-cyan);
+  box-shadow: 0 0 12px rgba(0, 212, 255, 0.25);
+}
+
+.fl-chip:focus-visible,
+.fl-icon-btn:focus-visible {
+  outline: 2px solid var(--fl-focus);
+  outline-offset: 2px;
+}
+
+.fl-game-bay,
+.fl-avatar {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.fl-game-bay[data-slot='game-shell'],
+.fl-avatar[data-slot='avatar-creator'] {
+  min-height: 0;
+}
+
+.fl-game {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px;
+  border: 1px solid rgba(0, 212, 255, 0.28);
+  border-radius: 8px;
+  background: rgba(0, 20, 32, 0.45);
+}
+
+.fl-game strong {
+  display: block;
+  font-size: 12px;
+}
+
+.fl-game span {
+  font-size: 11px;
+  color: var(--fl-text-dim);
+}
+
+.fl-stub-note {
+  margin: 0;
+  font-size: 11px;
+  color: var(--fl-text-dim);
+}
+
+.fl-chrome {
+  position: absolute;
+  z-index: 3;
+  top: 1.5%;
+  left: 1.2%;
+  display: flex;
+  gap: 8px;
+  pointer-events: auto;
+}
+
+.fl-preview {
+  position: absolute;
+  z-index: 3;
+  top: 1.6%;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--fl-amber);
+  background: rgba(40, 18, 4, 0.72);
+  color: #ffd08a;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  pointer-events: none;
+}
+
+.fl-sr-live {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.fl-dialog {
+  position: absolute;
+  z-index: 4;
+  inset: 18% 18%;
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+  border: 1px solid rgba(0, 212, 255, 0.55);
+  background: rgba(4, 12, 18, 0.92);
+  color: var(--fl-text);
+  pointer-events: auto;
+}
+
+.fl-dialog h2 {
+  margin: 0 0 8px;
+  font-family: var(--font-display);
+}
+
+.fl-avatar-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+@keyframes fl-spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes fl-charge {
+  0% { transform: scale(1); filter: drop-shadow(0 0 12px rgba(0, 212, 255, 0.4)); }
+  60% { transform: scale(1.12); filter: drop-shadow(0 0 36px rgba(0, 212, 255, 0.9)); }
+  100% { transform: scale(1.04); }
+}
+
+@keyframes fl-emit {
+  0% { transform: scale(1.08); }
+  40% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
+@keyframes fl-fly-in {
+  from {
+    opacity: 0;
+    transform: translate(var(--fl-from-x, 0), var(--fl-from-y, 0)) scale(0.35);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (max-width: 700px) {
+  .fl-panel {
+    padding: 8px;
+  }
+
+  .fl-monitor__row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .fl-dialog {
+    inset: 10% 6%;
+  }
+
+  .fl-preview {
+    top: auto;
+    bottom: 8px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fl-core__ring,
+  .fl-core,
+  .fl-panel,
+  .fl-plate__layer,
+  .fl-monitor {
+    animation: none !important;
+    transition: none !important;
+  }
+}

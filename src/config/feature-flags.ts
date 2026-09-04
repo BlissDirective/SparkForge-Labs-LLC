@@ -64,6 +64,13 @@ export const FEATURE_FLAGS = {
   FORGE_AMBIENCE: flag('FORGE_AMBIENCE', true),
   /** Core Ignition game #43 visible in arcade (F8) */
   GAME_CORE_IGNITION: flag('GAME_CORE_IGNITION', true),
+
+  /* ── FORGE LAB HOTSPOT HUB (indoor lab mock) ──
+     Locked dark SF world plate + DOM hotspot twins. Default OFF in
+     every environment. Enable with NEXT_PUBLIC_FORGE_LAB_HUB=true.
+     /dev/forge-lab is a public preview and does not require the flag. */
+  /** Indoor forge-lab hub (SF portal). Does not restyle parent/settings. */
+  FORGE_LAB_HUB: flag('FORGE_LAB_HUB', false),
 } as const;
 
 export type FeatureFlagKey = keyof typeof FEATURE_FLAGS;

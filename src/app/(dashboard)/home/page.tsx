@@ -217,6 +217,21 @@ export default function HomePage() {
       {/* ═══ First-Login Onboarding Tour (runs once per child) ═══ */}
       <DashboardTour />
 
+      {FEATURE_FLAGS.FORGE_LAB_HUB && (
+        <Link
+          href="/forge-lab"
+          className="flex items-center justify-between gap-3 rounded-2xl px-4 py-3 text-sm font-semibold"
+          style={{
+            background: 'linear-gradient(90deg, rgba(0,212,255,0.16), rgba(255,140,50,0.12))',
+            border: '1px solid rgba(0,212,255,0.4)',
+            color: 'rgb(var(--sf-text-primary) / 1)',
+          }}
+        >
+          <span>Open Forge Lab — indoor hotspot hub (prototype)</span>
+          <ChevronRight className="w-4 h-4 shrink-0" aria-hidden="true" />
+        </Link>
+      )}
+
       {/* ═══ Welcome Header (Forge F4: workbench hero panel) ═══ */}
       {FORGE_WORKBENCH_ON ? (
         <ForgePanel variant="glass" glow="ambient" animateIn className="p-5">
