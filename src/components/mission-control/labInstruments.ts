@@ -124,8 +124,8 @@ export function computePodLayout(count: number): PodPoint[] {
     const rad = (deg * Math.PI) / 180;
     const ring = i % 3 === 0 ? 1 : i % 3 === 1 ? 0.86 : 0.74;
     return {
-      left: 50 + rx * ring * Math.sin(rad),
-      top: 44 - ry * ring * Math.cos(rad),
+      left: Number((50 + rx * ring * Math.sin(rad)).toFixed(2)),
+      top: Number((44 - ry * ring * Math.cos(rad)).toFixed(2)),
       depth: ring,
     };
   });

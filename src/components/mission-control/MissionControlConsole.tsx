@@ -152,10 +152,10 @@ export function MissionControlConsole({
                   className={active ? 'mc-trace is-active' : 'mc-trace'}
                   x1="50"
                   y1="48"
-                  x2={pt.left}
-                  y2={pt.top}
+                  x2={pt.left.toFixed(2)}
+                  y2={pt.top.toFixed(2)}
                 />
-                <circle className="mc-trace-node" cx={pt.left} cy={pt.top} r="0.7" />
+                <circle className="mc-trace-node" cx={pt.left.toFixed(2)} cy={pt.top.toFixed(2)} r="0.7" />
               </g>
             );
           })}
@@ -200,8 +200,8 @@ export function MissionControlConsole({
                 lab={lab}
                 selected={lab.num === selected}
                 style={{
-                  left: `${pt.left}%`,
-                  top: `${pt.top}%`,
+                  left: `${pt.left.toFixed(2)}%`,
+                  top: `${pt.top.toFixed(2)}%`,
                   zIndex: lab.num === selected ? 4 : Math.round(pt.depth * 3),
                 }}
                 onSelect={selectLab}

@@ -237,9 +237,9 @@
 .mc-chrome {
   position: relative;
   z-index: 3;
-  display: flex;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
   align-items: center;
-  justify-content: space-between;
   gap: 12px;
   padding: 22px 28px 8px;
 }
@@ -756,12 +756,26 @@
   }
 
   .mc-chrome {
-    flex-wrap: wrap;
-    padding: 18px 16px 4px;
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas:
+      'back gauges'
+      'brand brand';
+    padding: 48px 12px 4px;
+    gap: 8px;
   }
 
+  .mc-chrome__brand { grid-area: brand; }
+  .mc-chrome > .mc-icon-btn:first-child { grid-area: back; justify-self: start; }
+  .mc-gauges { grid-area: gauges; justify-self: end; }
+
   .mc-chrome__kicker {
-    letter-spacing: 0.14em;
+    letter-spacing: 0.12em;
+    font-size: 12px;
+  }
+
+  .mc-preview-banner {
+    top: 12px;
+    font-size: 10px;
   }
 
   .mc-frame {
