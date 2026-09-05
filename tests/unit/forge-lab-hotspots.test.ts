@@ -52,8 +52,8 @@ describe('Forge Lab hotspot map', () => {
     expect(RIGHT_HOLO_SLOT.left).toBeGreaterThan(FORGE_CORE.cx);
   });
 
-  it('freezes the Option A dock map including ±4° yaw', () => {
-    expect(HOLO_YAW_DEG).toBe(4);
+  it('freezes the Option A dock map including ±3° yaw', () => {
+    expect(HOLO_YAW_DEG).toBe(3);
     expect(HOLO_PERSPECTIVE_PX).toBe(1200);
     expect(TOP_MONITOR_GLASS).toMatchObject({
       left: 27.4,
@@ -75,14 +75,14 @@ describe('Forge Lab hotspot map', () => {
       top: 30.5,
       width: 20.8,
       height: 42,
-      yaw: -4,
+      yaw: -3,
     });
     expect(RIGHT_HOLO_SLOT).toMatchObject({
       left: 72,
       top: 30.5,
       width: 20.8,
       height: 42,
-      yaw: 4,
+      yaw: 3,
     });
   });
 
@@ -90,8 +90,8 @@ describe('Forge Lab hotspot map', () => {
     expect(slotOrigin(LEFT_HOLO_SLOT)).toBe('right center');
     expect(slotOrigin(RIGHT_HOLO_SLOT)).toBe('left center');
     expect(slotOrigin(TOP_MONITOR_GLASS)).toBe('center center');
-    expect(slotTransform(LEFT_HOLO_SLOT)).toBe('perspective(1200px) rotateY(-4deg)');
-    expect(slotTransform(RIGHT_HOLO_SLOT)).toBe('perspective(1200px) rotateY(4deg)');
+    expect(slotTransform(LEFT_HOLO_SLOT)).toBe('perspective(1200px) rotateY(-3deg)');
+    expect(slotTransform(RIGHT_HOLO_SLOT)).toBe('perspective(1200px) rotateY(3deg)');
     expect(slotTransform(TOP_MONITOR_GLASS)).toBe('perspective(1200px) rotateY(0deg)');
 
     const left = dockSlotStyle(LEFT_HOLO_SLOT);
@@ -101,10 +101,10 @@ describe('Forge Lab hotspot map', () => {
       top: '30.5%',
       width: '20.8%',
       height: '42%',
-      transform: 'perspective(1200px) rotateY(-4deg)',
+      transform: 'perspective(1200px) rotateY(-3deg)',
       transformOrigin: 'right center',
     });
-    expect(right.transform).toBe('perspective(1200px) rotateY(4deg)');
+    expect(right.transform).toBe('perspective(1200px) rotateY(3deg)');
     expect(right.transformOrigin).toBe('left center');
   });
 });

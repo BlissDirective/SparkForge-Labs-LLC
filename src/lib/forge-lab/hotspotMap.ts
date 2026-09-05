@@ -10,8 +10,9 @@
 // map. To retune: open /dev/forge-lab?calibrate=1 and nudge these
 // constants. Do not click the image.
 //
-// Option A: world plates have NO side hologram frames. HTML HoloPanel
-// owns edge + frost + UI as one `perspective + rotateY` element.
+// Hotspot video shell + Option A: still plates (loopVideo hook later).
+// Plate may show faint empty cyan guide panes. HTML HoloPanel owns
+// edge + frost + UI as one `perspective + rotateY` element.
 
 export const PLATE_WIDTH_PX = 1536;
 export const PLATE_HEIGHT_PX = 1024;
@@ -35,9 +36,9 @@ export const WORLD_MEDIA = {
 
 /**
  * Option A dock yaw (degrees). HTML owns the entire hologram.
- * Left slot is −HOLO_YAW_DEG, right is +HOLO_YAW_DEG. Plate has no side frames.
+ * Left slot is −HOLO_YAW_DEG, right is +HOLO_YAW_DEG.
  */
-export const HOLO_YAW_DEG = 4;
+export const HOLO_YAW_DEG = 3;
 /** Perspective distance for `rotateY` on docked hologram slots. */
 export const HOLO_PERSPECTIVE_PX = 1200;
 
