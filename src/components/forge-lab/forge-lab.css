@@ -10,7 +10,7 @@
   --fl-text: #e8f7ff;
   --fl-text-dim: #b7d4e4;
   --fl-focus: #7ef0ff;
-  /* Hybrid dock blend — HTML HoloPanels share the empty plate frames. */
+  /* Option A — HTML owns the entire hologram (edge + frost + glow). */
   --fl-holo-edge: rgba(77, 233, 255, 0.55);
   --fl-holo-fill: rgba(8, 18, 36, 0.32);
   --fl-holo-fill-active: rgba(10, 24, 48, 0.42);
@@ -312,6 +312,7 @@ html.light .fl-hub .fl-lab[aria-selected='true'] {
   line-height: 1.35;
 }
 
+/* One transformed hologram: border + frost + children share rotateY. */
 .fl-panel {
   position: absolute;
   display: flex;
@@ -319,7 +320,7 @@ html.light .fl-hub .fl-lab[aria-selected='true'] {
   min-width: 0;
   padding: 10px 12px;
   overflow: hidden;
-  border: 1px solid var(--fl-holo-edge);
+  border: 2px solid var(--fl-holo-edge);
   background: var(--fl-holo-fill);
   backdrop-filter: blur(var(--fl-holo-blur));
   -webkit-backdrop-filter: blur(var(--fl-holo-blur));

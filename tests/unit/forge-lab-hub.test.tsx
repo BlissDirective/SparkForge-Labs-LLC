@@ -52,11 +52,11 @@ describe('ForgeLabHub a11y + reduced motion', () => {
     const right = document.querySelector('.fl-panel[data-side="right"]') as HTMLElement;
     expect(left.tagName).toBe('SECTION');
     const monitor = document.querySelector('.fl-monitor') as HTMLElement;
-    expect(left.getAttribute('data-yaw')).toBe('-5');
-    expect(right.getAttribute('data-yaw')).toBe('5');
+    expect(left.getAttribute('data-yaw')).toBe('-4');
+    expect(right.getAttribute('data-yaw')).toBe('4');
     expect(monitor.getAttribute('data-yaw')).toBe('0');
-    expect(left.style.transform).toContain('rotateY(-5deg)');
-    expect(right.style.transform).toContain('rotateY(5deg)');
+    expect(left.style.transform).toContain('rotateY(-4deg)');
+    expect(right.style.transform).toContain('rotateY(4deg)');
     expect(left.style.transformOrigin).toBe('right center');
     expect(right.style.transformOrigin).toBe('left center');
   });
