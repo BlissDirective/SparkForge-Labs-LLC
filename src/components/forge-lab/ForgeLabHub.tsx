@@ -14,6 +14,14 @@ import {
 } from '@/lib/forge-lab/catalog';
 import type { HotspotId } from '@/lib/forge-lab/hotspotMap';
 import {
+  beamSlotsForState,
+  isForgeLayoutId,
+  LAYOUT_MORPH_MS,
+  liveBeams,
+  resolvedSlots,
+  type ForgeLayoutId,
+} from '@/lib/forge-lab/layouts';
+import {
   isPortalOpen,
   nextHoldMs,
   reducePortal,
@@ -24,8 +32,10 @@ import { HotspotMap } from './HotspotMap';
 import { ForgeCore } from './ForgeCore';
 import { TopMonitor } from './TopMonitor';
 import { HoloPanel } from './HoloPanel';
+import { EmitterBeams } from './EmitterBeams';
 import { GameBayStub } from './stubs/GameBayStub';
 import { AvatarCreatorStub } from './stubs/AvatarCreatorStub';
+import { AuthMergedStub } from './stubs/AuthMergedStub';
 import './forge-lab.css';
 
 export interface ForgeLabHubProps {
@@ -34,6 +44,7 @@ export interface ForgeLabHubProps {
   preview?: boolean;
   backHref?: string;
   calibrate?: boolean;
+  layout?: ForgeLayoutId;
 }
 
 export function ForgeLabHub({
@@ -42,12 +53,18 @@ export function ForgeLabHub({
   preview = false,
   backHref = '/home',
   calibrate = false,
+  layout: layoutProp = 'hubSplit',
 }: ForgeLabHubProps) {
   const reduceMotion = useSafeMotion();
   const labs = useMemo(() => buildLabRows(progress), [progress]);
   const [phase, setPhase] = useState<PortalPhase>('idle');
   const [selected, setSelected] = useState<number>(() => pickContinueLab(labs));
   const [avatarOpen, setAvatarOpen] = useState(false);
+  const [layoutId, setLayoutId] = useState<ForgeLayoutId>(
+    isForgeLayoutId(layoutProp) ? layoutProp : 'hubSplit',
+  );
+  const [morphT, setMorphT] = useState(layoutProp === 'authMerged' ? 1 : 0);
+  const morphFromRef = useRef(layoutProp === 'authMerged' ? 1 : 0);
   const timerRef = useRef<number | null>(null);
   const listId = useId();
 
@@ -57,6 +74,9 @@ export function ForgeLabHub({
     labName: selectedLab?.name ?? stats.labName,
   };
   const line = sparkyLine(selected + (isPortalOpen(phase) ? 2 : 0));
+  const slots = resolvedSlots(morphT);
+  const wingsLive = slots.merged || isPortalOpen(phase) || morphT > 0.02;
+  const beams = liveBeams(beamSlotsForState(morphT, wingsLive));
 
   const clearHold = () => {
     if (timerRef.current != null) {
@@ -105,6 +125,28 @@ export function ForgeLabHub({
     },
     [ignite, phase, retract],
   );
+
+  useEffect(() => {
+    const target = layoutId === 'authMerged' ? 1 : 0;
+    if (reduceMotion) {
+      morphFromRef.current = target;
+      setMorphT(target);
+      return;
+    }
+    const from = morphFromRef.current;
+    if (from === target) return;
+    const started = performance.now();
+    let raf = 0;
+    const tick = (now: number) => {
+      const u = Math.min(1, (now - started) / LAYOUT_MORPH_MS);
+      const next = from + (target - from) * u;
+      morphFromRef.current = next;
+      setMorphT(next);
+      if (u < 1) raf = window.requestAnimationFrame(tick);
+    };
+    raf = window.requestAnimationFrame(tick);
+    return () => window.cancelAnimationFrame(raf);
+  }, [layoutId, reduceMotion]);
 
   useEffect(() => () => clearHold(), []);
 
@@ -168,14 +210,22 @@ export function ForgeLabHub({
       data-surface="dark"
       data-reduced-motion={reduceMotion ? 'true' : 'false'}
       data-phase={phase}
+      data-layout={slots.merged ? 'authMerged' : 'hubSplit'}
+      data-morphing={morphT > 0.02 && !slots.merged ? 'true' : 'false'}
     >
       <div className="fl-stage">
         <WorldPlate phase={phase} />
         <HotspotMap calibrate={calibrate} onActivate={onHotspot} />
         <div className="fl-z2">
           <ForgeCore phase={phase} />
+          <EmitterBeams beams={beams} />
           <TopMonitor stats={hudStats} line={line} phase={phase} />
-          <HoloPanel side="left" phase={phase} title="Labs">
+          <HoloPanel
+            slot={slots.left}
+            side="left"
+            title="Labs"
+            open={!slots.merged && wingsLive}
+          >
             <div
               id={listId}
               className="fl-lab-list fl-panel__scroll"
@@ -207,7 +257,12 @@ export function ForgeLabHub({
               })}
             </div>
           </HoloPanel>
-          <HoloPanel side="right" phase={phase} title="Bay">
+          <HoloPanel
+            slot={slots.right}
+            side="right"
+            title="Bay"
+            open={!slots.merged && wingsLive}
+          >
             <div className="fl-panel__scroll">
               <GameBayStub lab={selectedLab} />
             </div>
@@ -226,6 +281,14 @@ export function ForgeLabHub({
               </button>
             </div>
           </HoloPanel>
+          <HoloPanel
+            slot={slots.center}
+            side="center"
+            title="Sign on"
+            open={slots.merged}
+          >
+            <AuthMergedStub />
+          </HoloPanel>
           {avatarOpen ? (
             <AvatarCreatorStub onClose={() => setAvatarOpen(false)} />
           ) : null}
@@ -237,6 +300,18 @@ export function ForgeLabHub({
           <ArrowLeft size={14} aria-hidden="true" />
           Back
         </Link>
+        {preview ? (
+          <button
+            type="button"
+            className="fl-icon-btn"
+            data-layout-toggle=""
+            onClick={() =>
+              setLayoutId((current) => (current === 'authMerged' ? 'hubSplit' : 'authMerged'))
+            }
+          >
+            {slots.merged ? 'Hub split' : 'Auth merge'}
+          </button>
+        ) : null}
       </div>
       {preview ? <div className="fl-preview">Forge Lab preview</div> : null}
       <div className="fl-sr-live" role="status" aria-live="polite">

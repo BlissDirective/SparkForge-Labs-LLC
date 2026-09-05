@@ -69,11 +69,14 @@ describe('ForgeLabHub a11y + reduced motion', () => {
     const right = document.querySelector('.fl-panel[data-side="right"]') as HTMLElement;
     expect(left.tagName).toBe('SECTION');
     const monitor = document.querySelector('.fl-monitor') as HTMLElement;
-    expect(left.getAttribute('data-yaw')).toBe('-3');
-    expect(right.getAttribute('data-yaw')).toBe('3');
+    expect(left.getAttribute('data-yaw')).toBe('-2');
+    expect(right.getAttribute('data-yaw')).toBe('2');
     expect(monitor.getAttribute('data-yaw')).toBe('0');
-    expect(left.style.transform).toContain('rotateY(-3deg)');
-    expect(right.style.transform).toContain('rotateY(3deg)');
+    expect(left.style.transform).toContain('rotateY(-2deg)');
+    expect(right.style.transform).toContain('rotateY(2deg)');
+    expect(document.querySelector('.fl-beams')?.getAttribute('data-beams')).toContain('top');
+    expect(document.querySelector('.fl-beams')?.getAttribute('data-beams')).toContain('left');
+    expect((document.querySelector('.fl-panel[data-side="center"]') as HTMLElement).hidden).toBe(true);
     expect(left.style.transformOrigin).toBe('right center');
     expect(right.style.transformOrigin).toBe('left center');
   });
@@ -91,5 +94,23 @@ describe('ForgeLabHub a11y + reduced motion', () => {
     expect(document.querySelector('[data-slot="avatar-creator"]')).toBeTruthy();
     await user.keyboard('{Escape}');
     expect(screen.queryByRole('dialog', { name: /avatar forge/i })).toBeNull();
+  });
+
+  it('stubs authMerged as one wide center glass with sign-on HTML', () => {
+    render(
+      <ForgeLabHub
+        stats={PREVIEW_STATS}
+        progress={PREVIEW_PROGRESS}
+        preview
+        backHref="/"
+        layout="authMerged"
+      />,
+    );
+    expect(document.querySelector('.fl-hub')?.getAttribute('data-layout')).toBe('authMerged');
+    expect(document.querySelector('[data-slot="auth-merged"]')).toBeTruthy();
+    expect(document.querySelector('.fl-panel[data-side="center"]')?.getAttribute('hidden')).toBeNull();
+    expect(screen.queryByRole('listbox', { name: /learning labs/i })).toBeNull();
+    expect(screen.getByRole('heading', { name: 'Welcome to SparkForge Labs' })).toBeTruthy();
+    expect(document.querySelector('.fl-beams')?.getAttribute('data-beams')).toBe('top');
   });
 });

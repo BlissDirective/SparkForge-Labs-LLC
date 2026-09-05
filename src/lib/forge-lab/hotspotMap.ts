@@ -40,7 +40,7 @@ export const WORLD_MEDIA = {
  * Option A dock yaw (degrees). HTML owns the entire hologram.
  * Left slot is −HOLO_YAW_DEG, right is +HOLO_YAW_DEG.
  */
-export const HOLO_YAW_DEG = 3;
+export const HOLO_YAW_DEG = 2;
 /** Perspective distance for `rotateY` on docked hologram slots. */
 export const HOLO_PERSPECTIVE_PX = 1200;
 

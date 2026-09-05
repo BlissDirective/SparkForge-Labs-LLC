@@ -11,11 +11,11 @@
   --fl-text-dim: #b7d4e4;
   --fl-focus: #7ef0ff;
   /* Option A — HTML owns the entire hologram (edge + frost + glow). */
-  --fl-holo-edge: rgba(77, 233, 255, 0.55);
-  --fl-holo-fill: rgba(8, 18, 36, 0.32);
-  --fl-holo-fill-active: rgba(10, 24, 48, 0.42);
-  --fl-holo-blur: 12px;
-  --fl-holo-glow: 0 0 24px rgba(77, 233, 255, 0.25);
+  --fl-holo-edge: rgba(77, 233, 255, 0.78);
+  --fl-holo-fill: rgba(6, 14, 28, 0.48);
+  --fl-holo-fill-active: rgba(6, 14, 28, 0.58);
+  --fl-holo-blur: 3px;
+  --fl-holo-glow: 0 0 18px rgba(77, 233, 255, 0.28);
   position: relative;
   isolation: isolate;
   width: 100%;
@@ -106,8 +106,40 @@ html.light .fl-hub .fl-lab[aria-selected='true'] {
 
 /* Decorative twins sit on top of z1 — do not steal hotspot hits. */
 .fl-z2 > .fl-core,
-.fl-z2 > .fl-monitor {
+.fl-z2 > .fl-monitor,
+.fl-z2 > .fl-beams {
   pointer-events: none;
+}
+
+.fl-beams {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.fl-beam {
+  fill: none;
+  stroke: rgba(120, 240, 255, 0.92);
+  stroke-width: 0.22;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.fl-beam--glow {
+  stroke: rgba(77, 233, 255, 0.35);
+  stroke-width: 0.7;
+}
+
+.fl-beam__node {
+  fill: #9eecff;
+  stroke: rgba(77, 233, 255, 0.9);
+  stroke-width: 0.12;
+}
+
+.fl-beam__node--core {
+  fill: #4de9ff;
 }
 
 .fl-plate {
@@ -355,13 +387,49 @@ html.light .fl-hub .fl-lab[aria-selected='true'] {
   opacity: 0;
 }
 
-.fl-panel.is-emit,
-.fl-panel.is-docked {
+.fl-panel.is-open {
   opacity: 1;
 }
 
-.fl-hub:not([data-reduced-motion='true']) .fl-panel.is-emit {
+.fl-hub:not([data-reduced-motion='true']) .fl-panel.is-open[data-side='left'],
+.fl-hub:not([data-reduced-motion='true']) .fl-panel.is-open[data-side='right'] {
   animation: fl-fly-in 560ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.fl-hub[data-layout='authMerged'] .fl-panel.is-open,
+.fl-hub[data-morphing='true'] .fl-panel.is-open {
+  animation: none;
+}
+
+.fl-auth {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+}
+
+.fl-auth__field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fl-text-dim);
+}
+
+.fl-auth__field input {
+  min-height: 36px;
+  padding: 0 10px;
+  border: 1px solid var(--fl-holo-edge);
+  border-radius: 8px;
+  background: var(--fl-holo-fill-active);
+  color: var(--fl-text);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
 }
 
 .fl-panel__head {

@@ -1,29 +1,21 @@
 'use client';
 
 import type { CSSProperties, ReactNode } from 'react';
-import {
-  FORGE_CORE,
-  LEFT_HOLO_SLOT,
-  RIGHT_HOLO_SLOT,
-  dockSlotStyle,
-  type PercentRect,
-} from '@/lib/forge-lab/hotspotMap';
-import type { PortalPhase } from '@/lib/forge-lab/portalMachine';
-import { isPortalOpen } from '@/lib/forge-lab/portalMachine';
+import { FORGE_CORE, dockSlotStyle, type PercentRect } from '@/lib/forge-lab/hotspotMap';
 
 export function HoloPanel({
+  slot,
   side,
-  phase,
   title,
+  open,
   children,
 }: {
-  side: 'left' | 'right';
-  phase: PortalPhase;
+  slot: PercentRect;
+  side: 'left' | 'right' | 'center';
   title: string;
+  open: boolean;
   children: ReactNode;
 }) {
-  const slot: PercentRect = side === 'left' ? LEFT_HOLO_SLOT : RIGHT_HOLO_SLOT;
-  const open = isPortalOpen(phase);
   const fromX = FORGE_CORE.cx - (slot.left + slot.width / 2);
   const fromY = FORGE_CORE.cy - (slot.top + slot.height / 2);
   const yaw = slot.yaw ?? 0;
@@ -39,7 +31,7 @@ export function HoloPanel({
 
   return (
     <section
-      className={`fl-panel is-${phase}`}
+      className={`fl-panel${open ? ' is-open' : ''}`}
       style={style}
       data-side={side}
       data-yaw={yaw}
