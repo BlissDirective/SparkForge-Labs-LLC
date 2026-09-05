@@ -47,8 +47,9 @@ export function isPortalOpen(phase: PortalPhase): boolean {
   return phase === 'emit' || phase === 'docked';
 }
 
-export function isHudLit(phase: PortalPhase): boolean {
-  return phase === 'emit' || phase === 'docked';
+/** TopMonitor is always illuminated — never a dark idle HUD. */
+export function isHudLit(_phase: PortalPhase): boolean {
+  return true;
 }
 
 export function nextHoldMs(phase: PortalPhase): number | null {

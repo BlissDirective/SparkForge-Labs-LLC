@@ -63,6 +63,12 @@ html.light .fl-hub .fl-dialog {
   color: var(--fl-text) !important;
 }
 
+html.light .fl-hub .fl-monitor {
+  box-shadow:
+    inset 0 0 0 1px var(--fl-holo-edge),
+    var(--fl-holo-glow) !important;
+}
+
 html.light .fl-hub .fl-lab,
 html.light .fl-hub .fl-lab:hover,
 html.light .fl-hub .fl-lab[aria-selected='true'] {
@@ -213,31 +219,28 @@ html.light .fl-hub .fl-lab[aria-selected='true'] {
   margin: auto;
 }
 
+/* Same thin cyan hologram family as .fl-panel. Always on. Transform from dockSlotStyle. */
 .fl-monitor {
   position: absolute;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  gap: 4px;
-  padding: 2.4% 3.2%;
+  gap: 3px;
+  padding: 1.4% 2.2%;
   overflow: hidden;
+  border: 2px solid var(--fl-holo-edge);
   background: var(--fl-holo-fill);
   backdrop-filter: blur(var(--fl-holo-blur));
   -webkit-backdrop-filter: blur(var(--fl-holo-blur));
+  box-shadow:
+    inset 0 0 0 1px var(--fl-holo-edge),
+    var(--fl-holo-glow);
   color: var(--fl-text);
-  opacity: 0;
-  transform: perspective(1200px) rotateY(0deg) translateY(-6px);
-  transform-origin: center center;
-  transition: opacity 280ms ease, transform 280ms ease;
+  opacity: 1;
 }
 
 .fl-monitor.is-lit {
   opacity: 1;
-  transform: perspective(1200px) rotateY(0deg);
-}
-
-.fl-hub[data-reduced-motion='true'] .fl-monitor {
-  transition: none;
 }
 
 .fl-monitor__kicker,
@@ -258,6 +261,19 @@ html.light .fl-hub .fl-lab[aria-selected='true'] {
   font-weight: 800;
   color: var(--fl-text);
   text-shadow: 0 0 12px rgba(0, 212, 255, 0.35);
+}
+
+.fl-monitor--welcome .fl-monitor__title {
+  font-size: clamp(15px, 2.1vw, 26px);
+}
+
+.fl-monitor__subtitle {
+  margin: 0;
+  max-width: 92%;
+  font-size: clamp(11px, 1.25vw, 15px);
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--fl-text-dim);
 }
 
 .fl-monitor__row {

@@ -31,8 +31,9 @@ describe('Forge Lab portal machine', () => {
     expect(reducePortal('charge', { type: 'IGNITE' })).toBe('charge');
   });
 
-  it('lights HUD and panels only after emit', () => {
-    expect(isHudLit('idle')).toBe(false);
+  it('keeps the top HUD lit in every phase; panels open on emit', () => {
+    expect(isHudLit('idle')).toBe(true);
+    expect(isHudLit('charge')).toBe(true);
     expect(isPortalOpen('idle')).toBe(false);
     expect(isHudLit('emit')).toBe(true);
     expect(isPortalOpen('docked')).toBe(true);

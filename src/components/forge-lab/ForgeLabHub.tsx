@@ -14,7 +14,7 @@ import {
 } from '@/lib/forge-lab/catalog';
 import type { HotspotId } from '@/lib/forge-lab/hotspotMap';
 import {
-  isHudLit,
+  isPortalOpen,
   nextHoldMs,
   reducePortal,
   type PortalPhase,
@@ -56,7 +56,7 @@ export function ForgeLabHub({
     ...stats,
     labName: selectedLab?.name ?? stats.labName,
   };
-  const line = sparkyLine(selected + (isHudLit(phase) ? 2 : 0));
+  const line = sparkyLine(selected + (isPortalOpen(phase) ? 2 : 0));
 
   const clearHold = () => {
     if (timerRef.current != null) {

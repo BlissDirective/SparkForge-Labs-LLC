@@ -96,6 +96,16 @@ export function buildLabRows(
   });
 }
 
+/** First-load TopMonitor copy — swap here, not in the component. */
+export const FORGE_LAB_WELCOME = {
+  title: 'Welcome to SparkForge Labs',
+  subtitle: 'Where kids learn AI by building, playing, and exploring with Sparky.',
+  rotating: [
+    'Meet Sparky — your AI tutor and friend. New games just dropped in Lab 11.',
+  ],
+  rotateMs: 7000,
+} as const;
+
 export const PREVIEW_STATS: HubStats = {
   childName: 'Nova',
   xp: 345,

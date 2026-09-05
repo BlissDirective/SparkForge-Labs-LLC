@@ -34,7 +34,20 @@ describe('ForgeLabHub a11y + reduced motion', () => {
       name: 'SparkForge core. Press Enter to emit hologram panels.',
     });
     expect(core).toBeTruthy();
-    expect(screen.getByRole('button', { name: /top monitor bay/i })).toBeTruthy();
+    expect(screen.getByRole('button', { name: /top hologram/i })).toBeTruthy();
+
+    const welcomeHud = screen.getByRole('heading', {
+      name: 'Welcome to SparkForge Labs',
+    });
+    expect(welcomeHud).toBeTruthy();
+    expect(screen.getByText(/building, playing, and exploring with Sparky/i)).toBeTruthy();
+    expect(screen.getByText(/Meet Sparky — your AI tutor/i)).toBeTruthy();
+    const idleMonitor = document.querySelector('.fl-monitor') as HTMLElement;
+    expect(idleMonitor.classList.contains('is-lit')).toBe(true);
+    expect(idleMonitor.getAttribute('aria-hidden')).toBeNull();
+    expect(idleMonitor.style.width).toBe('60%');
+    expect(idleMonitor.dataset.width).toBe('60');
+    expect(screen.queryByRole('meter', { name: /xp 345, level 4/i })).toBeNull();
 
     await user.click(core);
 
@@ -42,8 +55,12 @@ describe('ForgeLabHub a11y + reduced motion', () => {
     expect(listbox).toBeTruthy();
     expect(screen.getAllByRole('option')).toHaveLength(11);
     expect(document.querySelector('[data-slot="game-shell"]')).toBeTruthy();
+    expect(screen.queryByRole('heading', { name: 'Welcome to SparkForge Labs' })).toBeNull();
     expect(screen.getByRole('meter', { name: /xp 345, level 4/i })).toBeTruthy();
     expect(screen.getByRole('meter', { name: /7 day streak/i })).toBeTruthy();
+    const dockedMonitor = document.querySelector('.fl-monitor') as HTMLElement;
+    expect(dockedMonitor.classList.contains('is-lit')).toBe(true);
+    expect(dockedMonitor.style.width).toBe('60%');
 
     expect(document.querySelector('.fl-hub')?.getAttribute('data-surface')).toBe(
       'dark',

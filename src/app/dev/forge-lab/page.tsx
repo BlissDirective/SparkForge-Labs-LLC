@@ -12,7 +12,7 @@ import { ForgeLabPreviewClient } from './client';
 
 export const metadata: Metadata = {
   title: 'Forge Lab Hub · Dev Lab',
-  description: 'Indoor forge-lab hotspot hub — SF portal + hologram panels',
+  description: 'Indoor forge-lab hotspot hub — always-on top hologram + SF portal',
   robots: { index: false, follow: false },
 };
 

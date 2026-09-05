@@ -18,7 +18,12 @@ import {
   slotTransform,
 } from '@/lib/forge-lab/hotspotMap';
 import { FEATURE_FLAGS } from '@/config/feature-flags';
-import { buildLabRows, pickContinueLab, xpDialValue } from '@/lib/forge-lab/catalog';
+import {
+  buildLabRows,
+  FORGE_LAB_WELCOME,
+  pickContinueLab,
+  xpDialValue,
+} from '@/lib/forge-lab/catalog';
 
 describe('Forge Lab hotspot map', () => {
   it('uses the locked 1536×1024 plate aspect', () => {
@@ -42,7 +47,7 @@ describe('Forge Lab hotspot map', () => {
     }
   });
 
-  it('places the SF core under the bezel glass, not inside it', () => {
+  it('places the SF core under the top hologram, not inside it', () => {
     const glassBottom = TOP_MONITOR_GLASS.top + TOP_MONITOR_GLASS.height;
     expect(FORGE_CORE.cy - FORGE_CORE.r).toBeGreaterThan(glassBottom);
   });
@@ -56,10 +61,10 @@ describe('Forge Lab hotspot map', () => {
     expect(HOLO_YAW_DEG).toBe(3);
     expect(HOLO_PERSPECTIVE_PX).toBe(1200);
     expect(TOP_MONITOR_GLASS).toMatchObject({
-      left: 27.4,
-      top: 2.6,
-      width: 45.2,
-      height: 17.8,
+      left: 20,
+      top: 2.8,
+      width: 60,
+      height: 14.5,
       yaw: 0,
     });
     expect(FORGE_CORE).toEqual({ cx: 50, cy: 49.2, r: 9.4 });
@@ -135,5 +140,11 @@ describe('Forge Lab catalog', () => {
   it('clamps XP dial to the current 100-point band', () => {
     expect(xpDialValue(50, 1)).toBe(0.5);
     expect(xpDialValue(250, 3)).toBe(0.5);
+  });
+
+  it('keeps first-load TopMonitor copy in one swap constant', () => {
+    expect(FORGE_LAB_WELCOME.title).toBe('Welcome to SparkForge Labs');
+    expect(FORGE_LAB_WELCOME.subtitle).toMatch(/building, playing, and exploring/);
+    expect(FORGE_LAB_WELCOME.rotating[0]).toMatch(/Meet Sparky/);
   });
 });

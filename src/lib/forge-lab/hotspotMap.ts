@@ -11,8 +11,10 @@
 // constants. Do not click the image.
 //
 // Hotspot video shell + Option A: still plates (loopVideo hook later).
-// Plate may show faint empty cyan guide panes. HTML HoloPanel owns
+// Plate may show faint empty cyan guide panes. HTML holograms own
 // edge + frost + UI as one `perspective + rotateY` element.
+// TopMonitor is the same thin cyan family as the side HoloPanels
+// (no industrial hanging bezel). HTML width 60% is source of truth.
 
 export const PLATE_WIDTH_PX = 1536;
 export const PLATE_HEIGHT_PX = 1024;
@@ -57,22 +59,21 @@ export interface PercentCircle {
   r: number;
 }
 
-/** Inner glass of the hanging physical bezel — TopMonitor HUD fits 1:1. Yaw 0. */
+/**
+ * Thin cyan TopMonitor hologram — same family as side HoloPanels.
+ * HTML at 60% plate width is source of truth (plate guide may be narrower).
+ * Yaw 0. Always illuminated.
+ */
 export const TOP_MONITOR_GLASS: PercentRect = {
-  left: 27.4,
-  top: 2.6,
-  width: 45.2,
-  height: 17.8,
+  left: 20,
+  top: 2.8,
+  width: 60,
+  height: 14.5,
   yaw: 0,
 };
 
-/** Outer bezel (debug outline only — not a hit target). */
-export const TOP_MONITOR_BEZEL: PercentRect = {
-  left: 24.8,
-  top: 0.8,
-  width: 50.4,
-  height: 21.4,
-};
+/** Debug outline alias — industrial hanging bezel is gone. */
+export const TOP_MONITOR_BEZEL: PercentRect = TOP_MONITOR_GLASS;
 
 /** Circular SF hologram — primary portal emitter. */
 export const FORGE_CORE: PercentCircle = {
@@ -147,7 +148,7 @@ export const HOTSPOTS: readonly HotspotDef[] = [
   },
   {
     id: 'top-monitor',
-    label: 'Top monitor bay. Lab status HUD when the core is docked.',
+    label: 'Top hologram. Welcome HUD — always on. Status gauges after emit.',
     kind: 'rect',
     rect: TOP_MONITOR_GLASS,
   },
