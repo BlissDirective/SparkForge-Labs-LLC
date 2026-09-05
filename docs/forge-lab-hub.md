@@ -60,6 +60,8 @@ Shared with the empty plate frames:
 
 CSS variables on `.fl-hub`: `--fl-holo-edge`, `--fl-holo-fill`, `--fl-holo-fill-active`, `--fl-holo-blur`, `--fl-holo-glow`.
 
+The hub root is `data-surface="dark"` and HoloPanels are `<section>`s so the a11y `.light aside` remap cannot paint them as white cards. Blend tokens stay in force under `html.light`.
+
 ---
 
 ## SF portal

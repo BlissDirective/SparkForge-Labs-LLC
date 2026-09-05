@@ -164,6 +164,7 @@ export function ForgeLabHub({
   return (
     <div
       className="fl-hub"
+      data-surface="dark"
       data-reduced-motion={reduceMotion ? 'true' : 'false'}
       data-phase={phase}
     >

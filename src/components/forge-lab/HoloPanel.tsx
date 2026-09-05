@@ -38,7 +38,7 @@ export function HoloPanel({
   };
 
   return (
-    <aside
+    <section
       className={`fl-panel is-${phase}`}
       style={style}
       data-side={side}
@@ -50,6 +50,6 @@ export function HoloPanel({
         <h2>{title}</h2>
       </header>
       {children}
-    </aside>
+    </section>
   );
 }

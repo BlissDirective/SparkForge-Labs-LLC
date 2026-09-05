@@ -45,8 +45,12 @@ describe('ForgeLabHub a11y + reduced motion', () => {
     expect(screen.getByRole('meter', { name: /xp 345, level 4/i })).toBeTruthy();
     expect(screen.getByRole('meter', { name: /7 day streak/i })).toBeTruthy();
 
+    expect(document.querySelector('.fl-hub')?.getAttribute('data-surface')).toBe(
+      'dark',
+    );
     const left = document.querySelector('.fl-panel[data-side="left"]') as HTMLElement;
     const right = document.querySelector('.fl-panel[data-side="right"]') as HTMLElement;
+    expect(left.tagName).toBe('SECTION');
     const monitor = document.querySelector('.fl-monitor') as HTMLElement;
     expect(left.getAttribute('data-yaw')).toBe('-5');
     expect(right.getAttribute('data-yaw')).toBe('5');

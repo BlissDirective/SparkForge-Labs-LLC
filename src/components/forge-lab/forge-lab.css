@@ -32,6 +32,48 @@
   box-sizing: border-box;
 }
 
+/*
+ * A11y light-mode remap (globals-a11y.css) paints `aside`/`nav` white.
+ * This hub is a permanently dark hologram surface — keep blend tokens.
+ */
+html.light .fl-hub,
+html.light .fl-hub[data-surface='dark'] {
+  background: var(--fl-void);
+  color: var(--fl-text);
+}
+
+html.light .fl-hub .fl-panel,
+html.light .fl-hub[data-surface='dark'] .fl-panel,
+html.light .fl-hub[data-surface='dark'] aside.fl-panel {
+  background: var(--fl-holo-fill) !important;
+  border-color: var(--fl-holo-edge) !important;
+  color: var(--fl-text) !important;
+  box-shadow:
+    inset 0 0 0 1px var(--fl-holo-edge),
+    var(--fl-holo-glow) !important;
+}
+
+html.light .fl-hub .fl-monitor,
+html.light .fl-hub .fl-chip,
+html.light .fl-hub .fl-icon-btn,
+html.light .fl-hub .fl-game,
+html.light .fl-hub .fl-dialog {
+  background: var(--fl-holo-fill) !important;
+  border-color: var(--fl-holo-edge) !important;
+  color: var(--fl-text) !important;
+}
+
+html.light .fl-hub .fl-lab,
+html.light .fl-hub .fl-lab:hover,
+html.light .fl-hub .fl-lab[aria-selected='true'] {
+  color: var(--fl-text) !important;
+}
+
+html.light .fl-hub .fl-lab:hover,
+html.light .fl-hub .fl-lab[aria-selected='true'] {
+  background: var(--fl-holo-fill-active) !important;
+}
+
 .fl-stage {
   position: absolute;
   inset: 0;
