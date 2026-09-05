@@ -44,6 +44,17 @@ describe('ForgeLabHub a11y + reduced motion', () => {
     expect(document.querySelector('[data-slot="game-shell"]')).toBeTruthy();
     expect(screen.getByRole('meter', { name: /xp 345, level 4/i })).toBeTruthy();
     expect(screen.getByRole('meter', { name: /7 day streak/i })).toBeTruthy();
+
+    const left = document.querySelector('.fl-panel[data-side="left"]') as HTMLElement;
+    const right = document.querySelector('.fl-panel[data-side="right"]') as HTMLElement;
+    const monitor = document.querySelector('.fl-monitor') as HTMLElement;
+    expect(left.getAttribute('data-yaw')).toBe('-5');
+    expect(right.getAttribute('data-yaw')).toBe('5');
+    expect(monitor.getAttribute('data-yaw')).toBe('0');
+    expect(left.style.transform).toContain('rotateY(-5deg)');
+    expect(right.style.transform).toContain('rotateY(5deg)');
+    expect(left.style.transformOrigin).toBe('right center');
+    expect(right.style.transformOrigin).toBe('left center');
   });
 
   it('opens the avatar stub and retracts panels', async () => {

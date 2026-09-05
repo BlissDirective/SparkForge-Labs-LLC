@@ -30,11 +30,18 @@ export const WORLD_MEDIA = {
   },
 } as const;
 
+/** Shared dock yaw (degrees). Left slot is −HOLO_YAW_DEG, right is +HOLO_YAW_DEG. */
+export const HOLO_YAW_DEG = 5;
+/** Perspective distance for `rotateY` on docked hologram slots. */
+export const HOLO_PERSPECTIVE_PX = 1200;
+
 export interface PercentRect {
   left: number;
   top: number;
   width: number;
   height: number;
+  /** Degrees. Negative yaws the left edge away (left wing); 0 = flat. */
+  yaw?: number;
 }
 
 export interface PercentCircle {
@@ -43,12 +50,13 @@ export interface PercentCircle {
   r: number;
 }
 
-/** Inner glass of the hanging physical bezel — TopMonitor HUD fits 1:1. */
+/** Inner glass of the hanging physical bezel — TopMonitor HUD fits 1:1. Yaw 0. */
 export const TOP_MONITOR_GLASS: PercentRect = {
   left: 27.4,
   top: 2.6,
   width: 45.2,
   height: 17.8,
+  yaw: 0,
 };
 
 /** Outer bezel (debug outline only — not a hit target). */
@@ -72,22 +80,25 @@ export const PEDESTAL: PercentRect = {
   top: 70.5,
   width: 27,
   height: 18.5,
+  yaw: 0,
 };
 
-/** Docked left hologram wing. */
+/** Docked left hologram wing. Yaw toward SF (origin on the right edge). */
 export const LEFT_HOLO_SLOT: PercentRect = {
   left: 7.2,
   top: 30.5,
   width: 20.8,
   height: 42,
+  yaw: -HOLO_YAW_DEG,
 };
 
-/** Docked right hologram wing. */
+/** Docked right hologram wing. Yaw toward SF (origin on the left edge). */
 export const RIGHT_HOLO_SLOT: PercentRect = {
   left: 72,
   top: 30.5,
   width: 20.8,
   height: 42,
+  yaw: HOLO_YAW_DEG,
 };
 
 /** Recessed wall niches — reserved for later lab crystals. */
@@ -164,6 +175,44 @@ export function rectStyle(rect: PercentRect): {
     top: `${rect.top}%`,
     width: `${rect.width}%`,
     height: `${rect.height}%`,
+  };
+}
+
+/** Transform-origin faces the SF core so ±yaw folds the wings inward. */
+export function slotOrigin(rect: PercentRect): string {
+  const yaw = rect.yaw ?? 0;
+  if (yaw < 0) return 'right center';
+  if (yaw > 0) return 'left center';
+  return 'center center';
+}
+
+export function slotTransform(rect: PercentRect): string {
+  const yaw = rect.yaw ?? 0;
+  return `perspective(${HOLO_PERSPECTIVE_PX}px) rotateY(${yaw}deg)`;
+}
+
+export function yawStyle(rect: PercentRect): {
+  transform: string;
+  transformOrigin: string;
+} {
+  return {
+    transform: slotTransform(rect),
+    transformOrigin: slotOrigin(rect),
+  };
+}
+
+/** Shared box + yaw used by HoloPanels and calibrate hotspot outlines. */
+export function dockSlotStyle(rect: PercentRect): {
+  left: string;
+  top: string;
+  width: string;
+  height: string;
+  transform: string;
+  transformOrigin: string;
+} {
+  return {
+    ...rectStyle(rect),
+    ...yawStyle(rect),
   };
 }
 

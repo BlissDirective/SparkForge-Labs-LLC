@@ -3,7 +3,7 @@
 import {
   HOTSPOTS,
   circleStyle,
-  rectStyle,
+  dockSlotStyle,
   type HotspotId,
 } from '@/lib/forge-lab/hotspotMap';
 
@@ -21,7 +21,7 @@ export function HotspotMap({
           spot.kind === 'circle' && spot.circle
             ? circleStyle(spot.circle)
             : spot.rect
-              ? rectStyle(spot.rect)
+              ? dockSlotStyle(spot.rect)
               : undefined;
         return (
           <button
@@ -37,6 +37,7 @@ export function HotspotMap({
             style={style}
             aria-label={spot.label}
             data-hotspot={spot.id}
+            data-yaw={spot.rect?.yaw ?? 0}
             onClick={() => onActivate(spot.id)}
           />
         );

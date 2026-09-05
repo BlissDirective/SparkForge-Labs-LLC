@@ -5,7 +5,7 @@ import {
   FORGE_CORE,
   LEFT_HOLO_SLOT,
   RIGHT_HOLO_SLOT,
-  rectStyle,
+  dockSlotStyle,
   type PercentRect,
 } from '@/lib/forge-lab/hotspotMap';
 import type { PortalPhase } from '@/lib/forge-lab/portalMachine';
@@ -26,11 +26,15 @@ export function HoloPanel({
   const open = isPortalOpen(phase);
   const fromX = FORGE_CORE.cx - (slot.left + slot.width / 2);
   const fromY = FORGE_CORE.cy - (slot.top + slot.height / 2);
+  const yaw = slot.yaw ?? 0;
+  const dock = dockSlotStyle(slot);
 
   const style: CSSProperties = {
-    ...rectStyle(slot),
+    ...dock,
     ['--fl-from-x' as string]: `${fromX * 1.4}%`,
     ['--fl-from-y' as string]: `${fromY * 1.4}%`,
+    ['--fl-yaw' as string]: `${yaw}deg`,
+    ['--fl-origin' as string]: dock.transformOrigin,
   };
 
   return (
@@ -38,6 +42,7 @@ export function HoloPanel({
       className={`fl-panel is-${phase}`}
       style={style}
       data-side={side}
+      data-yaw={yaw}
       aria-hidden={!open}
       hidden={!open}
     >

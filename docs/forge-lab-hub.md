@@ -1,6 +1,6 @@
 # Forge Lab hotspot hub
 
-**Date:** 2026-09-04  
+**Date:** 2026-09-05  
 **Flag:** `NEXT_PUBLIC_FORGE_LAB_HUB` (`FEATURE_FLAGS.FORGE_LAB_HUB`)  
 **Routes:** `/forge-lab` (authenticated, flag-on) · `/dev/forge-lab` (public preview)
 
@@ -18,27 +18,47 @@ Video/still pixels are never the click target.
 |---|---|
 | **z0** | World plate. Still images now (`public/forge-lab/00-locked-hub-dark-sf.png` + idle/charge/emit/docked keyframes). `WORLD_MEDIA.loopVideo` is the hook for a later encode. |
 | **z1** | Invisible DOM buttons aligned to the plate (`HotspotMap`). SF core, pedestal, top-monitor glass, left/right docks. |
-| **z2** | Real React UI: `ForgeCore` (live SF), `TopMonitor` HUD fitted 1:1 in the bezel glass, `HoloPanel`s that emit from SF. |
+| **z2** | Real React UI: `ForgeCore` (live SF), `TopMonitor` HUD fitted 1:1 in the bezel glass (yaw 0), `HoloPanel`s that emit from SF and dock into the empty hologram frames. |
 
-`?calibrate=1` on `/dev/forge-lab` outlines the hit map.
+`?calibrate=1` on `/dev/forge-lab` outlines the hit map. Outlines use the **same** `%` box + yaw as the HTML overlays (`dockSlotStyle`).
 
 ---
 
-## Coordinate approach
+## Hybrid dock (owner-locked)
+
+Docked world plate is `public/forge-lab/04-docked.png` (**04-docked-hybrid-exact-slots**). The plate already paints empty left/right hologram frames. HTML `HoloPanel`s sit in those frames and **blend as one semi-translucent control surface** — not white cards, not a second opaque HUD.
+
+Art frames **must match** `src/lib/forge-lab/hotspotMap.ts`. If a new plate moves a frame, change the plate or the map together. Do not invent a second coordinate system.
+
+### Frozen map — 1536×1024 plate
 
 Locked plates are **1536×1024 (3:2)**. The stage is a letterboxed box with `aspect-ratio: 1536 / 1024` and `object-fit: contain`. Every hotspot is a **percent of that stage**, not of the viewport.
 
-Constants live in `src/lib/forge-lab/hotspotMap.ts`:
+`HOLO_YAW_DEG = 5`. Docked HoloPanels use `perspective(1200px) rotateY(yawdeg)`. Transform-origin faces SF: left panel `right center`, right panel `left center`.
 
-| Region | Box (% of plate) |
+| Region | Box (% of plate) | Yaw |
+|---|---|---|
+| `TOP_MONITOR_GLASS` | `27.4, 2.6, 45.2 × 17.8` | `0` — HUD stays flat in the bezel glass |
+| `FORGE_CORE` | circle `cx 50, cy 49.2, r 9.4` | — |
+| `PEDESTAL` | `36.5, 70.5, 27 × 18.5` | `0` |
+| `LEFT_HOLO_SLOT` | `7.2, 30.5, 20.8 × 42` | `−5` |
+| `RIGHT_HOLO_SLOT` | `72, 30.5, 20.8 × 42` | `+5` |
+
+Nudge those numbers only after `?calibrate=1` proves a miss. Report any % change. Do not click the pixels.
+
+### Blend tokens (HoloPanel CSS)
+
+Shared with the empty plate frames:
+
+| Token | Value |
 |---|---|
-| `TOP_MONITOR_GLASS` | `27.4, 2.6, 45.2 × 17.8` — HUD fits this inner glass |
-| `FORGE_CORE` | circle `cx 50, cy 49.2, r 9.4` |
-| `PEDESTAL` | `36.5, 70.5, 27 × 18.5` |
-| `LEFT_HOLO_SLOT` | `7.2, 30.5, 20.8 × 42` |
-| `RIGHT_HOLO_SLOT` | `72, 30.5, 20.8 × 42` |
+| edge | `rgba(77, 233, 255, 0.55)` |
+| fill | `rgba(8, 18, 36, 0.32)` |
+| fillActive | `rgba(10, 24, 48, 0.42)` |
+| blur | `12px` |
+| glow | `0 0 24px rgba(77, 233, 255, 0.25)` |
 
-Nudge those numbers after a new plate; do not click the pixels.
+CSS variables on `.fl-hub`: `--fl-holo-edge`, `--fl-holo-fill`, `--fl-holo-fill-active`, `--fl-holo-blur`, `--fl-holo-glow`.
 
 ---
 
@@ -76,8 +96,7 @@ NEXT_PUBLIC_FORGE_LAB_HUB=true
 
 ## Known limitations
 
-- World plates are generated stand-ins matching the locked indoor-lab brief (original attachment files were not on disk in this environment). Swap files in `public/forge-lab/` 1:1 if the source plates return.
+- Idle/charge/emit plates are generated stand-ins matching the indoor-lab brief. The **docked** plate is the owner-locked hybrid (`04-docked-hybrid-exact-slots`).
 - Still plates + CSS crossfade only — no Grok Video encode.
 - Game bay and avatar kit are labeled stubs (`data-slot="game-shell"` / `data-slot="avatar-creator"`).
-- Bezel/core percents are first-pass calibration against 1536×1024 plates; use `?calibrate=1` to retune.
 - Authenticated `/forge-lab` needs the flag on at build time (`NEXT_PUBLIC_*`).

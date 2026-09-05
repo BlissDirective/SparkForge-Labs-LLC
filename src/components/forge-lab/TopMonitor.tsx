@@ -1,6 +1,6 @@
 'use client';
 
-import { rectStyle, TOP_MONITOR_GLASS } from '@/lib/forge-lab/hotspotMap';
+import { dockSlotStyle, TOP_MONITOR_GLASS } from '@/lib/forge-lab/hotspotMap';
 import { xpDialValue, type HubStats } from '@/lib/forge-lab/catalog';
 import { isHudLit, type PortalPhase } from '@/lib/forge-lab/portalMachine';
 
@@ -20,7 +20,8 @@ export function TopMonitor({
   return (
     <section
       className={lit ? 'fl-monitor is-lit' : 'fl-monitor'}
-      style={rectStyle(TOP_MONITOR_GLASS)}
+      style={dockSlotStyle(TOP_MONITOR_GLASS)}
+      data-yaw={TOP_MONITOR_GLASS.yaw ?? 0}
       aria-label="Forge bay status"
       aria-hidden={!lit}
     >

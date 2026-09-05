@@ -1,15 +1,21 @@
 import { describe, expect, it } from 'vitest';
 import {
   FORGE_CORE,
+  HOLO_PERSPECTIVE_PX,
+  HOLO_YAW_DEG,
   HOTSPOTS,
   LEFT_HOLO_SLOT,
+  PEDESTAL,
   PLATE_ASPECT_RATIO,
   PLATE_HEIGHT_PX,
   PLATE_WIDTH_PX,
   RIGHT_HOLO_SLOT,
   TOP_MONITOR_GLASS,
+  dockSlotStyle,
   isPercentCircle,
   isPercentRect,
+  slotOrigin,
+  slotTransform,
 } from '@/lib/forge-lab/hotspotMap';
 import { FEATURE_FLAGS } from '@/config/feature-flags';
 import { buildLabRows, pickContinueLab, xpDialValue } from '@/lib/forge-lab/catalog';
@@ -44,6 +50,62 @@ describe('Forge Lab hotspot map', () => {
   it('docks wings on opposite sides of the core', () => {
     expect(LEFT_HOLO_SLOT.left + LEFT_HOLO_SLOT.width).toBeLessThan(FORGE_CORE.cx);
     expect(RIGHT_HOLO_SLOT.left).toBeGreaterThan(FORGE_CORE.cx);
+  });
+
+  it('freezes the hybrid dock map including ±5° yaw', () => {
+    expect(HOLO_YAW_DEG).toBe(5);
+    expect(HOLO_PERSPECTIVE_PX).toBe(1200);
+    expect(TOP_MONITOR_GLASS).toMatchObject({
+      left: 27.4,
+      top: 2.6,
+      width: 45.2,
+      height: 17.8,
+      yaw: 0,
+    });
+    expect(FORGE_CORE).toEqual({ cx: 50, cy: 49.2, r: 9.4 });
+    expect(PEDESTAL).toMatchObject({
+      left: 36.5,
+      top: 70.5,
+      width: 27,
+      height: 18.5,
+      yaw: 0,
+    });
+    expect(LEFT_HOLO_SLOT).toMatchObject({
+      left: 7.2,
+      top: 30.5,
+      width: 20.8,
+      height: 42,
+      yaw: -5,
+    });
+    expect(RIGHT_HOLO_SLOT).toMatchObject({
+      left: 72,
+      top: 30.5,
+      width: 20.8,
+      height: 42,
+      yaw: 5,
+    });
+  });
+
+  it('yaws docked slots toward SF with a shared transform helper', () => {
+    expect(slotOrigin(LEFT_HOLO_SLOT)).toBe('right center');
+    expect(slotOrigin(RIGHT_HOLO_SLOT)).toBe('left center');
+    expect(slotOrigin(TOP_MONITOR_GLASS)).toBe('center center');
+    expect(slotTransform(LEFT_HOLO_SLOT)).toBe('perspective(1200px) rotateY(-5deg)');
+    expect(slotTransform(RIGHT_HOLO_SLOT)).toBe('perspective(1200px) rotateY(5deg)');
+    expect(slotTransform(TOP_MONITOR_GLASS)).toBe('perspective(1200px) rotateY(0deg)');
+
+    const left = dockSlotStyle(LEFT_HOLO_SLOT);
+    const right = dockSlotStyle(RIGHT_HOLO_SLOT);
+    expect(left).toMatchObject({
+      left: '7.2%',
+      top: '30.5%',
+      width: '20.8%',
+      height: '42%',
+      transform: 'perspective(1200px) rotateY(-5deg)',
+      transformOrigin: 'right center',
+    });
+    expect(right.transform).toBe('perspective(1200px) rotateY(5deg)');
+    expect(right.transformOrigin).toBe('left center');
   });
 });
 
