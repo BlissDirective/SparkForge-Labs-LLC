@@ -65,19 +65,20 @@ export function ForgeLabHub({
     }
   };
 
-  const apply = useCallback(
-    (next: PortalPhase) => {
-      setPhase(next);
-      clearHold();
-      const hold = nextHoldMs(next);
-      if (hold != null && !reduceMotion) {
-        timerRef.current = window.setTimeout(() => {
-          setPhase((current) => reducePortal(current, { type: 'ADVANCE' }));
-        }, hold);
-      }
-    },
-    [reduceMotion],
-  );
+  const apply = useCallback((next: PortalPhase) => {
+    setPhase(next);
+  }, []);
+
+  useEffect(() => {
+    clearHold();
+    const hold = nextHoldMs(phase);
+    if (hold != null && !reduceMotion) {
+      timerRef.current = window.setTimeout(() => {
+        setPhase((current) => reducePortal(current, { type: 'ADVANCE' }));
+      }, hold);
+    }
+    return clearHold;
+  }, [phase, reduceMotion]);
 
   const ignite = useCallback(() => {
     if (reduceMotion) {

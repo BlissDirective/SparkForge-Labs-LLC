@@ -104,6 +104,12 @@ html.light .fl-hub .fl-lab[aria-selected='true'] {
 
 .fl-z2 > * { pointer-events: auto; }
 
+/* Decorative twins sit on top of z1 — do not steal hotspot hits. */
+.fl-z2 > .fl-core,
+.fl-z2 > .fl-monitor {
+  pointer-events: none;
+}
+
 .fl-plate {
   position: absolute;
   inset: 0;
