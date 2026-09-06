@@ -23,16 +23,17 @@ export const PLATE_ASPECT_RATIO = PLATE_WIDTH_PX / PLATE_HEIGHT_PX;
 
 export const WORLD_MEDIA = {
   kind: 'still' as const,
-  /** Locked indoor forge-lab plate — default idle world. */
-  locked: '/forge-lab/00-locked-hub-dark-sf.png',
+  /** Owner-locked hero (exact bytes under world/LOCKED_HERO.png). Display uses no-haze filter. */
+  locked: '/forge-lab/world/LOCKED_HERO_no_haze_filter.png',
   monogram: '/forge-lab/00-sf-monogram-closeup.png',
   /** Wire a looping encode here later. Still plates are the mock. */
   loopVideo: null as string | null,
   keyframes: {
-    idle: '/forge-lab/01-idle.png',
-    charge: '/forge-lab/02-charge.png',
-    emit: '/forge-lab/03-emit.png',
-    docked: '/forge-lab/04-docked.png',
+    // Same locked still for all phases until LOCKED_LOOP.mp4 exists — no room swap.
+    idle: '/forge-lab/world/LOCKED_HERO_no_haze_filter.png',
+    charge: '/forge-lab/world/LOCKED_HERO_no_haze_filter.png',
+    emit: '/forge-lab/world/LOCKED_HERO_no_haze_filter.png',
+    docked: '/forge-lab/world/LOCKED_HERO_no_haze_filter.png',
   },
 } as const;
 

@@ -116,3 +116,13 @@ Flag **defaults to `false`**. `/dev/forge-lab` does not require the flag.
 - Stills + CSS crossfade only — `WORLD_MEDIA.loopVideo` is the hook for a later encode.
 - Game bay, avatar kit, and auth-merged sign-on are stubs.
 - Authenticated `/forge-lab` needs the flag on at build time.
+
+## World art lock (do not regenerate)
+
+Canonical plate: `public/forge-lab/world/LOCKED_HERO.png`  
+SHA256: `db75ecf0055a8168a0ae71be5f1f28921c1ef9c29511ce44c380348121442555`
+
+Display still: `public/forge-lab/world/LOCKED_HERO_no_haze_filter.png`  
+SHA256: `582366f956c37390fb70c8d954f247fc4f1e3932c47996202c30f43d27be0cd9`
+
+**Agents must never regenerate world art.** Copy byte-for-byte only; fail if SHA mismatches. See `public/forge-lab/world/LOCKED.md`.
