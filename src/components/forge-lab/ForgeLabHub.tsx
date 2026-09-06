@@ -208,6 +208,7 @@ export function ForgeLabHub({
     <div
       className="fl-hub"
       data-surface="dark"
+      data-plate-clear="true"
       data-reduced-motion={reduceMotion ? 'true' : 'false'}
       data-phase={phase}
       data-layout={slots.merged ? 'authMerged' : 'hubSplit'}
