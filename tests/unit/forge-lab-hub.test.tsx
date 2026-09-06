@@ -1,0 +1,116 @@
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { describe, expect, it, vi } from 'vitest';
+import { ForgeLabHub } from '@/components/forge-lab/ForgeLabHub';
+import { PREVIEW_PROGRESS, PREVIEW_STATS } from '@/lib/forge-lab/catalog';
+
+vi.mock('next/image', () => ({
+  default: (props: { alt?: string }) => <span data-testid="plate" aria-hidden="true">{props.alt}</span>,
+}));
+
+vi.mock('@/hooks/useSafeMotion', () => ({
+  useSafeMotion: () => true,
+}));
+
+vi.mock('@/components/forge-lab/forge-lab.css', () => ({}));
+
+function renderHub() {
+  return render(
+    <ForgeLabHub
+      stats={PREVIEW_STATS}
+      progress={PREVIEW_PROGRESS}
+      preview
+      backHref="/"
+    />,
+  );
+}
+
+describe('ForgeLabHub a11y + reduced motion', () => {
+  it('exposes focusable hotspots and a lab listbox after skip-to-docked', async () => {
+    const user = userEvent.setup();
+    renderHub();
+
+    const core = screen.getByRole('button', {
+      name: 'SparkForge core. Press Enter to emit hologram panels.',
+    });
+    expect(core).toBeTruthy();
+    expect(screen.getByRole('button', { name: /top hologram/i })).toBeTruthy();
+
+    const welcomeHud = screen.getByRole('heading', {
+      name: 'Welcome to SparkForge Labs',
+    });
+    expect(welcomeHud).toBeTruthy();
+    expect(screen.getByText(/building, playing, and exploring with Sparky/i)).toBeTruthy();
+    expect(screen.getByText(/Meet Sparky — your AI tutor/i)).toBeTruthy();
+    const idleMonitor = document.querySelector('.fl-monitor') as HTMLElement;
+    expect(idleMonitor.classList.contains('is-lit')).toBe(true);
+    expect(idleMonitor.getAttribute('aria-hidden')).toBeNull();
+    expect(idleMonitor.style.width).toBe('60%');
+    expect(idleMonitor.dataset.width).toBe('60');
+    expect(screen.queryByRole('meter', { name: /xp 345, level 4/i })).toBeNull();
+
+    await user.click(core);
+
+    const listbox = screen.getByRole('listbox', { name: /learning labs/i });
+    expect(listbox).toBeTruthy();
+    expect(screen.getAllByRole('option')).toHaveLength(11);
+    expect(document.querySelector('[data-slot="game-shell"]')).toBeTruthy();
+    expect(screen.queryByRole('heading', { name: 'Welcome to SparkForge Labs' })).toBeNull();
+    expect(screen.getByRole('meter', { name: /xp 345, level 4/i })).toBeTruthy();
+    expect(screen.getByRole('meter', { name: /7 day streak/i })).toBeTruthy();
+    const dockedMonitor = document.querySelector('.fl-monitor') as HTMLElement;
+    expect(dockedMonitor.classList.contains('is-lit')).toBe(true);
+    expect(dockedMonitor.style.width).toBe('60%');
+
+    expect(document.querySelector('.fl-hub')?.getAttribute('data-surface')).toBe(
+      'dark',
+    );
+    const left = document.querySelector('.fl-panel[data-side="left"]') as HTMLElement;
+    const right = document.querySelector('.fl-panel[data-side="right"]') as HTMLElement;
+    expect(left.tagName).toBe('SECTION');
+    const monitor = document.querySelector('.fl-monitor') as HTMLElement;
+    expect(left.getAttribute('data-yaw')).toBe('-2');
+    expect(right.getAttribute('data-yaw')).toBe('2');
+    expect(monitor.getAttribute('data-yaw')).toBe('0');
+    expect(left.style.transform).toContain('rotateY(-2deg)');
+    expect(right.style.transform).toContain('rotateY(2deg)');
+    expect(document.querySelector('.fl-beams')?.getAttribute('data-beams')).toContain('top');
+    expect(document.querySelector('.fl-beams')?.getAttribute('data-beams')).toContain('left');
+    expect((document.querySelector('.fl-panel[data-side="center"]') as HTMLElement).hidden).toBe(true);
+    expect(left.style.transformOrigin).toBe('right center');
+    expect(right.style.transformOrigin).toBe('left center');
+  });
+
+  it('opens the avatar stub and retracts panels', async () => {
+    const user = userEvent.setup();
+    renderHub();
+    await user.click(
+      screen.getByRole('button', {
+        name: 'SparkForge core. Press Enter to emit hologram panels.',
+      }),
+    );
+    await user.click(screen.getByRole('button', { name: /avatar kit/i }));
+    expect(screen.getByRole('dialog', { name: /avatar forge/i })).toBeTruthy();
+    expect(document.querySelector('[data-slot="avatar-creator"]')).toBeTruthy();
+    await user.keyboard('{Escape}');
+    expect(screen.queryByRole('dialog', { name: /avatar forge/i })).toBeNull();
+  });
+
+  it('stubs authMerged as one wide center glass with sign-on HTML', () => {
+    render(
+      <ForgeLabHub
+        stats={PREVIEW_STATS}
+        progress={PREVIEW_PROGRESS}
+        preview
+        backHref="/"
+        layout="authMerged"
+      />,
+    );
+    expect(document.querySelector('.fl-hub')?.getAttribute('data-layout')).toBe('authMerged');
+    expect(document.querySelector('[data-slot="auth-merged"]')).toBeTruthy();
+    expect(document.querySelector('.fl-panel[data-side="center"]')?.getAttribute('hidden')).toBeNull();
+    expect(screen.queryByRole('listbox', { name: /learning labs/i })).toBeNull();
+    expect(screen.getByRole('heading', { name: 'Welcome to SparkForge Labs' })).toBeTruthy();
+    expect(document.querySelector('.fl-beams')?.getAttribute('data-beams')).toBe('top');
+  });
+});

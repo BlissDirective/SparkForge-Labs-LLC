@@ -1,0 +1,718 @@
+/* Forge Lab hotspot hub — scoped under .fl-hub. Indoor forge, not a cockpit. */
+
+.fl-hub {
+  --fl-cyan: #4de9ff;
+  --fl-cyan-deep: #0077aa;
+  --fl-cyan-soft: #9eecff;
+  --fl-amber: #ff8c32;
+  --fl-void: #05070b;
+  --fl-glass: rgba(4, 14, 22, 0.72);
+  --fl-text: #e8f7ff;
+  --fl-text-dim: #b7d4e4;
+  --fl-focus: #7ef0ff;
+  /* Option A — HTML owns the entire hologram (edge + frost + glow). */
+  --fl-holo-edge: rgba(77, 233, 255, 0.78);
+  --fl-holo-fill: rgba(6, 14, 28, 0.48);
+  --fl-holo-fill-active: rgba(6, 14, 28, 0.58);
+  --fl-holo-blur: 3px;
+  --fl-holo-glow: 0 0 18px rgba(77, 233, 255, 0.28);
+  position: relative;
+  isolation: isolate;
+  width: 100%;
+  min-height: 100dvh;
+  overflow: hidden;
+  color: var(--fl-text);
+  background: var(--fl-void);
+  font-family: var(--font-body);
+}
+
+.fl-hub *,
+.fl-hub *::before,
+.fl-hub *::after {
+  box-sizing: border-box;
+}
+
+/*
+ * A11y light-mode remap (globals-a11y.css) paints `aside`/`nav` white.
+ * This hub is a permanently dark hologram surface — keep blend tokens.
+ */
+html.light .fl-hub,
+html.light .fl-hub[data-surface='dark'] {
+  background: var(--fl-void);
+  color: var(--fl-text);
+}
+
+html.light .fl-hub .fl-panel,
+html.light .fl-hub[data-surface='dark'] .fl-panel,
+html.light .fl-hub[data-surface='dark'] aside.fl-panel {
+  background: var(--fl-holo-fill) !important;
+  border-color: var(--fl-holo-edge) !important;
+  color: var(--fl-text) !important;
+  box-shadow:
+    inset 0 0 0 1px var(--fl-holo-edge),
+    var(--fl-holo-glow) !important;
+}
+
+html.light .fl-hub .fl-monitor,
+html.light .fl-hub .fl-chip,
+html.light .fl-hub .fl-icon-btn,
+html.light .fl-hub .fl-game,
+html.light .fl-hub .fl-dialog {
+  background: var(--fl-holo-fill) !important;
+  border-color: var(--fl-holo-edge) !important;
+  color: var(--fl-text) !important;
+}
+
+html.light .fl-hub .fl-monitor {
+  box-shadow:
+    inset 0 0 0 1px var(--fl-holo-edge),
+    var(--fl-holo-glow) !important;
+}
+
+html.light .fl-hub .fl-lab,
+html.light .fl-hub .fl-lab:hover,
+html.light .fl-hub .fl-lab[aria-selected='true'] {
+  color: var(--fl-text) !important;
+}
+
+html.light .fl-hub .fl-lab:hover,
+html.light .fl-hub .fl-lab[aria-selected='true'] {
+  background: var(--fl-holo-fill-active) !important;
+}
+
+.fl-stage {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: min(100vw, calc(100dvh * 1.5));
+  height: min(100dvh, calc(100vw / 1.5));
+  aspect-ratio: 1536 / 1024;
+  max-width: 100vw;
+  max-height: 100dvh;
+}
+
+.fl-z0,
+.fl-z1,
+.fl-z2 {
+  position: absolute;
+  inset: 0;
+}
+
+.fl-z0 { z-index: 0; }
+.fl-z1 { z-index: 1; }
+.fl-z2 { z-index: 2; pointer-events: none; }
+
+.fl-z2 > * { pointer-events: auto; }
+
+/* Decorative twins sit on top of z1 — do not steal hotspot hits. */
+.fl-z2 > .fl-core,
+.fl-z2 > .fl-monitor,
+.fl-z2 > .fl-beams {
+  pointer-events: none;
+}
+
+.fl-beams {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.fl-beam {
+  fill: none;
+  stroke: rgba(120, 240, 255, 0.92);
+  stroke-width: 0.22;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.fl-beam--glow {
+  stroke: rgba(77, 233, 255, 0.35);
+  stroke-width: 0.7;
+}
+
+.fl-beam__node {
+  fill: #9eecff;
+  stroke: rgba(77, 233, 255, 0.9);
+  stroke-width: 0.12;
+}
+
+.fl-beam__node--core {
+  fill: #4de9ff;
+}
+
+.fl-plate {
+  position: absolute;
+  inset: 0;
+}
+
+.fl-plate img,
+.fl-plate video {
+  object-fit: contain;
+  object-position: center;
+  /* Cut atmospheric bloom baked into the still — no art regen. */
+  filter: contrast(1.14) saturate(0.96) brightness(1.03);
+}
+
+.fl-hub[data-plate-clear='true'] .fl-plate img,
+.fl-hub[data-plate-clear='true'] .fl-plate video {
+  filter: contrast(1.2) saturate(0.94) brightness(1.04);
+}
+
+.fl-plate__layer {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 280ms ease;
+}
+
+.fl-plate__layer.is-on {
+  opacity: 1;
+}
+
+.fl-hub[data-reduced-motion='true'] .fl-plate__layer {
+  transition: none;
+}
+
+.fl-hotspot-map {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.fl-hotspot {
+  position: absolute;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  appearance: none;
+}
+
+.fl-hotspot--circle {
+  border-radius: 50%;
+}
+
+.fl-hotspot:focus-visible {
+  outline: 2px solid var(--fl-focus);
+  outline-offset: 3px;
+}
+
+.fl-hotspot.is-calibrate {
+  box-shadow: inset 0 0 0 1px rgba(0, 212, 255, 0.7);
+  background: rgba(0, 212, 255, 0.08);
+}
+
+.fl-core {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  filter: drop-shadow(0 0 8px rgba(0, 212, 255, 0.2));
+}
+
+.fl-core__rings,
+.fl-core__glyph {
+  position: absolute;
+  inset: 6%;
+}
+
+.fl-core__glyph {
+  display: none; /* plate owns SF; HTML glyph caused white double-letters */
+}
+
+.fl-core__ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 1.5px solid rgba(0, 212, 255, 0.45);
+}
+
+.fl-core__ring--dash {
+  inset: 8%;
+  border-style: dashed;
+  opacity: 0.7;
+}
+
+.fl-core__ring--inner {
+  inset: 18%;
+  border-width: 1px;
+}
+
+.fl-hub:not([data-reduced-motion='true']) .fl-core.is-idle .fl-core__ring {
+  animation: fl-spin 16s linear infinite;
+}
+
+.fl-hub:not([data-reduced-motion='true']) .fl-core.is-idle .fl-core__ring--dash {
+  animation: fl-spin 11s linear infinite reverse;
+}
+
+.fl-hub:not([data-reduced-motion='true']) .fl-core.is-charge {
+  animation: fl-charge 420ms ease-out both;
+}
+
+.fl-hub:not([data-reduced-motion='true']) .fl-core.is-emit {
+  animation: fl-emit 560ms ease-out both;
+}
+
+.fl-core.is-docked {
+  filter: drop-shadow(0 0 12px rgba(0, 212, 255, 0.28));
+}
+
+.fl-core__glyph {
+  width: 58%;
+  height: 58%;
+  margin: auto;
+}
+
+/* Same thin cyan hologram family as .fl-panel. Always on. Transform from dockSlotStyle. */
+.fl-monitor {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+  padding: 2.2% 3%;
+  overflow: hidden;
+  text-align: center;
+  /* Fit the plate's empty top hologram glass 1:1 — thin edge, light frost. */
+  border: 1.5px solid rgba(77, 233, 255, 0.7);
+  border-radius: 0.35%;
+  background: rgba(6, 14, 28, 0.28);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  box-shadow:
+    inset 0 0 0 1px rgba(77, 233, 255, 0.35),
+    0 0 14px rgba(77, 233, 255, 0.18);
+  color: var(--fl-text);
+  opacity: 1;
+}
+
+.fl-monitor.is-lit {
+  opacity: 1;
+}
+
+.fl-monitor__kicker,
+.fl-monitor__line,
+.fl-gauge__label {
+  margin: 0;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-size: clamp(8px, 1.05vw, 11px);
+  font-weight: 700;
+  color: var(--fl-text-dim);
+}
+
+.fl-monitor__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(13px, 1.8vw, 22px);
+  font-weight: 800;
+  color: #e8fdff;
+  text-shadow:
+    0 0 8px rgba(77, 233, 255, 0.55),
+    0 0 18px rgba(0, 212, 255, 0.35);
+}
+
+.fl-monitor--welcome .fl-monitor__title {
+  font-size: clamp(13px, 1.7vw, 22px);
+}
+
+.fl-monitor__subtitle {
+  margin: 0;
+  max-width: 94%;
+  font-size: clamp(10px, 1.1vw, 14px);
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--fl-text-dim);
+}
+
+.fl-monitor__row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.fl-gauges {
+  display: flex;
+  gap: 10px;
+}
+
+.fl-gauge {
+  min-width: 72px;
+}
+
+.fl-gauge__track {
+  height: 5px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+  overflow: hidden;
+}
+
+.fl-gauge__fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--fl-cyan), #7ef0ff);
+  box-shadow: 0 0 8px var(--fl-cyan);
+}
+
+.fl-gauge--streak .fl-gauge__fill {
+  background: linear-gradient(90deg, var(--fl-amber), #ffd08a);
+  box-shadow: 0 0 8px var(--fl-amber);
+}
+
+.fl-gauge__value {
+  display: block;
+  font-family: var(--font-display);
+  font-size: clamp(11px, 1.3vw, 15px);
+  font-weight: 700;
+  color: var(--fl-text);
+}
+
+.fl-monitor__line {
+  color: var(--fl-cyan-soft);
+  letter-spacing: 0.04em;
+  text-transform: none;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+/* One transformed hologram: border + frost + children share rotateY. */
+.fl-panel {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 10px 12px;
+  overflow: hidden;
+  border: 2px solid var(--fl-holo-edge);
+  background: var(--fl-holo-fill);
+  backdrop-filter: blur(var(--fl-holo-blur));
+  -webkit-backdrop-filter: blur(var(--fl-holo-blur));
+  box-shadow:
+    inset 0 0 0 1px var(--fl-holo-edge),
+    var(--fl-holo-glow);
+  color: var(--fl-text);
+  transform-origin: var(--fl-origin, center center);
+  transform: perspective(1200px) rotateY(var(--fl-yaw, 0deg));
+  opacity: 0;
+}
+
+.fl-panel.is-open {
+  opacity: 1;
+}
+
+.fl-hub:not([data-reduced-motion='true']) .fl-panel.is-open[data-side='left'],
+.fl-hub:not([data-reduced-motion='true']) .fl-panel.is-open[data-side='right'] {
+  animation: fl-fly-in 560ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.fl-hub[data-layout='authMerged'] .fl-panel.is-open,
+.fl-hub[data-morphing='true'] .fl-panel.is-open {
+  animation: none;
+}
+
+.fl-auth {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+}
+
+.fl-auth__field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fl-text-dim);
+}
+
+.fl-auth__field input {
+  min-height: 36px;
+  padding: 0 10px;
+  border: 1px solid var(--fl-holo-edge);
+  border-radius: 8px;
+  background: var(--fl-holo-fill-active);
+  color: var(--fl-text);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.fl-panel__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.fl-panel__head h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(12px, 1.4vw, 16px);
+  font-weight: 800;
+}
+
+.fl-panel__scroll {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+
+.fl-lab-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.fl-lab {
+  display: grid;
+  grid-template-columns: 18px 1fr auto;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--fl-text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.fl-lab:hover,
+.fl-lab[aria-selected='true'] {
+  border-color: color-mix(in srgb, var(--lab-color, var(--fl-cyan)) 70%, white);
+  background: var(--fl-holo-fill-active);
+}
+
+.fl-lab:focus-visible {
+  outline: 2px solid var(--fl-focus);
+  outline-offset: 2px;
+}
+
+.fl-lab__name {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.fl-lab__meta {
+  font-size: 10px;
+  color: var(--fl-text-dim);
+}
+
+.fl-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+  flex-shrink: 0;
+}
+
+.fl-chip,
+.fl-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 0 10px;
+  border-radius: 999px;
+  border: 1px solid var(--fl-holo-edge);
+  background: var(--fl-holo-fill-active);
+  color: var(--fl-text);
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.fl-chip:hover,
+.fl-icon-btn:hover {
+  border-color: var(--fl-cyan);
+  box-shadow: 0 0 12px rgba(0, 212, 255, 0.25);
+}
+
+.fl-chip:focus-visible,
+.fl-icon-btn:focus-visible {
+  outline: 2px solid var(--fl-focus);
+  outline-offset: 2px;
+}
+
+.fl-game-bay,
+.fl-avatar {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.fl-game-bay[data-slot='game-shell'],
+.fl-avatar[data-slot='avatar-creator'] {
+  min-height: 0;
+}
+
+.fl-game {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px;
+  border: 1px solid var(--fl-holo-edge);
+  border-radius: 8px;
+  background: var(--fl-holo-fill);
+}
+
+.fl-game strong {
+  display: block;
+  font-size: 12px;
+}
+
+.fl-game span {
+  font-size: 11px;
+  color: var(--fl-text-dim);
+}
+
+.fl-stub-note {
+  margin: 0;
+  font-size: 11px;
+  color: var(--fl-text-dim);
+}
+
+.fl-chrome {
+  position: absolute;
+  z-index: 3;
+  top: 1.5%;
+  left: 1.2%;
+  display: flex;
+  gap: 8px;
+  pointer-events: auto;
+}
+
+.fl-preview {
+  position: absolute;
+  z-index: 3;
+  top: 1.6%;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--fl-amber);
+  background: rgba(40, 18, 4, 0.72);
+  color: #ffd08a;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  pointer-events: none;
+}
+
+.fl-sr-live {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.fl-dialog {
+  position: absolute;
+  z-index: 4;
+  inset: 18% 18%;
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+  border: 1px solid rgba(0, 212, 255, 0.55);
+  background: rgba(4, 12, 18, 0.92);
+  color: var(--fl-text);
+  pointer-events: auto;
+}
+
+.fl-dialog h2 {
+  margin: 0 0 8px;
+  font-family: var(--font-display);
+}
+
+.fl-avatar-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+@keyframes fl-spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes fl-charge {
+  0% { transform: scale(1); filter: drop-shadow(0 0 12px rgba(0, 212, 255, 0.4)); }
+  60% { transform: scale(1.12); filter: drop-shadow(0 0 36px rgba(0, 212, 255, 0.9)); }
+  100% { transform: scale(1.04); }
+}
+
+@keyframes fl-emit {
+  0% { transform: scale(1.08); }
+  40% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
+@keyframes fl-fly-in {
+  from {
+    opacity: 0;
+    transform:
+      perspective(1200px)
+      rotateY(var(--fl-yaw, 0deg))
+      translate(var(--fl-from-x, 0), var(--fl-from-y, 0))
+      scale(0.35);
+  }
+  to {
+    opacity: 1;
+    transform: perspective(1200px) rotateY(var(--fl-yaw, 0deg));
+  }
+}
+
+@media (max-width: 700px) {
+  .fl-panel {
+    padding: 8px;
+  }
+
+  .fl-monitor__row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .fl-dialog {
+    inset: 10% 6%;
+  }
+
+  .fl-preview {
+    top: auto;
+    bottom: 8px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fl-core__ring,
+  .fl-core,
+  .fl-panel,
+  .fl-plate__layer,
+  .fl-monitor {
+    animation: none !important;
+    transition: none !important;
+  }
+}

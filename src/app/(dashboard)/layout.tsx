@@ -6,6 +6,7 @@
 
 'use client';
 
+import { usePathname } from 'next/navigation';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { TopBar } from '@/components/layout/TopBar';
 import { BottomNav } from '@/components/layout/BottomNav';
@@ -29,6 +30,8 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   useSessionTracker();
+  const pathname = usePathname();
+  const isForgeLab = FEATURE_FLAGS.FORGE_LAB_HUB && pathname === '/forge-lab';
 
   return (
     <AuthProvider>
@@ -39,6 +42,25 @@ export default function DashboardLayout({
           <DemoSessionBanner />
           <EmailVerifyBanner />
 
+          {isForgeLab ? (
+            <div
+              className="min-h-screen"
+              style={{
+                backgroundColor: '#05070b',
+                color: '#E8F7FF',
+                fontFamily: 'var(--font-body)',
+              }}
+            >
+              <main
+                id="main-content"
+                className="fixed inset-0 overflow-hidden"
+                role="main"
+                tabIndex={-1}
+              >
+                {children}
+              </main>
+            </div>
+          ) : (
           <div
             className="min-h-screen flex"
             style={{
@@ -84,8 +106,10 @@ export default function DashboardLayout({
             </div>
           </div>
 
-          {/* AI Tutor — Floating Avatar + Chat */}
-          <AITutor />
+          )}
+
+          {/* AI Tutor — omitted on Forge Lab so the SF core stays the emitter */}
+          {!isForgeLab && <AITutor />}
 
           <A11yAnnouncer />
           <RealtimeChildrenBridge />

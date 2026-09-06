@@ -44,6 +44,7 @@
 | `docs/research/` | AI trends + flagship game concepts (Lab-11 source). |
 | `docs/legal/` | Compliance, content coverage, accessibility audits. |
 | `docs/01-decisions/` | Decision records. |
+| [`docs/forge-lab-hub.md`](forge-lab-hub.md) | Indoor Forge Lab hotspot hub (SF portal mock). |
 
 ## Archived (superseded — historical only)
 
