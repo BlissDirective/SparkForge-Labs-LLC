@@ -126,3 +126,7 @@ Display still: `public/forge-lab/world/LOCKED_HERO_no_haze_filter.png`
 SHA256: `582366f956c37390fb70c8d954f247fc4f1e3932c47996202c30f43d27be0cd9`
 
 **Agents must never regenerate world art.** Copy byte-for-byte only; fail if SHA mismatches. See `public/forge-lab/world/LOCKED.md`.
+
+## Preview redeploy note (2026-09-06)
+
+Latest hub polish: no HTML SF glyph overlay; TopMonitor glass matched to plate; plate CSS clarity filter. Redeploy from this commit (not the older empty retrigger).
