@@ -1,0 +1,84 @@
+{
+  "dateafter": "20260301",
+  "topics": [
+    {
+      "slug": "ai-literacy-kids",
+      "found": 14,
+      "transcripts_ok": 13,
+      "shortfall": 16
+    },
+    {
+      "slug": "building-kids-games",
+      "found": 15,
+      "transcripts_ok": 12,
+      "shortfall": 15
+    },
+    {
+      "slug": "edtech-kids-ux",
+      "found": 13,
+      "transcripts_ok": 11,
+      "shortfall": 17
+    },
+    {
+      "slug": "game-design-web",
+      "found": 7,
+      "transcripts_ok": 5,
+      "shortfall": 23
+    },
+    {
+      "slug": "html5-canvas-kids",
+      "found": 7,
+      "transcripts_ok": 6,
+      "shortfall": 23
+    },
+    {
+      "slug": "immersive-kids-ed-games",
+      "found": 20,
+      "transcripts_ok": 17,
+      "shortfall": 10
+    },
+    {
+      "slug": "kids-game-ui-ux",
+      "found": 6,
+      "transcripts_ok": 5,
+      "shortfall": 24
+    },
+    {
+      "slug": "kids-online-games",
+      "found": 6,
+      "transcripts_ok": 5,
+      "shortfall": 24
+    },
+    {
+      "slug": "r3f-advanced",
+      "found": 14,
+      "transcripts_ok": 9,
+      "shortfall": 16
+    },
+    {
+      "slug": "r3f-environments",
+      "found": 11,
+      "transcripts_ok": 9,
+      "shortfall": 19
+    }
+  ],
+  "totals": {
+    "videos_found": 113,
+    "transcripts_ok": 92,
+    "topics": 10
+  },
+  "skills": [
+    "/workspace/SparkForge Labs/Master-SparkForge-Skills/ai-literacy-for-kids/SKILL.md",
+    "/workspace/SparkForge Labs/Master-SparkForge-Skills/building-childrens-online-games/SKILL.md",
+    "/workspace/SparkForge Labs/Master-SparkForge-Skills/edtech-kids-ux/SKILL.md",
+    "/workspace/SparkForge Labs/Master-SparkForge-Skills/html5-canvas-kids-games/SKILL.md",
+    "/workspace/SparkForge Labs/Master-SparkForge-Skills/immersive-kids-ed-games/SKILL.md",
+    "/workspace/SparkForge Labs/Master-SparkForge-Skills/immersive-online-ed-games-children/SKILL.md",
+    "/workspace/SparkForge Labs/Master-SparkForge-Skills/kids-game-ui-ux/SKILL.md",
+    "/workspace/SparkForge Labs/Master-SparkForge-Skills/kids-online-games/SKILL.md",
+    "/workspace/SparkForge Labs/Master-SparkForge-Skills/r3f-advanced-mastery/SKILL.md",
+    "/workspace/SparkForge Labs/Master-SparkForge-Skills/r3f-game-environments/SKILL.md",
+    "/workspace/SparkForge Labs/Master-SparkForge-Skills/web-game-design-fundamentals/SKILL.md"
+  ],
+  "git_branch_note": "Commit to setup-sparkforge-dev ONLY \u2014 never main"
+}
