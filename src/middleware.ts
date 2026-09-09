@@ -260,6 +260,7 @@ const PROTECTED_PAGE_PREFIXES: ReadonlyArray<string> = [
   '/achievements', '/admin', '/mastery', '/onboarding', '/parent',
   '/profile', '/progress', '/seasons', '/settings', '/story',
   '/mfa-challenge',
+  '/mission-control',
 ];
 
 function isProtectedPage(pathname: string): boolean {

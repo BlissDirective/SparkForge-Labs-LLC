@@ -21,7 +21,9 @@ import {
   GraduationCap,
   Wand2,
   BookOpen,
+  Radar,
 } from 'lucide-react';
+import { FEATURE_FLAGS } from '@/config/feature-flags';
 
 // `tour` renders a stable data-tour attribute used by DashboardTour anchors.
 const NAV_ITEMS: Array<{
@@ -31,6 +33,9 @@ const NAV_ITEMS: Array<{
   tour?: string;
 }> = [
   { href: '/home', label: 'Home', icon: Home },
+  ...(FEATURE_FLAGS.MISSION_CONTROL_HUB
+    ? [{ href: '/mission-control', label: 'Mission Control', icon: Radar }]
+    : []),
   { href: '/arcade', label: 'Arcade', icon: Gamepad2, tour: 'nav-arcade' },
   { href: '/labs', label: 'Labs', icon: FlaskConical, tour: 'nav-labs' },
   { href: '/story', label: 'Story', icon: BookOpen },
