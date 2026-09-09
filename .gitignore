@@ -50,3 +50,6 @@ next-env.d.ts
 
 # Sentry (Enhancement 8.1)
 .sentryclirc
+
+# token-optimizer MCP session cache
+.token-optimizer/
