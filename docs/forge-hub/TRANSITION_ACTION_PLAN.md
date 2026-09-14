@@ -1,7 +1,8 @@
-# Forge Hub — Full Transition Action Plan (v2)
+# Forge Hub — Full Transition Action Plan (v2.1)
 
 **Status:** Proposed — Phase 0 (governance) not yet started
-**Date:** 2026-09-13 (v1 2026-09-12)
+**Date:** 2026-09-14 (v2 2026-09-13, v1 2026-09-12)
+**v2.1 (2026-09-14):** owner closed the three open questions. The flat marketing scroll is dropped and the welcome scene inside the forge is the marketing hero. A year-one outfit catalog is added (§6b). Sparky's head-top hologram module is the emitter for a small chat hologram that floats above every other screen and is the chat box for all Sparky conversation (§2.8b). The Sparky concept art was supplied and its observations feed the character spec (§2.8a).
 **Owner vision (2026-09-13):** one seamless, video-like UI. The hologram screens move, merge, and resize with the kid's interaction: all three merge into one large hologram that games play inside; on welcome the two side holograms shrink slightly and carry the key details from the current hero page while the center hologram shows the login under a "Welcome to SparkForge" headline. The new Sparky is a fully rigged character that moves freely on the desk the emitter sits on, interacts with the kid, wears holiday outfits, and reacts to whatever hologram activity is being played or selected.
 **Inputs:** `PLAN_ASSESSMENT.md`, the six spec docs in this folder, PR #164, the code on `setup-sparkforge-dev` at `927560c`.
 **This is a plan. No code ships from this document.**
@@ -25,11 +26,13 @@
 | 9 | PR #164 | **Port, then close.** Layout math, portal reducer, catalog, tests, blend tokens, locked plate. Not the hotspot shell, route, or flag. | Detail |
 | 10 | Renderer and flag | **`three/webgpu` via the existing `createRenderer` factory with TSL materials** (WebGPU first, automatic WebGL2 backend, poster below that). Flag family `FORGE_HUB*` in `src/config/feature-flags.ts`. | Detail |
 
-Open questions for the owner (do not block Phase 0):
+Owner answers recorded 2026-09-14:
 
-- **Marketing long-scroll.** Plan assumes the Features, How-It-Works, AI Tutor, and CTA sections are condensed into the two welcome side panels and a "Learn more" Focus panel, and the flat scroll below the stage is dropped. Pricing and legal stay flat routes.
-- **Outfit calendar.** Plan assumes seven packs in year one (Halloween, winter holidays, Lunar New Year, spring, summer, back-to-school, child's birthday) plus lab-themed unlockable accessories, with a parent toggle. Confirm the list and whether any region-specific holidays are wanted.
-- **Sparky's voice.** Plan assumes text speech bubbles and the existing tutor chat, no synthesized voice in v1.
+| # | Question | Answer |
+|---|---|---|
+| 11 | Marketing long-scroll | **Dropped.** The welcome scene inside the forge is the marketing hero. Features, How-It-Works, and the AI tutor showcase condense into the two side panels and a "Learn more" Focus panel. Pricing and legal remain flat routes. |
+| 12 | Outfit calendar | **Year-one catalog in §6b**: five Halloween variants, Christmas, winter, spring, summer, fall, Fourth of July, a suit for special occasions, plus occasion and unlockable packs. Parent toggle stays. |
+| 13 | Sparky conversation | **Head-emitter chat hologram.** The translucent module on top of Sparky's head is an emitter. It projects a small hologram screen that renders above every other screen and is the chat box for all Sparky conversation (tips, reactions, the tutor chat). See §2.8b. Text only in v1; synthesized voice is a later option. |
 
 ---
 
@@ -97,15 +100,43 @@ Escape hatch: a `stage: 'glass' | 'fullscreen'` field in the game registry, defa
 - **Face:** Sparky's face is a screen. It is rendered as a dynamic texture from the existing nine-expression `SparkyCore` system, so expressions stay one source of truth across 3D, in-game 2D, and the compact shell, and cost no blendshapes. Eye look-at is procedural, aimed at the active panel, the hovered panel, or the pointer.
 - **Clip library (v1):** idle A, idle B, breathe and blink (procedural), walk, turn, wave, point left, point right, cheer, whisper lean, sit, sleep, surprised, sad nod, look around. Holiday packs may add one or two clips each.
 - **Behaviour system in code:** a small state machine, `idle → attend(panel) → react(event) → return`, fed by forge mode, active and hovered panel, `JuiceProvider` game events, tutor chat state, local time (sleepy after bedtime), and the outfit calendar. Movement is between named desk spots (`nearCore`, `leftLip`, `rightLip`, `frontCenter`, `behindCore`) using walk clips with root motion. No pathfinding.
-- **Interaction:** tap or click Sparky → reaction plus a tip; hover → glance. No dragging (accidental drags from kids). Raycast hits Sparky's mesh only; the desk sits below the glass plane so Sparky can never occlude a panel hit target. Speech is a drei `Html` tail with lines from `forgeSparkVoice.ts`; the AI tutor chat becomes Whisper mode with Sparky leaning in at `frontCenter`.
+- **Interaction:** tap or click Sparky → reaction plus a tip in the HoloBubble; hover → glance. No dragging (accidental drags from kids). Raycast hits Sparky's mesh only; the desk sits below the glass plane so Sparky can never occlude a panel hit target. All speech and the tutor chat live in the HoloBubble (§2.8b); Whisper mode is the bubble expanding while the main panels dim and Sparky leans in at `frontCenter`.
 - **Outfits:** attachment slots on named bones (head, back, left hand, right hand) plus material variant swaps. Each holiday pack is a small GLB of attachments and an optional clip, lazy-loaded by a calendar config (date ranges, region-neutral by default). Lab-themed accessories unlock through existing badges. Parents can disable seasonal outfits in settings. Kids never see a purchase surface for outfits.
 - **2D counterparts:** the in-game 72 px mount and the compact shell use stills and sprite sheets rendered from the 3D master so the look is identical. The `SparkyMachine` Rive contract is kept for any game that already uses it; authoring a Rive v2 is optional and later.
-- **Interim placeholder:** a procedural chrome orb body with the face screen (the `GuideAvatar3D` pattern) with bob and hop, so the behaviour system, spots, and reactions are built and tested before the rigged asset arrives.
+- **Interim placeholder:** a procedural coral capsule body with the face screen and head dome (the `GuideAvatar3D` pattern) with bob and hop, so the behaviour system, spots, reactions, and chat hologram are built and tested before the rigged asset arrives.
 - **Performance:** one skinned mesh with GPU skinning is roughly a millisecond a frame; well inside budget.
 
-### 2.9 Welcome and login are one composition
+### 2.8a What the concept art fixes for the spec
 
-`welcome` mode: HoloL and HoloR at about 85 percent scale carrying the hero's key details (what SparkForge is and the 11 labs and 42 games on the left; Sparky's introduction and the demo login on the right). HoloC at full size with "Welcome to SparkForge" above the login form. `/` and `/login` render this scene; `/signup`, `/forgot-password`, and `/reset-password` wipe different content into HoloC without a morph. On successful login the Director grows the sides to equal, wipes the mission into HoloC, and Sparky waves from `nearCore`. Marketing detail beyond the side panels opens a Focus panel from a "Learn more" control. The current flat marketing scroll, `ForgeHero`, `HeroSection`, and `LandingMicroGame` are retired at cutover.
+Observations from the supplied Sparky concept, to be written into `docs/SPARKY-CHARACTER-SPEC.md` and the artist brief:
+
+- **Silhouette:** chibi humanoid robot, head about a third of total height, rounded coral shell parts over black ball joints. Five-fingered hands. Rounded boots with cyan sole lights. This replaces the "chrome orb" description in the current Rive spec entirely.
+- **Palette:** coral body (warm, sits naturally in the rose-gold and cream room), black joints and inner mechanics, cyan for everything that emits (face, chest badge, head dome, ear discs, boot lights), yellow lightning-bolt decals on shoulders, forearms, hips, and boots.
+- **Face:** a black rounded screen with dot-matrix cyan eyes and smile. This confirms the dynamic face-screen texture approach; the nine expressions are redrawn in LED-dot style so 3D, in-game 2D, and compact tier share one face.
+- **Chest badge:** cyan "S" on a rounded plate. It is an emissive material zone, useful as a reaction light (pulses on cheer, dims when sleepy) and as an outfit swap zone.
+- **Head dome:** translucent cyan module with sparkle inside, on the crown. It is the chat emitter (§2.8b). It needs its own bone and socket, an emissive material that pulses while the chat hologram is open, and the outfit rule below.
+- **Ear discs:** cyan-ringed side modules, a natural attachment point for earmuffs and headphones in outfit packs.
+- **Rig guidance:** humanoid rig, about 45 to 60 bones including simplified fingers (two bones per finger) so pointing and waving read clearly; a `holoEmitter` bone at the dome; attachment sockets at crown (around the dome, never over it), face rim, ears, neck, chest plate, back, each hand, each boot.
+- **Decal zones as material slots:** bolts and the "S" plate are the cheap places for outfits to re-theme (bats at Halloween, snowflakes in winter, stars for the Fourth of July) without new geometry.
+- **Outfit rule:** nothing may cover the head dome. Hats and hoods are designed with a cutout or sit as a ring around it.
+
+### 2.8b The chat hologram ("HoloBubble")
+
+Sparky's head dome projects a fourth, small glass: the **HoloBubble**. It is the single place all Sparky conversation happens.
+
+- **What it is:** a small slab primitive (about 320 × 200 CSS pixels at rest) anchored to the `holoEmitter` bone and projected each frame like the three main panels, with a thin cyan beam from the dome to its lower edge. It is a DOM panel with the reading plate, so the chat is real text, scrollable, and screen-reader friendly. It always renders above the three main panels and above the play stage.
+- **States:** `hidden`; `ping` (a small glyph over the dome when Sparky has something to say); `tip` (one or two lines, auto-dismiss after a few seconds, no input); `chat` (expanded to about 420 × 320, message list plus input, the existing `AITutorContext` engine behind it); `whisper` (the three main panels dim and the bubble grows toward center stage for a coaching moment). Whisper mode is therefore the bubble expanding, not the chat moving onto HoloC.
+- **Follows Sparky:** when he walks to another desk spot the bubble trails him on a short spring and settles above his head. It clamps inside the viewport and flips to the other side of the dome if it would cover the focused control or the active panel's header. It never covers the play stage's input area during a game; during play it is limited to `ping` and `tip` and only speaks on the game's own events.
+- **Opening it:** tap or click Sparky or the bubble, the keyboard shortcut used by the current tutor, or the Director opening it for onboarding and first-visit moments. Escape closes it and returns focus to where it was.
+- **Voice:** text only in v1, with the existing `forgeSparkVoice.ts` lines and the tutor engine. Optional synthesized voice later would play from the dome.
+- **Compact tier and fallback:** the bubble becomes the existing floating chat panel with the 2D Sparky, same engine and messages.
+- **Replaces:** the drei `Html` speech tail from v2 and the floating `AITutor` chat on desktop.
+
+### 2.9 Welcome and login are one composition, and the welcome is the marketing hero
+
+`welcome` mode: HoloL and HoloR at about 85 percent scale carrying the hero's key details (what SparkForge is and the 11 labs and 42 games on the left; Sparky's introduction and the demo login on the right). HoloC at full size with "Welcome to SparkForge" above the login form. `/` and `/login` render this scene; `/signup`, `/forgot-password`, and `/reset-password` wipe different content into HoloC without a morph. On successful login the Director grows the sides to equal, wipes the mission into HoloC, and Sparky waves from `nearCore` with a HoloBubble greeting.
+
+There is no marketing page below or beside the forge. The welcome scene is the marketing hero: the side panels carry the pitch, a "Learn more" control opens a Focus panel with the longer Features and How-It-Works copy, and Sparky's HoloBubble offers the demo. All of this is server-rendered DOM so search engines index it. `ForgeHero`, `HeroSection`, `LandingMicroGame`, `NetworkMicroDemo`, `LandingFeatures`, `LandingHowItWorks`, `LandingAITutor`, `LandingCTA`, and `MoltenThread` are retired at cutover; their copy is the source for the side and Focus panels. `/pricing` and the legal pages remain flat routes reached from the footer chip on the `ToastRail`.
 
 ### 2.10 Renderer
 
@@ -142,8 +173,8 @@ Layout registry in world units for every mode including `playStage` as the merge
 3. Face-screen texture from `SparkyCore` expressions; eye look-at.
 4. External art: model, rig, clip library, GLB export through `optimize:3d`. Base character roughly four to six weeks of artist and animator time; one week per outfit pack.
 5. Swap the placeholder for the rigged asset; tune reactions in `/dev/forge-hub`.
-6. Outfit system and calendar config; first three packs; parent toggle in settings.
-7. Absorb the AI tutor into Whisper mode; remove the deprecated `AITutorAvatar`.
+6. Outfit system and calendar config; first packs per the §6b production order; parent toggle in settings.
+7. HoloBubble: the fourth slab, dome anchor and beam, states, follow spring, avoidance rules, keyboard access; the tutor engine moves behind it; remove the deprecated `AITutorAvatar` and the floating desktop chat.
 8. Render 2D stills and sprite sheets from the master for the in-game mount and compact shell; update `SparkyCore` fallback colours to the concept.
 9. Exit gate: every clip and reaction verified on `/dev/forge-hub`; hit-test e2e proves Sparky never occludes a focusable target; in-game mount unchanged in the game-migration smoke; outfit swap under 100 ms with no frame hitch.
 
@@ -255,6 +286,64 @@ All 52 `page.tsx` routes on the branch are accounted for.
 
 The in-game `SparkyMachine` contract and the `JuiceProvider` events do not change, so the 42 games never wait on the character.
 
+## 6b. Year-one outfit catalog
+
+Every pack is a small GLB of attachments on the named sockets plus material swaps on the decal zones, optionally one short clip, at most 500 KB compressed. Nothing covers the head dome. Kids never see a purchase surface; seasonal packs switch by calendar, occasion packs by event, unlockables by existing badges. Parents can turn seasonal outfits off in settings. Dates are inclusive and stored in a config file so they can be tuned without a deploy.
+
+**Seasonal (calendar-driven)**
+
+| Pack | Window | Attachments and swaps | Clip |
+|---|---|---|---|
+| Spring Bloom | Mar 20 – May 31 | Flower crown ring around the dome, small watering can in hand, yellow rain boots; bolts → petals | Sniff a flower |
+| Summer Splash | Jun 1 – Aug 31 | Sunglasses on the face rim, floppy sun hat ring, inflatable ring at the waist, flip-flop boot covers; bolts → suns | Fan self, "phew" |
+| Back to Forge | Aug 15 – Sep 15 (overlaps summer, wins) | Mini backpack, pencil behind the ear disc, name-tag sticker on the chest plate | Adjust backpack straps |
+| Fall Harvest | Sep 16 – Oct 24 | Knit beanie ring, cozy scarf, tiny leaf stuck on the dome edge, mug of cocoa in hand; bolts → maple leaves | Sip cocoa |
+| Winter Frost | Dec 27 – Feb 28 | Earmuffs on the ear discs, striped scarf, mittens, snow boots; bolts → snowflakes, chest badge frosts over | Shiver and brighten up |
+
+**Halloween (Oct 25 – Nov 1, five variants; a kid can pick, default rotates daily)**
+
+| Variant | Attachments and swaps | Clip |
+|---|---|---|
+| Pumpkin Pal | Orange jack-o'-lantern shell over the torso, leaf stem ring around the dome, green boot covers; face glows orange | Wobble laugh |
+| Friendly Ghost | Translucent white sheet with a dome cutout, cyan face shows through; bolts → tiny bats | Float up and "boo" |
+| Star Wizard | Pointed hat with a dome cutout, star-print cape, glowing wand; chest badge → moon | Wand sparkle |
+| Glow Skeleton | Body shell → matte black with glowing cyan bone decals; bolts → bones | Rattle dance |
+| Hero Cape | Red cape with SparkForge crest, small eye mask around the face rim, wrist cuffs; bolts stay | Hands-on-hips power pose |
+
+**Holidays (calendar-driven, region-aware, parent toggle)**
+
+| Pack | Window | Attachments and swaps | Clip |
+|---|---|---|---|
+| Fourth of July | Jul 1 – Jul 7 (US region default) | Star-spangled top hat ring, sparkler in hand, red-white-blue chest badge; bolts → stars | Wave sparkler |
+| Christmas Cheer | Dec 1 – Dec 26 | Santa hat with a dome cutout, candy-cane scarf, jingle-bell collar, gift box in hand; bolts → candy canes | Jingle and shake |
+| New Year Countdown | Dec 31 – Jan 2 | Party glasses showing the year, party horn, confetti decals | Blow horn and confetti |
+| Valentine Spark | Feb 10 – Feb 14 | Heart chest badge, bow tie, small heart decals; bolts → hearts | Blush and heart pop |
+| Lucky Clover | Mar 15 – Mar 17 | Green top hat ring, shamrock chest badge; bolts → clovers | Jig |
+| Lunar New Year | per lunar calendar, region opt-in | Red and gold silk vest, lantern in hand; chest badge → gold coin | Lantern raise |
+
+**Occasion (event-driven)**
+
+| Pack | Trigger | Attachments and swaps | Clip |
+|---|---|---|---|
+| Sharp Suit | Special occasions: the kid's lab completion, level-up ceremony, mastery claim, parent-shared report day | Tuxedo jacket and bow tie shell, cufflinks, polished boots; bolts hidden | Straighten tie, bow |
+| Graduation | Course or lab track completion | Mortarboard ring with a dome cutout, tassel, rolled diploma | Toss the cap |
+| Birthday | Child's birthday from the profile | Party hat ring, cake slice, balloon on a string | Dance |
+| First Day | First login and onboarding | Shiny "NEW" sticker on the chest plate, oversized welcome badge | Excited bounce |
+| Pajamas | After the profile's bedtime hour and before 6 a.m. | Nightcap ring, star-print pajama shell, slippers, teddy in hand; face dims | Yawn, curl up |
+
+**Unlockable (badge-driven, always available once earned)**
+
+| Pack | Unlock | Attachments and swaps |
+|---|---|---|
+| Lab Coat | First lab completed | White lab coat shell, safety goggles pushed up around the dome |
+| Forge Smith | Ten games completed | Leather apron, welding goggles ring, hammer in hand; bolts → sparks |
+| Astronaut | Lab 5 or space-themed track complete | Suit shell, backpack, bubble visor built around the dome |
+| Detective | Data Detective or Pixel Witness mastery | Deerstalker ring, magnifier in hand, trench collar |
+| Agent Atelier | Lab 11 track complete | Mint-cyan tech vest, holographic wrist tablet; chest badge → mint |
+| Chef | Any cooking-themed content complete | Toque ring, apron, spatula |
+
+**Production order** (one week of artist time per pack after the base character): First Day and Sharp Suit (needed for onboarding and ceremonies at launch), then whichever seasonal window is nearest to the cutover date, then the five Halloween variants as one batch, then Christmas and Winter Frost, then the remaining seasonal packs, then holidays and unlockables. Twenty-seven packs in year one is about twenty-seven artist weeks; the calendar means only the next two or three are ever on the critical path.
+
 ---
 
 ## 7. Risks and mitigations
@@ -267,7 +356,9 @@ The in-game `SparkyMachine` contract and the `JuiceProvider` events do not chang
 | Stage hurts LCP or INP | Medium | SSR'd DOM panels are the LCP; stage and Sparky chunks load post-LCP; Lighthouse gates made real in P3. |
 | Cyan glass fails contrast on real content | High if ignored | Reading plate rule from P2; guards run against the new theme. |
 | Sparky blocks or distracts | Medium | Desk below glass plane; raycast on Sparky only; idle loops subtle during play; a settings toggle to calm Sparky. |
-| Holiday outfits cause cultural or regional complaints | Low | Region-neutral default packs; parent toggle; content review in the COPPA pass. |
+| Holiday outfits cause cultural or regional complaints | Low | Region-aware windows; parent toggle; content review in the COPPA pass. |
+| Hats and hoods hide the head dome and break the chat emitter | Medium if unstated | Outfit rule in the character spec: every crown attachment has a dome cutout or sits as a ring; checked per pack on `/dev/forge-hub`. |
+| HoloBubble covers what the kid is doing | Medium | Renders above panels but avoids the focused control and the active panel header; `ping` and `tip` only during play; Escape always closes it. |
 | Two locked plates diverge | Low | Reconciled in P0 with SHA manifests; agents never regenerate world art. |
 | Retired cockpit code confuses agents and bloats builds | High today | CLAUDE.md v7 in P0; W9 archive PR in P7. |
 | Rollback is theoretical | Low | The compact shell is the rollback and is exercised daily by phone users. |
@@ -296,10 +387,10 @@ The in-game `SparkyMachine` contract and the `JuiceProvider` events do not chang
 
 ## 10. Immediate next actions (first two weeks)
 
-1. Owner confirms decisions 2 to 10 and answers the three open questions in §0.
-2. Commit `LOCKED_HUB`, `LOCKED_SPARKY`, and the PR #164 plate with SHA manifests.
+1. Owner confirms decisions 2 to 10 (11 to 13 are answered).
+2. Commit `LOCKED_HUB`, the supplied Sparky concept as `LOCKED_SPARKY.png`, and the PR #164 plate with SHA manifests.
 3. Write the decision lock and the Concept 10, Rebuild IV, and CLAUDE.md v7 amendments in one PR.
-4. Write `docs/SPARKY-CHARACTER-SPEC.md` and the artist brief; engage the artist.
+4. Write `docs/SPARKY-CHARACTER-SPEC.md` from §2.8a (silhouette, palette, face screen, dome bone and socket, sockets, decal slots, outfit rule) and the artist brief; engage the artist with the base character plus First Day and Sharp Suit as the first order.
 5. Write `docs/forge-hub/MOTION_BIBLE.md` v1: welcome, login success, hub to labs, lobby to play stage merge, play stage to lobby split, Whisper, Emit burst, first-visit ignition.
 6. Archive the root `Phased-R3F-Hub-Plan.md`; fix paths and vocabulary in the spec docs; open the PROGRESS.md section.
 7. Start P1: `/dev/forge-hub` room shell, portal reducer ported, SSIM harness, procedural placeholder Sparky with desk spots.
