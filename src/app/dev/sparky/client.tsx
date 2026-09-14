@@ -173,7 +173,7 @@ export function SparkyDevClient() {
           <p className="mb-4 rounded-md border border-amber-300/30 bg-amber-300/10 px-3 py-2 text-xs text-amber-100/90">
             Renders the procedural fallback orb until <code>public/rive/sparky.riv</code>{' '}
             exists. Authoring contract: state machine <code>SparkyMachine</code> — see{' '}
-            <code>docs/SPARKY-RIVE-SPEC.md</code>. These controls exercise the exact
+            <code>docs/sparky/SPARKY-CHARACTER-SPEC.md</code> §9. These controls exercise the exact
             inputs the juice system drives in-game.
           </p>
 

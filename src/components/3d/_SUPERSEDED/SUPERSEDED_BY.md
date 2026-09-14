@@ -72,3 +72,21 @@ All 17 references to `CrystalShatter` in stage documents have been redirected to
 ### Import Redirections
 
 The only consumer was `src/app/(auth)/layout.tsx`, which has been updated to drop both imports. `src/components/3d/panels/LoginPanel3D.tsx` references `LoginPortal3D` only in a code comment (no import) — left as-is.
+
+---
+
+## Superseded Files: GuideAvatar3D.tsx + AvatarPreview3D.tsx
+
+| Field | Value |
+|-------|-------|
+| **Superseded Files** | `GuideAvatar3D.tsx` (cockpit guide avatar: Orb, Fox, Drone, Spark, Nova concepts), `AvatarPreview3D.tsx` (6-shape profile avatar preview) |
+| **Replacement** | Sparky rigged 3D character per `docs/sparky/SPARKY-CHARACTER-SPEC.md`; profile avatar surface per `docs/forge-hub/TRANSITION_ACTION_PLAN.md` `avatarStudio` mode |
+| **Date Archived** | 2026-09-14 |
+| **Reason** | Owner locked the new Sparky concept (`public/forge-hub/sparky/LOCKED_SPARKY.png`) and asked for old avatar designs to be moved to obsolete folders. Both files rendered inside the retired cockpit `CockpitCanvas` and had zero importers on `setup-sparkforge-dev`. |
+| **Decision Reference** | `docs/forge-hub/LOCKED_SPARKY.md`; forge-hub plan W3 and W9 |
+
+### Notes
+
+- Both files use `@/` alias imports only, so they still typecheck from this folder (`npx tsc --noEmit` clean after the move). They are compiled but never bundled; the W9 archive PR may delete them outright.
+- `src/components/3d/panels/ChatPanel3D.tsx` mentions `GuideAvatar3D` in a comment only (no import) — left as-is; the panel itself is cockpit code slated for W9.
+- `AvatarPreview3D` was listed in the plan as a salvage candidate for `avatarStudio`; if revived, it is re-created against the forge stage rather than restored from here.

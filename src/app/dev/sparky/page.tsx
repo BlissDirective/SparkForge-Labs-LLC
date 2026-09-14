@@ -4,7 +4,7 @@
  * Visual checkpoint for the Sparky component system (Phase 3):
  * SparkyCore expressions/sizes, SparkyFloating, SparkyPresenter, and the
  * SparkyRive reactive game mascot (procedural fallback until
- * public/rive/sparky.riv is authored — see docs/SPARKY-RIVE-SPEC.md).
+ * public/rive/sparky.riv is authored — see docs/sparky/SPARKY-CHARACTER-SPEC.md §9).
  *
  * /dev/* routes are public on every environment (middleware).
  */

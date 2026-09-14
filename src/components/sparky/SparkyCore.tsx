@@ -5,8 +5,13 @@
 // All Sparky instances across the app (landing, dashboard, home, games)
 // render this exact same character.
 //
-// v2 (July 2026): re-skinned to the owner's canonical reference
-// (public/branding/sparky-reference.jpeg) — a full-body chibi chrome
+// DESIGN SUPERSEDED (2026-09-14): the locked Sparky is now the coral chibi
+// robot in public/forge-hub/sparky/LOCKED_SPARKY.png (spec:
+// docs/sparky/SPARKY-CHARACTER-SPEC.md). This drawing stays live until the
+// LED-dot redraw lands (forge-hub plan W3); the expression API is unchanged.
+//
+// v2 (July 2026): re-skinned to the then-canonical reference
+// (now public/branding/_obsolete/sparky-reference.jpeg) — a full-body chibi chrome
 // robot: polished dome head with a glowing lightning-bolt emblem,
 // dark visor screen with scanline LED eyes, glowing ear pods, chunky
 // chrome torso with neon trim, stubby arms and rounded boots. Neon

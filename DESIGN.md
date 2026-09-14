@@ -23,18 +23,27 @@ Aceternity). Full findings in Fable-5-SparkForge-Rebuild.md Part III.
   sarcastic, celebrates effort over correctness. Parent surfaces switch to
   calm-informative.
 
-## 2. Mascot — Sparky (LOCKED)
+## 2. Mascot — Sparky (LOCKED — re-locked 2026-09-14)
 
-- Canonical reference: `public/branding/sparky-reference.jpeg`.
-- Single implementation: `src/components/sparky/SparkyCore.tsx` — full-body
-  chibi chrome robot; lightning-bolt emblem; visor with scanline LED eyes;
-  neon ear pods. **No mascot drawings may exist outside
-  `src/components/sparky/`.**
-- Identity neon **#4DE9FF** is constant (trim/emblem/pods); the 9
-  expressions tint only face LEDs.
+- Canonical reference: `public/forge-hub/sparky/LOCKED_SPARKY.png` (SHA in
+  `public/forge-hub/SHA256SUMS`). Lock doc: `docs/forge-hub/LOCKED_SPARKY.md`.
+  Master spec: `docs/sparky/SPARKY-CHARACTER-SPEC.md`.
+- Character: coral chibi humanoid robot, black ball joints, cyan face screen
+  with dot-matrix eyes and smile, cyan "S" chest badge, yellow lightning-bolt
+  decals, translucent cyan head dome (the chat-hologram emitter; never covered).
+- Master asset is the rigged 3D GLB (Forge Hub desk companion). 2D stills for
+  compact tiers and the in-game mount are rendered from it.
+- Interim: `src/components/sparky/SparkyCore.tsx` still draws the previous
+  chrome-orb design until its LED-dot redraw lands (plan W3). **No mascot
+  drawings may exist outside `src/components/sparky/` and the locked asset
+  folder.**
+- Identity cyan is constant for emissives; the 9 expressions tint the face
+  screen only.
 - Sizing: fixed sm/md/lg/xl (40/72/120/192px) in app surfaces; fluid
   `pixelSize` (CSS `clamp()`) on marketing surfaces.
-- Rive upgrade path: `docs/SPARKY-RIVE-SPEC.md` (drop-in, no code changes).
+- In-game Rive contract (`SparkyMachine`) unchanged: spec §9.
+- Previous design: `public/branding/_obsolete/sparky-reference.jpeg`,
+  `docs/sparky/_SUPERSEDED/SPARKY-RIVE-SPEC.md`.
 - Usage discipline: Sparky appears where he *does* something (reacts,
   guides, celebrates, projects) — never as passive decoration.
 

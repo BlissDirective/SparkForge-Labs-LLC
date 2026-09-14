@@ -2714,3 +2714,34 @@ element measured 9,379px vs the 844px viewport.
 Body is filter-free again → fixed = viewport (verified: 844px). Slider +
 BrightnessEffect unchanged. Guard comment added: never put filters/
 transforms/backdrop-filters on html/body/app-shell wrappers.
+
+### FORGE HUB — locks committed, old avatar designs archived (2026-09-14)
+
+**Owner decisions (2026-09-13/14):** proceed with the animated Hologram-Forge Hub
+as the welcome, main, and control surface, and with the new Sparky character
+(rigged 3D desk companion with a head-dome chat hologram). Plan:
+`docs/forge-hub/TRANSITION_ACTION_PLAN.md` (v2.1). Assessment that preceded it:
+`docs/forge-hub/PLAN_ASSESSMENT.md`.
+
+**Locked assets committed** (`public/forge-hub/`, verify with
+`cd public/forge-hub && sha256sum -c SHA256SUMS`):
+- `world/LOCKED_HERO.png` (canonical plate, from PR #164), `world/LOCKED_HERO_no_haze_filter.png`
+  (display still; PR #164's five idle/charge/emit/docked copies were byte-identical
+  and are collapsed to this one), `world/SF_MONOGRAM_CLOSEUP.png`.
+- `sparky/LOCKED_SPARKY.png` (owner concept, exact bytes).
+- Lock docs: `docs/forge-hub/LOCKED_HUB.md` (paths updated), `docs/forge-hub/LOCKED_SPARKY.md` (new),
+  per-folder `LOCKED.md` manifests. Master character spec: `docs/sparky/SPARKY-CHARACTER-SPEC.md` (v1.0).
+
+**Archived (git mv, history preserved):**
+- `docs/SPARKY-RIVE-SPEC.md` → `docs/sparky/_SUPERSEDED/` (manifest added; `SparkyMachine` contract carried into the new spec §9).
+- `public/branding/sparky-reference.jpeg` → `public/branding/_obsolete/` (README added).
+- `src/components/3d/GuideAvatar3D.tsx`, `AvatarPreview3D.tsx` → `src/components/3d/_SUPERSEDED/` (0 importers; manifest updated; `tsc --noEmit` clean).
+- References updated: `DESIGN.md` §2, `public/rive/README.md`, `/dev/sparky` page and client, `SparkyCore.tsx` header comment.
+
+**Not moved (still live code):** `src/components/sparky/*` (17 importers of `SparkyCore`) — the
+drawing is design-superseded and redraws in plan W3; `AITutorAvatar.tsx` (deprecated, 6 importers)
+retires with the HoloBubble in W3.
+
+**Branch note:** repository default branch is `setup-sparkforge-dev`; no `main` existed before
+this entry. `main` was created from this commit at the owner's request. CI `push: branches: [main]`
+in `.github/workflows/ci.yml` now has a target.

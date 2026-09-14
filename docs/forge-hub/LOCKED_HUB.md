@@ -1,8 +1,11 @@
 # LOCKED — Hologram-Forge Hub (2026-09-11)
 
-## Files
-- `LOCKED_HUB.jpeg` / `LOCKED_HUB.png` — main design reference
-- `LOCKED_SPARKY.png` — Sparky avatar (separate lock)
+## Files (committed 2026-09-14, SHAs in `public/forge-hub/SHA256SUMS`)
+- `public/forge-hub/world/LOCKED_HERO.png` — canonical plate (the composition described below)
+- `public/forge-hub/world/LOCKED_HERO_no_haze_filter.png` — display still of the same plate
+- `public/forge-hub/world/SF_MONOGRAM_CLOSEUP.png` — emitter reference
+- `public/forge-hub/sparky/LOCKED_SPARKY.png` — Sparky (separate lock: `LOCKED_SPARKY.md`)
+- `LOCKED_HUB.jpeg` / `LOCKED_HUB.png` — owner's local design references; add to `public/forge-hub/world/` with SHAs only if they differ from `LOCKED_HERO.png`
 
 ## Product role
 This screen **replaces** the old sparkforge-labs.com hero marketing page.
@@ -22,6 +25,8 @@ It is the **welcome**, **main**, and **control** surface: panels dynamically shi
 ## Obsolete
 Stale hub comps live under `hub-concepts/obsolete/`.
 
-## Sparky (2026-09-11 decision)
-No dock baked into the plate. Sparky enters later as a **hologram / overlay** in the interactive UI (R3F / Html), not as painted desk hardware.
-Regen dock trials (`forge-mods/welcome-dock/13–14`) are exploratory only — not locked.
+## Sparky (2026-09-11 decision, revised 2026-09-14)
+No dock baked into the plate. Sparky is a **rigged 3D character on the desk** (not painted desk hardware, not a flat overlay), locked in `LOCKED_SPARKY.md`. Regen dock trials (`forge-mods/welcome-dock/13–14`) are exploratory only — not locked.
+
+## Build plan
+`TRANSITION_ACTION_PLAN.md` (v2.1) is the engineering plan for this lock.
