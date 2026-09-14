@@ -60,7 +60,7 @@ Each hologram is a glass mesh in the scene (edge glow, scanline, breathe, emissi
 
 Merge rule: when slabs merge or split, the DOM content of the outgoing layout fades during the first fifth of the morph, the glass carries the motion, and the incoming content wipes in during the last fifth. Content is never stretched.
 
-drei `Html` is used only for small in-world decorations: slot labels, Sparky's speech tail, toast chips.
+drei `Html` is used only for small in-world decorations: slot labels, the HoloBubble `ping` glyph, toast chips.
 
 ### 2.3 Reading plate rule
 
@@ -226,7 +226,7 @@ As v1: salvage the renderer factory, WebGPU detection, post-processing stack, er
 | **P2 Screen kit and Director** | 2–3 | W2, W7 | Login form through a full morph cycle including merge to `playStage`; Director timelines tested; theme applied; PR #164 ported and closed. |
 | **P3 Welcome, auth, home** | 2 | W4 wave 1, W6 | `/`, `/login`, `/signup`, `/home`, `/onboarding` on the stage; compact tier verified; Lighthouse gates real. |
 | **P4 Labs, content, games on glass** | 3 | W4 waves 2–3, W5 | Lab browse to lesson to game on glass and back with no re-init; all 42 games swept, `fullscreen` list agreed. |
-| **P5 Rigged Sparky, progress, profile** | 3 | W3 steps 5–8, W4 waves 4–5 | Rigged asset live with the full clip set; first three outfit packs; Whisper mode replaces the floating tutor; every kid route migrated or FLAT. |
+| **P5 Rigged Sparky, progress, profile** | 3 | W3 steps 5–8, W4 waves 4–5 | Rigged asset live with the full clip set; First Day, Sharp Suit, and the nearest seasonal pack shipped; HoloBubble replaces the floating tutor; every kid route migrated or FLAT. |
 | **P6 Polish and hardening** | 2 | W8, W7 guards | All jobs green flag-on and flag-off; SSIM in CI; bundle lines; reduced-motion pass; COPPA review of Sparky interaction and outfits. |
 | **P7 Cutover** | 1–2 plus 2 weeks soak | W10, W9 | Staged rollout complete; archive PR merged; tag cut. |
 
@@ -280,7 +280,7 @@ All 52 `page.tsx` routes on the branch are accounted for.
 | Face screen | Dynamic texture from `SparkyCore` expressions; procedural look-at | Engineering | P1 |
 | Integration | drei `useGLTF` and `useAnimations`; clip blending; root motion between spots | Engineering | P5 |
 | Outfit packs | Attachments GLB + optional clip per pack; calendar config; parent toggle | Artist and Engineering | P5 onward, one week per pack |
-| Whisper mode | Tutor chat on HoloC with Sparky at `frontCenter` | Engineering | P5 |
+| HoloBubble | Fourth slab on the dome bone; ping, tip, chat, whisper states; follow spring; avoidance; tutor engine behind it | Engineering | P2 (placeholder) to P5 |
 | 2D stills | Sprite sheets rendered from the master for in-game and compact | Engineering | P5 |
 | Verification | Clip and reaction pass, hit-test e2e, outfit swap timing, in-game smoke | Engineering | P5 to P6 |
 
