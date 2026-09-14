@@ -2742,6 +2742,10 @@ as the welcome, main, and control surface, and with the new Sparky character
 drawing is design-superseded and redraws in plan W3; `AITutorAvatar.tsx` (deprecated, 6 importers)
 retires with the HoloBubble in W3.
 
-**Branch note:** repository default branch is `setup-sparkforge-dev`; no `main` existed before
-this entry. `main` was created from this commit at the owner's request. CI `push: branches: [main]`
-in `.github/workflows/ci.yml` now has a target.
+**Branch note:** repository default branch is and stays `setup-sparkforge-dev` (owner decision
+2026-09-14). A `main` branch was created from this commit on a misread "merge all to main"
+instruction; it has no unique commits and is to be deleted by the owner in the GitHub UI
+(Branches → `main` → delete), since the remote session's git proxy blocks ref deletion. Nothing
+should ever be pushed to it. `.github/workflows/ci.yml` triggers
+were pointing at the non-existent `main` (so CI never ran on pushes to the default branch or on
+PRs into it); they now target `setup-sparkforge-dev`, `claude/**`, and `grok/**`.

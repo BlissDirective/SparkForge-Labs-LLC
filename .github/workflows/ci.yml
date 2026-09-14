@@ -15,11 +15,12 @@ name: CI
 
 on:
   pull_request:
-    branches: [main]
+    branches: [setup-sparkforge-dev]
   push:
     branches:
-      - main
+      - setup-sparkforge-dev # default and only integration branch (no `main`)
       - 'claude/**' # audit branches
+      - 'grok/**' # Grok Bot Team branches (docs/forge-hub/GROK_TEAM_PROMPTS.md)
 
 # Cancel superseded runs for the same branch to save minutes.
 concurrency:

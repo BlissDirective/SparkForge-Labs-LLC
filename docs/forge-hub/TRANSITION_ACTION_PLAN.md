@@ -421,7 +421,7 @@ Eight roles. One agent per role is enough; Stagehand and Glazier may be doubled 
 | **Smith** | Character pipeline | W3: Sparky spec adherence, candidate generation, Blender scripting, rig and export, `optimize:3d`, import checks, outfit packs, 2D stills, HoloBubble coupling with Stagehand | Locked art bytes, the panel system |
 | **Director** | Motion and cinematics | Motion bible implementation, Theatre.js beats, GSAP timelines, Tone.js stings, SSIM harness, reduced-motion substitutes | Layout registry values (proposes to Stagehand), game code |
 | **Inspector** | QA and performance | W8: unit, e2e, visual, SSIM in CI, axe, Lighthouse, the 42-game glass sweep on reference hardware, hit-test spec for Sparky | Shipping fixes in others' areas (files bugs with repro instead; may fix tests and CI config) |
-| **Gatekeeper** | Release | W9 archive PR, W10 flags and rollout, Vercel environment variables, Sentry tags, branch hygiene, merges to `main` | Anything before its gate passes |
+| **Gatekeeper** | Release | W9 archive PR, W10 flags and rollout, Vercel environment variables, Sentry tags, branch hygiene, release tags on `setup-sparkforge-dev` | Anything before its gate passes |
 
 ### 11.2 Sources of truth, read in this order, every session
 
@@ -438,7 +438,7 @@ Eight roles. One agent per role is enough; Stagehand and Glazier may be doubled 
 1. Never regenerate, re-render, recompress, or restyle any file under `public/forge-hub/`. Verify `sha256sum -c SHA256SUMS` before and after any task that touches the folder.
 2. Never edit files under `src/components/games/*` (W5 changes the shell, not the games). Never skip, disable, or quarantine a test to get green.
 3. Never add a Zustand store (repurpose `sceneStore` per §2.5). Never put `filter`, `transform`, or `backdrop-filter` on `html`, `body`, or an app-shell wrapper.
-4. Never merge to `main`, flip a production flag, change a Vercel production setting, or change a GitHub repository setting without an owner approval packet marked Approved.
+4. Never create a release tag, create or delete a long-lived branch, flip a production flag, change a Vercel production setting, or change a GitHub repository setting without an owner approval packet marked Approved. `setup-sparkforge-dev` is the default and only integration branch; there is no `main`.
 5. Never paste a secret into chat, a PR, a commit, a doc, or a log. Secrets live only where §11.6 says.
 6. Never add a dependency outside the stack in CLAUDE.md §1 without an owner approval packet, except the dev-only tools listed in §11.7.
 7. Never spend money (API credits, contractor hours, paid add-ons) without an owner approval packet that names the amount.
@@ -452,7 +452,7 @@ Eight roles. One agent per role is enough; Stagehand and Glazier may be doubled 
 |---|---|---|---|
 | **0 — Agent decides** | The agent, alone, immediately | Implementation details inside its area; file and function names; which drei helper to use; test structure; clip timing within ± 20 %; generating candidate assets for review; ordering its own subtasks; choosing among stack-approved libraries | PR description |
 | **1 — Foreman sign-off** | Foreman, same day | Cross-agent interface changes (store shape, layout registry fields, socket names); budget adjustments inside §8 limits; re-ordering tasks across agents; adding a dev-only tool from §11.7; a doc amendment that changes no product behaviour | Task board + PR |
-| **2 — Owner approval** | Owner, via approval packet | Anything a kid sees (§11.3 rule 9); palette, silhouette, proportions, expressions, outfit designs; mode or layout changes; the fullscreen list for games; a dependency outside the stack; any spend; account creation; production flags; merges to `main`; reopening decisions 1 to 13; timeline slips over one week | Approval packet, owner reply, then PR |
+| **2 — Owner approval** | Owner, via approval packet | Anything a kid sees (§11.3 rule 9); palette, silhouette, proportions, expressions, outfit designs; mode or layout changes; the fullscreen list for games; a dependency outside the stack; any spend; account creation; production flags; release tags; reopening decisions 1 to 13; timeline slips over one week | Approval packet, owner reply, then PR |
 
 **Options rule.** For any Tier 1 or Tier 2 decision the agent writes at most three options with a one-line recommendation and the cost of waiting. For Tier 1 it continues on the recommended option unless Foreman objects within the day. For Tier 2 it prepares everything short of the decision (both branches if cheap) and waits.
 
@@ -481,9 +481,9 @@ Everything in this table is the owner's to create or grant. Secrets are stored o
 | Account or platform | Needed for | Who uses it | Status | Where the secret lives |
 |---|---|---|---|---|
 | GitHub `BlissDirective/SparkForge-Labs-LLC` | Branches, PRs, Actions | All agents | Exists | Grant each agent a fine-grained PAT or a GitHub App installation scoped to this repo only, with Contents and Pull requests read/write and Actions read; no admin scope. Store in the agent runner's secret store as `GITHUB_TOKEN`. |
-| GitHub repository settings | Default branch, branch protection on `main`, Git LFS | Owner only | `main` created 2026-09-14; default branch still `setup-sparkforge-dev` | Owner decides in P0 whether `main` becomes the default and protected branch (recommended: yes, with required CI and one owner review). |
+| GitHub repository settings | Branch protection on `setup-sparkforge-dev`, Git LFS | Owner only | `setup-sparkforge-dev` is and stays the default branch (owner decision 2026-09-14; a stray `main` with no unique commits is pending deletion by the owner in the GitHub UI and must never receive pushes) | Recommended: protect `setup-sparkforge-dev` with required CI and one owner review so agent PRs cannot self-merge. |
 | Vercel team `conrad-steinmeyers-projects`, project `sparkforge-labs` | Preview deployments per PR (already automatic), production env vars, `FORGE_HUB*` flags | Gatekeeper (read), owner (write) | Exists | Vercel dashboard. Agents do not need a Vercel token for previews. If Gatekeeper is to set env vars, create a Vercel token scoped to the project and store it as `VERCEL_TOKEN`; otherwise the owner sets flags by hand from Gatekeeper's packet. |
-| Vercel production branch | Which branch deploys to production | Owner | Latest deployment target is preview; no custom domain attached | Owner sets the production branch to `main` when ready for W10. |
+| Vercel production branch | Which branch deploys to production | Owner | Latest deployment target is preview; no custom domain attached | Owner confirms the production branch is `setup-sparkforge-dev` when ready for W10; releases are tags on that branch. |
 | Supabase project `gqoaknfboahuqvgpidgw` | Two small additions later: per-child `sparky_outfits_enabled` and `sparky_calm_mode` settings columns (W3 step 6), `sparky_outfit_unlocks` reads from existing badges | Scribe drafts migration; owner reviews; applied via the existing MCP flow | Exists; no change until P5 | Service role key never reaches an agent; `NEXT_PUBLIC_SUPABASE_URL` and anon key already in Vercel and `.env.local`. |
 | Sentry | `forge_hub` release tag, perf transactions for morphs | Gatekeeper | Exists (`NEXT_PUBLIC_SENTRY_DSN`) | No new key. |
 | Anthropic API | Tutor chat behind the HoloBubble | Unchanged | Exists (`ANTHROPIC_API_KEY`) | No change; the chat engine is reused. |
