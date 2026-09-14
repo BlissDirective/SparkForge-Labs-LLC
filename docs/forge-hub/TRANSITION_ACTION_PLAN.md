@@ -1,7 +1,8 @@
-# Forge Hub — Full Transition Action Plan (v2.1)
+# Forge Hub — Full Transition Action Plan (v2.2)
 
-**Status:** Proposed — Phase 0 (governance) not yet started
-**Date:** 2026-09-14 (v2 2026-09-13, v1 2026-09-12)
+**Status:** APPROVED direction — locks committed 2026-09-14; Phase 0 dispatchable
+**Date:** 2026-09-14 (v2.1 same day, v2 2026-09-13, v1 2026-09-12)
+**v2.2 (2026-09-14):** locks committed (`public/forge-hub/`, `docs/forge-hub/LOCKED_SPARKY.md`, `docs/sparky/SPARKY-CHARACTER-SPEC.md`); old avatar designs archived; decisions 2 to 10 confirmed by the owner ("lock both, proceed"); §11 added: the Grok Bot Team operating model, accounts, keys, software, decision authority, dispatch order, and approval flow, with the copy-paste agent prompts in `GROK_TEAM_PROMPTS.md`.
 **v2.1 (2026-09-14):** owner closed the three open questions. The flat marketing scroll is dropped and the welcome scene inside the forge is the marketing hero. A year-one outfit catalog is added (§6b). Sparky's head-top hologram module is the emitter for a small chat hologram that floats above every other screen and is the chat box for all Sparky conversation (§2.8b). The Sparky concept art was supplied and its observations feed the character spec (§2.8a).
 **Owner vision (2026-09-13):** one seamless, video-like UI. The hologram screens move, merge, and resize with the kid's interaction: all three merge into one large hologram that games play inside; on welcome the two side holograms shrink slightly and carry the key details from the current hero page while the center hologram shows the login under a "Welcome to SparkForge" headline. The new Sparky is a fully rigged character that moves freely on the desk the emitter sits on, interacts with the kid, wears holiday outfits, and reacts to whatever hologram activity is being played or selected.
 **Inputs:** `PLAN_ASSESSMENT.md`, the six spec docs in this folder, PR #164, the code on `setup-sparkforge-dev` at `927560c`.
@@ -25,6 +26,8 @@
 | 8 | Choreography | **Every state change is a directed, interruptible sequence** (glass, beams, emitter, Sparky, audio) rather than independent tweens. GSAP timelines at runtime; Theatre.js for authored cinematic beats. See §2.6. | Shapes the plan |
 | 9 | PR #164 | **Port, then close.** Layout math, portal reducer, catalog, tests, blend tokens, locked plate. Not the hotspot shell, route, or flag. | Detail |
 | 10 | Renderer and flag | **`three/webgpu` via the existing `createRenderer` factory with TSL materials** (WebGPU first, automatic WebGL2 backend, poster below that). Flag family `FORGE_HUB*` in `src/config/feature-flags.ts`. | Detail |
+
+Decisions 2 to 10 were confirmed by the owner on 2026-09-14 ("lock both, proceed"). Any of them can still be reopened by the owner; agents may not reopen them (§11.4).
 
 Owner answers recorded 2026-09-14:
 
@@ -396,3 +399,136 @@ Every pack is a small GLB of attachments on the named sockets plus material swap
 7. Start P1: `/dev/forge-hub` room shell, portal reducer ported, SSIM harness, procedural placeholder Sparky with desk spots.
 8. Port PR #164's layout math, catalog, reducer, tests, and blend tokens; close the PR with a link here.
 9. Schedule the P1 owner visual checkpoint.
+
+Items 2 and the spec half of item 4 were completed on 2026-09-14 (see PROGRESS.md "FORGE HUB — locks committed"). The rest are dispatched to the Grok Bot Team per §11.
+
+---
+
+## 11. Grok Bot Team — operating model, accounts, keys, software, and dispatch
+
+This section is the owner's handbook for running the build with a team of Grok agents. The literal, copy-paste prompts for each agent are in `docs/forge-hub/GROK_TEAM_PROMPTS.md`. Agents make decisions dynamically inside the authority tiers in §11.4; the owner is the only approver at every gate that changes what a kid sees.
+
+### 11.1 Roster
+
+Eight roles. One agent per role is enough; Stagehand and Glazier may be doubled once P2 is done. Names are call signs used in branches, PR titles, and PROGRESS.md so the owner can see who did what at a glance.
+
+| Call sign | Role | Owns | Never touches |
+|---|---|---|---|
+| **Foreman** | Program lead and orchestrator | Task board, dispatch, dependency order, approval packets to the owner, PROGRESS.md daily note, gate enforcement | Application code, art |
+| **Scribe** | Governance and documentation | W0: decision lock, Concept 10 and Rebuild IV amendments, CLAUDE.md v7, vocabulary, motion bible, PR #164 port and close, `_SUPERSEDED` manifests | Source code beyond doc comments, art |
+| **Stagehand** | Hub engineer | W1 and W2: renderer, room, glass, projection hook, Director, `forgeStore`, `ForgeRouteMode`, `HoloPanel`, `EscapeFlat`, `ToastRail`, `/dev/forge-hub` | Game components, Sparky art, feature flags for production |
+| **Glazier** | Screen migration engineer | W4 waves, W5 games on glass, W6 compact shell, W7 theme | The stage internals owned by Stagehand (proposes changes to Stagehand instead), games' internals |
+| **Smith** | Character pipeline | W3: Sparky spec adherence, candidate generation, Blender scripting, rig and export, `optimize:3d`, import checks, outfit packs, 2D stills, HoloBubble coupling with Stagehand | Locked art bytes, the panel system |
+| **Director** | Motion and cinematics | Motion bible implementation, Theatre.js beats, GSAP timelines, Tone.js stings, SSIM harness, reduced-motion substitutes | Layout registry values (proposes to Stagehand), game code |
+| **Inspector** | QA and performance | W8: unit, e2e, visual, SSIM in CI, axe, Lighthouse, the 42-game glass sweep on reference hardware, hit-test spec for Sparky | Shipping fixes in others' areas (files bugs with repro instead; may fix tests and CI config) |
+| **Gatekeeper** | Release | W9 archive PR, W10 flags and rollout, Vercel environment variables, Sentry tags, branch hygiene, merges to `main` | Anything before its gate passes |
+
+### 11.2 Sources of truth, read in this order, every session
+
+1. `docs/forge-hub/TRANSITION_ACTION_PLAN.md` (this file)
+2. `docs/forge-hub/LOCKED_HUB.md`, `docs/forge-hub/LOCKED_SPARKY.md`, `public/forge-hub/README.md`
+3. `docs/sparky/SPARKY-CHARACTER-SPEC.md` (Smith, Stagehand, Director)
+4. `docs/forge-hub/PLAN_ASSESSMENT.md` (why the plan is shaped this way)
+5. `CLAUDE.md` (autonomy rules, soft and hard stops, commit strategy) — note it is being revised to v7 by Scribe; until then §1 of this plan wins on any conflict
+6. `docs/STATE_ARCHITECTURE.md`, `docs/UX_CONTRAST_POLICY.md`, `docs/concepts/10-digital-forge-build-plan.md` §0.1 and §1.5, PROGRESS.md "OVERLAY-CRIT-001"
+7. `docs/forge-hub/TASK_BOARD.md` (created by Foreman on day one; the live state)
+
+### 11.3 Hard rules (no tier can waive these)
+
+1. Never regenerate, re-render, recompress, or restyle any file under `public/forge-hub/`. Verify `sha256sum -c SHA256SUMS` before and after any task that touches the folder.
+2. Never edit files under `src/components/games/*` (W5 changes the shell, not the games). Never skip, disable, or quarantine a test to get green.
+3. Never add a Zustand store (repurpose `sceneStore` per §2.5). Never put `filter`, `transform`, or `backdrop-filter` on `html`, `body`, or an app-shell wrapper.
+4. Never merge to `main`, flip a production flag, change a Vercel production setting, or change a GitHub repository setting without an owner approval packet marked Approved.
+5. Never paste a secret into chat, a PR, a commit, a doc, or a log. Secrets live only where §11.6 says.
+6. Never add a dependency outside the stack in CLAUDE.md §1 without an owner approval packet, except the dev-only tools listed in §11.7.
+7. Never spend money (API credits, contractor hours, paid add-ons) without an owner approval packet that names the amount.
+8. Every PR targets `setup-sparkforge-dev`, is named `<callsign>: <task-id> <title>`, uses the PR template in `GROK_TEAM_PROMPTS.md` §0.3, and carries the attribution footer the repo requires.
+9. Anything visible to a kid (layout, motion, colour, copy, Sparky's look or behaviour, an outfit) reaches the owner as an approval packet before it merges.
+10. When blocked or uncertain, do not stop silently and do not guess at a Tier 2 decision: write the options (§11.4) and continue on the recommended option only if it is Tier 0 or 1.
+
+### 11.4 Decision authority tiers (dynamic decisions with owner final approval)
+
+| Tier | Who decides | Examples | Record where |
+|---|---|---|---|
+| **0 — Agent decides** | The agent, alone, immediately | Implementation details inside its area; file and function names; which drei helper to use; test structure; clip timing within ± 20 %; generating candidate assets for review; ordering its own subtasks; choosing among stack-approved libraries | PR description |
+| **1 — Foreman sign-off** | Foreman, same day | Cross-agent interface changes (store shape, layout registry fields, socket names); budget adjustments inside §8 limits; re-ordering tasks across agents; adding a dev-only tool from §11.7; a doc amendment that changes no product behaviour | Task board + PR |
+| **2 — Owner approval** | Owner, via approval packet | Anything a kid sees (§11.3 rule 9); palette, silhouette, proportions, expressions, outfit designs; mode or layout changes; the fullscreen list for games; a dependency outside the stack; any spend; account creation; production flags; merges to `main`; reopening decisions 1 to 13; timeline slips over one week | Approval packet, owner reply, then PR |
+
+**Options rule.** For any Tier 1 or Tier 2 decision the agent writes at most three options with a one-line recommendation and the cost of waiting. For Tier 1 it continues on the recommended option unless Foreman objects within the day. For Tier 2 it prepares everything short of the decision (both branches if cheap) and waits.
+
+### 11.5 Approval packets (the only way to reach the owner)
+
+Foreman assembles and sends packets; agents feed him. One packet per decision. The owner answers in chat or on the PR with one word — **Approve**, **Revise** (with notes), or **Reject** — and the Foreman records it in the task board and PROGRESS.md.
+
+```
+APPROVAL PACKET <id> — <title>
+Gate: <P0..P7 gate or checkpoint id C1..C7>   Tier: 2   Requested by: <callsign>
+What: one paragraph.
+Why now: one line.
+Look: screenshots / turntable / preview URL (Vercel preview for the PR).
+Diff: PR link and files touched.
+Risk and rollback: one line each.
+Options considered: A (recommended) / B / C, one line each.
+Ask: Approve | Revise | Reject
+```
+
+Foreman sends at most five open packets at a time and batches cosmetic ones. Silence is never approval.
+
+### 11.6 Accounts, platforms, and keys
+
+Everything in this table is the owner's to create or grant. Secrets are stored only in the named place; agents read them from the environment and never echo them.
+
+| Account or platform | Needed for | Who uses it | Status | Where the secret lives |
+|---|---|---|---|---|
+| GitHub `BlissDirective/SparkForge-Labs-LLC` | Branches, PRs, Actions | All agents | Exists | Grant each agent a fine-grained PAT or a GitHub App installation scoped to this repo only, with Contents and Pull requests read/write and Actions read; no admin scope. Store in the agent runner's secret store as `GITHUB_TOKEN`. |
+| GitHub repository settings | Default branch, branch protection on `main`, Git LFS | Owner only | `main` created 2026-09-14; default branch still `setup-sparkforge-dev` | Owner decides in P0 whether `main` becomes the default and protected branch (recommended: yes, with required CI and one owner review). |
+| Vercel team `conrad-steinmeyers-projects`, project `sparkforge-labs` | Preview deployments per PR (already automatic), production env vars, `FORGE_HUB*` flags | Gatekeeper (read), owner (write) | Exists | Vercel dashboard. Agents do not need a Vercel token for previews. If Gatekeeper is to set env vars, create a Vercel token scoped to the project and store it as `VERCEL_TOKEN`; otherwise the owner sets flags by hand from Gatekeeper's packet. |
+| Vercel production branch | Which branch deploys to production | Owner | Latest deployment target is preview; no custom domain attached | Owner sets the production branch to `main` when ready for W10. |
+| Supabase project `gqoaknfboahuqvgpidgw` | Two small additions later: per-child `sparky_outfits_enabled` and `sparky_calm_mode` settings columns (W3 step 6), `sparky_outfit_unlocks` reads from existing badges | Scribe drafts migration; owner reviews; applied via the existing MCP flow | Exists; no change until P5 | Service role key never reaches an agent; `NEXT_PUBLIC_SUPABASE_URL` and anon key already in Vercel and `.env.local`. |
+| Sentry | `forge_hub` release tag, perf transactions for morphs | Gatekeeper | Exists (`NEXT_PUBLIC_SENTRY_DSN`) | No new key. |
+| Anthropic API | Tutor chat behind the HoloBubble | Unchanged | Exists (`ANTHROPIC_API_KEY`) | No change; the chat engine is reused. |
+| Stripe | None | — | — | Untouched by this plan. |
+| Blender 4.2 LTS | Modelling, rigging, clip authoring, headless export and checks | Smith, artist | Free; install on the agent runner and the artist's machine | No key. |
+| Image-to-3D generation service (Meshy or Tripo3D; one is enough) | Track A candidate models from `LOCKED_SPARKY.png` (§11.8) | Smith | **Owner decision + spend**: create an account, buy the smallest credit pack, store the key as `MESH_GEN_API_KEY` | Agent runner secret store. Candidates are proposals only; the lock is never uploaded anywhere that claims rights over it. Check the service's terms on ownership of generated output before buying. |
+| Adobe account for Mixamo | Free auto-rig and animation clips as a rigging fallback and clip starting points | Smith, artist | Free; owner creates | No API; browser use. Mixamo clips are retargeted in Blender to the §4.1 skeleton. |
+| Contract 3D character artist (Track B) | Final model, rig, clip library, outfit packs when Track A is not good enough | Owner hires; Smith briefs and reviews | **Owner decision + spend** | Brief = `SPARKY-CHARACTER-SPEC.md` + `LOCKED_SPARKY.png` + plate. Deliverables and checkpoints are in the spec §2 and §11. |
+| Git LFS on this repo, or a new `SparkForge-Sparky-Assets` repo | `.blend` and texture sources | Smith, artist | **Owner decision** (recommended: LFS on this repo, budget 2 GB) | GitHub settings. |
+| Rive (free tier) | Only if a `.riv` is authored for the in-game mount instead of sprite sheets | Smith | Optional | No key. |
+| Real-device or cloud device lab (BrowserStack or LambdaTest), or one physical Chromebook and one iPad | Inspector's reference-hardware runs (§8) | Inspector | **Owner decision + spend** (a physical Chromebook is cheaper and better) | If cloud: `DEVICE_LAB_USER` and `DEVICE_LAB_KEY` in the runner secret store. |
+| Concept art tool the owner used for `LOCKED_SPARKY.png` | Turnaround and expression-sheet proposals, outfit concept proposals (never the lock itself) | Owner, or Smith with the owner's account if permitted | Exists on the owner's side | Owner's account; agents receive outputs as files. |
+
+### 11.7 Software on the agent runner
+
+Node 24.x (matches Vercel), npm, Git with LFS, Blender 4.2 LTS CLI (`blender -b -P`), `@gltf-transform/cli`, KTX-Software `toktx` (already required by `scripts/optimize-3d-assets.mjs`), Python 3.11 for Blender scripts, Playwright with Chromium (WebGPU flags) and WebKit, `@lhci/cli` 0.14, ImageMagick or `sharp` for stills and sprite sheets, `ffmpeg` for loop encodes, an SSIM tool (`ssim.js` npm or `scikit-image`), Theatre.js studio in the browser via `/dev/forge-hub`. All free; adding anything else is Tier 1 if dev-only, Tier 2 if it ships.
+
+### 11.8 Sparky production: two tracks, owner picks at C1
+
+- **Track A — AI-assisted.** Smith generates 6 to 10 image-to-3D candidates from `LOCKED_SPARKY.png` (front view, then with owner-approved turnaround sheets), imports each into Blender headless, normalises scale and orientation per spec §3.1, renders a comparison sheet against the concept, and sends one approval packet: "Candidate sheet". If the owner approves a candidate, Smith retopologises and cleans it to spec §3 budgets, builds the §4 rig (Rigify humanoid metarig renamed to the contract, or Mixamo auto-rig retargeted), and authors clips (hand-keyed for the signature poses, Mixamo-derived for walk and turn, cleaned up). Cost: credits only. Time: 1 to 3 weeks to C4.
+- **Track B — contract artist.** Owner hires; Smith is the technical reviewer at every checkpoint, runs the import checks, and does the pipeline work (export, `optimize:3d`, packs, stills). Cost: contractor. Time: 4 to 6 weeks to C4.
+- **Recommendation:** run Track A for 48 hours first. Its candidate sheet either wins outright, becomes the blocking model for Track B (saving the artist a week), or proves the concept needs a human from the start. The owner decides at C1 with both options costed.
+- Either track ends at the same place: `public/models/sparky/sparky.glb` passing the import check script, C4 approved, behaviour wired by Stagehand and Smith together.
+
+### 11.9 Dispatch order
+
+| Day | Foreman dispatches | Waits on |
+|---|---|---|
+| 1 | Foreman creates `TASK_BOARD.md`; Scribe starts W0 items 1 to 8; Smith starts Track A candidates and the artist brief; Stagehand starts W1 on `/dev/forge-hub`; Inspector sets up the SSIM harness and reference hardware | Owner: §11.6 decisions on GitHub PAT, LFS, mesh-gen account, device lab |
+| 2 to 5 | Director writes the motion bible with Scribe; Stagehand room shell; Smith candidate sheet packet (C1); Scribe CLAUDE.md v7 packet | Owner approvals: decision lock, amendments, C1 |
+| Week 2 | P1 gate packet (room shell SSIM, placeholder Sparky); Glazier starts W7 theme; Gatekeeper ports and closes PR #164 with Scribe | Owner: P1 visual checkpoint |
+| Weeks 3 to 5 | Stagehand W2 screen kit and Director timelines; Smith rig and clips (C2 to C4 packets); Inspector unit and e2e scaffolds | Owner: P2 gate, C2 to C4 |
+| Weeks 5 to 7 | Glazier W4 wave 1 and W6; Inspector Lighthouse gates real | Owner: P3 gate |
+| Weeks 7 to 10 | Glazier W4 waves 2 and 3 with W5; Inspector 42-game sweep; Smith C5 and first packs (C6) | Owner: P4 gate, fullscreen list, C5, C6 per pack |
+| Weeks 10 to 13 | Smith integration and HoloBubble with Stagehand; Glazier waves 4 and 5; stills (C7) | Owner: P5 gate |
+| Weeks 13 to 15 | Inspector hardening; Director polish; Scribe docs sweep | Owner: P6 gate |
+| Weeks 15 to 17 (+2 soak) | Gatekeeper rollout steps, each a packet; W9 archive PR | Owner: each rollout step, final tag |
+
+### 11.10 Reporting
+
+- Foreman appends a dated note to PROGRESS.md every working day: done, blocked, packets open, next.
+- Every agent ends every session with a task-board update and, if it touched files, a PR (draft is fine).
+- Every gate packet includes the Vercel preview URL for the PR so the owner can see the change live before approving.
+- Slips over one week are a Tier 2 packet with a revised §4 table, never a silent re-plan.
+
+---
+
+*Companion: `docs/forge-hub/GROK_TEAM_PROMPTS.md` — the copy-paste system prompt for each call sign, the kickoff message, and the PR template.*
