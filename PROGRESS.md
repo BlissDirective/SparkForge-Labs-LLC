@@ -2751,7 +2751,7 @@ reopen decisions 1–13). Spec paths now point at `docs/forge-hub/…`, `docs/sp
 - W0-02 Concept 10 §0.1 / §1.2 amendments — PR #165
 - W0-03 Rebuild IV forge-hub outcome — PR #167
 - W0-05 Vocabulary lock + archive root Phased plan — PR #168
-- W0-06 Path fixes + this FORGE HUB note — this PR
+- W0-06 Path fixes + this FORGE HUB note — PR #169
 
 **Branch note:** repository default branch is and stays `setup-sparkforge-dev` (owner decision
 2026-09-14). A `main` branch was created from this commit on a misread "merge all to main"
