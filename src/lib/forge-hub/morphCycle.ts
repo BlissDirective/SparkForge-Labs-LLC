@@ -9,6 +9,7 @@
 import { forgeRouteForDevMode } from '@/lib/forge-hub/devHud';
 import {
   getForgeDirector,
+  resetForgeDirector,
   DIRECTOR_RM_MS,
   LAYOUT_MORPH_MS,
   LOGIN_SUCCESS_HUBSPLIT_MS,
@@ -85,11 +86,12 @@ function applyDevMode(mode: ForgeMode, reducedMotion: boolean): void {
 }
 
 /**
- * Kill the Director so leftover layoutFrom/To do not pin live slots
+ * Drop leftover layoutFrom/To so live slots follow `applyForgeRoute`
  * after login-success-hubsplit (W2-05 hops are applyForgeRoute-only).
+ * `kill()` alone leaves the last lerp pinned on the clock.
  */
 export function releaseDirectorLayout(): void {
-  getForgeDirector().kill();
+  resetForgeDirector();
 }
 
 export async function runP2MorphCycle(
