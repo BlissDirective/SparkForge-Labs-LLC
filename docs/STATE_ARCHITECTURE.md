@@ -24,7 +24,7 @@ The `scripts/audit-store-deps.sh` script is an automated regression floor: it pr
 | `gameStore` | 213 | `childStore` | 42 | Per-child game session state via factory (phase, score, etc.) |
 | `uiStore` | — | — | 29 | Global UI flags (celebration, particle intensity, skipIntroAnimation, labColor) |
 | `toastStore` | — | — | 7 | Toast queue + action-button support |
-| `sceneStore` (`useForgeStore` alias) | — | — | 49 | Active 3D scene selection, transition state, game HUD content. **W1-01:** Forge Hub slice. **W1-02:** `dispatchForgePortal` runs the ported `idle→charge→emit→docked` reducer on `forge.portalPhase` (same store — TAP §2.5). **W2:** layout registry / projection / HoloPanel read `forge.mode` + `morphProgress` (still no new store). |
+| `sceneStore` (`useForgeStore` alias) | — | — | 49 | Active 3D scene selection, transition state, game HUD content. **W1-01:** Forge Hub slice. **W1-02:** `dispatchForgePortal` runs the ported `idle→charge→emit→docked` reducer on `forge.portalPhase` (same store — TAP §2.5). **W2:** layout registry / projection / HoloPanel read `forge.mode` + `morphProgress` (still no new store). **W2-03:** `applyForgeRoute` + flattened `selectForgeRoute` for `ForgeRouteMode` / EscapeFlat (`frameloop: never` + `flatOverlay`) — still this store. |
 | `cockpitStore` | 442 | — | 28 | Cockpit spatial state (focusedLab, cameraTarget, skin, NPCs, audio, mode) |
 | `cockpitBroadcastStore` | — | — | 28 | Cross-panel 3D event bus with pulse decay |
 | `cockpitUIStore` | 81 | — | 12 | Center-viewport panel content routing |

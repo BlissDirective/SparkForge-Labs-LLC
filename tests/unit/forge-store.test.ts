@@ -4,6 +4,8 @@
 
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import {
+  selectForgeFlatOverlay,
+  selectForgeRoute,
   useForgeStore,
   useSceneStore,
 } from '@/stores/sceneStore';
@@ -93,3 +95,46 @@ describe('W1-02 dispatchForgePortal uses the ported reducer', () => {
     expect(useForgeStore.getState().forge.portalPhase).toBe('charge');
   });
 });
+
+describe('W2-03 applyForgeRoute completes the forge-facing API', () => {
+  it('pauses the stage on FLAT without a second store', () => {
+    useForgeStore.getState().applyForgeRoute({
+      mode: 'flat',
+      frameloop: 'never',
+      flatOverlay: true,
+    });
+    const forge = useForgeStore.getState().forge;
+    expect(forge.mode).toBe('flat');
+    expect(forge.previousMode).toBe('hubSplit');
+    expect(forge.frameloop).toBe('never');
+    expect(forge.flatOverlay).toBe(true);
+    expect(selectForgeFlatOverlay(useForgeStore.getState())).toBe(true);
+    expect(useForgeStore).toBe(useSceneStore);
+  });
+
+  it('restores hubSplit and always frameloop when leaving FLAT', () => {
+    useForgeStore.getState().applyForgeRoute({
+      mode: 'flat',
+      frameloop: 'never',
+      flatOverlay: true,
+    });
+    useForgeStore.getState().applyForgeRoute({
+      mode: 'hubSplit',
+      frameloop: 'always',
+      flatOverlay: false,
+    });
+    const snap = selectForgeRoute(useForgeStore.getState());
+    expect(snap.mode).toBe('hubSplit');
+    expect(snap.previousMode).toBe('flat');
+    expect(snap.frameloop).toBe('always');
+    expect(snap.flatOverlay).toBe(false);
+  });
+
+  it('does not disturb cockpit enterGame fields', () => {
+    useSceneStore.getState().enterGame('ai-spy', '#00BBFF');
+    useForgeStore.getState().applyForgeRoute({ mode: 'welcome' });
+    expect(useSceneStore.getState().activeScene).toBe('transitioning');
+    expect(useForgeStore.getState().forge.mode).toBe('welcome');
+  });
+});
+
