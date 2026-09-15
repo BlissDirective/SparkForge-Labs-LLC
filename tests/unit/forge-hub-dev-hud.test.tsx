@@ -136,6 +136,18 @@ describe('W2-05 mode switcher on live forgeStore', () => {
 });
 
 describe('W2-05 transition scrubber vs live forgeStore', () => {
+  it('lists Theatre first-visit-ignition without replacing the Director HUD', () => {
+    render(
+      <ForgeTransitionScrubber reducedMotion={false} poseLock={false} />,
+    );
+    expect(
+      screen
+        .getByTestId('forge-hub-transition-id')
+        .querySelector('option[value="first-visit-ignition"]'),
+    ).toBeTruthy();
+    expect(screen.queryByTestId('forge-hub-director-ignition')).toBeNull();
+  });
+
   it('scrubs a paused Director id onto forge.morphProgress', async () => {
     const user = userEvent.setup();
     render(

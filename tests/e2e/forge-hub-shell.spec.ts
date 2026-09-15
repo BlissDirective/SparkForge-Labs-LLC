@@ -384,6 +384,11 @@ test.describe('W1 /dev/forge-hub room shell + portal', () => {
       'data-forge-director',
       'first-visit-ignition',
     );
+    await expect(page.getByTestId('forge-hub-transition-scrubber')).toBeVisible();
+    await expect(page.getByTestId('forge-hub-transition-progress')).toContainText(
+      'first-visit-ignition',
+    );
+    await expect(page.getByTestId('forge-hub-director-ignition')).toBeVisible();
     await expect(shell).toHaveAttribute('data-forge-director', 'welcome-idle', {
       timeout: 4000,
     });
