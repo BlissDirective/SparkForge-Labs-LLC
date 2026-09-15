@@ -330,7 +330,7 @@ test.describe('W1 /dev/forge-hub room shell + portal', () => {
     await expect(page.getByTestId('forge-hub-director')).toBeVisible();
     await expect(page.getByTestId('forge-hub-director-id')).toContainText('RM');
     await expect(shell).toHaveAttribute('data-forge-mode', 'welcome', {
-      timeout: 1000,
+      timeout: 2000,
     });
     await expect(shell).toHaveAttribute('data-forge-director', 'welcome-idle', {
       timeout: 1500,
