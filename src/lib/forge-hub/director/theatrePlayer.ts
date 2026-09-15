@@ -38,7 +38,15 @@ export type TheatreTrackName =
   | 'sparkyPing'
   | 'sparkyHop';
 
-export type TheatreTracks = Partial<Record<TheatreTrackName, TheatreKeyframe[]>>;
+export interface TheatreTracks {
+  bloom: TheatreKeyframe[];
+  cameraDollyPercent: TheatreKeyframe[];
+  appearScale: TheatreKeyframe[];
+  contentOut: TheatreKeyframe[];
+  contentIn: TheatreKeyframe[];
+  sparkyPing: TheatreKeyframe[];
+  sparkyHop?: TheatreKeyframe[];
+}
 
 export type TheatreBeatId = 'first-visit-ignition' | 'game-launch-burst';
 

@@ -25,7 +25,7 @@ describe('W2 Theatre game-launch-burst JSON', () => {
     expect(beat.skipTo).toBe('game-launch-burst');
     expect(beat.stingAtMs).toBe(200);
     expect(beat.theatreState).toBeTruthy();
-    expect(beat.notes).not.toMatch(/charge 420/);
+    expect(beat.notes).toMatch(/not portal emit-burst/);
     expect(beat.tracks?.bloom?.some((k) => k.t === 420)).toBe(false);
     expect(beat.tracks?.bloom?.some((k) => k.t === 560)).toBe(false);
     expect(PORTAL_HOLD_MS).toEqual({ charge: 420, emit: 560 });

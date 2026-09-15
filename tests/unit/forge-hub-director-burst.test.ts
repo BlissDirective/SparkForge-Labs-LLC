@@ -104,9 +104,12 @@ describe('Director game-launch-burst Theatre follow-on', () => {
       expect(peekDirectorClock().roomDim).toBeCloseTo(1, 4);
     }
 
-    director.scrub(0.2);
+    director.scrub(200 / GAME_LAUNCH_BURST_MS);
     expect(peekDirectorClock().sparkyHop).toBeGreaterThan(0.5);
     expect(useForgeStore.getState().forge.sparky.behaviour).toBe('react');
+
+    director.scrub(0.2);
+    expect(peekDirectorClock().sparkyPing).toBeGreaterThan(0.5);
 
     director.scrub(1);
     expect(peekDirectorClock().bloom).toBeCloseTo(0, 4);
