@@ -111,7 +111,7 @@ Escape hatch: a `stage: 'glass' | 'fullscreen'` field in the game registry, defa
 
 ### 2.8a What the concept art fixes for the spec
 
-Observations from the supplied Sparky concept, to be written into `docs/SPARKY-CHARACTER-SPEC.md` and the artist brief:
+Observations from the supplied Sparky concept, written into `docs/sparky/SPARKY-CHARACTER-SPEC.md` and the artist brief:
 
 - **Silhouette:** chibi humanoid robot, head about a third of total height, rounded coral shell parts over black ball joints. Five-fingered hands. Rounded boots with cyan sole lights. This replaces the "chrome orb" description in the current Rive spec entirely.
 - **Palette:** coral body (warm, sits naturally in the rose-gold and cream room), black joints and inner mechanics, cyan for everything that emits (face, chest badge, head dome, ear discs, boot lights), yellow lightning-bolt decals on shoulders, forearms, hips, and boots.
@@ -157,7 +157,7 @@ There is no marketing page below or beside the forge. The welcome scene is the m
 4. CLAUDE.md v7: retire the Laboratory Control Station language, describe the forge hub, keep the Tech Quality Mandate and mobile policy, replace the cockpit checkpoint rows.
 5. Vocabulary lock: `HoloL / HoloC / HoloR`, `welcome`, `hubSplit`; update `Phased-R3F-Hub-Plan.md` §3 to §5; archive the root `docs/Phased-R3F-Hub-Plan.md` under `_SUPERSEDED/`.
 6. Commit lock assets under `public/forge-hub/world/` and `public/forge-hub/sparky/` with SHA manifests; reconcile the two plates.
-7. Fix `hub-concepts/` and `/workspace/` paths in the spec docs. Open the PROGRESS.md "Forge Hub" section.
+7. Reconcile spec paths to in-repo `docs/forge-hub/` and `public/forge-hub/` (W0-06). Open the PROGRESS.md FORGE HUB section.
 8. Close PR #164 with a comment pointing here once W2 has ported what it needs.
 9. **Motion bible** (new): one page listing every transition, its timeline steps, duration, and reduced-motion substitute, kept in `docs/forge-hub/MOTION_BIBLE.md` and treated as the source the Director implements.
 
@@ -171,7 +171,7 @@ Layout registry in world units for every mode including `playStage` as the merge
 
 ### W3 Sparky character
 
-1. Commit `LOCKED_SPARKY.png`; write `docs/SPARKY-CHARACTER-SPEC.md` (replaces the Rive spec as the master): geometry and material notes from the concept, rig and bone naming, clip list with durations, attachment slots, texture budgets, face-screen contract, behaviour inputs, outfit pack format, calendar config format. Keep `SPARKY-RIVE-SPEC.md` as the 2D in-game contract.
+1. Commit `public/forge-hub/sparky/LOCKED_SPARKY.png`; write `docs/sparky/SPARKY-CHARACTER-SPEC.md` (replaces the Rive spec as the master): geometry and material notes from the concept, rig and bone naming, clip list with durations, attachment slots, texture budgets, face-screen contract, behaviour inputs, outfit pack format, calendar config format. Keep `docs/sparky/_SUPERSEDED/SPARKY-RIVE-SPEC.md` as the 2D in-game contract.
 2. Build the behaviour system and desk spots against the procedural placeholder.
 3. Face-screen texture from `SparkyCore` expressions; eye look-at.
 4. External art: model, rig, clip library, GLB export through `optimize:3d`. Base character roughly four to six weeks of artist and animator time; one week per outfit pack.
@@ -276,7 +276,7 @@ All 52 `page.tsx` routes on the branch are accounted for.
 | Step | Artifact | Owner | Phase |
 |---|---|---|---|
 | Concept in repo | `public/forge-hub/sparky/LOCKED_SPARKY.png` + SHA manifest | Owner | P0 |
-| Character spec | `docs/SPARKY-CHARACTER-SPEC.md`: rig, bones, clips, slots, budgets, face contract, behaviour inputs, outfit format, calendar format | Engineering | P0 |
+| Character spec | `docs/sparky/SPARKY-CHARACTER-SPEC.md`: rig, bones, clips, slots, budgets, face contract, behaviour inputs, outfit format, calendar format | Engineering | P0 |
 | Artist brief | Spec plus concept plus the plate for scale and lighting | Owner + Engineering | P0 |
 | Placeholder | Procedural orb with face screen, spots, behaviour system | Engineering | P1 |
 | Model, rig, clips | Blender source in a separate assets repo or LFS; GLB through `optimize:3d` | Artist and animator | P1 to P5 |
@@ -393,7 +393,7 @@ Every pack is a small GLB of attachments on the named sockets plus material swap
 1. Owner confirms decisions 2 to 10 (11 to 13 are answered).
 2. Commit `LOCKED_HUB`, the supplied Sparky concept as `LOCKED_SPARKY.png`, and the PR #164 plate with SHA manifests.
 3. Write the decision lock and the Concept 10, Rebuild IV, and CLAUDE.md v7 amendments in one PR.
-4. Write `docs/SPARKY-CHARACTER-SPEC.md` from §2.8a (silhouette, palette, face screen, dome bone and socket, sockets, decal slots, outfit rule) and the artist brief; engage the artist with the base character plus First Day and Sharp Suit as the first order.
+4. Write `docs/sparky/SPARKY-CHARACTER-SPEC.md` from §2.8a (silhouette, palette, face screen, dome bone and socket, sockets, decal slots, outfit rule) and the artist brief; engage the artist with the base character plus First Day and Sharp Suit as the first order.
 5. Write `docs/forge-hub/MOTION_BIBLE.md` v1: welcome, login success, hub to labs, lobby to play stage merge, play stage to lobby split, Whisper, Emit burst, first-visit ignition.
 6. Archive the root `Phased-R3F-Hub-Plan.md`; fix paths and vocabulary in the spec docs; open the PROGRESS.md section.
 7. Start P1: `/dev/forge-hub` room shell, portal reducer ported, SSIM harness, procedural placeholder Sparky with desk spots.

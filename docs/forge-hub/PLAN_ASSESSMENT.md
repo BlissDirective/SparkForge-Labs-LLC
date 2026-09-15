@@ -3,6 +3,8 @@
 **Scope:** the six docs in `docs/forge-hub/` at `setup-sparkforge-dev` tip `927560c`, cross-checked against the code on that branch and PR #164.
 **Verdict:** the six docs are internally coherent and the phasing is sensible for an R3F room. But the plan as written collides with the repo's current, shipped architecture direction, omits what it actually replaces, and references files that only exist in an unmerged PR. It should not move to Phase 1 until the eight decisions in §6 are closed.
 
+**W0-06 (2026-09-15):** spec paths reconciled to `docs/forge-hub/`, `docs/sparky/`, and `public/forge-hub/`. §3 rows below now name the in-repo locations. Decisions 1–13 remain LOCKED.
+
 ---
 
 ## 1. Architectural collision (blocker)
@@ -28,18 +30,18 @@ The docs say the forge "replaces the marketing hero". The screen inventory shows
 - The Molten-Warm palette lock (Concept 10: amber/gold dominant, cyan as accent, never cyan-on-black). LOCKED_HUB is cyan-primary on a rose-gold/cream room. That is a palette reversal, not a variation.
 - The word "forge" already means the Concept 10 theme (`forge-theme.css`, `FORGE_THEME` flag, `/dev/forge` primitive showcase). The plan's `ForgeLayout`, `ForgeCore`, `forge-lab/*` names will collide in imports and in conversation.
 
-**Sparky is already decided.** `docs/SPARKY-RIVE-SPEC.md` locks Rive (`public/rive/sparky.riv`, state machine `SparkyMachine`, inputs `comboTier`/`celebrate`/`encourage`/`thinking`), `@rive-app/react-canvas` is installed, and `src/components/sparky/SparkyRive.tsx` consumes it. Concept 10 §11.4 re-specs the same machine as `forgespark.riv` (unauthored). The plan's "tech options, decide Phase 5: Rive / Lottie / billboard / GLB" would create a third mascot system. `SparkyOverlay` should be a drei `Html` wrapper around the existing `SparkyRive`/`SparkyCore`, decided now.
+**Sparky is already decided.** `docs/sparky/_SUPERSEDED/SPARKY-RIVE-SPEC.md` (archived 2026-09-14; `SparkyMachine` contract carried into `docs/sparky/SPARKY-CHARACTER-SPEC.md` §9) locks Rive (`public/rive/sparky.riv`, state machine `SparkyMachine`, inputs `comboTier`/`celebrate`/`encourage`/`thinking`), `@rive-app/react-canvas` is installed, and `src/components/sparky/SparkyRive.tsx` consumes it. Concept 10 §11.4 re-specs the same machine as `forgespark.riv` (unauthored). The plan's "tech options, decide Phase 5: Rive / Lottie / billboard / GLB" would create a third mascot system. `SparkyOverlay` should be a drei `Html` wrapper around the existing `SparkyRive`/`SparkyCore`, decided now.
 
 ## 3. Broken and inconsistent references
 
 | Reference | Where | Reality on `setup-sparkforge-dev` |
 |---|---|---|
-| `src/lib/forge-lab/layouts.ts`, `/dev/forge-lab`, `docs/forge-lab-hub.md`, `public/forge-lab/world/LOCKED_HERO.png`, `LOCKED.md` | Phased plan §1, §7, §9; R3F plan §1 | Exist only in PR #164 (open, unmerged, 41 files, +2816, base 8 commits behind tip). The plan says "keep as fallback" but it is not on the branch. |
-| `hub-concepts/locked/LOCKED_HUB`, `hub-concepts/locked/R3F_VARIATION_PLAN.md` | Phased plan header | Local paths. Should be `docs/forge-hub/…`. |
-| `/workspace/SparkForge Labs/Phased-R3F-Hub-Plan.md` | INTERACTIVE_VIDEO_UI_PLAN | Local path. |
-| `LOCKED_HUB.jpeg/png`, `LOCKED_SPARKY.png` | LOCKED_HUB.md | Not in repo (acknowledged). PR #164 ships a *different* lock at `public/forge-lab/world/LOCKED_HERO.png`. Two "locked" plates in two places. |
-| `docs/Phased-R3F-Hub-Plan.md` (docs root) | — | Older rev of `docs/forge-hub/Phased-R3F-Hub-Plan.md` (differs in status, Sparky section, `heroWelcome`→`welcome`). Per CLAUDE.md §3.2 it should be archived or deleted. |
-| PROGRESS.md | — | No entry for forge-hub, PR #164, or any of this work. |
+| `src/lib/forge-lab/layouts.ts`, `/dev/forge-lab` (PR #164) | Phased plan §1, §7, §9; R3F plan §1 | Port list is W0-07 / W2. Product room shell is `/dev/forge-hub`. |
+| `docs/forge-hub/LOCKED_HUB.md`, `docs/forge-hub/R3F_VARIATION_PLAN.md` | Phased plan header | In-repo (W0-06). Former local-folder prefixes retired. |
+| `docs/forge-hub/Phased-R3F-Hub-Plan.md` | INTERACTIVE_VIDEO_UI_PLAN | In-repo (W0-06). Former absolute workspace copy retired. |
+| `LOCKED_HUB.jpeg/png` | LOCKED_HUB.md | Owner-local design refs; not committed. Canonical plate is `public/forge-hub/world/LOCKED_HERO.png` (2026-09-14). |
+| `docs/Phased-R3F-Hub-Plan.md` (docs root) | — | Older rev of `docs/forge-hub/Phased-R3F-Hub-Plan.md`. Archive is W0-05. |
+| PROGRESS.md | — | FORGE HUB section opened 2026-09-14; W0 note extended 2026-09-15. |
 
 **Terminology drift across the six docs:**
 
@@ -71,7 +73,7 @@ The docs say the forge "replaces the marketing hero". The screen inventory shows
 
 1. **Direction.** Either (a) amend Concept 10 §0.1.2–0.1.3 and Rebuild IV.2 to permit an R3F shell for the kid hub on `tier ∈ {desktop, ultrawide}`, record it as a decision lock, and bump CLAUDE.md to v7 retiring the cockpit language; or (b) scope the forge to `/` and `/login` only, where canvas is already allowed. The plan cannot be both "site home + control surface" and compliant with the current invariants.
 2. **PR #164.** Merge (rebased on the 8 newer commits) or close before Phase 1, so every path the plan references exists on the branch.
-3. **One lock, one place.** Pick `public/forge-lab/world/` or `docs/forge-hub/` for plates; commit the LOCKED_HUB plate (a JPEG or PNG under 1 MB is fine as a reference asset); archive `docs/Phased-R3F-Hub-Plan.md` (root) under `_SUPERSEDED/` per CLAUDE.md §3.2; fix the `hub-concepts/` and `/workspace/` paths.
+3. **One lock, one place.** Resolved 2026-09-14: plates live at `public/forge-hub/world/` (SHAs in `public/forge-hub/SHA256SUMS`; read-only). Lock docs live at `docs/forge-hub/`. Spec path prefixes are `docs/forge-hub/` and `public/forge-hub/` (W0-06). Root Phased plan archive is W0-05.
 4. **One vocabulary.** Holo trio or Top/L/R, `welcome` everywhere, and reconcile `hubSplit` with the three-panel lock.
 5. **Sparky.** `SparkyOverlay` wraps the existing Rive spec. Default anchor `nearSF`. Decide now, not Phase 5.
 6. **Mobile.** `EscapeFlat` from Phase 3 for mobile/tablet via `useDeviceProfile`.

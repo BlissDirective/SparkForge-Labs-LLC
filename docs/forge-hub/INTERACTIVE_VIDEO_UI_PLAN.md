@@ -2,8 +2,8 @@
 
 **Superseded detail:** see unified `R3F_VARIATION_PLAN.md` in this folder.
 
-**Locks:** `LOCKED_HUB` (no dock) · `LOCKED_SPARKY` (overlay later)  
-**Canonical eng:** `/workspace/SparkForge Labs/Phased-R3F-Hub-Plan.md`
+**Locks:** `docs/forge-hub/LOCKED_HUB.md` (no dock) · `docs/forge-hub/LOCKED_SPARKY.md` (overlay later)  
+**Canonical eng:** `docs/forge-hub/Phased-R3F-Hub-Plan.md`
 
 ## One-liner
 Fixed-camera living still of the forge; three cyan glasses are real React UI that morph; Sparky is an overlay companion — not desk hardware. Replaces marketing hero.

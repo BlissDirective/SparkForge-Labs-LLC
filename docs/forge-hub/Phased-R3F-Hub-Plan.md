@@ -5,7 +5,7 @@
 **Owner:** SparkForge Labs (CDO)  
 **Repo:** BlissDirective/SparkForge-Labs-LLC  
 **Branch:** `setup-sparkforge-dev`  
-**Related:** PR #164 `/dev/forge-lab`; visual lock `hub-concepts/locked/LOCKED_HUB`; avatar `LOCKED_SPARKY`; unified plan `hub-concepts/locked/R3F_VARIATION_PLAN.md`
+**Related:** PR #164 `/dev/forge-lab`; visual lock `docs/forge-hub/LOCKED_HUB.md` + `public/forge-hub/world/LOCKED_HERO.png`; avatar `docs/forge-hub/LOCKED_SPARKY.md`; unified plan `docs/forge-hub/R3F_VARIATION_PLAN.md`
 
 ---
 
@@ -134,9 +134,9 @@ heroWelcome → hubSplit ⇄ authMerged
 
 ## 9. References
 
-- Locked plate: `public/forge-lab/world/LOCKED_HERO.png` + `LOCKED.md`
-- Hotspot hub: PR #164, `docs/forge-lab-hub.md`, `/dev/forge-lab`
-- Cost contrast: `SparkForge_PixelStreaming_Concurrency_Cost_Model.xlsx` (local SparkForge Labs folder / research)
+- Locked plate: `public/forge-hub/world/LOCKED_HERO.png` + `public/forge-hub/world/LOCKED.md` (SHAs in `public/forge-hub/SHA256SUMS`; read-only)
+- Hotspot hub: PR #164 (`/dev/forge-lab` port list is W0-07 / W2); product route is `/dev/forge-hub`
+- Cost contrast: `SparkForge_PixelStreaming_Concurrency_Cost_Model.xlsx` (owner-local research spreadsheet; not in this repo)
 - Prior brainstorm (2026-09-08 CDO chat): modules, modes, phases 0–6
 
 ---

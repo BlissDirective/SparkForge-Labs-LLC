@@ -2720,11 +2720,13 @@ transforms/backdrop-filters on html/body/app-shell wrappers.
 **Owner decisions (2026-09-13/14):** proceed with the animated Hologram-Forge Hub
 as the welcome, main, and control surface, and with the new Sparky character
 (rigged 3D desk companion with a head-dome chat hologram). Plan:
-`docs/forge-hub/TRANSITION_ACTION_PLAN.md` (v2.1). Assessment that preceded it:
-`docs/forge-hub/PLAN_ASSESSMENT.md`.
+`docs/forge-hub/TRANSITION_ACTION_PLAN.md` (v2.2). Assessment that preceded it:
+`docs/forge-hub/PLAN_ASSESSMENT.md`. Decision lock:
+`docs/01-decisions/2026-09-forge-hub.md` (W0-01 **done**, commit `017d681`;
+decisions 1–13 remain LOCKED).
 
-**Locked assets committed** (`public/forge-hub/`, verify with
-`cd public/forge-hub && sha256sum -c SHA256SUMS`):
+**Locked assets committed 2026-09-14** (`public/forge-hub/`, verify with
+`cd public/forge-hub && sha256sum -c SHA256SUMS`; never regenerate bytes):
 - `world/LOCKED_HERO.png` (canonical plate, from PR #164), `world/LOCKED_HERO_no_haze_filter.png`
   (display still; PR #164's five idle/charge/emit/docked copies were byte-identical
   and are collapsed to this one), `world/SF_MONOGRAM_CLOSEUP.png`.
@@ -2741,6 +2743,15 @@ as the welcome, main, and control surface, and with the new Sparky character
 **Not moved (still live code):** `src/components/sparky/*` (17 importers of `SparkyCore`) — the
 drawing is design-superseded and redraws in plan W3; `AITutorAvatar.tsx` (deprecated, 6 importers)
 retires with the HoloBubble in W3.
+
+**W0 governance (2026-09-15):** docs PRs into `setup-sparkforge-dev` (do not redo; do not
+reopen decisions 1–13). Spec paths now point at `docs/forge-hub/…`, `docs/sparky/…`, and
+`public/forge-hub/…`.
+- W0-01 Decision lock — **done** (`017d681`)
+- W0-02 Concept 10 §0.1 / §1.2 amendments — PR #165
+- W0-03 Rebuild IV forge-hub outcome — PR #167
+- W0-05 Vocabulary lock + archive root Phased plan — PR #168
+- W0-06 Path fixes + this FORGE HUB note — this PR
 
 **Branch note:** repository default branch is and stays `setup-sparkforge-dev` (owner decision
 2026-09-14). A `main` branch was created from this commit on a misread "merge all to main"
