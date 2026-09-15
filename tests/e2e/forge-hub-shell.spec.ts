@@ -333,6 +333,35 @@ test.describe('W1 /dev/forge-hub room shell + portal', () => {
     );
   });
 
+  test('transition scrubber can play remainder morphs onto labsBrowse', async ({
+    page,
+  }) => {
+    await page.goto('/dev/forge-hub?fallback=poster');
+    await expect(page.getByTestId('forge-hub-director')).toBeVisible();
+    await expect(page.getByTestId('forge-hub-director-ignition')).toBeVisible();
+    await expect(page.getByTestId('forge-hub-director-remainder')).toBeVisible();
+    await page.getByTestId('forge-hub-transition-id').selectOption('hub-labsbrowse');
+    await expect(page.getByTestId('forge-hub-shell')).toHaveAttribute(
+      'data-forge-director',
+      'hub-labsbrowse',
+    );
+    await page.getByTestId('forge-hub-transition-scrub').evaluate((el) => {
+      const input = el as HTMLInputElement;
+      const setter = Object.getOwnPropertyDescriptor(
+        HTMLInputElement.prototype,
+        'value',
+      )?.set;
+      setter?.call(input, '100');
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      input.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+    await expect(page.getByTestId('forge-hub-shell')).toHaveAttribute(
+      'data-forge-mode',
+      'labsBrowse',
+    );
+    await expect(page.getByRole('region', { name: 'Lab bench' })).toBeVisible();
+  });
+
   test('pose=lock hides reading plates so the SSIM trio stays empty glass', async ({
     page,
   }) => {

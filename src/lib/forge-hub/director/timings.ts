@@ -24,7 +24,19 @@ export const EMIT_BURST_MS =
 
 export const LOGIN_SUCCESS_HUBSPLIT_MS = 600;
 
+/** Interactive remainder morphs share the 600 ms wall-clock cap. */
+export const INTERACTIVE_MORPH_MS = INTERACTIVE_CAP_MS;
+
 export const FIRST_VISIT_IGNITION_MS = 1500;
+
+/** playstage-lobby-split slab window (bible §5.5) — not a LAYOUT_MORPH_MS retime. */
+export const SPLIT_SLAB_WINDOW_MS = 340;
+
+/** whisper expand/close “slab” analog (dim + bubble, bible §5.6 / §6.1). */
+export const WHISPER_EXPAND_WINDOW_MS = 400;
+
+/** Focus sides yawTuck token (inside the 420 ms slotSlide window). */
+export const YAW_TUCK_MS = 240;
 
 /** Interactive charge pulse (not the portal 420 ms hold). */
 export const INTERACTIVE_CHARGE_MS = 80;

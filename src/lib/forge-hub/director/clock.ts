@@ -38,6 +38,10 @@ export interface DirectorClock {
   sparkyPing: number;
   reducedMotionCrossfade: number;
   skippable: boolean;
+  /** PlayStage merge dim / Whisper trio dim. 0 = full, 1 = dimmed. */
+  roomDim: number;
+  /** HoloBubble expand. 0 = rest / hidden, 1 = whisper size. */
+  bubbleScale: number;
 }
 
 export const DIRECTOR_CLOCK_DEFAULTS: DirectorClock = {
@@ -64,6 +68,8 @@ export const DIRECTOR_CLOCK_DEFAULTS: DirectorClock = {
   sparkyPing: 0,
   reducedMotionCrossfade: 0,
   skippable: false,
+  roomDim: 0,
+  bubbleScale: 0,
 };
 
 const live: DirectorClock = {

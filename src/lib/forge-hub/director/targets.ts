@@ -51,7 +51,10 @@ export function lerpMorphSlots(
     out[id] = {
       ...b[id],
       ...rect,
-      visible: a[id].visible || b[id].visible,
+      // Hold both wings during a 3→1 / 1→3 morph; snap to the destination
+      // visibility at t=1 so PlayStage does not keep overlapping L/R plates.
+      visible:
+        clamped >= 1 ? b[id].visible : a[id].visible || b[id].visible,
       reading: clamped < 0.5 ? a[id].reading : b[id].reading,
     };
   }
