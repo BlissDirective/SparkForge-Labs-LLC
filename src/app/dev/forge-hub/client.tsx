@@ -143,6 +143,7 @@ export function ForgeHubClient() {
       data-forge-mode={mode}
       data-forge-screen-kit="w2"
       data-forge-director={directorId ?? 'idle'}
+      data-forge-rm={prefersReducedMotion ? 'on' : 'off'}
       className="relative min-h-screen w-full overflow-hidden bg-[#0b1218]"
     >
       <ForgePosterFallback withGlass={posterVisible} />

@@ -72,6 +72,10 @@ test.describe('W1 /dev/forge-hub room shell + portal', () => {
   }) => {
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await page.goto('/dev/forge-hub');
+    await expect(page.getByTestId('forge-hub-shell')).toHaveAttribute(
+      'data-forge-rm',
+      'on',
+    );
     await page.getByTestId('forge-hub-ignite').click();
     await expect(page.getByTestId('forge-hub-shell')).toHaveAttribute(
       'data-forge-portal',
@@ -141,6 +145,7 @@ test.describe('W1 /dev/forge-hub room shell + portal', () => {
     await page.goto('/dev/forge-hub?fallback=poster');
     const shell = page.getByTestId('forge-hub-shell');
     await expect(shell).toHaveAttribute('data-forge-breathe', 'off');
+    await expect(shell).toHaveAttribute('data-forge-rm', 'on');
     await expect(page.getByTestId('forge-hub-glass-holoL')).toBeVisible();
     const animation = await page
       .getByTestId('forge-hub-glass-holoL')
@@ -209,5 +214,35 @@ test.describe('W1 /dev/forge-hub room shell + portal', () => {
     await page.goto('/dev/forge-hub?pose=lock');
     await expect(page.getByTestId('forge-hub-holo-layer')).toHaveCount(0);
     await expect(page.getByTestId('forge-hub-mode-switch')).toHaveCount(0);
+  });
+
+  test('director RM morph and ignition stay on the 200ms substitute', async ({
+    page,
+  }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.goto('/dev/forge-hub?fallback=poster');
+    const shell = page.getByTestId('forge-hub-shell');
+    await expect(page.getByTestId('forge-hub-director')).toBeVisible();
+    await expect(page.getByTestId('forge-hub-director-id')).toContainText('RM');
+
+    await page.getByTestId('forge-hub-director-emit').click();
+    await expect(shell).toHaveAttribute('data-forge-portal', 'docked');
+    await expect(shell).toHaveAttribute('data-forge-director', 'emit-burst');
+
+    await page.getByTestId('forge-hub-director-morph').click();
+    await expect(shell).toHaveAttribute(
+      'data-forge-director',
+      'login-success-hubsplit',
+    );
+    await expect(shell).toHaveAttribute('data-forge-mode', 'hubSplit');
+    await expect(page.getByTestId('forge-hub-holo-layer')).toHaveAttribute(
+      'data-rm-crossfade',
+      '1',
+    );
+
+    await page.getByTestId('forge-hub-director-ignition').click();
+    await expect(shell).toHaveAttribute('data-forge-mode', 'welcome', {
+      timeout: 1000,
+    });
   });
 });

@@ -2,10 +2,11 @@
 
 // W1-02 store-backed portal dispatch. W2-02 Director owns charge/emit
 // holds (420 / 560). This hook no longer auto-ADVANCE — Ignite plays
-// MOTION_BIBLE `emit-burst`. Retract is still the Stagehand dev control.
+// MOTION_BIBLE `emit-burst`. Reduced-motion uses useForgeReducedMotion
+// (matchMedia + uiStore) so Playwright emulateMedia matches the HUD.
 
 import { useCallback } from 'react';
-import { useSafeMotion } from '@/hooks/useSafeMotion';
+import { useForgeReducedMotion } from '@/lib/forge-hub/useForgeReducedMotion';
 import { playForgeTransition, getForgeDirector } from '@/lib/forge-hub/director';
 import { useForgeStore } from '@/stores/sceneStore';
 import { isPortalOpen, type PortalEvent, type PortalPhase } from './portalMachine';
@@ -21,7 +22,7 @@ export interface ForgePortalControls {
 }
 
 export function useForgePortal(): ForgePortalControls {
-  const reduceMotion = useSafeMotion();
+  const reduceMotion = useForgeReducedMotion();
   const phase = useForgeStore((s) => s.forge.portalPhase);
   const poseLock = useForgeStore((s) => s.forge.poseLock);
   const dispatch = useForgeStore((s) => s.dispatchForgePortal);

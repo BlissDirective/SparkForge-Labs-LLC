@@ -111,6 +111,20 @@
   cursor: not-allowed;
 }
 
+.fh-holo-layer[data-rm-crossfade='1'] .fh-holo-panel {
+  animation: none !important;
+  opacity: var(--fh-content-in, 1);
+}
+
+.forge-hub-glass-stage[data-rm-crossfade='1'] .forge-hub-glass {
+  animation: none !important;
+  opacity: var(--fh-content-in, 1);
+}
+
+.forge-hub-rm-crossfade {
+  animation: forge-hub-rm-crossfade 200ms ease-out both;
+}
+
 .fh-holo-layer {
   pointer-events: none;
   z-index: 15;
