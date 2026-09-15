@@ -1,8 +1,11 @@
 # Fable-5 SparkForge Rebuild Plan
 
 **Date:** July 1, 2026
+**Amended:** 2026-09-15 (Part IV only)
 **Audit scope:** Full production site (www.sparkforge-labs.com) — marketing pages, auth, all 16 logged-in routes, onboarding flow, gameplay, desktop (1440×900) + mobile (390×844), logged-in and logged-out. ~60 screenshots captured; console/network errors logged per page.
 **Auditor stance:** Senior design lead, first day. The question is not "does the UI look nice" — it's *can a normal parent understand the product, trust it, and get their kid playing a game without reading docs?*
+
+**Amendment (2026-09-15):** Part IV is amended to record the **Hologram-Forge Hub** as Rebuild IV's locked outcome, carrying over the LCP and mobile/tablet guardrails, per TAP v2.2 (`docs/forge-hub/TRANSITION_ACTION_PLAN.md` §3 W0 item 3) and decision lock `docs/01-decisions/2026-09-forge-hub.md`. Decisions 1–13 remain LOCKED and must not be reopened. Parts I–III are unchanged. Docs/governance only — no application behaviour change.
 
 ---
 
@@ -764,11 +767,23 @@ Rules for every R-phase: mascot only via `components/sparky`; tokens only via DE
 
 # PART IV — Total App Experience Redesign (exploration — scheduled AFTER Part III + game redesign)
 
+**Locked outcome (2026-09-15):** the **Hologram-Forge Hub** is Rebuild IV's direction for the kid-facing shell. This Part is **amended, not ignored** (decision 1). Historical July 2026 exploration text is retained below so the document still reads as a record; it does not reopen decisions 1–13.
+
 **Owner direction (July 2):** the current app, outside the new hero, reads as "AI-generated, common, boring, plain, minimal." After Part III (R1–R7) and the full game redesign (Part II G1–G5) ship, Part IV explores a ground-up, uniquely-SparkForge brand experience across the entire app — more unique and animated, still shippable and functional.
 
-**Agreed sequencing rationale:** Part III first gives every page a coherent, guard-tested baseline (cheap, fast, de-risks the brand); the game redesign is the retention core and must not wait on experimental navigation. Part IV then builds its ambition on top of healthy pages and engines rather than replacing broken ones. (History note: the pre-2026 3D-cockpit era shows the failure mode — a 37M-triangle spatial UI that had to be abandoned for HTML-first. Part IV must not repeat it.)
+**Agreed sequencing rationale:** Part III first gives every page a coherent, guard-tested baseline (cheap, fast, de-risks the brand); the game redesign is the retention core and must not wait on experimental navigation. Part IV then builds its ambition on top of healthy pages and engines rather than replacing broken ones. (History note: the pre-2026 3D-cockpit era shows the failure mode — a 37M-triangle free-look spatial UI that had to be abandoned for HTML-first. Part IV must not repeat *that* failure. The locked hub in IV.0 is the amended direction: a fixed-camera forge stage *behind* DOM panels, with LCP and compact-tier still HTML — not a restored cockpit.)
 
-## IV.1 North star: "A living laboratory, not a website"
+## IV.0 Locked outcome — Hologram-Forge Hub *(amended 2026-09-15)*
+
+Part IV's exploration is resolved. Per owner lock (`docs/01-decisions/2026-09-forge-hub.md`, decisions 1–13 LOCKED; TAP v2.2), Rebuild IV's outcome is the **Hologram-Forge Hub**:
+
+- **Desktop / ultrawide** (`tier ∈ {desktop, ultrawide}`, width ≥ 1440 px): one persistent forge stage in the root layout. The room, emitter, desk, and three glass slabs are a fixed-camera R3F scene. **DOM panels are projected from the 3D scene** (decision 2): glass meshes carry motion; server-rendered DOM content rides them and never stretches. One canvas, mode by pathname; FLAT routes pause and hide it (decision 3). This is not a panoramic free-look cockpit and does not restore the abandoned 37M-triangle spatial UI.
+- **Mobile / tablet** (`tier ∈ {mobile, tablet}`, width < 1440 px): today's HTML dashboard shell stays as the **compact-tier shell**, restyled. **No canvas** below 1440 px (decision 4). Compact tier is first-class, not a cut-down 3D scene.
+- **LCP guardrail (carried over from IV.2 / Concept 10 §0.1.3):** the LCP element on every route remains HTML/text/an eager image — **never a script-hydrated canvas**. The desktop stage loads after LCP (poster of the plate + static panel rects before hydration). Compact tier never mounts the stage.
+
+Execution lives in `docs/forge-hub/TRANSITION_ACTION_PLAN.md` v2.2, not in IV.3's exploration workplan. Agents may propose follow-on wording; they may **not** reopen decisions 1–13.
+
+## IV.1 North star: "A living laboratory, not a website" *(historical — July 2026 exploration)*
 
 The differentiator competitors can't copy is coherence between the story and the software: SparkForge IS Sparky's lab. The app becomes a place, not a set of pages — without regressing to heavyweight 3D:
 
@@ -778,15 +793,24 @@ The differentiator competitors can't copy is coherence between the story and the
 - **Sound identity:** one Tone.js palette (power-up hum, hologram chirp, forge clink) mapped to the celebration hierarchy; mutable, off by default for parents.
 - **Signature moments budget:** every page gets exactly one (the hologram is the marketing hero's; lab entry, badge forge, level-up are the app's). Everything else stays calm — that contrast is what reads as "crafted."
 
-## IV.2 Shippability guardrails (non-negotiable, learned from the cockpit era)
+## IV.2 Shippability guardrails (non-negotiable, learned from the cockpit era) *(amended 2026-09-15)*
 
-Progressive enhancement everywhere (HTML-first skeleton always works) · per-page perf budget (LCP < 2.5s, no WebGL on the dashboard critical path) · guards stay green (contrast/spacing/design-matrix) · reduced-motion instant-on states · mobile is a first-class diorama, not a cut-down one · each IV increment ships behind a flag and can be reverted alone.
+These remain binding. The forge-hub outcome in IV.0 does **not** drop them; it records how they apply after the direction lock:
 
-## IV.3 Exploration workplan (when unlocked)
+- **LCP element remains HTML/text/an eager image — never canvas.** Per-page perf budget: LCP < 2.5s. No WebGL/WebGPU on first paint. The persistent desktop stage is post-LCP (poster + static rects before hydration). Canvas must not become the LCP element on any route.
+- **Mobile / tablet (< 1440 px): HTML compact shell, no canvas.** Compact tier is first-class. Today's HTML dashboard shell stays, restyled; no canvas below 1440 px.
+- **Desktop / ultrawide: persistent forge stage with DOM panels projected from 3D.** Progressive enhancement: the HTML-first skeleton always works (poster fallback; `FORGE_HUB` off returns the HTML shell on every tier).
+- Guards stay green (contrast/spacing/design-matrix) · reduced-motion instant-on states · each increment ships behind a flag and can be reverted alone.
+
+The cockpit-era failure was a free-look, canvas-on-critical-path spatial UI. The locked hub is a fixed-camera stage *behind* DOM panels, with LCP and compact-tier still HTML. That distinction is the amendment, not a reopening of decisions 1–13.
+
+## IV.3 Exploration workplan (historical — superseded by TAP v2.2)
+
+The IV-A…IV-D sequence below is retained as the July 2026 exploration plan. It is **not** the execution path. Execution is `docs/forge-hub/TRANSITION_ACTION_PLAN.md` v2.2 (W0–W10). Owner go for the hub direction is recorded in the 2026-09 decision lock.
 
 1. **IV-A Art-direction sprint:** 3 visual directions for one lab diorama (moodboards → one coded prototype each), owner picks.
 2. **IV-B Navigation-as-world prototype:** lab map floor plan + airlock transitions behind a feature flag; measure perf + comprehension against the current nav with the e2e suite.
 3. **IV-C System rollout:** winning direction codified into DESIGN.md v2 (diorama recipes, sound palette, signature-moment registry), then labs converted in batches with per-lab art.
 4. **IV-D Marketing alignment:** homepage chapters become windows into the same world (real dioramas as product frames).
 
-**Unlock condition:** Part III R1–R7 complete + Part II G1–G3 shipped (games honest and de-cloned) + owner go.
+**Unlock condition (historical):** Part III R1–R7 complete + Part II G1–G3 shipped (games honest and de-cloned) + owner go. **Superseded:** owner go landed as TAP v2.2 + `docs/01-decisions/2026-09-forge-hub.md`.

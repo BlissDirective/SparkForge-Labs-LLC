@@ -19,7 +19,7 @@ Status legend: `todo` · `doing` · `blocked` · `done` · `packet`
 |----|-------|------|--------|-------|
 | W0-01 | Foreman→Scribe | Decision-lock `docs/01-decisions/2026-09-forge-hub.md` (decisions 1–13) | **done** | commit `017d681` |
 | W0-02 | Scribe | Amend Concept 10 §0.1.2–0.1.3 + §1.2 palette | todo | packet for owner if wording sensitive |
-| W0-03 | Scribe | Amend Fable-5 Rebuild Part IV forge-hub outcome | todo | |
+| W0-03 | Scribe | Amend Fable-5 Rebuild Part IV forge-hub outcome | **done** | branch `grok/scribe/W0-03-rebuild-iv-amend` (PR forthcoming) |
 | W0-04 | Scribe | CLAUDE.md v7 draft as approval packet | todo | Tier 2 |
 | W0-05 | Scribe | Vocabulary lock HoloL/C/R; archive root Phased plan → `_SUPERSEDED/` | todo | |
 | W0-06 | Scribe | Fix hub-concepts/`/workspace` paths in forge-hub specs; PROGRESS.md FORGE HUB note | todo | locks already committed 2026-09-14 |
