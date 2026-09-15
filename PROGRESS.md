@@ -2790,10 +2790,24 @@ Agent: Stagehand (Grok Bot Team)
 Layout registry (`src/lib/forge-hub/layouts.ts`) ports PR #164 math
 (lerp, live-rect beam attach, PlayStage seed from AUTH_MERGED_CENTER) and
 re-seats live HoloC from the painted top seed to a center reading plate
-for `welcome` / `hubSplit`. `?pose=lock` keeps the W1-03 top trio for SSIM.
+for `welcome` / `hubSplit` (`HUBSPLIT_HOLO_C` `{31.2, 24, 37.6×48}`).
+`?pose=lock` keeps the W1-03 top trio for SSIM.
 Projection hook (`useProjectedSlot` + `ForgeSlotProjector`) maps glass
 mesh corners to DOM. `HoloPanel` reading plate fill is `rgba(6,14,28,0.88)`
 (≥ 0.85). Wired on `/dev/forge-hub` with a mode switcher. No new Zustand
-store; portal 420/560 unchanged; no Director GSAP / EscapeFlat / ToastRail;
+store; portal 420/560 unchanged; `LAYOUT_MORPH_MS` = 420 (`slotSlide`).
 PR #164 stays open.
 Agent: Stagehand (Grok Bot Team)
+
+### FORGE HUB — W2-02 Director runtime (Director, 2026-09-15)
+
+GSAP Director at `src/lib/forge-hub/director.ts` plays MOTION_BIBLE ids against
+the live `/dev/forge-hub` glass. Slice 1: `emit-burst` (portal 420/560, cinematic
+980 ms, RM → SKIP_TO_DOCKED + 200 ms), `login-success-hubsplit` overlapping
+windows (≤ 600 ms, slab/`slotSlide` = Stagehand `LAYOUT_MORPH_MS` 420),
+Theatre.js stub for `first-visit-ignition` (JSON later; skip → `welcome-idle`).
+Morphs that touch HoloC lerp Stagehand `registerMorphTargets` / `HUBSPLIT_HOLO_C`
+`{31.2, 24, 37.6×48}` — no invented layout numbers. Ambient `panelBreathe` stays
+Stagehand. Tone.js sting ids are silent stubs. No new Zustand store; `directorId`
+lives on the forge slice. W2-02 stays **doing** until merge + Foreman.
+Agent: Director (Grok Bot Team)

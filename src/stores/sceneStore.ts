@@ -12,6 +12,7 @@ import {
   type ForgeSparkyState,
 } from '@/lib/forge-hub/types';
 import { reducePortal, type PortalEvent } from '@/lib/forge-hub/portalMachine';
+import type { MotionBibleId } from '@/lib/forge-hub/director/ids';
 
 export type ActiveScene = 'hero' | 'cockpit' | 'spatial' | 'game' | 'transitioning';
 export type TransitionType = 'iris-open' | 'iris-close' | 'hero-to-cockpit' | 'cockpit-to-spatial' | 'none';
@@ -87,6 +88,7 @@ interface SceneState {
   setForgePoseLock: (poseLock: boolean) => void;
   setForgePortalPhase: (portalPhase: ForgePortalPhase) => void;
   dispatchForgePortal: (event: PortalEvent) => void;
+  setForgeDirectorId: (directorId: MotionBibleId | null) => void;
   setForgeActivePanel: (activePanel: ForgePanelId) => void;
   setForgeHoveredPanel: (hoveredPanel: ForgePanelId) => void;
   setForgeMorphProgress: (morphProgress: number) => void;
@@ -310,6 +312,11 @@ export const useSceneStore = create<SceneState>((set, get) => ({
     const portalPhase = reducePortal(current, event);
     if (portalPhase === current) return;
     set({ forge: { ...get().forge, portalPhase } });
+  },
+
+  setForgeDirectorId: (directorId) => {
+    if (get().forge.directorId === directorId) return;
+    set({ forge: { ...get().forge, directorId } });
   },
 
   setForgeActivePanel: (activePanel) => {

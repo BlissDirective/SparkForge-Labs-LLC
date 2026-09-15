@@ -11,6 +11,7 @@ import {
 } from 'react';
 import { cssGlassStyle, slotOrigin, type GlassSlotId } from './glassSlots';
 import { layoutSlotForView, type LayoutSlot } from './layouts';
+import { liveDirectorSlot } from './director/targets';
 import {
   cssYawTransform,
   morphPhaseFromProgress,
@@ -32,10 +33,11 @@ export function useProjectedSlot(slotId: GlassSlotId): ProjectedSlot {
   const mode = useForgeStore((s) => s.forge.mode);
   const poseLock = useForgeStore((s) => s.forge.poseLock);
   const morphProgress = useForgeStore((s) => s.forge.morphProgress);
-  const slot = layoutSlotForView(slotId, mode, poseLock);
+  const live = liveDirectorSlot(slotId, mode, poseLock);
+  const slot = live ?? layoutSlotForView(slotId, mode, poseLock);
   const morphPhase = morphPhaseFromProgress(morphProgress);
   const reading = slot.reading;
-  const hidden = !slot.visible || poseLock;
+  const hidden = !slot.visible || poseLock || !live;
 
   const style: CSSProperties = hidden
     ? { display: 'none' }

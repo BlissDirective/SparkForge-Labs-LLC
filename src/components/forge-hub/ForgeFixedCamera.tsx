@@ -8,6 +8,7 @@ import { useMemo, useRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { PerspectiveCamera, Vector3 } from 'three';
 import { FORGE_HUB_CAMERA } from '@/config/forgeHub';
+import { peekDirectorClock } from '@/lib/forge-hub/director/clock';
 import { useParallaxMouse } from '@/hooks/useParallaxMouse';
 import { useForgeStore } from '@/stores/sceneStore';
 
@@ -42,7 +43,7 @@ export function ForgeFixedCamera({ reducedMotion }: ForgeFixedCameraProps) {
     return { dir, distance };
   }, [basePos, lookAt]);
 
-  useFrame(({ clock }) => {
+  useFrame(({ clock: frameClock }) => {
     const persp = camera as PerspectiveCamera;
     if (Math.abs(persp.fov - FORGE_HUB_CAMERA.fov) > 0.01) {
       persp.fov = FORGE_HUB_CAMERA.fov;
@@ -53,9 +54,18 @@ export function ForgeFixedCamera({ reducedMotion }: ForgeFixedCameraProps) {
 
     working.current.copy(basePos);
 
-    if (!freeze) {
+    const directorClock = peekDirectorClock();
+    const directorOwnsDolly =
+      !freeze &&
+      directorClock.id != null &&
+      directorClock.id !== 'welcome-idle';
+
+    if (directorOwnsDolly) {
+      const dolly = lookDir.distance * directorClock.cameraDollyPercent;
+      working.current.addScaledVector(lookDir.dir, dolly);
+    } else if (!freeze) {
       const dolly =
-        Math.sin(clock.elapsedTime * 0.32) *
+        Math.sin(frameClock.elapsedTime * 0.32) *
         lookDir.distance *
         FORGE_HUB_CAMERA.microDollyPercent;
       working.current.addScaledVector(lookDir.dir, dolly);

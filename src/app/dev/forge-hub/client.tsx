@@ -1,15 +1,15 @@
 'use client';
 
 /**
- * /dev/forge-hub client — W2 screen kit on the W1 room shell.
+ * /dev/forge-hub client — W2 screen kit + Director HUD on the W1 room.
  *
  * LCP is the server-rendered <h1> in page.tsx. The R3F stage is
  * dynamically imported after hydration + GPU probe so the heading
  * paints first (TAP §2.2 / §8 load budget).
  *
- * Screen kit: layout registry + projection hook + HoloPanel reading
- * plate. No new Zustand store. Portal 420/560 unchanged. Director
- * GSAP / EscapeFlat / ToastRail are out of this slice.
+ * Screen kit: Stagehand layout registry + projection + HoloPanel.
+ * Director: GSAP MOTION_BIBLE ids (emit-burst, login-success-hubsplit,
+ * first-visit-ignition stub). No new Zustand store.
  */
 
 import { useCallback, useEffect, useState } from 'react';
@@ -18,6 +18,7 @@ import { useSearchParams } from 'next/navigation';
 import '@/components/forge-hub/forge-hub.css';
 import { ForgePosterFallback } from '@/components/forge-hub/ForgePosterFallback';
 import { HoloPanelLayer } from '@/components/forge-hub/HoloPanelLayer';
+import { ForgeDirectorControls } from '@/components/forge-hub/ForgeDirectorControls';
 import {
   FORGE_HUB_QUERY,
   frameloopForMotion,
@@ -66,6 +67,7 @@ export function ForgeHubClient() {
   const setForgePortalPhase = useForgeStore((s) => s.setForgePortalPhase);
   const mode = useForgeStore((s) => s.forge.mode);
   const { phase, isOpen, retract, toggle } = useForgePortal();
+  const directorId = useForgeStore((s) => s.forge.directorId);
 
   const [allowStage, setAllowStage] = useState(false);
   const [stageStatus, setStageStatus] = useState<StageStatus>('pending');
@@ -140,6 +142,7 @@ export function ForgeHubClient() {
       data-forge-breathe={breatheOff ? 'off' : 'on'}
       data-forge-mode={mode}
       data-forge-screen-kit="w2"
+      data-forge-director={directorId ?? 'idle'}
       className="relative min-h-screen w-full overflow-hidden bg-[#0b1218]"
     >
       <ForgePosterFallback withGlass={posterVisible} />
@@ -162,7 +165,10 @@ export function ForgeHubClient() {
       ) : null}
 
       {!poseLock ? (
-        <div className="pointer-events-auto absolute bottom-6 left-6 z-20 flex flex-col gap-2">
+        <div
+          data-forge-director-ui="1"
+          className="pointer-events-auto absolute bottom-6 left-6 z-20 flex flex-col gap-3"
+        >
           <button
             type="button"
             data-testid="forge-hub-ignite"
@@ -183,6 +189,10 @@ export function ForgeHubClient() {
           >
             {phase}
           </p>
+          <ForgeDirectorControls
+            reducedMotion={!!prefersReducedMotion}
+            poseLock={poseLock}
+          />
         </div>
       ) : null}
 

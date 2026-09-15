@@ -5,7 +5,8 @@
 
 import type { ForgeMode } from '@/lib/forge-hub/types';
 import type { GlassSlotId } from '@/lib/forge-hub/glassSlots';
-import { visibleLayoutSlots, layoutForView } from '@/lib/forge-hub/layouts';
+import { liveDirectorSlots } from '@/lib/forge-hub/director/targets';
+import { useDirectorClock } from '@/lib/forge-hub/useForgeDirector';
 import { useForgeStore } from '@/stores/sceneStore';
 import { HoloPanel } from './HoloPanel';
 
@@ -82,10 +83,11 @@ export function HoloPanelLayer({
 }: HoloPanelLayerProps) {
   const mode = useForgeStore((s) => s.forge.mode);
   const poseLock = useForgeStore((s) => s.forge.poseLock);
+  useDirectorClock();
   if (poseLock) return null;
 
   const copy = MODE_COPY[mode] ?? DEFAULT_COPY;
-  const slots = visibleLayoutSlots(layoutForView(mode, false));
+  const slots = liveDirectorSlots(mode, false);
   const stageClass =
     layout === 'stage'
       ? 'forge-hub-glass-stage fh-holo-layer'

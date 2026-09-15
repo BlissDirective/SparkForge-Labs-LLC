@@ -118,6 +118,24 @@ test.describe('W1 /dev/forge-hub room shell + portal', () => {
     });
   });
 
+  test('director HUD can trigger emit-burst and a morph', async ({ page }) => {
+    await page.goto('/dev/forge-hub');
+    const shell = page.getByTestId('forge-hub-shell');
+    await expect(page.getByTestId('forge-hub-director')).toBeVisible();
+    await page.getByTestId('forge-hub-director-emit').click();
+    await expect(shell).toHaveAttribute('data-forge-director', 'emit-burst');
+    await expect(shell).toHaveAttribute('data-forge-portal', 'charge');
+    await expect(shell).toHaveAttribute('data-forge-portal', 'docked', {
+      timeout: 5000,
+    });
+    await page.getByTestId('forge-hub-director-morph').click();
+    await expect(shell).toHaveAttribute(
+      'data-forge-director',
+      'login-success-hubsplit',
+    );
+    await expect(page.getByTestId('forge-hub-director-scrub')).toBeVisible();
+  });
+
   test('reduced motion freezes breathe on the poster path', async ({ page }) => {
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await page.goto('/dev/forge-hub?fallback=poster');

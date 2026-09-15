@@ -1,20 +1,14 @@
 'use client';
 
-// W1-02 — store-backed portal runner.
-// Director (W2) will own the timeline. Until then this hook:
-//   IGNITE → hold charge 420ms → ADVANCE emit → hold 560ms → docked
-//   prefers-reduced-motion / uiStore a11y → SKIP_TO_DOCKED
-//   pose=lock freezes idle for the SSIM capture (no auto-advance)
+// W1-02 store-backed portal dispatch. W2-02 Director owns charge/emit
+// holds (420 / 560). This hook no longer auto-ADVANCE — Ignite plays
+// MOTION_BIBLE `emit-burst`. Retract is still the Stagehand dev control.
 
-import { useCallback, useEffect } from 'react';
+import { useCallback } from 'react';
 import { useSafeMotion } from '@/hooks/useSafeMotion';
+import { playForgeTransition, getForgeDirector } from '@/lib/forge-hub/director';
 import { useForgeStore } from '@/stores/sceneStore';
-import {
-  isPortalOpen,
-  nextHoldMs,
-  type PortalEvent,
-  type PortalPhase,
-} from './portalMachine';
+import { isPortalOpen, type PortalEvent, type PortalPhase } from './portalMachine';
 
 export interface ForgePortalControls {
   phase: PortalPhase;
@@ -32,31 +26,14 @@ export function useForgePortal(): ForgePortalControls {
   const poseLock = useForgeStore((s) => s.forge.poseLock);
   const dispatch = useForgeStore((s) => s.dispatchForgePortal);
 
-  useEffect(() => {
-    if (poseLock) return;
-    const hold = nextHoldMs(phase);
-    if (hold == null) return;
-    if (reduceMotion) {
-      useForgeStore.getState().dispatchForgePortal({ type: 'SKIP_TO_DOCKED' });
-      return;
-    }
-    const id = window.setTimeout(() => {
-      useForgeStore.getState().dispatchForgePortal({ type: 'ADVANCE' });
-    }, hold);
-    return () => window.clearTimeout(id);
-  }, [phase, poseLock, reduceMotion]);
-
   const ignite = useCallback(() => {
     if (poseLock) return;
-    if (reduceMotion) {
-      dispatch({ type: 'SKIP_TO_DOCKED' });
-      return;
-    }
-    dispatch({ type: 'IGNITE' });
-  }, [dispatch, poseLock, reduceMotion]);
+    playForgeTransition('emit-burst', { reducedMotion: reduceMotion });
+  }, [poseLock, reduceMotion]);
 
   const retract = useCallback(() => {
     if (poseLock) return;
+    getForgeDirector().kill();
     dispatch({ type: 'RETRACT' });
   }, [dispatch, poseLock]);
 

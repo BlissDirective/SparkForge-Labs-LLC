@@ -1,10 +1,11 @@
 /**
- * Forge Hub room shell — /dev/forge-hub (W1 + W2 screen kit)
+ * Forge Hub room shell — /dev/forge-hub (W1 + W2 screen kit + Director)
  *
  * Public like other /dev/* routes (middleware isDevRoute).
  * Server-rendered heading is the LCP element; the R3F stage loads
  * after hydration. Always on — not gated by FORGE_HUB (W10).
  * W2: layout registry, projection hook, HoloPanel reading plate.
+ * W2-02: Director GSAP timelines on MOTION_BIBLE ids (dev HUD).
  */
 
 import { Suspense } from 'react';
@@ -14,7 +15,7 @@ import { ForgeHubClient } from './client';
 export const metadata: Metadata = {
   title: 'Forge Hub · Dev Lab',
   description:
-    'W2 screen kit: layout registry, projected HoloPanels, reading plate',
+    'W2 screen kit + Director: layout registry, HoloPanels, MOTION_BIBLE timelines',
   robots: { index: false, follow: false },
 };
 
@@ -43,7 +44,7 @@ export default async function ForgeHubDevPage({
         </h1>
         <p className="mt-2 max-w-md text-sm text-white/70">
           Screen kit on the room shell: HoloL / HoloC / HoloR reading
-          plates. Sparky and the Director land in later tasks.
+          plates. Director HUD drives emit-burst and login-success-hubsplit.
         </p>
       </header>
       <Suspense

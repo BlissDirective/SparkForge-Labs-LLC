@@ -38,6 +38,7 @@ describe('W1-01 forgeStore is sceneStore (no new Zustand store)', () => {
     expect(forge.poseLock).toBe(false);
     expect(forge.sparky.spot).toBe('nearCore');
     expect(forge.holoBubble.state).toBe('hidden');
+    expect(forge.directorId).toBeNull();
   });
 
   it('setForgeMode records previousMode', () => {

@@ -2,6 +2,10 @@ import { act, renderHook } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { FORGE_SLICE_DEFAULTS } from '@/lib/forge-hub/types';
 import { useForgeStore, useSceneStore } from '@/stores/sceneStore';
+import {
+  getForgeDirector,
+  resetForgeDirector,
+} from '@/lib/forge-hub/director';
 
 let reduceMotion = false;
 vi.mock('@/hooks/useSafeMotion', () => ({
@@ -14,7 +18,7 @@ const SCENE_DEFAULTS = useSceneStore.getState();
 
 beforeEach(() => {
   reduceMotion = false;
-  vi.useFakeTimers();
+  resetForgeDirector();
   useSceneStore.setState({
     ...SCENE_DEFAULTS,
     forge: { ...FORGE_SLICE_DEFAULTS },
@@ -22,28 +26,29 @@ beforeEach(() => {
 });
 
 afterEach(() => {
-  vi.useRealTimers();
+  resetForgeDirector();
   useSceneStore.setState({
     ...SCENE_DEFAULTS,
     forge: { ...FORGE_SLICE_DEFAULTS },
   });
 });
 
-describe('useForgePortal hold timers', () => {
-  it('auto-advances charge 420ms then emit 560ms to docked', () => {
+describe('useForgePortal defers holds to the Director', () => {
+  it('ignite plays emit-burst (Director owns 420/560)', () => {
     const { result } = renderHook(() => useForgePortal());
     act(() => {
       result.current.ignite();
     });
+    expect(getForgeDirector().activeId()).toBe('emit-burst');
     expect(result.current.phase).toBe('charge');
     act(() => {
-      vi.advanceTimersByTime(420);
+      getForgeDirector().scrub(0.5);
     });
-    expect(result.current.phase).toBe('emit');
+    expect(useForgeStore.getState().forge.portalPhase).toBe('emit');
     act(() => {
-      vi.advanceTimersByTime(560);
+      getForgeDirector().scrub(1);
     });
-    expect(result.current.phase).toBe('docked');
+    expect(useForgeStore.getState().forge.portalPhase).toBe('docked');
   });
 
   it('SKIP_TO_DOCKED when reduced motion ignites', () => {
@@ -62,9 +67,6 @@ describe('useForgePortal hold timers', () => {
       result.current.ignite();
     });
     expect(result.current.phase).toBe('idle');
-    act(() => {
-      vi.advanceTimersByTime(2000);
-    });
-    expect(result.current.phase).toBe('idle');
+    expect(getForgeDirector().activeId()).toBeNull();
   });
 });
