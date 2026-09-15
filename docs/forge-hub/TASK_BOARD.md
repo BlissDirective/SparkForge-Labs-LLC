@@ -25,7 +25,7 @@ Status legend: `todo` · `doing` · `blocked` · `done` · `packet`
 | W0-06 | Scribe | Fix hub-concepts/`/workspace` paths; PROGRESS.md FORGE HUB note | **done** | PR #169 `1fe3c3f` |
 | W0-07 | Scribe + Gatekeeper | PR #164 port list; close after W2 port | todo | do not close until port |
 | W0-08 | Scribe + Director | MOTION_BIBLE.md v1 | todo | |
-| W1-01 | Stagehand | `/dev/forge-hub` plate+parallax room shell; fixed cam; SSIM harness stub | **review** | PR #166 `8de3bbf` |
+| W1-01 | Stagehand | `/dev/forge-hub` plate+parallax room shell; fixed cam; SSIM harness stub | **review** | PR [#166](https://github.com/BlissDirective/SparkForge-Labs-LLC/pull/166) |
 | W1-02 | Stagehand | Portal reducer port from PR #164; emitter charge/emit | todo | |
 | W1-03 | Stagehand | Three glass slabs + breathe; poster fallback | todo | |
 | W3-01 | Smith | Confirm SPARKY-CHARACTER-SPEC + artist brief | todo | spec may already exist |

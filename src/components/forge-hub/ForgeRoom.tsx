@@ -1,0 +1,122 @@
+'use client';
+
+// Plate + parallax world (TAP v2.2 §2.4).
+// Backdrop = display still filling the lock frustum.
+// Desk = real y=0 plane (Sparky's floor in later tasks) textured from
+// the plate. No glass slabs, emitter mesh, or Sparky in W1-01.
+
+import { useLayoutEffect, useMemo, useRef } from 'react';
+import { useTexture } from '@react-three/drei';
+import { DoubleSide, type Mesh, SRGBColorSpace, Vector3 } from 'three';
+import {
+  FORGE_HUB_CAMERA,
+  FORGE_HUB_DISPLAY_STILL,
+  FORGE_HUB_LOCK_ASPECT,
+  FORGE_HUB_PLATE,
+  plateSizeAtDistance,
+} from '@/config/forgeHub';
+
+function usePlateTexture(url: string) {
+  const texture = useTexture(url);
+  useLayoutEffect(() => {
+    texture.colorSpace = SRGBColorSpace;
+    texture.anisotropy = 8;
+    texture.needsUpdate = true;
+  }, [texture]);
+  return texture;
+}
+
+function PlateBackdrop() {
+  const map = usePlateTexture(FORGE_HUB_DISPLAY_STILL);
+  const meshRef = useRef<Mesh>(null);
+  const { position, size } = useMemo(() => {
+    const cam = new Vector3(...FORGE_HUB_CAMERA.position);
+    const look = new Vector3(...FORGE_HUB_CAMERA.lookAt);
+    const dir = look.clone().sub(cam).normalize();
+    const pos = cam
+      .clone()
+      .addScaledVector(dir, FORGE_HUB_PLATE.backdropDistance);
+    const sizeAt = plateSizeAtDistance(
+      FORGE_HUB_PLATE.backdropDistance,
+      FORGE_HUB_CAMERA.fov,
+      FORGE_HUB_LOCK_ASPECT,
+    );
+    return { position: pos.toArray() as [number, number, number], size: sizeAt };
+  }, []);
+
+  useLayoutEffect(() => {
+    if (!meshRef.current) return;
+    meshRef.current.lookAt(new Vector3(...FORGE_HUB_CAMERA.position));
+  }, [position]);
+
+  return (
+    <mesh
+      ref={meshRef}
+      position={position}
+      frustumCulled={false}
+      userData={{ forge: 'plate' }}
+    >
+      <planeGeometry args={[size[0], size[1]]} />
+      <meshBasicMaterial map={map} depthWrite side={DoubleSide} />
+    </mesh>
+  );
+}
+
+function DeskPlane() {
+  const map = usePlateTexture(FORGE_HUB_DISPLAY_STILL);
+  const deskMap = useMemo(() => {
+    const cloned = map.clone();
+    cloned.colorSpace = SRGBColorSpace;
+    cloned.wrapS = map.wrapS;
+    cloned.wrapT = map.wrapT;
+    cloned.repeat.set(
+      FORGE_HUB_PLATE.desk.uvRepeat[0],
+      FORGE_HUB_PLATE.desk.uvRepeat[1],
+    );
+    cloned.offset.set(
+      FORGE_HUB_PLATE.desk.uvOffset[0],
+      FORGE_HUB_PLATE.desk.uvOffset[1],
+    );
+    cloned.needsUpdate = true;
+    return cloned;
+  }, [map]);
+
+  useLayoutEffect(() => {
+    return () => {
+      deskMap.dispose();
+    };
+  }, [deskMap]);
+
+  return (
+    <mesh
+      rotation={[-Math.PI / 2, 0, 0]}
+      position={[...FORGE_HUB_PLATE.desk.position]}
+      userData={{ forge: 'desk' }}
+    >
+      <circleGeometry args={[FORGE_HUB_PLATE.desk.radius, 48]} />
+      <meshStandardMaterial
+        map={deskMap}
+        roughness={0.72}
+        metalness={0.22}
+        envMapIntensity={0.35}
+      />
+    </mesh>
+  );
+}
+
+export function ForgeRoom() {
+  return (
+    <group userData={{ forge: 'room' }}>
+      <hemisphereLight args={['#9ad8ff', '#3a322c', 0.55]} />
+      <ambientLight intensity={0.35} />
+      <pointLight
+        position={[0, 1.8, 0.4]}
+        intensity={0.55}
+        color="#7fe7ff"
+        distance={8}
+      />
+      <PlateBackdrop />
+      <DeskPlane />
+    </group>
+  );
+}

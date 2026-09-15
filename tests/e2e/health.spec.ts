@@ -12,4 +12,12 @@ test.describe('Health Check', () => {
     const body = await response.json();
     expect(body.status).toBe('ok');
   });
+
+  test('forge hub room shell is reachable', async ({ page }) => {
+    const response = await page.goto('/dev/forge-hub');
+    expect(response?.status()).toBeLessThan(500);
+    await expect(
+      page.getByRole('heading', { name: 'Forge Hub', exact: true }),
+    ).toBeVisible();
+  });
 });

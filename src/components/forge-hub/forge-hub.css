@@ -1,0 +1,15 @@
+@keyframes forge-hub-poster-breathe {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.92;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-forge-stage='poster'] {
+    animation: none !important;
+  }
+}
