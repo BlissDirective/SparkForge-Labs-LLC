@@ -2717,7 +2717,7 @@ transforms/backdrop-filters on html/body/app-shell wrappers.
 
 ### FORGE HUB — W0-07 PR #164 port list (2026-09-15)
 
-Scribe published `docs/forge-hub/PR164_PORT_LIST.md` from the real 41-file #164 inventory
+Scribe published `docs/forge-hub/PR164_PORT_LIST.md` (PR #170) from the real 41-file #164 inventory
 (head `cursor/forge-lab-hotspot-hub-36cc` @ `3862d60`). TAP v2.2 decision 9: port layout
 math, portal reducer, catalog, tests, blend tokens; plates already under
 `public/forge-hub/world/`. Do **not** port the hotspot shell, `/dev/forge-lab`, or
