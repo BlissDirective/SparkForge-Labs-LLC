@@ -18,7 +18,7 @@ Status legend: `todo` · `doing` · `blocked` · `done` · `packet`
 | ID | Owner | Task | Status | Notes |
 |----|-------|------|--------|-------|
 | W0-01 | Foreman→Scribe | Decision-lock `docs/01-decisions/2026-09-forge-hub.md` (decisions 1–13) | **done** | commit `017d681` |
-| W0-02 | Scribe | Amend Concept 10 §0.1.2–0.1.3 + §1.2 palette | **doing** | branch `grok/scribe/W0-02-concept10-amend` |
+| W0-02 | Scribe | Amend Concept 10 §0.1.2–0.1.3 + §1.2 palette | **done** | [PR #165](https://github.com/BlissDirective/SparkForge-Labs-LLC/pull/165) · branch `grok/scribe/W0-02-concept10-amend` |
 | W0-03 | Scribe | Amend Fable-5 Rebuild Part IV forge-hub outcome | todo | |
 | W0-04 | Scribe | CLAUDE.md v7 draft as approval packet | todo | Tier 2 |
 | W0-05 | Scribe | Vocabulary lock HoloL/C/R; archive root Phased plan → `_SUPERSEDED/` | todo | |
