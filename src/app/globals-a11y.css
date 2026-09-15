@@ -314,6 +314,12 @@
 .light [data-surface='dark'] .bg-white\/20 { background: rgba(255, 255, 255, 0.2) !important; }
 .light [data-surface='dark'] .border-white\/10 { border-color: rgba(255, 255, 255, 0.1) !important; }
 .light [data-surface='dark'] .border-white\/20 { border-color: rgba(255, 255, 255, 0.2) !important; }
+/* The marketing layout wrapper carries data-surface="dark" AND
+   .bg-surface-deep on the same element, so the descendant selector
+   alone left it at the light #F0F4F8 under white text (axe contrast
+   1.05 on /). Match the element itself as well as its descendants. */
+.light [data-surface='dark'].bg-surface-deep,
+.light [data-surface='dark'].bg-deep-space,
 .light [data-surface='dark'] .bg-surface-deep,
 .light [data-surface='dark'] .bg-deep-space { background: #0A0E1A !important; }
 .light [data-surface='dark'] nav,

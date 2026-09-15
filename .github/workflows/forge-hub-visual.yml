@@ -1,0 +1,110 @@
+# ════════════════════════════════════════════════════
+# Forge Hub visual gate — SSIM vs the locked plate
+# TRANSITION_ACTION_PLAN.md §4 (P1 gate) and §11 W8.
+#
+# Runs only when forge-hub code, config, or locked art changes.
+# Fails under FORGE_HUB_SSIM_THRESHOLD (0.96). The score is the
+# number owner gates read; a stub exit is never acceptable.
+# ════════════════════════════════════════════════════
+
+name: Forge Hub visual
+
+on:
+  pull_request:
+    branches: [setup-sparkforge-dev]
+    paths:
+      - 'src/components/forge-hub/**'
+      - 'src/lib/forge-hub/**'
+      - 'src/app/dev/forge-hub/**'
+      - 'src/config/forgeHub.ts'
+      - 'src/config/sparkySpots.ts'
+      - 'src/stores/sceneStore.ts'
+      - 'public/forge-hub/**'
+      - 'scripts/ssim-forge-hub.mjs'
+      - '.github/workflows/forge-hub-visual.yml'
+  push:
+    branches: [setup-sparkforge-dev]
+    paths:
+      - 'src/components/forge-hub/**'
+      - 'src/lib/forge-hub/**'
+      - 'src/app/dev/forge-hub/**'
+      - 'src/config/forgeHub.ts'
+      - 'src/config/sparkySpots.ts'
+      - 'src/stores/sceneStore.ts'
+      - 'public/forge-hub/**'
+      - 'scripts/ssim-forge-hub.mjs'
+      - '.github/workflows/forge-hub-visual.yml'
+
+concurrency:
+  group: forge-hub-visual-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  ssim:
+    name: SSIM vs LOCKED_HERO.png
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - name: Verify locked art bytes
+        run: cd public/forge-hub && sha256sum -c SHA256SUMS
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Build (prod)
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://ci.placeholder.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-placeholder-anon-key
+          SUPABASE_SERVICE_ROLE_KEY: ci-placeholder-service-key
+          SKIP_ENV_VALIDATION: '1'
+        run: npm run build
+      - name: Start server + measure SSIM
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://ci.placeholder.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-placeholder-anon-key
+          SUPABASE_SERVICE_ROLE_KEY: ci-placeholder-service-key
+          CSRF_SECRET: ci-placeholder-csrf-secret-do-not-use-in-prod
+          FORGE_HUB_SSIM_THRESHOLD: '0.96'
+        run: |
+          npm start &
+          SERVER_PID=$!
+          # Wait on the page itself: /api/health answers 503 (7 s) with the
+          # placeholder Supabase, which would burn the whole timeout.
+          for i in $(seq 1 60); do
+            curl -sf -o /dev/null "http://localhost:3000/dev/forge-hub?pose=lock" && break
+            sleep 2
+          done
+          # GitHub runners have no WebGPU, and headless Chromium presents a
+          # black WebGPU canvas in screenshots even where an adapter exists
+          # (measured 2026-09-15). WebGL2 (SwiftShader) is the CI baseline;
+          # WebGPU numbers come from the reference laptop
+          # (docs/forge-hub/REFERENCE_HARDWARE.md).
+          set +e
+          node scripts/ssim-forge-hub.mjs --query fallback=webgl2 --require-backend webgl2 --json | tee ssim-report.json
+          STATUS=${PIPESTATUS[0]}
+          set -e
+          kill $SERVER_PID || true
+          {
+            echo "## Forge Hub SSIM"
+            echo
+            echo '```json'
+            cat ssim-report.json
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          exit $STATUS
+      - name: Upload capture
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: forge-hub-ssim
+          path: |
+            .forge-hub-ssim/
+            ssim-report.json
+          retention-days: 14

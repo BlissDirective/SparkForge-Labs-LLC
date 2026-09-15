@@ -53,3 +53,7 @@ next-env.d.ts
 
 # token-optimizer MCP server session telemetry (local tool state, not project content)
 .token-optimizer/
+
+# Forge Hub SSIM harness captures (scripts/ssim-forge-hub.mjs)
+.forge-hub-ssim*/
+ssim-report.json
