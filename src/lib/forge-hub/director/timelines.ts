@@ -156,7 +156,7 @@ function reducedMotionCrossfade(
       contentOut: 0,
       contentIn: 1,
       duration: msToSec(durationMs),
-      ease: 'power1.out',
+      ease: 'none',
     },
     0,
   );

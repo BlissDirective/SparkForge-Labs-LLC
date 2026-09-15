@@ -101,8 +101,8 @@ describe('W2-04 Director reduced-motion substitutes', () => {
     expect(peekDirectorClock().sparkyPing).toBe(0);
 
     director.scrub(0.5);
-    expect(peekDirectorClock().contentIn).toBeGreaterThan(0.2);
-    expect(peekDirectorClock().contentIn).toBeLessThan(1);
+    expect(peekDirectorClock().contentIn).toBeCloseTo(0.5, 5);
+    expect(peekDirectorClock().contentOut).toBeCloseTo(0.5, 5);
     expect(peekDirectorClock().holoC).toMatchObject({
       left: 31.2,
       top: 24,
