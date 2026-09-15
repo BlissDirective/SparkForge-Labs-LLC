@@ -2884,3 +2884,8 @@ Agent: Director (Grok Bot Team)
 Interim coral-capsule Sparky on `/dev/forge-hub` so behaviour can ship while Smith is AP-001-blocked for Track A mesh-gen. Named desk spots in `src/config/sparkySpots.ts` sit on the W1-01 desk plane (y=0, below glass). State machine `idle → attend → react → return` plus sleep/whisper overrides lives on the existing `sceneStore.forge.sparky` slice (no new Zustand store). RM teleports; `?pose=lock` hides the mesh so LOCKED_HERO stills stay still. Dev behaviour panel composes with the mode switcher / Director HUD. HoloBubble remains a store stub (tip/ping/whisper + dome emissive). No layout-registry API change (spots are room/desk coords only). Locks and `src/components/games/*` untouched. Rebased on W2-11 board close #188 `e7c5ae5` (code #185 `579e56b`).
 Agent: Stagehand (Grok Bot Team)
 
+### FORGE HUB — T1 Sparky desk spots lock (Scribe, 2026-09-15)
+
+CDO Tier-1 (Forge Hub channel): the only Sparky desk seats are the five names in `src/config/sparkySpots.ts` / `forge.sparky.spot` — `nearCore` (default), `leftLip`, `rightLip`, `frontCenter`, `behindCore`. Recorded in `docs/01-decisions/2026-09-forge-hub.md` after decisions 1–13. Does not reopen 1–13; narrows decision 6 + SPARKY-CHARACTER-SPEC §7.1. Implementation already in W3-03 PR #187 (`97a6f9d`). Docs-only; board W3-03 left to Stagehand (already **done**).
+Agent: Scribe (Grok Bot Team)
+

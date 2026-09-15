@@ -36,6 +36,17 @@ Agents may propose amendments; they may **not** reopen these decisions. Reopenin
 
 ---
 
+## Tier-1 follow-on locks (2026-09-15)
+
+Source: CDO Tier-1, Forge Hub channel, 2026-09-15.  
+These **narrow** existing locks. They do **not** reopen decisions 1–13. Status remains **LOCKED**.
+
+| # | Decision | Locked answer |
+|---|----------|---------------|
+| 6a | Sparky desk spots | The **only** Sparky desk seats are these five names from `src/config/sparkySpots.ts` / `forge.sparky.spot`: `nearCore` (default), `leftLip`, `rightLip`, `frontCenter`, `behindCore`. Do not invent additional seats. Director morph Sparky reactions bind to this set only after W3-03 (#187). Narrows decision 6 (Sparky on desk) + `docs/sparky/SPARKY-CHARACTER-SPEC.md` §7.1. Source of truth for implementation already landed in W3-03 PR #187 (`97a6f9d`). |
+
+---
+
 ## Related locks (art)
 
 | Asset | Path | Rule |
@@ -68,3 +79,4 @@ Earlier CDO Phase 0 draft defaults that conflicted: Sparky as 2D overlay-only; h
 | Owner | Locked via TAP v2.2 ("lock both, proceed" + §0 Q11–13) |
 | Foreman | W0-01 recorded this file · 2026-09-14 |
 | Scribe | Owns follow-on W0-02…W0-08 amendments referencing this lock |
+| Scribe | 2026-09-15 T1 Sparky desk spots (five names; does not reopen 1–13) |
