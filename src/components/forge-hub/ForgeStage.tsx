@@ -3,10 +3,10 @@
 import { Suspense, useEffect } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { AdaptiveDpr } from '@react-three/drei';
-import { useReducedMotion } from 'motion/react';
 import { Canvas3DErrorBoundary } from '@/components/3d/Canvas3DErrorBoundary';
 import { createRenderer } from '@/lib/3d/webgpuRenderer';
 import { FORGE_HUB_CAMERA, FORGE_HUB_DPR } from '@/config/forgeHub';
+import { useForgeReducedMotion } from '@/lib/forge-hub/useForgeReducedMotion';
 import { useForgeStore } from '@/stores/sceneStore';
 import { ForgeBloomOnly } from './ForgeBloomOnly';
 import { ForgeFixedCamera } from './ForgeFixedCamera';
@@ -22,13 +22,12 @@ function PosterFallback({ onFailure }: { onFailure?: () => void }) {
   useEffect(() => {
     onFailure?.();
   }, [onFailure]);
-  return <ForgePosterFallback className="h-full w-full" />;
+  return <ForgePosterFallback className="h-full w-full" withGlass />;
 }
 
 function ForgeStageInner({ onReady }: { onReady?: () => void }) {
   const frameloop = useForgeStore((s) => s.forge.frameloop);
-  const prefersReducedMotion = useReducedMotion();
-  const reduced = !!prefersReducedMotion;
+  const reduced = useForgeReducedMotion();
 
   return (
     <Canvas
@@ -58,7 +57,7 @@ function ForgeStageInner({ onReady }: { onReady?: () => void }) {
       <Suspense fallback={null}>
         <AdaptiveDpr pixelated />
         <ForgeFixedCamera reducedMotion={reduced} />
-        <ForgeRoom />
+        <ForgeRoom reducedMotion={reduced} />
         <ForgeBloomOnly />
       </Suspense>
     </Canvas>

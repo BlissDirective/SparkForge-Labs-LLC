@@ -28,8 +28,58 @@
   }
 }
 
+@keyframes forge-hub-panel-breathe {
+  0%,
+  100% {
+    transform: perspective(1200px) rotateY(var(--fh-yaw, 0deg)) scale(0.98);
+  }
+  50% {
+    transform: perspective(1200px) rotateY(var(--fh-yaw, 0deg)) scale(1.02);
+  }
+}
+
+@keyframes forge-hub-rm-crossfade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.forge-hub-glass-stage {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: min(100vw, calc(100dvh * 1.5));
+  height: min(100dvh, calc(100vw / 1.5));
+  aspect-ratio: 1536 / 1024;
+  pointer-events: none;
+}
+
+.forge-hub-glass {
+  position: absolute;
+  box-sizing: border-box;
+  border: 1.5px solid var(--fh-holo-edge, rgba(77, 233, 255, 0.78));
+  border-radius: 0.4%;
+  background: var(--fh-holo-fill-empty, rgba(6, 14, 28, 0.1));
+  box-shadow:
+    inset 0 0 0 1px rgba(77, 233, 255, 0.35),
+    var(--fh-holo-glow, 0 0 18px rgba(77, 233, 255, 0.28));
+  animation: forge-hub-panel-breathe 3s ease-in-out infinite;
+}
+
+.forge-hub-rm-crossfade {
+  animation: forge-hub-rm-crossfade 200ms ease-out both;
+}
+
 @media (prefers-reduced-motion: reduce) {
   [data-forge-stage='poster'] {
-    animation: none !important;
+    animation: forge-hub-rm-crossfade 200ms ease-out both !important;
+  }
+
+  .forge-hub-glass {
+    animation: forge-hub-rm-crossfade 200ms ease-out both !important;
+    transform: perspective(1200px) rotateY(var(--fh-yaw, 0deg)) scale(1);
   }
 }

@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * /dev/forge-hub client — W1-02 portal reducer on the W1-01 room shell.
+ * /dev/forge-hub client — W1-03 glass slabs on the W1-02 portal shell.
  *
  * LCP is the server-rendered <h1> in page.tsx. The R3F stage is
  * dynamically imported after hydration + GPU probe so the heading
@@ -11,7 +11,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
 import { useSearchParams } from 'next/navigation';
-import { useReducedMotion } from 'motion/react';
 import '@/components/forge-hub/forge-hub.css';
 import { ForgePosterFallback } from '@/components/forge-hub/ForgePosterFallback';
 import {
@@ -23,6 +22,7 @@ import {
   portalLiveStatus,
   useForgePortal,
 } from '@/lib/forge-hub/useForgePortal';
+import { useForgeReducedMotion } from '@/lib/forge-hub/useForgeReducedMotion';
 import { useDeviceStore } from '@/stores/deviceStore';
 import { useForgeStore } from '@/stores/sceneStore';
 
@@ -35,7 +35,7 @@ type StageStatus = 'pending' | 'ready' | 'poster';
 
 export function ForgeHubClient() {
   const searchParams = useSearchParams();
-  const prefersReducedMotion = useReducedMotion();
+  const prefersReducedMotion = useForgeReducedMotion();
   const poseLock =
     searchParams.get(FORGE_HUB_QUERY.poseParam) === FORGE_HUB_QUERY.poseLock;
   const forcePoster =
@@ -50,6 +50,10 @@ export function ForgeHubClient() {
 
   const [allowStage, setAllowStage] = useState(false);
   const [stageStatus, setStageStatus] = useState<StageStatus>('pending');
+
+  const posterVisible = forcePoster || stageStatus === 'poster';
+  const glassReady = posterVisible || stageStatus === 'ready';
+  const breatheOff = !!prefersReducedMotion || poseLock;
 
   useEffect(() => {
     setForgePoseLock(poseLock);
@@ -110,12 +114,21 @@ export function ForgeHubClient() {
       data-forge-pose={poseLock ? 'lock' : 'idle'}
       data-forge-stage={forcePoster ? 'poster' : stageStatus}
       data-forge-portal={phase}
+      data-forge-glass={glassReady ? 'trio' : 'pending'}
+      data-forge-breathe={breatheOff ? 'off' : 'on'}
       className="relative min-h-screen w-full overflow-hidden bg-[#0b1218]"
     >
-      <ForgePosterFallback />
+      <ForgePosterFallback withGlass={posterVisible} />
 
       {allowStage && !forcePoster && (
-        <div className="absolute inset-0" aria-hidden="true">
+        <div
+          className={
+            prefersReducedMotion
+              ? 'absolute inset-0 forge-hub-rm-crossfade'
+              : 'absolute inset-0'
+          }
+          aria-hidden="true"
+        >
           <ForgeStage onReady={onReady} onFailure={onFailure} />
         </div>
       )}

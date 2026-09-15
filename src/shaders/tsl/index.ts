@@ -77,3 +77,6 @@ export {
   createCoreGlowMaterial,
   createBeamConeMaterial,
 } from './forgeCorePortalTSL';
+
+// ── Forge Hub glass slabs (W1-03) ──
+export { createGlassSlabMaterial } from './forgeGlassTSL';
