@@ -14,8 +14,11 @@ import {
   AdditiveBlending,
   Color,
   DoubleSide,
+  EdgesGeometry,
   type Group,
+  type LineSegments,
   type Mesh,
+  PlaneGeometry,
 } from 'three';
 import { isWebGPURenderer } from '@/lib/3d/webgpuRenderer';
 import { FORGE_HUB_GLASS } from '@/config/forgeHub';
@@ -145,8 +148,16 @@ function GlassSlabGpu({ slot, plateSize, freeze }: SlabProps) {
 function GlassSlabFallback({ slot, plateSize, freeze }: SlabProps) {
   const groupRef = useRef<Group>(null);
   const fillRef = useRef<Mesh>(null);
-  const edgeRef = useRef<Mesh>(null);
+  const edgeRef = useRef<LineSegments>(null);
   const cyan = useMemo(() => new Color('#4de9ff'), []);
+  // Outline only. A `wireframe` plane also draws the triangle diagonal,
+  // which showed up as a corner-to-corner line across every painted
+  // panel in the WebGL2 SSIM capture (2026-09-15, score 0.717).
+  const edgeGeometry = useMemo(
+    () => new EdgesGeometry(new PlaneGeometry(1, 1)),
+    [],
+  );
+  useEffect(() => () => edgeGeometry.dispose(), [edgeGeometry]);
   const phase = PANEL_BREATHE_PHASE_S[slot.id];
   useSlotAnchor(slot.id, fillRef);
 
@@ -189,19 +200,20 @@ function GlassSlabFallback({ slot, plateSize, freeze }: SlabProps) {
           toneMapped={false}
         />
       </mesh>
-      <mesh ref={edgeRef} userData={{ forge: 'glass-edge' }}>
-        <planeGeometry args={[1, 1]} />
-        <meshBasicMaterial
+      <lineSegments
+        ref={edgeRef}
+        geometry={edgeGeometry}
+        userData={{ forge: 'glass-edge' }}
+      >
+        <lineBasicMaterial
           color={cyan}
           transparent
           opacity={0.42}
           blending={AdditiveBlending}
           depthWrite={false}
-          side={DoubleSide}
           toneMapped={false}
-          wireframe
         />
-      </mesh>
+      </lineSegments>
     </group>
   );
 }

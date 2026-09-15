@@ -71,7 +71,15 @@ function PlateFrame({
         userData={{ forge: 'plate' }}
       >
         <planeGeometry args={[size[0], size[1]]} />
-        <meshBasicMaterial map={map} depthWrite side={DoubleSide} />
+        {/* toneMapped off: the plate's pixels must reach the screen
+            unchanged, or the SSIM gate measures the tone curve instead
+            of the room. */}
+        <meshBasicMaterial
+          map={map}
+          depthWrite
+          side={DoubleSide}
+          toneMapped={false}
+        />
       </mesh>
       <ForgeGlassSlabs plateSize={size} reducedMotion={reducedMotion} />
       <ForgeSlotProjector />
@@ -80,30 +88,13 @@ function PlateFrame({
 }
 
 function DeskPlane() {
-  const map = usePlateTexture(FORGE_HUB_DISPLAY_STILL);
-  const deskMap = useMemo(() => {
-    const cloned = map.clone();
-    cloned.colorSpace = SRGBColorSpace;
-    cloned.wrapS = map.wrapS;
-    cloned.wrapT = map.wrapT;
-    cloned.repeat.set(
-      FORGE_HUB_PLATE.desk.uvRepeat[0],
-      FORGE_HUB_PLATE.desk.uvRepeat[1],
-    );
-    cloned.offset.set(
-      FORGE_HUB_PLATE.desk.uvOffset[0],
-      FORGE_HUB_PLATE.desk.uvOffset[1],
-    );
-    cloned.needsUpdate = true;
-    return cloned;
-  }, [map]);
-
-  useLayoutEffect(() => {
-    return () => {
-      deskMap.dispose();
-    };
-  }, [deskMap]);
-
+  // The painted plate already IS the desk. This plane is the y=0 floor
+  // reference for Sparky's spots and a future shadow catcher; it must
+  // not paint. The lit, plate-band-textured disc it replaced darkened
+  // and warped the whole lower half of the room (bottom-centre SSIM
+  // 0.12 in the 2026-09-15 WebGL2 capture). colorWrite off keeps it
+  // invisible; depthWrite off keeps it from punching a hole in the
+  // backdrop when opaque objects sort front-to-back.
   return (
     <mesh
       rotation={[-Math.PI / 2, 0, 0]}
@@ -111,12 +102,7 @@ function DeskPlane() {
       userData={{ forge: 'desk' }}
     >
       <circleGeometry args={[FORGE_HUB_PLATE.desk.radius, 48]} />
-      <meshStandardMaterial
-        map={deskMap}
-        roughness={0.72}
-        metalness={0.22}
-        envMapIntensity={0.35}
-      />
+      <meshBasicMaterial colorWrite={false} depthWrite={false} />
     </mesh>
   );
 }
