@@ -8,6 +8,7 @@ import {
   type ForgeMode,
   type ForgePanelId,
   type ForgePortalPhase,
+  type ForgeRouteApply,
   type ForgeSlice,
   type ForgeSparkyState,
 } from '@/lib/forge-hub/types';
@@ -93,6 +94,11 @@ interface SceneState {
   setForgeHoveredPanel: (hoveredPanel: ForgePanelId) => void;
   setForgeMorphProgress: (morphProgress: number) => void;
   setForgeFlatOverlay: (flatOverlay: boolean) => void;
+  /**
+   * W2-03: one write for ForgeRouteMode (mode + frameloop + overlay).
+   * Still this store — Director keeps using setForgeMode for morphs.
+   */
+  applyForgeRoute: (route: ForgeRouteApply) => void;
   patchForgeSparky: (patch: Partial<ForgeSparkyState>) => void;
   patchForgeHoloBubble: (patch: Partial<ForgeHoloBubbleState>) => void;
 }
@@ -340,6 +346,33 @@ export const useSceneStore = create<SceneState>((set, get) => ({
     set({ forge: { ...get().forge, flatOverlay } });
   },
 
+  applyForgeRoute: (route) => {
+    const current = get().forge;
+    const mode = route.mode;
+    const flatOverlay = route.flatOverlay ?? mode === 'flat';
+    const frameloop =
+      route.frameloop ??
+      (flatOverlay || mode === 'flat' ? 'never' : current.frameloop);
+    const previousMode =
+      current.mode === mode ? current.previousMode : current.mode;
+    if (
+      current.mode === mode &&
+      current.flatOverlay === flatOverlay &&
+      current.frameloop === frameloop
+    ) {
+      return;
+    }
+    set({
+      forge: {
+        ...current,
+        mode,
+        previousMode,
+        flatOverlay,
+        frameloop,
+      },
+    });
+  },
+
   patchForgeSparky: (patch) => {
     const forge = get().forge;
     set({ forge: { ...forge, sparky: { ...forge.sparky, ...patch } } });
@@ -364,9 +397,34 @@ export const selectGameHUDContent = (s: SceneState) => s.gameHUDContent;
 
 export const selectForge = (s: SceneState) => s.forge;
 export const selectForgeMode = (s: SceneState) => s.forge.mode;
+export const selectForgePreviousMode = (s: SceneState) => s.forge.previousMode;
+export const selectForgeMorphProgress = (s: SceneState) => s.forge.morphProgress;
 export const selectForgeFrameloop = (s: SceneState) => s.forge.frameloop;
 export const selectForgePoseLock = (s: SceneState) => s.forge.poseLock;
 export const selectForgePortalPhase = (s: SceneState) => s.forge.portalPhase;
+export const selectForgeFlatOverlay = (s: SceneState) => s.forge.flatOverlay;
+export const selectForgeActivePanel = (s: SceneState) => s.forge.activePanel;
+export const selectForgeHoveredPanel = (s: SceneState) => s.forge.hoveredPanel;
+export const selectForgeSparky = (s: SceneState) => s.forge.sparky;
+export const selectForgeHoloBubble = (s: SceneState) => s.forge.holoBubble;
+
+/** Flattened forge-facing snapshot — still `sceneStore.forge`, no new store. */
+export function selectForgeRoute(s: SceneState) {
+  const { forge } = s;
+  return {
+    mode: forge.mode,
+    previousMode: forge.previousMode,
+    morphProgress: forge.morphProgress,
+    portalPhase: forge.portalPhase,
+    activePanel: forge.activePanel,
+    hoveredPanel: forge.hoveredPanel,
+    frameloop: forge.frameloop,
+    flatOverlay: forge.flatOverlay,
+    sparky: forge.sparky,
+    holoBubble: forge.holoBubble,
+    directorId: forge.directorId,
+  };
+}
 
 /**
  * TAP §2.5 / STATE_ARCHITECTURE R1: repurpose this store as forgeStore.

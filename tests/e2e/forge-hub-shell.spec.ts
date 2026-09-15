@@ -208,12 +208,54 @@ test.describe('W1 /dev/forge-hub room shell + portal', () => {
     await expect(page.getByTestId('forge-hub-holo-holoR')).toBeVisible();
   });
 
+  test('toast rail sits on the hub and EscapeFlat covers FLAT', async ({
+    page,
+  }) => {
+    await page.goto('/dev/forge-hub?fallback=poster');
+    await expect(page.getByTestId('forge-hub-toast-rail')).toBeVisible();
+    await expect(page.getByTestId('forge-hub-toast-legal')).toBeVisible();
+    await expect(page.getByTestId('forge-hub-shell')).toHaveAttribute(
+      'data-forge-route-kind',
+      'bridge',
+    );
+    await page.getByTestId('forge-hub-toast-ping').click();
+    await expect(page.getByText('Forge hub ping')).toBeVisible();
+    await page.getByTestId('forge-hub-mode-switch').selectOption('flat');
+    await expect(page.getByTestId('forge-hub-shell')).toHaveAttribute(
+      'data-forge-flat',
+      '1',
+    );
+    await expect(page.getByTestId('forge-hub-shell')).toHaveAttribute(
+      'data-forge-frameloop',
+      'never',
+    );
+    const overlay = page.getByTestId('forge-hub-escape-flat');
+    await expect(overlay).toBeVisible();
+    await expect(overlay).toHaveAttribute('data-overlay-crit', '001');
+    await page.getByTestId('forge-hub-escape-back').click();
+    await expect(page.getByTestId('forge-hub-escape-flat')).toHaveCount(0);
+    await expect(page.getByTestId('forge-hub-shell')).toHaveAttribute(
+      'data-forge-mode',
+      'hubSplit',
+    );
+  });
+
+  test('query mode=flat opens EscapeFlat; Escape returns to hub', async ({
+    page,
+  }) => {
+    await page.goto('/dev/forge-hub?fallback=poster&mode=flat');
+    await expect(page.getByTestId('forge-hub-escape-flat')).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(page.getByTestId('forge-hub-escape-flat')).toHaveCount(0);
+  });
+
   test('pose=lock hides reading plates so the SSIM trio stays empty glass', async ({
     page,
   }) => {
     await page.goto('/dev/forge-hub?pose=lock');
     await expect(page.getByTestId('forge-hub-holo-layer')).toHaveCount(0);
     await expect(page.getByTestId('forge-hub-mode-switch')).toHaveCount(0);
+    await expect(page.getByTestId('forge-hub-toast-rail')).toHaveCount(0);
   });
 
   test('director RM morph and ignition stay on the 200ms substitute', async ({

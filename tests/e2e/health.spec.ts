@@ -29,5 +29,6 @@ test.describe('Health Check', () => {
       'data-forge-screen-kit',
       'w2',
     );
+    await expect(page.getByTestId('forge-hub-toast-rail')).toBeVisible();
   });
 });

@@ -9,6 +9,7 @@ import type { MotionBibleId } from './director/ids';
 // portalMachine.ts (idle → charge → emit → docked). W1-03 glass is
 // world materials on the lock-pose trio. W2 layouts / projection /
 // HoloPanel read `mode` + `morphProgress` from this same slice.
+// W2-03: ForgeRouteMode + applyForgeRoute + EscapeFlat/ToastRail.
 // Sparky / HoloBubble stay scaffolded for later tasks.
 
 export type ForgeMorphPhase = 'idle' | 'fade-out' | 'glass' | 'wipe-in';
@@ -59,6 +60,29 @@ export interface ForgeHoloBubbleState {
   state: ForgeHoloBubbleStateId;
   /** World-space anchor; Smith fills from the holoEmitter socket. */
   anchor: readonly [number, number, number] | null;
+}
+
+/**
+ * W2-03: pathname → stage vs EscapeFlat. `bridge` is /dev/* (manual
+ * mode switcher). `plain` is /offline (no overlay theater).
+ */
+export type ForgeRouteKind = 'stage' | 'flat' | 'plain' | 'bridge';
+
+export type ForgeRouteWave =
+  | '1'
+  | '2'
+  | '3'
+  | '4'
+  | '5'
+  | 'FLAT'
+  | 'plain'
+  | 'BRIDGE';
+
+/** Payload for `applyForgeRoute` — still the sceneStore forge slice. */
+export interface ForgeRouteApply {
+  mode: ForgeMode;
+  frameloop?: ForgeFrameloop;
+  flatOverlay?: boolean;
 }
 
 export interface ForgeSlice {

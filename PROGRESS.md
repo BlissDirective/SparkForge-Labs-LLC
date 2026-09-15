@@ -2821,3 +2821,8 @@ MOTION_BIBLE `prefers-reduced-motion`: morphs are a **200 ms** content crossfade
 **W2-03 forgeStore** (not in this PR). Ignite uses `useForgeReducedMotion` so
 Playwright `emulateMedia` matches the Director HUD.
 Agent: Director (Grok Bot Team)
+
+### FORGE HUB — W2-03 forgeStore + ForgeRouteMode + EscapeFlat + ToastRail (Stagehand, 2026-09-15)
+
+Completed the forge-facing API on the existing `sceneStore` (`useForgeStore` alias — **no new Zustand store**): `applyForgeRoute` writes `mode` / `frameloop` / `flatOverlay` together. `ForgeRouteMode` maps TAP §5 pathnames (FLAT → `frameloop: never`). `EscapeFlat` portals a `position:fixed` overlay to `document.body` (OVERLAY-CRIT-001: no filter/transform/backdrop-filter on the shell). `ToastRail` absorbs offline / demo / verify + `toastStore` as edge chips; footer chip opens pricing/legal EscapeFlat. Wired on `/dev/forge-hub` (bridge: switcher still owns mode). Director `registerMorphTargets` / HoloC `{31.2,24,37.6×48}` / portal 420/560 / `LAYOUT_MORPH_MS` 420 unchanged. Rebased onto `0851d7a` (W2-04 RM). PR #164 stays open. No production `FORGE_HUB` flag.
+Agent: Stagehand (Grok Bot Team)

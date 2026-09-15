@@ -1,24 +1,29 @@
 'use client';
 
 /**
- * /dev/forge-hub client — W2 screen kit + Director HUD on the W1 room.
+ * /dev/forge-hub client — W2 screen kit + Director + route/escape.
  *
  * LCP is the server-rendered <h1> in page.tsx. The R3F stage is
  * dynamically imported after hydration + GPU probe so the heading
  * paints first (TAP §2.2 / §8 load budget).
  *
- * Screen kit: Stagehand layout registry + projection + HoloPanel.
- * Director: GSAP MOTION_BIBLE ids (emit-burst, login-success-hubsplit,
- * first-visit-ignition stub). No new Zustand store.
+ * W2-03: ForgeRouteMode (bridge, no store sync), EscapeFlat,
+ * ToastRail. Same sceneStore forge slice — no new Zustand store.
  */
 
 import { useCallback, useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
 import { useSearchParams } from 'next/navigation';
 import '@/components/forge-hub/forge-hub.css';
-import { ForgePosterFallback } from '@/components/forge-hub/ForgePosterFallback';
-import { HoloPanelLayer } from '@/components/forge-hub/HoloPanelLayer';
+import { EscapeFlat } from '@/components/forge-hub/EscapeFlat';
 import { ForgeDirectorControls } from '@/components/forge-hub/ForgeDirectorControls';
+import { ForgePosterFallback } from '@/components/forge-hub/ForgePosterFallback';
+import {
+  ForgeRouteMode,
+  useForgeRouteMode,
+} from '@/components/forge-hub/ForgeRouteMode';
+import { HoloPanelLayer } from '@/components/forge-hub/HoloPanelLayer';
+import { ToastRail } from '@/components/forge-hub/ToastRail';
 import {
   FORGE_HUB_QUERY,
   frameloopForMotion,
@@ -35,6 +40,7 @@ import {
 import { useForgeReducedMotion } from '@/lib/forge-hub/useForgeReducedMotion';
 import type { ForgeMode } from '@/lib/forge-hub/types';
 import { useDeviceStore } from '@/stores/deviceStore';
+import { toast } from '@/stores/toastStore';
 import { useForgeStore } from '@/stores/sceneStore';
 
 const ForgeStage = dynamic(
@@ -44,12 +50,17 @@ const ForgeStage = dynamic(
 
 type StageStatus = 'pending' | 'ready' | 'poster';
 
-const MODE_SWITCHER_MODES: ForgeMode[] = FORGE_LAYOUT_MODES.filter(
-  (mode) => mode !== 'flat',
-);
-
 export function ForgeHubClient() {
+  return (
+    <ForgeRouteMode syncStore={false} pathname="/dev/forge-hub">
+      <ForgeHubClientInner />
+    </ForgeRouteMode>
+  );
+}
+
+function ForgeHubClientInner() {
   const searchParams = useSearchParams();
+  const route = useForgeRouteMode();
   const prefersReducedMotion = useForgeReducedMotion();
   const poseLock =
     searchParams.get(FORGE_HUB_QUERY.poseParam) === FORGE_HUB_QUERY.poseLock;
@@ -63,9 +74,12 @@ export function ForgeHubClient() {
 
   const setForgePoseLock = useForgeStore((s) => s.setForgePoseLock);
   const setForgeFrameloop = useForgeStore((s) => s.setForgeFrameloop);
-  const setForgeMode = useForgeStore((s) => s.setForgeMode);
+  const applyForgeRoute = useForgeStore((s) => s.applyForgeRoute);
   const setForgePortalPhase = useForgeStore((s) => s.setForgePortalPhase);
   const mode = useForgeStore((s) => s.forge.mode);
+  const previousMode = useForgeStore((s) => s.forge.previousMode);
+  const flatOverlay = useForgeStore((s) => s.forge.flatOverlay);
+  const frameloop = useForgeStore((s) => s.forge.frameloop);
   const { phase, isOpen, retract, toggle } = useForgePortal();
   const directorId = useForgeStore((s) => s.forge.directorId);
 
@@ -76,12 +90,38 @@ export function ForgeHubClient() {
   const glassReady = posterVisible || stageStatus === 'ready';
   const breatheOff = !!prefersReducedMotion || poseLock;
   const holoLayout = stageStatus === 'ready' && !forcePoster ? 'viewport' : 'stage';
+  const stageHidden = flatOverlay || mode === 'flat';
+
+  const closeFlat = useCallback(() => {
+    const back =
+      previousMode && previousMode !== 'flat' ? previousMode : 'hubSplit';
+    applyForgeRoute({
+      mode: back,
+      frameloop: frameloopForMotion(!!prefersReducedMotion),
+      flatOverlay: false,
+    });
+  }, [applyForgeRoute, prefersReducedMotion, previousMode]);
+
+  const openFlat = useCallback(() => {
+    applyForgeRoute({
+      mode: 'flat',
+      frameloop: 'never',
+      flatOverlay: true,
+    });
+  }, [applyForgeRoute]);
 
   useEffect(() => {
     setForgePoseLock(poseLock);
-    setForgeFrameloop(frameloopForMotion(!!prefersReducedMotion));
-    if (poseLock) setForgePortalPhase('idle');
+    if (poseLock) {
+      setForgePortalPhase('idle');
+      return;
+    }
+    if (mode !== 'flat' && !flatOverlay) {
+      setForgeFrameloop(frameloopForMotion(!!prefersReducedMotion));
+    }
   }, [
+    flatOverlay,
+    mode,
     poseLock,
     prefersReducedMotion,
     setForgeFrameloop,
@@ -90,8 +130,17 @@ export function ForgeHubClient() {
   ]);
 
   useEffect(() => {
-    if (modeParam && isForgeMode(modeParam)) setForgeMode(modeParam);
-  }, [modeParam, setForgeMode]);
+    if (modeParam && isForgeMode(modeParam)) {
+      applyForgeRoute({
+        mode: modeParam,
+        frameloop:
+          modeParam === 'flat'
+            ? 'never'
+            : frameloopForMotion(!!prefersReducedMotion),
+        flatOverlay: modeParam === 'flat',
+      });
+    }
+  }, [applyForgeRoute, modeParam, prefersReducedMotion]);
 
   useEffect(() => {
     if (forcePoster) {
@@ -119,7 +168,7 @@ export function ForgeHubClient() {
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
-      if (poseLock) return;
+      if (poseLock || stageHidden) return;
       if (event.key === 'Escape' && phase !== 'idle') {
         event.preventDefault();
         retract();
@@ -127,10 +176,23 @@ export function ForgeHubClient() {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [phase, poseLock, retract]);
+  }, [phase, poseLock, retract, stageHidden]);
 
   const onReady = useCallback(() => setStageStatus('ready'), []);
   const onFailure = useCallback(() => setStageStatus('poster'), []);
+
+  const pickMode = (next: string) => {
+    if (!isForgeMode(next)) return;
+    if (next === 'flat') {
+      openFlat();
+      return;
+    }
+    applyForgeRoute({
+      mode: next,
+      frameloop: frameloopForMotion(!!prefersReducedMotion),
+      flatOverlay: false,
+    });
+  };
 
   return (
     <div
@@ -144,9 +206,15 @@ export function ForgeHubClient() {
       data-forge-screen-kit="w2"
       data-forge-director={directorId ?? 'idle'}
       data-forge-rm={prefersReducedMotion ? 'on' : 'off'}
+      data-forge-route-kind={route.kind}
+      data-forge-flat={stageHidden ? '1' : '0'}
+      data-forge-frameloop={frameloop}
       className="relative min-h-screen w-full overflow-hidden bg-[#0b1218]"
     >
-      <ForgePosterFallback withGlass={posterVisible} />
+      <ForgePosterFallback
+        withGlass={posterVisible && !stageHidden}
+        className={stageHidden ? 'invisible' : undefined}
+      />
 
       {allowStage && !forcePoster && (
         <div
@@ -156,16 +224,17 @@ export function ForgeHubClient() {
               : 'absolute inset-0'
           }
           aria-hidden="true"
+          hidden={stageHidden}
         >
           <ForgeStage onReady={onReady} onFailure={onFailure} />
         </div>
       )}
 
-      {!poseLock ? (
+      {!poseLock && !stageHidden ? (
         <HoloPanelLayer layout={holoLayout} calibrate={calibrate} />
       ) : null}
 
-      {!poseLock ? (
+      {!poseLock && !stageHidden ? (
         <div
           data-forge-director-ui="1"
           className="pointer-events-auto absolute bottom-6 left-6 z-20 flex flex-col gap-3"
@@ -197,7 +266,7 @@ export function ForgeHubClient() {
         </div>
       ) : null}
 
-      {!poseLock ? (
+      {!poseLock && !stageHidden ? (
         <div className="pointer-events-auto absolute bottom-6 right-6 z-20 flex flex-col items-end gap-2">
           <label className="font-mono text-[0.65rem] uppercase tracking-[0.18em] text-cyan-100/80">
             Layout
@@ -206,20 +275,41 @@ export function ForgeHubClient() {
               className="forge-hub-mode ml-2"
               aria-label="Forge hub layout mode"
               value={mode}
-              onChange={(event) => {
-                const next = event.target.value;
-                if (isForgeMode(next)) setForgeMode(next);
-              }}
+              onChange={(event) => pickMode(event.target.value)}
             >
-              {MODE_SWITCHER_MODES.map((id) => (
+              {FORGE_LAYOUT_MODES.map((id: ForgeMode) => (
                 <option key={id} value={id}>
                   {id}
                 </option>
               ))}
             </select>
           </label>
+          <button
+            type="button"
+            data-testid="forge-hub-toast-ping"
+            className="forge-hub-ignite"
+            onClick={() => toast.info('Forge hub ping')}
+          >
+            Ping toast
+          </button>
         </div>
       ) : null}
+
+      <ToastRail
+        lock={poseLock}
+        showFooter={!stageHidden}
+        onOpenLegal={openFlat}
+      />
+      <EscapeFlat
+        open={!poseLock && stageHidden}
+        onClose={closeFlat}
+        title="Parent space"
+      >
+        <p>
+          Parent, billing, security, and legal screens use EscapeFlat.
+          The forge canvas stays mounted with frameloop never (OVERLAY-CRIT-001).
+        </p>
+      </EscapeFlat>
 
       <div className="sr-only" role="status" aria-live="polite">
         {portalLiveStatus(phase)}
