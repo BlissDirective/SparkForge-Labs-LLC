@@ -11,8 +11,11 @@
 This screen **replaces** the old sparkforge-labs.com hero marketing page.
 It is the **welcome**, **main**, and **control** surface: panels dynamically shift/change/move with interaction.
 
+## Vocabulary (locked 2026-09-15)
+The three cyan panels are **`HoloL` / `HoloC` / `HoloR`**. Layout modes include **`welcome`** (sides ~85%, center full — site home + login) and **`hubSplit`** (equal trio, three destinations). Full lock: `VOCABULARY.md`. Do not use `TopBanner`, `heroWelcome`, or `authMerged`.
+
 ## Locked visual language
-- Close frontal POV; three empty cyan hologram panels as primary UI
+- Close frontal POV; three empty cyan hologram panels as primary UI (`HoloL` / `HoloC` / `HoloR`)
 - Flat, slightly raised circular **SF** emitter module (not tall pedestal / deep pit)
 - Warm futuristic rose-gold / cream lab soft in background
 - Kid-friendly forge aesthetic

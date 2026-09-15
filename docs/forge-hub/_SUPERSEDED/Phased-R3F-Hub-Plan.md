@@ -1,3 +1,8 @@
+# REFERENCE ONLY — NOT A BUILD SOURCE
+
+> **DO NOT USE.** Archived 2026-09-15 (W0-05). See `docs/forge-hub/_SUPERSEDED/SUPERSEDED_BY.md`.
+> Active plan: `docs/forge-hub/Phased-R3F-Hub-Plan.md`. Vocabulary: `docs/forge-hub/VOCABULARY.md`. Engineering: TAP v2.2.
+
 # Phased R3F Hub Plan — SparkForge Labs
 
 **Status:** Brainstorm / Phase 0 (spec lock)  
