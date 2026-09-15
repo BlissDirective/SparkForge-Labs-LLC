@@ -63,6 +63,7 @@ function main() {
   console.log(`  reference   : public/forge-hub/world/LOCKED_HERO.png`);
   console.log(`  threshold   : SSIM ≥ ${THRESHOLD}`);
   console.log('  TODO(Inspector): Playwright Chromium+WebGPU capture + SSIM compare');
+  console.log('  TODO(Inspector): dismiss cookie notice (localStorage sparkforge:cookie-notice:dismissed=1)');
   console.log('  TODO(Inspector): CI job visual-forge-hub failing under 0.96');
   console.log('  TODO(Inspector): WebKit poster-path visual');
 

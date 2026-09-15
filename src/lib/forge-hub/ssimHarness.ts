@@ -9,10 +9,11 @@
 //   1. Launch Chromium with WebGPU at FORGE_HUB_REFERENCE_VIEWPORT.
 //   2. Navigate to `/dev/forge-hub?pose=lock`.
 //   3. Wait for `[data-forge-stage="ready"]` (or poster path).
-//   4. Screenshot the canvas (not the HTML chrome).
-//   5. Compare against public/forge-hub/world/LOCKED_HERO.png.
-//   6. Fail the job when score < FORGE_HUB_SSIM_THRESHOLD (0.96).
-//   7. Wire CI job `visual-forge-hub` — do not run it from Stagehand.
+//   4. Pre-dismiss CookieNotice (`sparkforge:cookie-notice:dismissed=1`).
+//   5. Screenshot the canvas (not the HTML chrome).
+//   6. Compare against public/forge-hub/world/LOCKED_HERO.png.
+//   7. Fail the job when score < FORGE_HUB_SSIM_THRESHOLD (0.96).
+//   8. Wire CI job `visual-forge-hub` — do not run it from Stagehand.
 
 import {
   FORGE_HUB_LOCK_PLATE,
