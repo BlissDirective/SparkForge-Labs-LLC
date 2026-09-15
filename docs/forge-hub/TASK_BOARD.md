@@ -38,6 +38,7 @@ Status legend: `todo` · `doing` · `blocked` · `done` · `packet`
 | W2-08 | Director | Remaining MOTION_BIBLE morphs | **done** | merged PR #183 `30c1337`; HUD remainder picker intact |
 | W2-09 | Stagehand | Audit PR #164 port list vs tip; close #164 | **done** | PR #184; catalog last PORT row; close comment on #164 (already closed, not merged) |
 | W2-10 | Stagehand | `createRenderer` / `three/webgpu` (WebGPU → WebGL2 → poster) on `/dev/forge-hub` | **done** | PR #186; cascade attrs + poster-when-none; W1-01 stub finished |
+| W2-11 | Director | Theatre.js `game-launch-burst` (optional, after merge) | **doing** | MOTION_BIBLE §5.4; session-first; HUD `?burst=1` / scrub; does not gate input |
 | W3-01 | Smith | Confirm SPARKY-CHARACTER-SPEC + artist brief | todo | spec may already exist |
 | W3-02 | Smith | Track A candidate sheet (needs AP-001 mesh-gen) | blocked | AP-001 |
 | W3-03 | Stagehand + Smith | Placeholder Sparky + desk spots + behaviour hooks | todo | after W1-01 |
@@ -59,5 +60,5 @@ Status legend: `todo` · `doing` · `blocked` · `done` · `packet`
 | Foreman | SparkForge-Labs (CDO) covering | active |
 | Scribe | Scribe (Forge Hub) | active — channel Forge Hub |
 | Stagehand | Stagehand (Forge Hub) | active — W2-10 createRenderer/webgpu PR #186 |
-| Director | Director (Grok Bot Team) | active — W2-08 remaining morphs merged #183 `30c1337` |
+| Director | Director (Grok Bot Team) | active — W2-11 `game-launch-burst` (W2-08 remainder done #183) |
 | Smith / Inspector / Glazier / Gatekeeper | — | deferred until AP-001 / P1 |

@@ -118,6 +118,8 @@ export const FORGE_HUB_QUERY = {
   studioOn: '1',
   ignitionParam: 'ignition',
   ignitionOn: '1',
+  burstParam: 'burst',
+  burstOn: '1',
 } as const;
 
 export function plateSizeAtDistance(

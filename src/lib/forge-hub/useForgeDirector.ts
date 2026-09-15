@@ -1,8 +1,9 @@
 'use client';
 
 // React bindings for the Director singleton. Skip: click / Enter / Space
-// on cinematic ids (emit-burst, first-visit-ignition). Ambient breathe
-// stays Stagehand's panelBreathe unless freezeBreathe is set by a morph.
+// on cinematic ids (emit-burst, first-visit-ignition, game-launch-burst).
+// Ambient breathe stays Stagehand's panelBreathe unless freezeBreathe is
+// set by a morph.
 
 import { useCallback, useEffect, useSyncExternalStore } from 'react';
 import {

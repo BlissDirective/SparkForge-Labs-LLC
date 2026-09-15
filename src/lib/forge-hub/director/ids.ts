@@ -12,6 +12,7 @@ export const MOTION_BIBLE_IDS = [
   'whisper-expand',
   'emit-burst',
   'first-visit-ignition',
+  'game-launch-burst',
   'whisper-close',
   'focus-in',
   'focus-out',
@@ -50,10 +51,18 @@ export const DIRECTOR_REMAINDER_IDS = [
 
 export type DirectorRemainderId = (typeof DIRECTOR_REMAINDER_IDS)[number];
 
-/** Slice 1 + remainder. Theatre `level-up` / `outfit-swap` stay unregistered. */
+/** Optional Theatre follow-on after `lobby-playstage-merge` (MOTION_BIBLE §5.4). */
+export const DIRECTOR_THEATRE_BEAT_IDS = [
+  'game-launch-burst',
+] as const satisfies readonly MotionBibleId[];
+
+export type DirectorTheatreBeatId = (typeof DIRECTOR_THEATRE_BEAT_IDS)[number];
+
+/** Slice 1 + remainder + Theatre follow-on. `level-up` / `outfit-swap` stay unregistered. */
 export const DIRECTOR_LIVE_IDS = [
   ...DIRECTOR_SLICE1_IDS,
   ...DIRECTOR_REMAINDER_IDS,
+  ...DIRECTOR_THEATRE_BEAT_IDS,
 ] as const satisfies readonly MotionBibleId[];
 
 export type DirectorLiveId = (typeof DIRECTOR_LIVE_IDS)[number];
@@ -61,6 +70,7 @@ export type DirectorLiveId = (typeof DIRECTOR_LIVE_IDS)[number];
 export const CINEMATIC_IDS: readonly MotionBibleId[] = [
   'emit-burst',
   'first-visit-ignition',
+  'game-launch-burst',
   'level-up',
   'outfit-swap',
 ];
@@ -85,4 +95,10 @@ export function isDirectorRemainderId(
 
 export function isDirectorLiveId(id: MotionBibleId): id is DirectorLiveId {
   return (DIRECTOR_LIVE_IDS as readonly MotionBibleId[]).includes(id);
+}
+
+export function isDirectorTheatreBeatId(
+  id: MotionBibleId,
+): id is DirectorTheatreBeatId {
+  return (DIRECTOR_THEATRE_BEAT_IDS as readonly MotionBibleId[]).includes(id);
 }
