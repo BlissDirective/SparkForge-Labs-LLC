@@ -7,6 +7,12 @@
 
 import { SPARKY_SPOT_IDS, isSparkySpot } from '@/config/sparkySpots';
 import { dispatchSparkyEvent } from '@/lib/forge-hub/sparkyBehaviour';
+import {
+  HOLO_BUBBLE_STATES,
+  closeHoloBubble,
+  isHoloBubbleStateId,
+  openHoloBubble,
+} from '@/lib/forge-hub/holoBubble';
 import type { ForgeSparkySpot } from '@/lib/forge-hub/types';
 import { useForgeStore } from '@/stores/sceneStore';
 
@@ -124,6 +130,49 @@ export function SparkyBehaviourPanel({
       >
         {sparky.spot} · {sparky.behaviour} · {bubble.state}
       </p>
+      <label className="forge-hub-sparky-label">
+        HoloBubble
+        <select
+          data-testid="forge-hub-holobubble-state"
+          className="forge-hub-mode ml-2"
+          aria-label="HoloBubble state"
+          value={bubble.state}
+          onChange={(event) => {
+            const next = event.target.value;
+            if (next === 'whisper') {
+              dispatchSparkyEvent({ type: 'WHISPER' }, ctx);
+              return;
+            }
+            if (bubble.state === 'whisper' && next === 'hidden') {
+              dispatchSparkyEvent({ type: 'WHISPER_CLOSE' }, ctx);
+              return;
+            }
+            if (next === 'hidden') {
+              closeHoloBubble();
+              return;
+            }
+            if (isHoloBubbleStateId(next)) {
+              openHoloBubble(next);
+            }
+          }}
+        >
+          {HOLO_BUBBLE_STATES.map((id) => (
+            <option key={id} value={id}>
+              {id}
+            </option>
+          ))}
+        </select>
+      </label>
+      <button
+        type="button"
+        data-testid="forge-hub-holobubble-open"
+        className="forge-hub-ignite"
+        aria-expanded={bubble.state !== 'hidden'}
+        aria-controls="forge-hub-holobubble"
+        onClick={() => openHoloBubble('tip')}
+      >
+        Open bubble
+      </button>
     </div>
   );
 }

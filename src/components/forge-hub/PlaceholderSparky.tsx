@@ -16,12 +16,17 @@ import {
   type Group,
 } from 'three';
 import { SPARKY_PALETTE } from '@/config/sparkyPalette';
-import { SPARKY_HEIGHT_M, SPARKY_SPOTS } from '@/config/sparkySpots';
+import {
+  SPARKY_HEIGHT_M,
+  SPARKY_HOLO_SOCKET_LIFT_M,
+  SPARKY_SPOTS,
+} from '@/config/sparkySpots';
 import { peekDirectorClock } from '@/lib/forge-hub/director/clock';
 import {
   dispatchSparkyEvent,
   HOLO_DOME_EMISSIVE,
 } from '@/lib/forge-hub/sparkyBehaviour';
+import { publishHoloBubbleWorld } from '@/lib/forge-hub/holoBubbleAnchor';
 import {
   createSparkyFaceCanvas,
   drawSparkyFace,
@@ -307,7 +312,10 @@ export function PlaceholderSparky() {
 
   useFrame((state, delta) => {
     const group = groupRef.current;
-    if (!group) return;
+    if (!group) {
+      publishHoloBubbleWorld(null);
+      return;
+    }
     const pose = SPARKY_SPOTS[useForgeStore.getState().forge.sparky.spot];
     const rm = reducedMotion;
     if (rm) {
@@ -356,6 +364,12 @@ export function PlaceholderSparky() {
     if (arrived && moving) {
       useForgeStore.getState().patchForgeSparky({ moving: false });
     }
+
+    publishHoloBubbleWorld([
+      group.position.x,
+      group.position.y + SPARKY_HEIGHT_M + SPARKY_HOLO_SOCKET_LIFT_M,
+      group.position.z,
+    ]);
   });
 
   if (poseLock || flatOverlay) return null;

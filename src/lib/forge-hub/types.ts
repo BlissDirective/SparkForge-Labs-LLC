@@ -11,6 +11,7 @@ import type { MotionBibleId } from './director/ids';
 // HoloPanel read `mode` + `morphProgress` from this same slice.
 // W2-03: ForgeRouteMode + applyForgeRoute + EscapeFlat/ToastRail.
 // W3-03: placeholder Sparky + spots + behaviour on this same slice.
+// W3-04: HoloBubble DOM stub (open/close + Escape) on holoBubble.
 
 export type ForgeMorphPhase = 'idle' | 'fade-out' | 'glass' | 'wipe-in';
 
@@ -96,7 +97,7 @@ export interface ForgeHoloBubbleState {
   state: ForgeHoloBubbleStateId;
   /** World-space anchor; Smith fills from the holoEmitter socket. */
   anchor: readonly [number, number, number] | null;
-  /** Stub tip copy (W3-03). Full HoloBubble UI is Stagehand+Smith later. */
+  /** Stub tip copy. Full tutor engine stays behind this slab. */
   tip: string | null;
 }
 

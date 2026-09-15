@@ -160,6 +160,138 @@
   font-weight: 700;
 }
 
+/* W3-04 HoloBubble stub — above the three main plates (TAP §2.8b). */
+.fh-holobubble-host {
+  position: absolute;
+  inset: 0;
+  z-index: 19;
+  pointer-events: none;
+}
+
+.fh-holobubble {
+  position: absolute;
+  box-sizing: border-box;
+  pointer-events: auto;
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  width: 320px;
+  height: 200px;
+}
+
+.fh-holobubble--ping {
+  width: 40px;
+  height: 40px;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid var(--fh-holo-edge, rgba(77, 233, 255, 0.78));
+  border-radius: 999px;
+  background: var(--fh-holo-reading, rgba(6, 14, 28, 0.88));
+  color: #4de9ff;
+  font-size: 1.05rem;
+  box-shadow: var(--fh-holo-glow, 0 0 18px rgba(77, 233, 255, 0.28));
+  cursor: pointer;
+}
+
+.fh-holobubble__beam {
+  position: absolute;
+  left: 50%;
+  bottom: -14px;
+  width: 2px;
+  height: 14px;
+  transform: translateX(-50%);
+  background: linear-gradient(
+    to bottom,
+    rgba(77, 233, 255, 0.85),
+    rgba(77, 233, 255, 0.05)
+  );
+  pointer-events: none;
+}
+
+.fh-holobubble__edge {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  border: 1.5px solid var(--fh-holo-edge, rgba(77, 233, 255, 0.78));
+  border-radius: 10px;
+  box-shadow:
+    inset 0 0 0 1px rgba(77, 233, 255, 0.35),
+    var(--fh-holo-glow, 0 0 18px rgba(77, 233, 255, 0.28));
+  overflow: hidden;
+}
+
+.fh-holobubble__plate {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--fh-holo-reading, rgba(6, 14, 28, 0.88));
+}
+
+.fh-holobubble__head {
+  flex: 0 0 auto;
+  padding: 0.45rem 0.65rem 0.3rem;
+  border-bottom: 1px solid rgba(77, 233, 255, 0.28);
+}
+
+.fh-holobubble__head h2 {
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #e7fbff;
+}
+
+.fh-holobubble__scroll {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 0.55rem 0.65rem 0.7rem;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+
+.fh-holobubble__note {
+  margin: 0.5rem 0 0;
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
+  color: rgba(207, 250, 254, 0.72);
+}
+
+.fh-holobubble__input-label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  margin-top: 0.65rem;
+  font-size: 0.65rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(207, 250, 254, 0.8);
+}
+
+.fh-holobubble__input {
+  border: 1px solid rgba(77, 233, 255, 0.35);
+  border-radius: 8px;
+  background: rgba(6, 14, 28, 0.55);
+  color: #e7fbff;
+  padding: 0.4rem 0.55rem;
+  font-size: 0.8rem;
+}
+
+.fh-holobubble--chat {
+  width: 420px;
+  height: 320px;
+}
+
+.fh-holobubble--whisper {
+  width: 480px;
+  height: 340px;
+}
+
 .fh-holo-panel {
   position: absolute;
   box-sizing: border-box;
@@ -451,6 +583,11 @@
   }
 
   .fh-holo-panel {
+    animation: forge-hub-rm-crossfade 200ms ease-out both;
+  }
+
+  .fh-holobubble,
+  .fh-holobubble--ping {
     animation: forge-hub-rm-crossfade 200ms ease-out both;
   }
 

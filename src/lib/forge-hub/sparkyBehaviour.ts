@@ -12,6 +12,10 @@ import {
 } from '@/config/sparkySpots';
 import { useForgeStore } from '@/stores/sceneStore';
 import type { MotionBibleId } from './director/ids';
+import {
+  HOLO_BUBBLE_DOME_EMISSIVE,
+  syncHoloBubbleTipTimer,
+} from './holoBubble';
 import type {
   ForgeHoloBubbleState,
   ForgeHoloBubbleStateId,
@@ -55,13 +59,7 @@ export interface SparkyIntent {
 }
 
 /** Spec §7.4 — dome emissive follows HoloBubble state. */
-export const HOLO_DOME_EMISSIVE: Record<ForgeHoloBubbleStateId, number> = {
-  hidden: 0.3,
-  ping: 0.6,
-  tip: 1,
-  chat: 1,
-  whisper: 1.2,
-};
+export const HOLO_DOME_EMISSIVE = HOLO_BUBBLE_DOME_EMISSIVE;
 
 export const SPARKY_REACTION_MS: Record<ForgeSparkyReaction, number> = {
   tapReact: 800,
@@ -341,7 +339,8 @@ export function advanceSparky(
         attendPanel: null,
         reaction: null,
         moving: false,
-        bubble: withAnchor(state.spot, { state: 'hidden', tip: null }),
+        // W3-04: tip auto-dismiss is the HoloBubble timer, not Sparky's return.
+        bubble: withAnchor(state.spot, null),
         autoReturnMs: null,
       };
     }
@@ -438,6 +437,8 @@ function applyIntent(intent: SparkyIntent): void {
   });
   if (intent.bubble) {
     store.patchForgeHoloBubble(intent.bubble);
+    const next = useForgeStore.getState().forge.holoBubble.state;
+    syncHoloBubbleTipTimer(next);
   }
 }
 
