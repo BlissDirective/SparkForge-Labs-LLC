@@ -2931,3 +2931,37 @@ has a wide top panel plus left and right, is the canonical composition given the
 (LFS for source art), weekly full-history gitleaks workflow added; PR #190 (HoloBubble stub) and
 #191 (Director Sparky seats) reviewed and merged with a follow-up W3-05 for HoloBubble `aria-modal`.
 Unit: 1103 passed. Typecheck clean.
+
+### FORGE HUB — O-5 resolved: canonical plate LOCKED_HUB.jpg (2026-09-15)
+
+The owner supplied the real canonical hub plate. It is a **different room** from the committed
+`LOCKED_HERO.png` (PR #164): an **equal cyan trio** (HoloL / HoloC / HoloR, no top banner) in a
+warm rose-gold / cream lab, with a **flat SF emitter disc bottom-centre** projecting a cone up to
+HoloC — which is what `LOCKED_HUB.md` and `VOCABULARY.md` always described. `LOCKED_HERO.png`
+never matched the vocabulary lock; O-5 flagged exactly this.
+
+**Committed:** `public/forge-hub/world/LOCKED_HUB.jpg` (exact owner bytes, JPEG, 1280×720, sha
+`4e48559f…`), the sole reference (SSIM target + backdrop + poster; there is no separate haze-free
+still). `LOCKED_HERO.png` + `LOCKED_HERO_no_haze_filter.png` moved to `world/_SUPERSEDED/` with a
+manifest; `SHA256SUMS`, `world/LOCKED.md`, `LOCKED_HUB.md` rewritten.
+
+**Re-pointed to the new plate (1280×720, 16:9):** `src/config/forgeHub.ts` (plate + display still +
+viewport), `src/lib/forge-hub/coreMap.ts` (PLATE dims; FORGE_CORE moved to the bottom disc cy 78 r
+12; PEDESTAL), `src/lib/forge-hub/glassSlots.ts` (HOLO_L/C/R lock rects → the measured equal trio
+10.9/37.5/64.8 %, tops 13.5 %), `forge-hub.css` aspect 16/9, `ssimHarness.ts`, `scripts/ssim-forge-hub.mjs`
+(reference + viewport + compare size 768×432), the visual CI job (renamed check "SSIM vs locked hub
+plate"), and the governance docs. Unit tests that asserted the old composition were updated to the
+new geometry — including the beam map, which now correctly beams HoloC because the disc sits below
+the panel and the plate's cone rises to it. `ForgeRoom` desk plane and slab-edge fixes from the
+prior day carry over.
+
+**Measured (WebGL2, sandbox Chromium):** SSIM **0.969** vs `LOCKED_HUB.jpg` (threshold 0.96) —
+**pass**. The render shows the three glass slabs seated over the equal trio and the emitter cone on
+the bottom-centre disc. WebGPU headless is still black (documented); the WebGPU number needs the
+reference laptop (O-3). `npx tsc --noEmit` clean; **1127 unit tests pass**; `sha256sum -c` OK.
+
+**Remaining (W1-05, Stagehand):** the live-mode layout registry (`layouts.ts` labsBrowse / focus /
+dual / avatarStudio rects, and the `HUBSPLIT_HOLO_C` / `PLAYSTAGE_CENTER` centre seeds) was authored
+against the old composition and should be re-read off the equal-trio plate with `?calibrate=1`. The
+lock pose (what SSIM measures) and the hubSplit/welcome side wings already derive from the new lock
+rects and are correct. The P1 packet waits on that re-tune plus the WebGPU number.

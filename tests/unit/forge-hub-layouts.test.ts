@@ -70,10 +70,10 @@ describe('W2 layout registry', () => {
 
   it('keeps lock-pose HoloC on the painted top seed', () => {
     expect(LOCK_POSE_LAYOUT.slots.holoC).toMatchObject({
-      left: 20,
-      top: 2.8,
-      width: 60,
-      height: 14.5,
+      left: 37.5,
+      top: 13.5,
+      width: 25,
+      height: 48,
       yaw: 0,
       reading: false,
     });
@@ -121,12 +121,12 @@ describe('W2 layout registry', () => {
     );
   });
 
-  it('reports content size in CSS pixels at the 1536×1024 plate', () => {
+  it('reports content size in CSS pixels at the 1280×720 plate', () => {
     const size = slotContentSizePx(PLAYSTAGE_CENTER);
-    expect(size.width).toBeCloseTo(1536 * 0.6);
-    expect(size.height).toBeCloseTo(1024 * 0.44);
+    expect(size.width).toBeCloseTo(1280 * 0.6);
+    expect(size.height).toBeCloseTo(720 * 0.44);
     const world = slotToWorld(HOLO_L_LOCK, 10, 10);
-    expect(world.width).toBeCloseTo(2.08, 5);
+    expect(world.width).toBeCloseTo(2.43, 5);
   });
 });
 
@@ -150,17 +150,24 @@ describe('W2 layout math ported from PR #164', () => {
     expect(topHit.x).toBeCloseTo(rectCentroid(HOLO_C_LOCK).x);
     expect(topHit.y).toBeCloseTo(HOLO_C_LOCK.top + HOLO_C_LOCK.height);
 
+    // On LOCKED_HUB.jpg the emitter disc sits BELOW the center panel
+    // (FORGE_CORE cy 78 > HUBSPLIT_HOLO_C bottom 72), so the plate's
+    // cone rises from the disc to HoloC — idle beams HoloC, and the
+    // core is no longer inside the panel.
     const idle = liveBeams(beamSlotsForState(0, false));
-    expect(idle.map((b) => b.id)).toEqual([]);
+    expect(idle.map((b) => b.id)).toEqual(['holoC']);
     expect(
       containsPoint(resolvedSlots(0).holoC, FORGE_CORE.cx, FORGE_CORE.cy),
-    ).toBe(true);
+    ).toBe(false);
 
     const docked = liveBeams(beamSlotsForState(0, true));
-    expect(docked.map((b) => b.id)).toEqual(['holoL', 'holoR']);
+    // HoloC now beams too (disc below the panel), so the docked trio is all three.
+    expect(docked.map((b) => b.id)).toEqual(['holoC', 'holoL', 'holoR']);
 
+    // Merged PlayStage ends at y68; the disc (cy 78) is below it, so the
+    // cone still reaches the merged panel — HoloC keeps its beam.
     const merged = liveBeams(beamSlotsForState(1, true));
-    expect(merged.map((b) => b.id)).toEqual([]);
+    expect(merged.map((b) => b.id)).toEqual(['holoC']);
     expect(resolvedSlots(1).merged).toBe(true);
   });
 

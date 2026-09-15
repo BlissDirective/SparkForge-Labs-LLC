@@ -44,7 +44,7 @@ permissions:
 
 jobs:
   ssim:
-    name: SSIM vs LOCKED_HERO.png
+    name: SSIM vs locked hub plate
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:

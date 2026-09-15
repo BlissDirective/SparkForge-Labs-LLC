@@ -5,10 +5,11 @@
 // TSL emitter sits on the painted SF module. Panel slots live in
 // glassSlots.ts / layouts.ts. HOTSPOTS and WORLD_MEDIA were not ported.
 //
-// Coordinates are percentages of the 1536×1024 lock plate.
+// Coordinates are percentages of the 1280×720 lock plate
+// (world/LOCKED_HUB.jpg, owner canonical 2026-09-15).
 
-export const PLATE_WIDTH_PX = 1536;
-export const PLATE_HEIGHT_PX = 1024;
+export const PLATE_WIDTH_PX = 1280;
+export const PLATE_HEIGHT_PX = 720;
 export const PLATE_ASPECT_RATIO = PLATE_WIDTH_PX / PLATE_HEIGHT_PX;
 
 export interface PercentRect {
@@ -26,19 +27,23 @@ export interface PercentCircle {
   r: number;
 }
 
-/** Circular SF hologram — primary portal emitter (CorePortal). */
+/**
+ * Flat SF emitter disc — primary portal (CorePortal). On LOCKED_HUB.jpg
+ * the disc sits bottom-centre on the desk and projects the cone up to
+ * HoloC (measured centroid ~x50 %, y78 %), not mid-wall like the old plate.
+ */
 export const FORGE_CORE: PercentCircle = {
   cx: 50,
-  cy: 49.2,
-  r: 9.4,
+  cy: 78,
+  r: 12,
 };
 
-/** Pedestal under the core — secondary ignite hit in #164; desk plane here. */
+/** Desk platform carrying the disc (bottom band of LOCKED_HUB.jpg). */
 export const PEDESTAL: PercentRect = {
-  left: 36.5,
-  top: 70.5,
-  width: 27,
-  height: 18.5,
+  left: 33,
+  top: 70,
+  width: 34,
+  height: 20,
   yaw: 0,
 };
 

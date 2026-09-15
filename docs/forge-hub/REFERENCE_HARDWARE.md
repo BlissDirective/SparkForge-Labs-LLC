@@ -12,14 +12,14 @@ Every gate that says "on the reference laptop" means the device in §2. Until it
 | Runner | GitHub `ubuntu-latest`, no GPU |
 | Browser | Playwright Chromium (pinned by `@playwright/test` in `package-lock.json`), headless |
 | Graphics | WebGL2 through SwiftShader (software). **No WebGPU.** The renderer cascade lands on `webgl2`; the shell reports it on `data-forge-renderer`. |
-| Viewport | 1536 × 1024, device scale factor 1, dark colour scheme |
+| Viewport | 1280 × 720, device scale factor 1, dark colour scheme |
 | Job | `.github/workflows/forge-hub-visual.yml` → `node scripts/ssim-forge-hub.mjs --require-backend any` |
-| What it proves | Composition and colour of the room shell against `public/forge-hub/world/LOCKED_HERO.png`. It cannot prove frame time, bloom quality under WebGPU, or the TSL path. |
+| What it proves | Composition and colour of the room shell against `public/forge-hub/world/LOCKED_HUB.jpg`. It cannot prove frame time, bloom quality under WebGPU, or the TSL path. |
 | What it cannot prove | Anything in §8 of the plan expressed in milliseconds or frames per second. |
 
 ## 2. Reference laptop (owner decision AP-001, approved 2026-09-15 — device still to be purchased)
 
-- **Target:** a Chromebook or Windows laptop with an Intel Iris Xe class integrated GPU, 8 GB RAM, Chrome stable with WebGPU enabled, external or internal display at 1536 × 1024 or larger.
+- **Target:** a Chromebook or Windows laptop with an Intel Iris Xe class integrated GPU, 8 GB RAM, Chrome stable with WebGPU enabled, external or internal display at 1280 × 720 or larger.
 - **Why this class:** it is the floor of what a kid brings to the desk; anything that hits 60 fps here hits it everywhere the plan targets.
 - **Record here when it arrives:** make and model, CPU, GPU, RAM, OS build, Chrome version, WebGPU adapter string (`chrome://gpu`), display size and scale factor.
 

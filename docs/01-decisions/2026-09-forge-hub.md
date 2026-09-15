@@ -39,9 +39,10 @@ Agents may propose amendments; they may **not** reopen these decisions. Reopenin
 | # | Question | Locked answer |
 |---|----------|---------------|
 | 14 | Site footer | **Inside a side hologram.** Copyright, cookie preferences, COPPA / no-tracking badges, legal and pricing links render as a footer strip in `HoloR` (`welcome`) / `HoloL` (`hubSplit`). Not a `ToastRail` chip; no page or strip outside the forge. `MarketingFooter` survives only in the compact-tier HTML shell. |
-| gate | Visual gates | **Measured numbers only.** P1 and every later visual gate need `scripts/ssim-forge-hub.mjs` output from a live canvas (≥ 0.96 vs `LOCKED_HERO.png`). Stub exits, skipped runs, and poster captures are not numbers. CI scores WebGL2; the reference laptop scores WebGPU. |
+| gate | Visual gates | **Measured numbers only.** P1 and every later visual gate need `scripts/ssim-forge-hub.mjs` output from a live canvas (≥ 0.96 vs `LOCKED_HUB.jpg`). Stub exits, skipped runs, and poster captures are not numbers. CI scores WebGL2; the reference laptop scores WebGPU. |
 | AP-001 | Accounts and platforms | **Approved, Option A.** Owner-side steps in `docs/forge-hub/AP-001.md`. |
 | AP-W0-04 | CLAUDE.md v7 | **Approved.** Landed with corrections 2026-09-15. |
+| O-5 | Canonical hub plate | **Resolved: `LOCKED_HUB.jpg`** (owner-supplied 2026-09-15). Equal cyan trio, warm room, flat SF disc bottom-centre, 1280×720. The PR #164 `LOCKED_HERO.png` was a different room and is superseded under `public/forge-hub/world/_SUPERSEDED/`. Room shell re-pointed and re-tuned to it (SSIM 0.969 WebGL2). |
 
 ---
 
@@ -60,7 +61,7 @@ These **narrow** existing locks. They do **not** reopen decisions 1–13. Status
 
 | Asset | Path | Rule |
 |-------|------|------|
-| Hub plate | `public/forge-hub/world/LOCKED_HERO.png` | Never regenerate / restyle; verify `SHA256SUMS` |
+| Hub plate | `public/forge-hub/world/LOCKED_HUB.jpg` (equal trio, 1280×720; O-5 resolved 2026-09-15) | Never regenerate / restyle; verify `SHA256SUMS` |
 | Sparky | `public/forge-hub/sparky/LOCKED_SPARKY.png` | Same; see `LOCKED_SPARKY.md` + `docs/sparky/SPARKY-CHARACTER-SPEC.md` |
 
 ---

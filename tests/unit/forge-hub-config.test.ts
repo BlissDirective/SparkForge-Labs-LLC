@@ -23,11 +23,12 @@ import {
 } from '@/lib/forge-hub/ssimHarness';
 
 describe('W1-01 forge hub config', () => {
-  it('locks the SSIM viewport to the plate aspect', () => {
-    expect(FORGE_HUB_REFERENCE_VIEWPORT).toEqual({ width: 1536, height: 1024 });
+  it('locks the SSIM viewport to the canonical plate (LOCKED_HUB.jpg, 1280×720)', () => {
+    expect(FORGE_HUB_REFERENCE_VIEWPORT).toEqual({ width: 1280, height: 720 });
     expect(FORGE_HUB_SSIM_THRESHOLD).toBe(0.96);
-    expect(FORGE_HUB_LOCK_PLATE).toBe('/forge-hub/world/LOCKED_HERO.png');
-    expect(FORGE_HUB_DISPLAY_STILL).toContain('LOCKED_HERO_no_haze_filter');
+    expect(FORGE_HUB_LOCK_PLATE).toBe('/forge-hub/world/LOCKED_HUB.jpg');
+    // Only the one canonical plate exists; display still == the reference.
+    expect(FORGE_HUB_DISPLAY_STILL).toBe('/forge-hub/world/LOCKED_HUB.jpg');
   });
 
   it('keeps camera micro-dolly at ±2 percent and dpr ≤ 1.5', () => {
@@ -37,8 +38,8 @@ describe('W1-01 forge hub config', () => {
   });
 
   it('sizes the plate plane to fill the lock frustum', () => {
-    const [w, h] = plateSizeAtDistance(8.6, 38, 1536 / 1024);
-    expect(w / h).toBeCloseTo(1536 / 1024, 5);
+    const [w, h] = plateSizeAtDistance(8.6, 38, 1280 / 720);
+    expect(w / h).toBeCloseTo(1280 / 720, 5);
     expect(h).toBeGreaterThan(0);
   });
 

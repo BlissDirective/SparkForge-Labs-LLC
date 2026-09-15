@@ -35,7 +35,7 @@ SparkForge is a gamified AI learning platform for children ages 7–16. It teach
 - **State:** **no new Zustand store.** Repurpose `sceneStore` → `forgeStore` (`mode`, `previousMode`, `morphProgress`, `portalPhase`, `activePanel`, `hoveredPanel`, `sparky`, `flatOverlay`, `holoBubble`, `frameloop`). `cockpitStore` / cockpit atoms retire with W9.
 - **Choreography:** every state change is a directed, interruptible Director sequence (GSAP runtime; Theatre.js for authored beats). `prefers-reduced-motion` → 200 ms crossfade.
 - **OVERLAY-CRIT-001:** never put `filter`, `transform`, or `backdrop-filter` on `html`, `body`, or an app-shell wrapper. `EscapeFlat` sits outside any transformed forge wrapper.
-- **Art lock:** never regenerate or restyle `public/forge-hub/` bytes. SSIM ≥ 0.96 vs `public/forge-hub/world/LOCKED_HERO.png` (LOCKED_HUB). Verify `SHA256SUMS` if near that folder.
+- **Art lock:** never regenerate or restyle `public/forge-hub/` bytes. SSIM ≥ 0.96 vs `public/forge-hub/world/LOCKED_HUB.jpg` (LOCKED_HUB). Verify `SHA256SUMS` if near that folder.
 - **Rollback:** `FORGE_HUB` off returns the HTML shell on every tier.
 
 ### Lab-11 Adoption Decision (v6.7 — April 30, 2026)
@@ -86,7 +86,7 @@ SparkForge is a gamified AI learning platform for children ages 7–16. It teach
 
 - **Forge stage (kid shell, desktop/ultrawide):** `three/webgpu` via `createRenderer` + TSL materials. WebGPU first, automatic WebGL2 backend, poster of the locked plate below that (or on `Canvas3DErrorBoundary`). No shader fork for compact tier — compact never mounts the canvas.
 - All branding-surface materials (`BrandingMaterial.tsx`, `<BrandWordmark>`) draw from a single source-of-truth config (`src/lib/branding/sf-material.config.ts`) — eye-extracted from `public/branding/IMG_4607.png`. No duplicate material code paths.
-- Visual checkpoints halt at **SSIM ≥ 0.96** vs reference (Mythos halt rule). Forge-hub room shell: SSIM ≥ 0.96 vs `LOCKED_HERO.png`. Iterate until convergence; never ship below threshold.
+- Visual checkpoints halt at **SSIM ≥ 0.96** vs reference (Mythos halt rule). Forge-hub room shell: SSIM ≥ 0.96 vs `LOCKED_HUB.jpg`. Iterate until convergence; never ship below threshold.
 - Optional dependencies that materially raise the visual ceiling (e.g. `three-bvh-csg`, `@theatre/core`) are added without budget review when their use is documented in a phase plan. Workload, build time, generation cost, and bundle size are **informational** — report them; they are not a reason to refuse the higher-quality tool.
 - **Historical (cockpit-era hero):** live hero animation was WebGPU+TSL-only with an MP4 poster and no WebGL2 chain. That path is not the kid-facing shell. Do not revive it as product vision.
 
@@ -148,7 +148,7 @@ These are absolute. They do not weaken existing autonomy rules; they constrain f
 - Never create a release tag, create or delete a long-lived branch, flip a production `FORGE_HUB*` flag, or change Vercel production / GitHub repository settings without an owner packet marked Approve.
 - Never reopen decisions 1–14. Propose amendments; do not relitigate.
 - **CI and config changes ride in their own PR** (Inspector or Gatekeeper lane), never inside a feature PR. A weakened check (scan scope, skipped assertion, relaxed threshold) is Tier 1 at least and is named in the PR title.
-- **Gates need measured numbers.** P1 is not passable without a real SSIM score from `scripts/ssim-forge-hub.mjs` (`.forge-hub-ssim/report.json`, captured from a live canvas, ≥ 0.96 vs `LOCKED_HERO.png`). A stub, a skipped run, or a poster capture is not a number. The same applies to frame-time and launch budgets in TAP §8.
+- **Gates need measured numbers.** P1 is not passable without a real SSIM score from `scripts/ssim-forge-hub.mjs` (`.forge-hub-ssim/report.json`, captured from a live canvas, ≥ 0.96 vs `LOCKED_HUB.jpg`). A stub, a skipped run, or a poster capture is not a number. The same applies to frame-time and launch budgets in TAP §8.
 - **Never merge with a red required check.** A failure that predates the PR is reported and fixed or ported per the CI-red rule; it is not merged past.
 
 ### HARD STOPS — Wait for Human Input
@@ -175,7 +175,7 @@ Owner visual checkpoints (TAP §4 + SPARKY-CHARACTER-SPEC §11). Reply **Approve
 
 | ID | Trigger | When | What to tell the owner |
 |----|---------|------|------------------------|
-| P1 | Room shell + placeholder Sparky | After W1 / W3 steps 2–3 | "VISUAL CHECKPOINT — P1. Verify: (1) `/dev/forge-hub` at SSIM ≥ 0.96 vs `public/forge-hub/world/LOCKED_HERO.png`, (2) ignition plays, (3) WebKit shows the poster fallback, (4) placeholder Sparky walks desk spots and reacts to mode changes, (5) fixed camera (no free-look), (6) SHA256SUMS still OK. Reply Approve / Revise / Reject." |
+| P1 | Room shell + placeholder Sparky | After W1 / W3 steps 2–3 | "VISUAL CHECKPOINT — P1. Verify: (1) `/dev/forge-hub` at SSIM ≥ 0.96 vs `public/forge-hub/world/LOCKED_HUB.jpg`, (2) ignition plays, (3) WebKit shows the poster fallback, (4) placeholder Sparky walks desk spots and reacts to mode changes, (5) fixed camera (no free-look), (6) SHA256SUMS still OK. Reply Approve / Revise / Reject." |
 | P2 | Screen kit + Director | After W2 / W7 | "VISUAL CHECKPOINT — P2. Verify: (1) login form on HoloC survives `welcome → hubSplit → playStage → gameLobby → welcome` with content never stretching, (2) Director timelines tested, (3) forge-hub theme applied, (4) PR #164 ported and closed, (5) `EscapeFlat` outside any transformed wrapper (OVERLAY-CRIT-001), (6) axe + keyboard-only pass. Reply Approve / Revise / Reject." |
 | P3 | Welcome, auth, home | After W4 wave 1 + W6 | "VISUAL CHECKPOINT — P3. Verify: `/`, `/login`, `/signup`, `/home`, `/onboarding` on the stage; compact `<1440` is HTML-only (no canvas); LCP is HTML text; Lighthouse a11y/CLS gates real. Reply Approve / Revise / Reject." |
 | P4 | Labs, content, games on glass | After W4 waves 2–3 + W5 | "VISUAL CHECKPOINT — P4. Verify: lab browse → lesson → game on `PlayStage` and back with no renderer re-init; all 42 games swept; `fullscreen` escape-hatch list agreed; **zero** `src/components/games/*` edits. Reply Approve / Revise / Reject." |
@@ -476,4 +476,4 @@ Claude Code maintains a separate **PROGRESS.md** file at the repo root. Update a
 *Live vision: Hologram-Forge Hub (desktop/ultrawide ≥1440 forge stage; compact <1440 HTML shell, no canvas; LCP = HTML text). Decision lock 2026-09-14. TAP v2.2 wins on forge-hub architecture and operating model.*
 *Historical v6.x (cockpit-era, not live shell): Laboratory Control Station | 8-phase hero | CPA v2.0 single-canvas handoff | Login 3D crystal portal | 37.8M Cockpit Upgrade | D3D Overhaul / Mechanical Iris | 20 D3D decision locks | AmbientParticles REMOVED | HolographicHUD peripheral frame.*
 *Still in force: Tech Quality Mandate (v6.6; highest-quality tools; cost/size informational) | Mobile Fallback Policy aligned v7 | Lab 11 Agentic AI | 42 games / 11 labs | D3D-5 Performance toggle | game template + autonomy/process sections.*
-*Forge-hub constraints: no `public/forge-hub/` byte edits | no `src/components/games/*` edits | no new Zustand store (repurpose sceneStore) | OVERLAY-CRIT-001 | SSIM ≥ 0.96 vs LOCKED_HERO | P1–P7 / C1–C7 owner gates.*
+*Forge-hub constraints: no `public/forge-hub/` byte edits | no `src/components/games/*` edits | no new Zustand store (repurpose sceneStore) | OVERLAY-CRIT-001 | SSIM ≥ 0.96 vs the locked hub plate | P1–P7 / C1–C7 owner gates.*

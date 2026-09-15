@@ -75,7 +75,7 @@ const MODE_COPY: Partial<Record<ForgeMode, Record<GlassSlotId, PanelCopy>>> = {
 };
 
 interface HoloPanelLayerProps {
-  /** `stage` = percent of the 1536×1024 poster box; `viewport` = canvas px. */
+  /** `stage` = percent of the 1280×720 poster box; `viewport` = canvas px. */
   layout?: 'stage' | 'viewport';
   calibrate?: boolean;
 }

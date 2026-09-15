@@ -17,11 +17,11 @@ Status legend: `todo` · `doing` · `blocked` · `done` · `packet`
 ## Owner-side actions outstanding (nobody else can do these)
 | # | Action | Why |
 |---|--------|-----|
-| O-1 | GitHub → Settings → Branches → protect `setup-sparkforge-dev` (require PR with 1 review, required checks: `Typecheck, test, build`, `Secret scan (gitleaks)`, `RLS verification`, `E2E smoke (Playwright)`, `SSIM vs LOCKED_HERO.png`; require up to date; block force push; no bypass) | Stops merges with red checks (PR #166 merged with E2E red). |
+| O-1 | GitHub → Settings → Branches → protect `setup-sparkforge-dev` (require PR with 1 review, required checks: `Typecheck, test, build`, `Secret scan (gitleaks)`, `RLS verification`, `E2E smoke (Playwright)`, `SSIM vs locked hub plate`; require up to date; block force push; no bypass) | Stops merges with red checks (PR #166 merged with E2E red). |
 | O-2 | Create the mesh-gen account, store `MESH_GEN_API_KEY` in the agent runner secret store | Unblocks W3-02 Track A. |
 | O-3 | Buy the reference Chromebook (Intel Iris Xe class); tell Inspector the model | Unblocks the WebGPU SSIM and frame-time numbers (§8). Headless CI cannot capture WebGPU. |
 | O-4 | Fine-grained GitHub token or App for the agents (`GITHUB_TOKEN` in the runner) | Agents currently commit under the owner's account. |
-| O-5 | Confirm which hub plate is canonical for SSIM: `LOCKED_HERO.png` (PR #164, top-wide + left + right panels) or the owner-local `LOCKED_HUB.png/jpeg` (described as an equal trio) | The vocabulary lock says "no top banner" but the committed plate has one. See PROGRESS.md 2026-09-15 note. |
+| O-5 | ~~Confirm the canonical hub plate~~ **RESOLVED 2026-09-15**: owner supplied `LOCKED_HUB.jpg` (equal trio, 1280×720). `LOCKED_HERO.png` superseded. Room shell re-pointed + re-tuned; SSIM 0.969 (WebGL2). | Done. |
 
 ## Board
 
@@ -53,7 +53,8 @@ Status legend: `todo` · `doing` · `blocked` · `done` · `packet`
 | W10-01 | Gatekeeper | FLAGS.md skeleton (`FORGE_HUB*`) | **done** | `FLAGS.md` 2026-09-15; no flag defined in code yet |
 | W10-02 | Gatekeeper | Branch protection | **packet → owner action O-1** | settings spelled out in `AP-001.md` |
 | W10-03 | Gatekeeper | Weekly full-history gitleaks | **done** | `.github/workflows/gitleaks-full-history.yml` (compensates for the per-PR range scan from #166) |
-| P1 | Stagehand → owner | P1 gate packet | **blocked on a passing measured SSIM** | see PROGRESS.md 2026-09-15 for the numbers; packet only after `scripts/ssim-forge-hub.mjs` passes on WebGL2 in CI and on the reference laptop for WebGPU |
+| P1 | Stagehand → owner | P1 gate packet | **SSIM passes (0.969 WebGL2 vs LOCKED_HUB.jpg); WebGPU number pending O-3** | Room shell re-tuned to the canonical plate 2026-09-15. Remaining before the packet: WebGPU SSIM on the reference laptop (O-3); the live-mode layout registry (`layouts.ts` welcome/labsBrowse/focus/dual/avatarStudio rects) still carries old-plate geometry and needs a visual re-tune to the equal trio (W1-05, Stagehand) — the lock-pose (what SSIM measures) is correct. |
+| W1-05 | Stagehand | Re-tune the live-mode layout registry to the equal-trio plate | todo | `layouts.ts`: LOCK pose + hubSplit/welcome side wings now derive from the new HOLO_*_LOCK and are correct; `labsBrowse`, `focus`, `dual`, `avatarStudio`, and `HUBSPLIT_HOLO_C`/`PLAYSTAGE_CENTER` rects were authored for the old composition and should be re-read off `LOCKED_HUB.jpg` with `/dev/forge-hub?calibrate=1`. Emitter (`CorePortal`) sits at the bottom-centre disc now (FORGE_CORE cy 78); verify its world Y projects onto the painted disc under the fixed camera. |
 
 ## Rules
 - Branch: `grok/<callsign>/<task-id>-<slug>` → PR into `setup-sparkforge-dev`

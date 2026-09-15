@@ -3,7 +3,7 @@
  * Forge Hub SSIM harness — W8-01 (Inspector)
  *
  * Captures /dev/forge-hub?pose=lock at the reference viewport and
- * compares it against the locked plate with a structural-similarity
+ * compares it against the canonical plate LOCKED_HUB.jpg with a structural-similarity
  * score. This is the P1 exit gate in TRANSITION_ACTION_PLAN.md §4:
  * a measured number, not a stub. Never writes under public/forge-hub/.
  *
@@ -17,7 +17,7 @@
  *   --threshold <0..1>        default 0.96 (FORGE_HUB_SSIM_THRESHOLD)
  *   --out <dir>               default .forge-hub-ssim (gitignored)
  *   --require-backend <x>     any | webgpu | webgl2   default any
- *   --reference <lock|still>  compare against LOCKED_HERO.png (default)
+ *   --reference <lock|still>  compare against LOCKED_HUB.jpg (default)
  *                             or the display still
  *   --settle <ms>             extra wait after stage ready, default 1500
  *   --json                    print the report as JSON only
@@ -33,14 +33,15 @@ import sharp from 'sharp';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const LOCK_DIR = join(ROOT, 'public/forge-hub');
-const LOCK_FILE = join(LOCK_DIR, 'world/LOCKED_HERO.png');
-const STILL_FILE = join(LOCK_DIR, 'world/LOCKED_HERO_no_haze_filter.png');
+const LOCK_FILE = join(LOCK_DIR, 'world/LOCKED_HUB.jpg');
+// Only the one canonical plate exists (no separate haze-free still).
+const STILL_FILE = LOCK_FILE;
 const SUMS_FILE = join(LOCK_DIR, 'SHA256SUMS');
 const CAPTURE_PATH = '/dev/forge-hub?pose=lock';
 /** Must match SF_COOKIE_NOTICE_KEY in src/components/ui/CookieNotice.tsx. */
 const COOKIE_NOTICE_KEY = 'sparkforge:cookie-notice:dismissed';
-const VIEWPORT = { width: 1536, height: 1024 };
-const COMPARE_SIZE = { width: 768, height: 512 };
+const VIEWPORT = { width: 1280, height: 720 };
+const COMPARE_SIZE = { width: 768, height: 432 };
 const WINDOW = 8;
 const K1 = 0.01;
 const K2 = 0.03;
@@ -82,11 +83,11 @@ function verifyLock() {
     fail(2, `missing ${LOCK_FILE} or ${SUMS_FILE}`);
   }
   const sums = readFileSync(SUMS_FILE, 'utf8');
-  const line = sums.split('\n').find((l) => l.endsWith('world/LOCKED_HERO.png'));
+  const line = sums.split('\n').find((l) => l.endsWith('world/LOCKED_HUB.jpg'));
   const expected = line?.split(/\s+/)[0];
   const actual = createHash('sha256').update(readFileSync(LOCK_FILE)).digest('hex');
   if (!expected || expected !== actual) {
-    fail(2, 'LOCKED_HERO.png SHA mismatch — do not regenerate the lock', {
+    fail(2, 'LOCKED_HUB.jpg SHA mismatch — do not regenerate the lock', {
       expected,
       actual,
     });

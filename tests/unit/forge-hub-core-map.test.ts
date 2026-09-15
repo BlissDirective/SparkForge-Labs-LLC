@@ -12,24 +12,24 @@ import {
 import { FORGE_HUB_CORE_PORTAL } from '@/config/forgeHub';
 
 describe('W1-02 CorePortal plate math (PR #164 frozen map)', () => {
-  it('locks the plate to 1536×1024', () => {
-    expect(PLATE_WIDTH_PX).toBe(1536);
-    expect(PLATE_HEIGHT_PX).toBe(1024);
-    expect(PLATE_ASPECT_RATIO).toBeCloseTo(1536 / 1024, 10);
+  it('locks the plate to LOCKED_HUB.jpg 1280×720', () => {
+    expect(PLATE_WIDTH_PX).toBe(1280);
+    expect(PLATE_HEIGHT_PX).toBe(720);
+    expect(PLATE_ASPECT_RATIO).toBeCloseTo(1280 / 720, 10);
   });
 
-  it('keeps the frozen FORGE_CORE circle', () => {
-    expect(FORGE_CORE).toEqual({ cx: 50, cy: 49.2, r: 9.4 });
+  it('seats FORGE_CORE on the bottom-centre emitter disc', () => {
+    expect(FORGE_CORE).toEqual({ cx: 50, cy: 78, r: 12 });
     expect(isPercentCircle(FORGE_CORE)).toBe(true);
     expect(plateXToUnit(FORGE_CORE.cx)).toBe(0);
   });
 
-  it('keeps the frozen PEDESTAL rect', () => {
+  it('sizes PEDESTAL to the bottom desk platform', () => {
     expect(PEDESTAL).toEqual({
-      left: 36.5,
-      top: 70.5,
-      width: 27,
-      height: 18.5,
+      left: 33,
+      top: 70,
+      width: 34,
+      height: 20,
       yaw: 0,
     });
     expect(isPercentRect(PEDESTAL)).toBe(true);

@@ -253,4 +253,4 @@ No deliverable goes past a checkpoint without the owner's written approval in th
 - **HoloBubble:** the small hologram projected from the dome that carries all Sparky conversation.
 - **Spot:** a named position on the desk Sparky can walk to.
 - **Pack:** an outfit bundle (GLB + `pack.json`).
-- **Plate:** the locked room image, `public/forge-hub/world/LOCKED_HERO.png`.
+- **Plate:** the locked room image, `public/forge-hub/world/LOCKED_HUB.jpg`.

@@ -44,28 +44,28 @@ describe('W1-03 HOLO blend tokens', () => {
 });
 
 describe('W1-03 lock-pose glass slots', () => {
-  it('is the painted trio (L / top-C / R) with ±2° yaw', () => {
+  it('is the equal trio (L / C / R) with ±2° yaw', () => {
     expect(HOLO_YAW_DEG).toBe(2);
     expect(HOLO_PERSPECTIVE_PX).toBe(1200);
     expect(HOLO_L_LOCK).toMatchObject({
-      left: 7.2,
-      top: 30.5,
-      width: 20.8,
-      height: 42,
+      left: 10.9,
+      top: 13.5,
+      width: 24.3,
+      height: 45,
       yaw: -2,
     });
     expect(HOLO_R_LOCK).toMatchObject({
-      left: 72,
-      top: 30.5,
-      width: 20.8,
-      height: 42,
+      left: 64.8,
+      top: 13.5,
+      width: 24.3,
+      height: 45,
       yaw: 2,
     });
     expect(HOLO_C_LOCK).toMatchObject({
-      left: 20,
-      top: 2.8,
-      width: 60,
-      height: 14.5,
+      left: 37.5,
+      top: 13.5,
+      width: 25,
+      height: 48,
       yaw: 0,
     });
     expect(GLASS_LOCK_SLOT_LIST).toHaveLength(3);
@@ -75,7 +75,8 @@ describe('W1-03 lock-pose glass slots', () => {
 
   it('does not cover the SF core with a center slab in the lock pose', () => {
     const cBottom = HOLO_C_LOCK.top + HOLO_C_LOCK.height;
-    expect(cBottom).toBeLessThan(49.2 - 9.4);
+    // HoloC ends above the bottom-centre emitter disc (FORGE_CORE cy−r = 66).
+    expect(cBottom).toBeLessThan(78 - 12);
     expect(isPercentRect(HOLO_L_LOCK)).toBe(true);
     expect(isPercentRect(HOLO_C_LOCK)).toBe(true);
     expect(isPercentRect(HOLO_R_LOCK)).toBe(true);
@@ -89,12 +90,12 @@ describe('W1-03 lock-pose glass slots', () => {
 
   it('maps percent rects onto a plate plane with a core-facing pivot', () => {
     const local = percentRectToLocal(HOLO_L_LOCK, 10, 10);
-    expect(local.width).toBeCloseTo(2.08, 5);
-    expect(local.height).toBeCloseTo(4.2, 5);
+    expect(local.width).toBeCloseTo(2.43, 5);
+    expect(local.height).toBeCloseTo(4.5, 5);
     expect(local.pivotX).toBeGreaterThan(0);
     expect(local.yawRad).toBeCloseTo((-2 * Math.PI) / 180, 8);
     const css = cssGlassStyle(HOLO_R_LOCK);
-    expect(css.left).toBe('72%');
+    expect(css.left).toBe('64.8%');
     expect(css.transformOrigin).toBe('left center');
   });
 });

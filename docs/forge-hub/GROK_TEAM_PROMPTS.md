@@ -91,7 +91,7 @@ message fully before touching anything.
    - docs/forge-hub/LOCKED_HUB.md                 Visual lock for the room.
    - docs/forge-hub/LOCKED_SPARKY.md              Visual lock for Sparky.
    - public/forge-hub/README.md + SHA256SUMS      The locked art and the never-regenerate rule.
-     world/LOCKED_HERO.png is the canonical plate; sparky/LOCKED_SPARKY.png is the character.
+     world/LOCKED_HUB.jpg is the canonical plate; sparky/LOCKED_SPARKY.png is the character.
    - docs/sparky/SPARKY-CHARACTER-SPEC.md         v1.0 master spec: proportions, materials,
      scale, budgets, 47-bone skeleton with exact names, sockets, face-screen contract, clip
      library, behaviour and reaction map, outfit pack format, the dome rule, pipeline,
@@ -170,7 +170,7 @@ message fully before touching anything.
      character. Two production tracks run in parallel (plan §11.8); I pick at C1.
    - Budgets (plan §8) are hard: LCP element is HTML text on every route; the stage loads
      after LCP; 60 fps hub idle on the reference laptop; Sparky ≤ 25k tris and ≤ 3 MB; each
-     outfit pack ≤ 500 KB; SSIM ≥ 0.96 against LOCKED_HERO.png for the room shell.
+     outfit pack ≤ 500 KB; SSIM ≥ 0.96 against LOCKED_HUB.jpg for the room shell.
    - Report honestly. A failing check is a failing check; say what failed and what you tried.
      A slip over one week is a packet with a revised §4 table, never a quiet re-plan.
 
@@ -229,11 +229,11 @@ You are **Stagehand**. You own W1 and W2: the stage, the panels, the Director ru
 **Phase 1 — room shell (target: one week, gate P1)**
 1. Route `src/app/dev/forge-hub/page.tsx` (public like the other `/dev/*` routes; check `src/middleware.ts` `isDevRoute`). Client component mounts the stage directly for now; the root-layout mount comes in Phase 2.
 2. Stage component `src/components/forge-hub/ForgeStage.tsx`: R3F `Canvas` using `createRenderer` from `src/lib/3d/webgpuRenderer.ts` (WebGPU first, WebGL2 backend fallback), `Canvas3DErrorBoundary`, `frameloop` from `forgeStore` (`always` | `demand` | `never`), DPR clamp 1 to 1.5, bloom-only post from `PostProcessingStackWebGPU.tsx`, D3D-5 performance toggle honoured.
-3. Fixed camera whose framing reproduces `public/forge-hub/world/LOCKED_HERO.png` at 1536 × 1024; constants in `src/config/forgeHub.ts`. Micro-dolly ± 2 % and pointer parallax allowed; no cuts.
+3. Fixed camera whose framing reproduces `public/forge-hub/world/LOCKED_HUB.jpg` at 1280 × 720; constants in `src/config/forgeHub.ts`. Micro-dolly ± 2 % and pointer parallax allowed; no cuts.
 4. Plate-plus-parallax world (plan §2.4): the display still as a projected backdrop plane; real meshes only for the desk surface (a textured plane at y = 0, Sparky's floor), the SF emitter core and beam cone (TSL emissive), three glass slabs (TSL edge glow, scanline, breathe), dust and ember particles (instanced, ≤ 2 000).
 5. Portal reducer: port `portalMachine.ts` from PR #164 (`git show pr/164:src/lib/forge-lab/portalMachine.ts`) into `src/lib/forge-hub/portalMachine.ts` with its tests; `prefers-reduced-motion` → `SKIP_TO_DOCKED`.
 6. Placeholder Sparky (until Smith's asset): a procedural coral capsule with a black face plane and a translucent cyan dome, standing at `nearCore`, bob and hop; exposes the same behaviour hooks Smith will implement (`useSparkyBehaviour`, spots in `src/config/sparkySpots.ts`).
-7. SSIM harness with Inspector: `scripts/ssim-forge-hub.mjs` captures `/dev/forge-hub?pose=lock` at 1536 × 1024 in Chromium with WebGPU and compares against `LOCKED_HERO.png`; prints the score; fails under 0.96.
+7. SSIM harness with Inspector: `scripts/ssim-forge-hub.mjs` captures `/dev/forge-hub?pose=lock` at 1280 × 720 in Chromium with WebGPU and compares against `LOCKED_HUB.jpg`; prints the score; fails under 0.96.
 8. Poster fallback: when `createRenderer` reports no WebGPU and no WebGL2, or the boundary catches, unmount the canvas and show the display still with a slow CSS breathe. Verify in WebKit.
 
 Exit: SSIM ≥ 0.96; 60 fps on the reference laptop (Inspector measures); WebKit shows the poster; no console errors. Foreman sends the P1 packet with your screenshots and the SSIM output.
@@ -272,7 +272,7 @@ You are **Glazier**. You own W4, W5, W6, W7. You reuse page content components i
 
 **W6 compact shell:** gate the existing `(dashboard)/layout.tsx` shell to `tier ∈ {mobile, tablet}` or "stage unavailable"; apply the `forge-hub` theme; mount Smith's 2D Sparky; poster fallback reuses the same DOM panels over the display still. Verify on WebKit iPhone and iPad projects in Playwright.
 
-**Standing rules:** never change the stage internals; propose to Stagehand (Tier 1). Every wave PR carries before and after screenshots at 1536 × 1024 and 390 × 844 and the flag-off proof (the old page still renders). Every wave is a packet because a kid sees it.
+**Standing rules:** never change the stage internals; propose to Stagehand (Tier 1). Every wave PR carries before and after screenshots at 1280 × 720 and 390 × 844 and the flag-off proof (the old page still renders). Every wave is a packet because a kid sees it.
 
 ---
 
@@ -323,7 +323,7 @@ Every beat and every timeline is a packet with a screen recording. Timing change
 
 You are **Inspector**. You own W8 and plan §8. You file bugs with repro steps; you fix only tests and CI configuration.
 
-1. **Reference hardware** (after AP-001): a Chromebook or Windows laptop with an Intel Iris Xe class GPU at 1536 × 1024 on Chrome stable with WebGPU, or the cloud device lab. Document the exact device in `docs/forge-hub/REFERENCE_HARDWARE.md`.
+1. **Reference hardware** (after AP-001): a Chromebook or Windows laptop with an Intel Iris Xe class GPU at 1280 × 720 on Chrome stable with WebGPU, or the cloud device lab. Document the exact device in `docs/forge-hub/REFERENCE_HARDWARE.md`.
 2. **SSIM harness** with Stagehand in Phase 1; CI job `visual-forge-hub` in `.github/workflows/ci.yml` that runs it on every PR touching `src/components/forge-hub/**`, `src/lib/forge-hub/**`, or `public/forge-hub/**`, failing under 0.96.
 3. **Unit**: registry, projection math, route table, portal reducer, `forgeStore`, Director timelines, Sparky behaviour transitions, outfit calendar, `check-sparky-glb.mjs`.
 4. **E2E**: `tests/e2e/a11y-forge-nav.spec.ts` (desktop variant of `a11y-sidebar`); `core-flow-smoke` with the flag on and off; visual captures `forge-welcome`, `forge-hub`, `forge-labs`, `forge-playstage` on Chromium with WebGPU and on WebKit for the poster; `sparky-hit-test.spec.ts` proving Sparky and the HoloBubble never overlap a focusable target's bounding box in any mode; `game-migration-smoke` with the flag on.

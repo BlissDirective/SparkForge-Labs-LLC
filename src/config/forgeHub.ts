@@ -5,23 +5,27 @@
 // glass overlays the painted cyan frames. W2 owns the layout registry
 // (welcome / equal-trio re-seat). CorePortal world pose is W1-02.
 //
-// Framing target: public/forge-hub/world/LOCKED_HERO.png at 1536×1024
-// (TAP v2.2 §2.4, §2.6 camera, §8). Display still is preferred on
-// screen; the canonical plate stays the SSIM reference.
+// Framing target: public/forge-hub/world/LOCKED_HUB.jpg at 1280×720
+// (owner canonical plate, 2026-09-15, resolves O-5; the earlier
+// PR #164 LOCKED_HERO.png was a different room and is superseded under
+// world/_SUPERSEDED/). Equal cyan trio, no top banner; flat SF emitter
+// disc bottom-centre. TAP v2.2 §2.4, §2.6 camera, §8.
 
 import { FORGE_CORE, PEDESTAL, plateXToUnit } from '@/lib/forge-hub/coreMap';
 import type { ForgeFrameloop } from '@/lib/forge-hub/types';
 
 /** Canonical lock plate — SSIM reference. Never regenerate. */
-export const FORGE_HUB_LOCK_PLATE = '/forge-hub/world/LOCKED_HERO.png';
+export const FORGE_HUB_LOCK_PLATE = '/forge-hub/world/LOCKED_HUB.jpg';
 
-/** Display still of the same composition — on-screen plate + poster. */
-export const FORGE_HUB_DISPLAY_STILL =
-  '/forge-hub/world/LOCKED_HERO_no_haze_filter.png';
+/**
+ * On-screen plate + poster. Only the one canonical plate exists
+ * (no separate haze-free still), so this equals the SSIM reference.
+ */
+export const FORGE_HUB_DISPLAY_STILL = '/forge-hub/world/LOCKED_HUB.jpg';
 
 export const FORGE_HUB_REFERENCE_VIEWPORT = {
-  width: 1536,
-  height: 1024,
+  width: 1280,
+  height: 720,
 } as const;
 
 export const FORGE_HUB_LOCK_ASPECT =

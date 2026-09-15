@@ -1,11 +1,10 @@
 # LOCKED — Hologram-Forge Hub (2026-09-11)
 
-## Files (committed 2026-09-14, SHAs in `public/forge-hub/SHA256SUMS`)
-- `public/forge-hub/world/LOCKED_HERO.png` — canonical plate (the composition described below)
-- `public/forge-hub/world/LOCKED_HERO_no_haze_filter.png` — display still of the same plate
+## Files (SHAs in `public/forge-hub/SHA256SUMS`)
+- `public/forge-hub/world/LOCKED_HUB.jpg` — **canonical plate** (owner, 2026-09-15; the equal-trio composition described below). SSIM reference, backdrop, and poster.
 - `public/forge-hub/world/SF_MONOGRAM_CLOSEUP.png` — emitter reference
 - `public/forge-hub/sparky/LOCKED_SPARKY.png` — Sparky (separate lock: `LOCKED_SPARKY.md`)
-- `LOCKED_HUB.jpeg` / `LOCKED_HUB.png` — owner's local design references; add to `public/forge-hub/world/` with SHAs only if they differ from `LOCKED_HERO.png`
+- `public/forge-hub/world/_SUPERSEDED/LOCKED_HERO.png` (+ no-haze) — the PR #164 plate, a different room; superseded 2026-09-15, do not use.
 
 ## Product role
 This screen **replaces** the old sparkforge-labs.com hero marketing page.

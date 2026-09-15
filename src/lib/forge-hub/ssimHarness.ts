@@ -11,7 +11,7 @@
 //   3. Wait for `[data-forge-stage="ready"]` (or poster path).
 //   4. Pre-dismiss CookieNotice (`sparkforge:cookie-notice:dismissed=1`).
 //   5. Screenshot the canvas (not the HTML chrome).
-//   6. Compare against public/forge-hub/world/LOCKED_HERO.png.
+//   6. Compare against public/forge-hub/world/LOCKED_HUB.jpg.
 //   7. Fail the job when score < FORGE_HUB_SSIM_THRESHOLD (0.96).
 //   8. Wire CI job `visual-forge-hub` — do not run it from Stagehand.
 
@@ -40,7 +40,7 @@ export const SSIM_HARNESS_SPEC = {
   viewport: FORGE_HUB_REFERENCE_VIEWPORT,
   referencePlate: FORGE_HUB_LOCK_PLATE,
   /** Filesystem path relative to repo root — never rewrite these bytes. */
-  referencePlateFile: 'public/forge-hub/world/LOCKED_HERO.png',
+  referencePlateFile: 'public/forge-hub/world/LOCKED_HUB.jpg',
   threshold: FORGE_HUB_SSIM_THRESHOLD,
   owner: 'Inspector',
 } as const;

@@ -1,26 +1,20 @@
 # Forge Hub world plate — LOCK
 
-**Status:** LOCKED by owner 2026-09-05 (original, PR #164), re-affirmed and moved here 2026-09-14
+**Status:** LOCKED. Canonical plate set by the owner 2026-09-15 (resolves O-5).
 **Design doc:** `docs/forge-hub/LOCKED_HUB.md`
 
-## LOCKED_HERO.png — canonical
-- Source: owner-approved attachment, exact bytes (from PR #164 `public/forge-lab/world/LOCKED_HERO.png`)
-- SHA256: `db75ecf0055a8168a0ae71be5f1f28921c1ef9c29511ce44c380348121442555`
-- 1536 × 1024 composition; fixed frontal POV; three empty cyan holograms; flat raised SF emitter; warm rose-gold and cream lab
-- Rule: agents MUST NOT regenerate this art. Copy byte-for-byte; verify with `sha256sum -c ../SHA256SUMS`.
-- Role in the R3F build: projected backdrop for the plate-plus-parallax room (plan §2.4); SSIM ≥ 0.96 reference for the Phase 1 room shell; poster fallback image.
-
-## LOCKED_HERO_no_haze_filter.png — display still
-- Mild non-generative bloom compress of the same composition
-- SHA256: `582366f956c37390fb70c8d954f247fc4f1e3932c47996202c30f43d27be0cd9`
-- Preferred for on-screen display and the poster fallback; `LOCKED_HERO.png` stays canonical for SSIM.
-- PR #164 shipped this same file five more times as `00-locked-hub-dark-sf.png`, `01-idle.png`, `02-charge.png`, `03-emit.png`, `04-docked.png` (identical SHA). One copy is kept here; idle, charge, emit, and docked all use this file until a loop encode exists.
+## LOCKED_HUB.jpg — canonical
+- Source: owner-approved attachment, exact bytes (2026-09-15).
+- SHA256: `4e48559f9f92a7ef814ebf58612665da33d0485c7fa207aa2089ca18f7610222`
+- 1280 × 720 (16:9); fixed close frontal POV; **equal cyan trio** (HoloL / HoloC / HoloR, no top banner); flat SF emitter disc bottom-centre projecting a cone up to HoloC; warm rose-gold / cream lab.
+- Rule: agents MUST NOT regenerate, restyle, or recompress this art. Copy byte-for-byte; verify with `sha256sum -c ../SHA256SUMS`.
+- Role in the R3F build: the single reference. It is the SSIM target, the projected backdrop, and the poster fallback (there is no separate haze-free still). Room shell measured 0.969 SSIM (WebGL2) on 2026-09-15.
+- Note (informational, per Tech Quality Mandate): the plate is a 1280×720 JPEG and is upscaled on ≥ 1440 px displays. If the owner supplies a higher-resolution or PNG master of the same composition, it replaces this file byte-for-byte with a new SHA.
 
 ## SF_MONOGRAM_CLOSEUP.png — emitter reference
-- 1024 × 1024 close-up of the SF core, for modelling the emitter mesh and its TSL material
+- 1024 × 1024 close-up of the SF core, for modelling the emitter mesh and its TSL material.
 - SHA256: `eb93c239179958dc430654b2a2dec94191c5e8ecf391a1c6105e08c8279fcbaf`
 - Reference only; not displayed in the app.
 
-## Not in the repo
-- `LOCKED_HUB.jpeg` / `LOCKED_HUB.png` referenced by `docs/forge-hub/LOCKED_HUB.md` are the owner's local design references of the same composition. If they differ from `LOCKED_HERO.png` in any way the owner adds them here with SHAs and names which one is canonical for SSIM.
-- Stale hub comps (`hub-concepts/obsolete/`) stay local and are not to be committed.
+## Superseded
+- `_SUPERSEDED/LOCKED_HERO.png` and `_SUPERSEDED/LOCKED_HERO_no_haze_filter.png` — the PR #164 plate, a **different room** (top banner, silver/blue, mid-wall SF). See `_SUPERSEDED/SUPERSEDED_BY.md`. Do not use.

@@ -6,7 +6,7 @@
 **Repo:** BlissDirective/SparkForge-Labs-LLC  
 **Branch:** `setup-sparkforge-dev`  
 **Vocabulary:** `VOCABULARY.md` (LOCKED) — `HoloL` / `HoloC` / `HoloR`; modes `welcome`, `hubSplit`, …  
-**Related:** TAP v2.2 `docs/forge-hub/TRANSITION_ACTION_PLAN.md`; visual lock `docs/forge-hub/LOCKED_HUB.md` + `public/forge-hub/world/LOCKED_HERO.png`; avatar `docs/forge-hub/LOCKED_SPARKY.md`; unified plan `docs/forge-hub/R3F_VARIATION_PLAN.md`; PR #164 `/dev/forge-lab` (closed, ported per `PR164_PORT_LIST.md`)
+**Related:** TAP v2.2 `docs/forge-hub/TRANSITION_ACTION_PLAN.md`; visual lock `docs/forge-hub/LOCKED_HUB.md` + `public/forge-hub/world/LOCKED_HUB.jpg`; avatar `docs/forge-hub/LOCKED_SPARKY.md`; unified plan `docs/forge-hub/R3F_VARIATION_PLAN.md`; PR #164 `/dev/forge-lab` (closed, ported per `PR164_PORT_LIST.md`)
 
 ---
 
@@ -148,7 +148,7 @@ Canonical route table: TAP v2.2 §5. This seed uses the locked names only.
 
 ## 9. References
 
-- Locked plate: `public/forge-hub/world/LOCKED_HERO.png` + `public/forge-hub/world/LOCKED.md` (SHAs in `public/forge-hub/SHA256SUMS`; read-only)
+- Locked plate: `public/forge-hub/world/LOCKED_HUB.jpg` + `public/forge-hub/world/LOCKED.md` (SHAs in `public/forge-hub/SHA256SUMS`; read-only)
 - Hotspot hub: PR #164 (`/dev/forge-lab` port list is W0-07 / W2); product route is `/dev/forge-hub`
 - Cost contrast: `SparkForge_PixelStreaming_Concurrency_Cost_Model.xlsx` (owner-local research spreadsheet; not in this repo)
 - Prior brainstorm (2026-09-08 CDO chat): modules, modes, phases 0–6
