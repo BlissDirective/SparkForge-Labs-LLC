@@ -2773,4 +2773,4 @@ Agent: Stagehand (Grok Bot Team)
 
 ### FORGE HUB — W0-08 MOTION_BIBLE Director fill-in (2026-09-15)
 
-Director v1 **DRAFT** of `docs/forge-hub/MOTION_BIBLE.md` (Scribe stub was PR #172). All TAP §10 item 5 pages filled; extras confirmed (`whisper-close`, Focus in/out, Dual enter/exit, `labsbrowse-hub`, `level-up`, `outfit-swap`). `emit-burst` classified **cinematic** at wall-clock **980 ms** to honor Stagehand portalMachine holds charge **420 ms** / emit **560 ms** (W1-02 / PR #173) without a Tier-1 retime. Board W0-08 stays **doing** until Foreman marks done. No `director.ts` / GSAP / Theatre JSON in this change.
+Director v1 **DRAFT** of `docs/forge-hub/MOTION_BIBLE.md` (Scribe stub was PR #172; fill-in PR #174). All TAP §10 item 5 pages filled; extras confirmed (`whisper-close`, Focus in/out, Dual enter/exit, `labsbrowse-hub`, `level-up`, `outfit-swap`). `emit-burst` classified **cinematic** at wall-clock **980 ms** to honor Stagehand portalMachine holds charge **420 ms** / emit **560 ms** (W1-02 / PR #173) without a Tier-1 retime. Board W0-08 stays **doing** until Foreman marks done. No `director.ts` / GSAP / Theatre JSON in this change.
