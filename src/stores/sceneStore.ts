@@ -1,6 +1,16 @@
 import { type ReactNode } from 'react';
 import { create } from 'zustand';
 import { useGameStore } from '@/stores/gameStore';
+import {
+  FORGE_SLICE_DEFAULTS,
+  type ForgeFrameloop,
+  type ForgeHoloBubbleState,
+  type ForgeMode,
+  type ForgePanelId,
+  type ForgePortalPhase,
+  type ForgeSlice,
+  type ForgeSparkyState,
+} from '@/lib/forge-hub/types';
 
 export type ActiveScene = 'hero' | 'cockpit' | 'spatial' | 'game' | 'transitioning';
 export type TransitionType = 'iris-open' | 'iris-close' | 'hero-to-cockpit' | 'cockpit-to-spatial' | 'none';
@@ -64,6 +74,23 @@ interface SceneState {
    * after the cockpit iris finishes instead of mid-iris.
    */
   awaitTransitionComplete: () => Promise<void>;
+
+  /**
+   * Forge Hub slice (TAP v2.2 §2.5). Same Zustand store — not a new one.
+   * `useForgeStore` is an alias of `useSceneStore`. Cockpit fields stay
+   * until Gatekeeper W9 retires them.
+   */
+  forge: ForgeSlice;
+  setForgeMode: (mode: ForgeMode) => void;
+  setForgeFrameloop: (frameloop: ForgeFrameloop) => void;
+  setForgePoseLock: (poseLock: boolean) => void;
+  setForgePortalPhase: (portalPhase: ForgePortalPhase) => void;
+  setForgeActivePanel: (activePanel: ForgePanelId) => void;
+  setForgeHoveredPanel: (hoveredPanel: ForgePanelId) => void;
+  setForgeMorphProgress: (morphProgress: number) => void;
+  setForgeFlatOverlay: (flatOverlay: boolean) => void;
+  patchForgeSparky: (patch: Partial<ForgeSparkyState>) => void;
+  patchForgeHoloBubble: (patch: Partial<ForgeHoloBubbleState>) => void;
 }
 
 const IRIS_DURATION = 600;
@@ -249,6 +276,65 @@ export const useSceneStore = create<SceneState>((set, get) => ({
       transitionWatchers.add(resolve);
     });
   },
+
+  forge: { ...FORGE_SLICE_DEFAULTS },
+
+  setForgeMode: (mode) => {
+    const current = get().forge.mode;
+    if (current === mode) return;
+    set({
+      forge: {
+        ...get().forge,
+        previousMode: current,
+        mode,
+      },
+    });
+  },
+
+  setForgeFrameloop: (frameloop) => {
+    set({ forge: { ...get().forge, frameloop } });
+  },
+
+  setForgePoseLock: (poseLock) => {
+    set({ forge: { ...get().forge, poseLock } });
+  },
+
+  setForgePortalPhase: (portalPhase) => {
+    set({ forge: { ...get().forge, portalPhase } });
+  },
+
+  setForgeActivePanel: (activePanel) => {
+    set({ forge: { ...get().forge, activePanel } });
+  },
+
+  setForgeHoveredPanel: (hoveredPanel) => {
+    set({ forge: { ...get().forge, hoveredPanel } });
+  },
+
+  setForgeMorphProgress: (morphProgress) => {
+    set({
+      forge: {
+        ...get().forge,
+        morphProgress: Math.min(1, Math.max(0, morphProgress)),
+      },
+    });
+  },
+
+  setForgeFlatOverlay: (flatOverlay) => {
+    set({ forge: { ...get().forge, flatOverlay } });
+  },
+
+  patchForgeSparky: (patch) => {
+    const forge = get().forge;
+    set({ forge: { ...forge, sparky: { ...forge.sparky, ...patch } } });
+  },
+
+  patchForgeHoloBubble: (patch) => {
+    const forge = get().forge;
+    set({
+      forge: { ...forge, holoBubble: { ...forge.holoBubble, ...patch } },
+    });
+  },
 }));
 
 // Selectors
@@ -259,3 +345,15 @@ export const selectActiveGameId = (s: SceneState) => s.activeGameId;
 export const selectCockpitOpacity = (s: SceneState) => s.cockpitOpacityTarget;
 export const selectGameSceneContent = (s: SceneState) => s.gameSceneContent;
 export const selectGameHUDContent = (s: SceneState) => s.gameHUDContent;
+
+export const selectForge = (s: SceneState) => s.forge;
+export const selectForgeMode = (s: SceneState) => s.forge.mode;
+export const selectForgeFrameloop = (s: SceneState) => s.forge.frameloop;
+export const selectForgePoseLock = (s: SceneState) => s.forge.poseLock;
+
+/**
+ * TAP §2.5 / STATE_ARCHITECTURE R1: repurpose this store as forgeStore.
+ * Alias so Stagehand/Glazier/Smith can import the forge name without a
+ * second create(). File rename is Gatekeeper W9.
+ */
+export const useForgeStore = useSceneStore;

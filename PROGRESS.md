@@ -2749,3 +2749,14 @@ instruction; it has no unique commits and is to be deleted by the owner in the G
 should ever be pushed to it. `.github/workflows/ci.yml` triggers
 were pointing at the non-existent `main` (so CI never ran on pushes to the default branch or on
 PRs into it); they now target `setup-sparkforge-dev`, `claude/**`, and `grok/**`.
+
+### FORGE HUB — W1-01 room shell (Stagehand, 2026-09-15)
+
+`/dev/forge-hub` room shell on `grok/stagehand/W1-01-room-shell`: plate + parallax
+backdrop, real desk plane at y=0, fixed camera (micro-dolly ±2%, pointer parallax;
+`?pose=lock` freezes). `createRenderer` WebGPU path. SSIM harness is a **stub**
+(`scripts/ssim-forge-hub.mjs` + `src/lib/forge-hub/ssimHarness.ts`) for Inspector
+W8-01. `sceneStore` gained a `forge` slice; `useForgeStore` is an alias — no new
+Zustand store. Not in this task: glass slabs, portal reducer, Sparky, HoloPanel,
+EscapeFlat, ToastRail, production `FORGE_HUB` flip.
+Agent: Stagehand (Grok Bot Team)

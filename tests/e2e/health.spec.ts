@@ -10,6 +10,15 @@ test.describe('Health Check', () => {
     const response = await request.get('/api/health');
     expect(response.ok()).toBeTruthy();
     const body = await response.json();
-    expect(body.status).toBe('ok');
+    // DEPLOY-HIGH-003: payload uses `overall`, not `status`.
+    expect(['healthy', 'degraded']).toContain(body.overall);
+  });
+
+  test('forge hub room shell is reachable', async ({ page }) => {
+    const response = await page.goto('/dev/forge-hub');
+    expect(response?.status()).toBeLessThan(500);
+    await expect(
+      page.getByRole('heading', { name: 'Forge Hub', exact: true }),
+    ).toBeVisible();
   });
 });

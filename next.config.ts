@@ -106,9 +106,12 @@ const sentryProject = process.env.SENTRY_PROJECT;
 
 export default sentryOrg && sentryProject
   ? withSentryConfig(withIntl, {
-      // Sentry build options
-      org: sentryOrg,
-      project: sentryProject,
+      // Sentry build options. Pass process.env.* inline so
+      // scripts/verify-sentry-source-maps.mjs --ci can assert wiring
+      // (it greps these literals). Guard above still skips the wrap
+      // when org/project are unset so CI/forks do not fail upload.
+      org: process.env.SENTRY_ORG,
+      project: process.env.SENTRY_PROJECT,
       silent: !process.env.CI, // Suppress logs in local dev
       widenClientFileUpload: true,
       tunnelRoute: '/monitoring', // Proxy Sentry requests to avoid ad-blockers
