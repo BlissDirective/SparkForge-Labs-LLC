@@ -30,7 +30,7 @@ Status legend: `todo` · `doing` · `blocked` · `done` · `packet`
 | W1-03 | Stagehand | Three glass slabs + breathe; poster fallback | **done** | merged #175 `a4056cc` |
 | W2-01 | Stagehand | Layout registry + projection hook + HoloPanel reading plate | **done** | PR #176; SoT #170; #164 stays open |
 | W2-02 | Director | GSAP Director runtime from MOTION_BIBLE vs live glass | **done** | merged PR #177 `32db199`; HoloC `{31.2,24,37.6×48}`; `LAYOUT_MORPH_MS` 420 |
-| W2-04 | Director | Reduced-motion 200ms crossfade substitutes | **doing** | slice-1 live ids; emit-burst SKIP_TO_DOCKED; Theatre ignition fill after W2-03 forgeStore |
+| W2-04 | Director | Reduced-motion 200ms crossfade substitutes | **doing** | PR #178; slice-1 live ids; emit-burst SKIP_TO_DOCKED; Theatre ignition fill after W2-03 forgeStore |
 | W3-01 | Smith | Confirm SPARKY-CHARACTER-SPEC + artist brief | todo | spec may already exist |
 | W3-02 | Smith | Track A candidate sheet (needs AP-001 mesh-gen) | blocked | AP-001 |
 | W3-03 | Stagehand + Smith | Placeholder Sparky + desk spots + behaviour hooks | todo | after W1-01 |
