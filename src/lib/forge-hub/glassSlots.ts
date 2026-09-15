@@ -80,6 +80,12 @@ export function slotOrigin(rect: PercentRect): 'right center' | 'left center' | 
   return 'center center';
 }
 
+/** PR #164 `slotTransform` — live DOM uses `cssYawTransform` (clamps, yaw 0 → none). */
+export function slotTransform(rect: PercentRect): string {
+  const yaw = rect.yaw ?? 0;
+  return `perspective(${HOLO_PERSPECTIVE_PX}px) rotateY(${yaw}deg)`;
+}
+
 export interface GlassLocalRect {
   x: number;
   y: number;

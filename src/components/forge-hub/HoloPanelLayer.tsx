@@ -5,6 +5,7 @@
 
 import type { ForgeMode } from '@/lib/forge-hub/types';
 import type { GlassSlotId } from '@/lib/forge-hub/glassSlots';
+import { HOLO_C_WELCOME } from '@/lib/forge-hub/catalog';
 import { liveDirectorSlots } from '@/lib/forge-hub/director/targets';
 import { isDirectorRmCrossfade } from '@/lib/forge-hub/director/clock';
 import { useDirectorClock } from '@/lib/forge-hub/useForgeDirector';
@@ -27,12 +28,12 @@ const MODE_COPY: Partial<Record<ForgeMode, Record<GlassSlotId, PanelCopy>>> = {
       body: '11 labs. 42 games. Learn AI by playing.',
     },
     holoC: {
-      title: 'Welcome to SparkForge',
+      title: HOLO_C_WELCOME.title,
       body: '',
     },
     holoR: {
       title: 'Meet Sparky',
-      body: 'Demo login and coach tips will sit on this side.',
+      body: HOLO_C_WELCOME.rotating[0],
     },
   },
   hubSplit: {
