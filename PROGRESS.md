@@ -2881,11 +2881,16 @@ Agent: Director (Grok Bot Team)
 
 ### FORGE HUB — W3-03 placeholder Sparky + desk spots (Stagehand, 2026-09-15)
 
-Interim coral-capsule Sparky on `/dev/forge-hub` so behaviour can ship while Smith is AP-001-blocked for Track A mesh-gen. Named desk spots in `src/config/sparkySpots.ts` sit on the W1-01 desk plane (y=0, below glass). State machine `idle → attend → react → return` plus sleep/whisper overrides lives on the existing `sceneStore.forge.sparky` slice (no new Zustand store). RM teleports; `?pose=lock` hides the mesh so LOCKED_HERO stills stay still. Dev behaviour panel composes with the mode switcher / Director HUD. HoloBubble remains a store stub (tip/ping/whisper + dome emissive). No layout-registry API change (spots are room/desk coords only). Locks and `src/components/games/*` untouched. Rebased on W2-11 board close #188 `e7c5ae5` (code #185 `579e56b`).
+Interim coral-capsule Sparky on `/dev/forge-hub` so behaviour can ship while Smith is AP-001-blocked for Track A mesh-gen. Named desk spots in `src/config/sparkySpots.ts` sit on the W1-01 desk plane (y=0, below glass). State machine `idle → attend → react → return` plus sleep/whisper overrides lives on the existing `sceneStore.forge.sparky` slice (no new Zustand store). RM teleports; `?pose=lock` hides the mesh so LOCKED_HERO stills stay still. Dev behaviour panel composes with the mode switcher / Director HUD. HoloBubble remains a store stub (tip/ping/whisper + dome emissive). No layout-registry API change (spots are room/desk coords only). Locks and `src/components/games/*` untouched. Merged PR #187 `97a6f9d`.
 Agent: Stagehand (Grok Bot Team)
 
 ### FORGE HUB — T1 Sparky desk spots lock (Scribe, 2026-09-15)
 
-CDO Tier-1 (Forge Hub channel): the only Sparky desk seats are the five names in `src/config/sparkySpots.ts` / `forge.sparky.spot` — `nearCore` (default), `leftLip`, `rightLip`, `frontCenter`, `behindCore`. Recorded in `docs/01-decisions/2026-09-forge-hub.md` after decisions 1–13. Does not reopen 1–13; narrows decision 6 + SPARKY-CHARACTER-SPEC §7.1. Implementation already in W3-03 PR #187 (`97a6f9d`). Docs-only; board W3-03 left to Stagehand (already **done**).
+CDO Tier-1 (Forge Hub channel): the only Sparky desk seats are the five names in `src/config/sparkySpots.ts` / `forge.sparky.spot` — `nearCore` (default), `leftLip`, `rightLip`, `frontCenter`, `behindCore`. Recorded in `docs/01-decisions/2026-09-forge-hub.md` after decisions 1–13. Does not reopen 1–13; narrows decision 6 + SPARKY-CHARACTER-SPEC §7.1. Implementation already in W3-03 PR #187 (`97a6f9d`). Docs-only; board W3-03 left to Stagehand (already **done**). Merged PR #189 `cde5e45`.
 Agent: Scribe (Grok Bot Team)
+
+### FORGE HUB — W3-04 HoloBubble stub (Stagehand, 2026-09-15)
+
+Fourth reading-plate slab on `/dev/forge-hub`, anchored to the placeholder dome (`socket.holoBubble` / `sparkyHoloAnchor`). States `hidden | ping | tip | chat | whisper` on the existing `sceneStore.forge.holoBubble` slice via `patchForgeHoloBubble` (no new Zustand store). Open from Sparky tap, bubble, or HUD; Escape closes and restores HUD focus; tip auto-dismisses after 3.2 s. Dome emissive follows spec §7.4 (0.3/0.6/1.0/1.2). Five Tier-1 seats unchanged (`nearCore` / `leftLip` / `rightLip` / `frontCenter` / `behindCore` — decision 6a / #189). Whisper motion remains Director-owned. Games / `public/forge-hub` locks / `FORGE_HUB*` prod flags untouched. Rebased on Scribe #189 `cde5e45`.
+Agent: Stagehand (Grok Bot Team)
 

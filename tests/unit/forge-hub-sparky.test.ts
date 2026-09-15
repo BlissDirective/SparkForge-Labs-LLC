@@ -24,6 +24,7 @@ import {
   dispatchSparkyEvent,
   sparkyMoveAttr,
 } from '@/lib/forge-hub/sparkyBehaviour';
+import { clearHoloBubbleTipTimer, HOLO_BUBBLE_TIP_MS } from '@/lib/forge-hub/holoBubble';
 import { SPARKY_FACE_SIZE } from '@/lib/forge-hub/sparkyFace';
 import { FORGE_SLICE_DEFAULTS } from '@/lib/forge-hub/types';
 import { useForgeStore, useSceneStore } from '@/stores/sceneStore';
@@ -35,6 +36,7 @@ const LOCK = { reducedMotion: false, poseLock: true };
 
 beforeEach(() => {
   clearSparkyReturnTimer();
+  clearHoloBubbleTipTimer();
   useSceneStore.setState({
     ...SCENE_DEFAULTS,
     forge: {
@@ -47,6 +49,7 @@ beforeEach(() => {
 
 afterEach(() => {
   clearSparkyReturnTimer();
+  clearHoloBubbleTipTimer();
   vi.useRealTimers();
   useSceneStore.setState({
     ...SCENE_DEFAULTS,
@@ -226,13 +229,15 @@ describe('W3-03 behaviour transitions', () => {
     expect(burst.reaction).toBe('cheer');
   });
 
-  it('dispatch writes the existing forge slice and auto-returns', () => {
+  it('dispatch writes the existing forge slice; tip outlives Sparky return', () => {
     vi.useFakeTimers();
     dispatchSparkyEvent({ type: 'TAP' }, CTX);
     expect(useForgeStore.getState().forge.sparky.behaviour).toBe('react');
     expect(useForgeStore.getState().forge.holoBubble.state).toBe('tip');
     vi.advanceTimersByTime(SPARKY_REACTION_MS.tapReact + 20);
     expect(useForgeStore.getState().forge.sparky.behaviour).toBe('idle');
+    expect(useForgeStore.getState().forge.holoBubble.state).toBe('tip');
+    vi.advanceTimersByTime(HOLO_BUBBLE_TIP_MS);
     expect(useForgeStore.getState().forge.holoBubble.state).toBe('hidden');
     expect(useForgeStore).toBe(useSceneStore);
   });
@@ -257,6 +262,7 @@ describe('W3-03 face + dome stubs', () => {
     expect(HOLO_DOME_EMISSIVE.hidden).toBe(0.3);
     expect(HOLO_DOME_EMISSIVE.ping).toBe(0.6);
     expect(HOLO_DOME_EMISSIVE.tip).toBe(1);
+    expect(HOLO_DOME_EMISSIVE.chat).toBe(1);
     expect(HOLO_DOME_EMISSIVE.whisper).toBe(1.2);
   });
 });

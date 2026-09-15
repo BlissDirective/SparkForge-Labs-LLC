@@ -19,6 +19,7 @@
  * (`three/webgpu`). Shell reports the winning backend on
  * `data-forge-renderer`. `?fallback=poster` / `?fallback=webgl2`.
  * W3-03: placeholder Sparky, desk spots, behaviour panel.
+ * W3-04: HoloBubble stub (open/close + Escape) on the same forge slice.
  */
 
 import { useCallback, useEffect, useState } from 'react';
@@ -37,6 +38,7 @@ import {
 } from '@/components/forge-hub/ForgeRouteMode';
 import { ForgeTransitionScrubber } from '@/components/forge-hub/ForgeTransitionScrubber';
 import { SparkyBehaviourPanel } from '@/components/forge-hub/SparkyBehaviourPanel';
+import { HoloBubble } from '@/components/forge-hub/HoloBubble';
 import { HoloPanelLayer } from '@/components/forge-hub/HoloPanelLayer';
 import { ToastRail } from '@/components/forge-hub/ToastRail';
 import {
@@ -58,6 +60,11 @@ import {
 import { useForgeReducedMotion } from '@/lib/forge-hub/useForgeReducedMotion';
 import { useSparkyBehaviour } from '@/lib/forge-hub/useSparkyBehaviour';
 import { sparkyMoveAttr } from '@/lib/forge-hub/sparkyBehaviour';
+import {
+  domeEmissiveForBubble,
+  isPlayLimitedMode,
+} from '@/lib/forge-hub/holoBubble';
+import { useHoloBubble } from '@/lib/forge-hub/useHoloBubble';
 import { useFirstVisitIgnition } from '@/lib/forge-hub/useFirstVisitIgnition';
 import { useGameLaunchBurst } from '@/lib/forge-hub/useGameLaunchBurst';
 import { maybeLoadForgeTheatreStudio } from '@/lib/forge-hub/director';
@@ -118,6 +125,7 @@ function ForgeHubClientInner() {
   const { phase, isOpen, retract, toggle } = useForgePortal();
   const directorId = useForgeStore((s) => s.forge.directorId);
   const sparky = useForgeStore((s) => s.forge.sparky);
+  const holoBubble = useForgeStore((s) => s.forge.holoBubble);
   const [cycleStatus, setCycleStatus] = useState('idle');
   const [cycleStep, setCycleStep] = useState('idle');
   const [cycleTrace, setCycleTrace] = useState('');
@@ -137,6 +145,7 @@ function ForgeHubClientInner() {
   });
 
   useSparkyBehaviour(!!prefersReducedMotion, poseLock);
+  useHoloBubble(poseLock);
 
   useEffect(() => {
     void maybeLoadForgeTheatreStudio(studioOn);
@@ -304,6 +313,13 @@ function ForgeHubClientInner() {
       data-forge-sparky-mounted={
         allowStage && !forcePoster && !poseLock && !stageHidden ? '1' : '0'
       }
+      data-forge-holobubble={holoBubble.state}
+      data-forge-holobubble-play={
+        isPlayLimitedMode(mode) ? 'ping-tip' : 'all'
+      }
+      data-forge-holobubble-dome={String(
+        domeEmissiveForBubble(holoBubble.state),
+      )}
       className="relative min-h-screen w-full overflow-hidden bg-[#0b1218]"
     >
       <ForgePosterFallback
@@ -332,6 +348,8 @@ function ForgeHubClientInner() {
       {!poseLock && !stageHidden ? (
         <HoloPanelLayer layout={holoLayout} calibrate={calibrate} />
       ) : null}
+
+      {!poseLock && !stageHidden ? <HoloBubble /> : null}
 
       {calibrate && !poseLock && !stageHidden ? (
         <ForgeCalibrateOverlay layout={holoLayout} />

@@ -13,6 +13,10 @@ import {
   getSlotAnchor,
   publishSlotProjection,
 } from '@/lib/forge-hub/slotAnchors';
+import {
+  getHoloBubbleWorld,
+  publishHoloBubbleScreen,
+} from '@/lib/forge-hub/holoBubbleAnchor';
 import { useForgeStore } from '@/stores/sceneStore';
 
 export function ForgeSlotProjector() {
@@ -24,6 +28,7 @@ export function ForgeSlotProjector() {
     new Vector3(),
     new Vector3(),
   ]);
+  const bubblePt = useRef(new Vector3());
 
   useFrame(({ camera, size }) => {
     const pts = corners.current;
@@ -65,6 +70,20 @@ export function ForgeSlotProjector() {
         visible: true,
       });
     }
+
+    const world = getHoloBubbleWorld();
+    if (!world || poseLock) {
+      publishHoloBubbleScreen(null);
+      return;
+    }
+    const v = bubblePt.current;
+    v.set(world[0], world[1], world[2]).project(camera);
+    const pt = ndcToScreen(v.x, v.y, size.width, size.height);
+    publishHoloBubbleScreen({
+      x: pt.x,
+      y: pt.y,
+      visible: v.z >= -1 && v.z <= 1,
+    });
   });
 
   return null;

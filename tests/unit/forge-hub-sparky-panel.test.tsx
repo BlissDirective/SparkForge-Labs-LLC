@@ -8,6 +8,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { SparkyBehaviourPanel } from '@/components/forge-hub/SparkyBehaviourPanel';
 import { ForgeModeSwitcher } from '@/components/forge-hub/ForgeModeSwitcher';
 import { clearSparkyReturnTimer } from '@/lib/forge-hub/sparkyBehaviour';
+import { clearHoloBubbleTipTimer } from '@/lib/forge-hub/holoBubble';
 import { FORGE_SLICE_DEFAULTS } from '@/lib/forge-hub/types';
 import { useForgeStore, useSceneStore } from '@/stores/sceneStore';
 
@@ -15,6 +16,7 @@ const SCENE_DEFAULTS = useSceneStore.getState();
 
 beforeEach(() => {
   clearSparkyReturnTimer();
+  clearHoloBubbleTipTimer();
   useSceneStore.setState({
     ...SCENE_DEFAULTS,
     forge: {
@@ -28,6 +30,7 @@ beforeEach(() => {
 afterEach(() => {
   cleanup();
   clearSparkyReturnTimer();
+  clearHoloBubbleTipTimer();
   useSceneStore.setState({
     ...SCENE_DEFAULTS,
     forge: {

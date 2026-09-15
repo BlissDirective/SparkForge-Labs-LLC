@@ -779,3 +779,69 @@ test.describe('W3-03 placeholder Sparky', () => {
     await expect(page.getByTestId('forge-hub-sparky-panel')).toHaveCount(0);
   });
 });
+
+test.describe('W3-04 HoloBubble stub', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.addInitScript(() => {
+      localStorage.setItem('sparkforge:cookie-notice:dismissed', '1');
+    });
+  });
+
+  test('shell starts hidden and HUD opens the reading-plate stub', async ({
+    page,
+  }) => {
+    await page.goto('/dev/forge-hub?fallback=poster');
+    const shell = page.getByTestId('forge-hub-shell');
+    await expect(shell).toHaveAttribute('data-forge-holobubble', 'hidden');
+    await expect(shell).toHaveAttribute('data-forge-holobubble-dome', '0.3');
+    await expect(shell).toHaveAttribute('data-forge-holobubble-play', 'all');
+    await page.getByTestId('forge-hub-holobubble-open').click();
+    await expect(shell).toHaveAttribute('data-forge-holobubble', 'tip');
+    await expect(shell).toHaveAttribute('data-forge-holobubble-dome', '1');
+    const bubble = page.getByTestId('forge-hub-holobubble');
+    await expect(bubble).toBeVisible();
+    await expect(bubble).toHaveAttribute('data-forge-holobubble', 'tip');
+    const fill = await bubble.evaluate((el) =>
+      getComputedStyle(el.querySelector('.fh-holobubble__plate')!).backgroundColor,
+    );
+    expect(fill).toMatch(/rgba?\(6,\s*14,\s*28/);
+  });
+
+  test('Escape closes the bubble and returns focus to the HUD', async ({
+    page,
+  }) => {
+    await page.goto('/dev/forge-hub?fallback=poster');
+    const shell = page.getByTestId('forge-hub-shell');
+    const open = page.getByTestId('forge-hub-holobubble-open');
+    await open.click();
+    await expect(shell).toHaveAttribute('data-forge-holobubble', 'tip');
+    await page.keyboard.press('Escape');
+    await expect(shell).toHaveAttribute('data-forge-holobubble', 'hidden');
+    await expect(page.getByTestId('forge-hub-holobubble')).toHaveCount(0);
+    await expect(open).toBeFocused();
+  });
+
+  test('chat state is reachable from the HUD toggle', async ({ page }) => {
+    await page.goto('/dev/forge-hub?fallback=poster');
+    const shell = page.getByTestId('forge-hub-shell');
+    await page.getByTestId('forge-hub-holobubble-state').selectOption('chat');
+    await expect(shell).toHaveAttribute('data-forge-holobubble', 'chat');
+    await expect(page.getByTestId('forge-hub-holobubble')).toHaveAttribute(
+      'data-forge-holobubble',
+      'chat',
+    );
+    await expect(page.getByTestId('forge-hub-holobubble-input')).toBeDisabled();
+    await page.keyboard.press('Escape');
+    await expect(shell).toHaveAttribute('data-forge-holobubble', 'hidden');
+  });
+
+  test('PlayStage notes ping/tip-only on the shell', async ({ page }) => {
+    await page.goto('/dev/forge-hub?fallback=poster');
+    await page.getByTestId('forge-hub-mode-switch').selectOption('playStage');
+    const shell = page.getByTestId('forge-hub-shell');
+    await expect(shell).toHaveAttribute('data-forge-mode', 'playStage');
+    await expect(shell).toHaveAttribute('data-forge-holobubble-play', 'ping-tip');
+    await page.getByTestId('forge-hub-holobubble-state').selectOption('chat');
+    await expect(shell).toHaveAttribute('data-forge-holobubble', 'tip');
+  });
+});

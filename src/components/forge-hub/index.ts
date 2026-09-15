@@ -7,6 +7,7 @@ export { CorePortal } from './CorePortal';
 export { ForgeGlassSlabs } from './ForgeGlassSlabs';
 export { HoloPanel } from './HoloPanel';
 export { HoloPanelLayer } from './HoloPanelLayer';
+export { HoloBubble } from './HoloBubble';
 export { WelcomeLoginForm } from './WelcomeLoginForm';
 export { ForgeMorphCycle } from './ForgeMorphCycle';
 export { ForgeSlotProjector } from './ForgeSlotProjector';
