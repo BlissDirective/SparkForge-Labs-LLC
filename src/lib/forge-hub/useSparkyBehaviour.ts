@@ -2,7 +2,9 @@
 
 /**
  * Wires placeholder Sparky to the existing sceneStore forge slice.
- * Mode / hover / cheap Director ids. No new Zustand store.
+ * Mode / hover / focus while Director is idle. Live morph seats are
+ * written by Director `sparkyReactions.ts` (five Tier-1 spots only).
+ * No new Zustand store.
  */
 
 import { useEffect } from 'react';
@@ -25,41 +27,24 @@ export function useSparkyBehaviour(
       useForgeStore.getState().patchForgeSparky({ moving: false });
       return;
     }
+    // Director timelines own forge.sparky.spot during a live morph.
+    if (directorId) return;
     dispatchSparkyEvent({ type: 'MODE', mode }, { reducedMotion, poseLock });
-  }, [mode, poseLock, reducedMotion]);
+  }, [mode, poseLock, reducedMotion, directorId]);
 
   useEffect(() => {
-    if (poseLock) return;
+    if (poseLock || directorId) return;
     dispatchSparkyEvent(
       { type: 'HOVER', panel: hoveredPanel },
       { reducedMotion, poseLock },
     );
-  }, [hoveredPanel, poseLock, reducedMotion]);
+  }, [hoveredPanel, poseLock, reducedMotion, directorId]);
 
   useEffect(() => {
-    if (poseLock) return;
+    if (poseLock || directorId) return;
     dispatchSparkyEvent(
       { type: 'FOCUS', panel: activePanel },
       { reducedMotion, poseLock },
     );
-  }, [activePanel, poseLock, reducedMotion]);
-
-  useEffect(() => {
-    if (poseLock || !directorId) return;
-    if (directorId === 'whisper-expand') {
-      dispatchSparkyEvent({ type: 'WHISPER' }, { reducedMotion, poseLock });
-      return;
-    }
-    if (directorId === 'whisper-close') {
-      dispatchSparkyEvent(
-        { type: 'WHISPER_CLOSE' },
-        { reducedMotion, poseLock },
-      );
-      return;
-    }
-    dispatchSparkyEvent(
-      { type: 'DIRECTOR', id: directorId },
-      { reducedMotion, poseLock },
-    );
-  }, [directorId, poseLock, reducedMotion]);
+  }, [activePanel, poseLock, reducedMotion, directorId]);
 }

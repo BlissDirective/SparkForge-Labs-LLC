@@ -47,6 +47,11 @@ import {
   sampleGameLaunchBurst,
 } from './director/theatrePlayer';
 import {
+  applySparkyCue,
+  cueContextFromIo,
+  sparkyCueFor,
+} from './director/sparkyReactions';
+import {
   armGameLaunchBurst,
   readBurstSeen,
   writeBurstSeen,
@@ -92,6 +97,8 @@ function storeIo(reducedMotion: boolean): TimelineIo {
     patchHoloBubble: (patch) => store().patchForgeHoloBubble(patch),
     getMode: () => store().forge.mode,
     getPreviousMode: () => store().forge.previousMode,
+    getSparkySpot: () => store().forge.sparky.spot,
+    getHoveredPanel: () => store().forge.hoveredPanel,
   };
 }
 
@@ -250,13 +257,31 @@ class ForgeDirectorImpl implements ForgeDirector {
       this.current.timeline.progress(1);
       this.current.timeline.pause();
       this.io?.setMorphProgress(1);
+      if (this.io) {
+        const cue = sparkyCueFor(
+          'emit-burst',
+          cueContextFromIo({
+            ...this.io,
+            reducedMotion: true,
+          }),
+        );
+        applySparkyCue(this.io, cue.end);
+      }
       publishDirectorClock();
       return;
     }
 
     if (id === 'first-visit-ignition') {
-      this.io?.patchSparky({ spot: 'nearCore', behaviour: 'idle' });
-      this.io?.patchHoloBubble({ state: 'hidden' });
+      if (this.io) {
+        const land = sparkyCueFor(
+          'welcome-idle',
+          cueContextFromIo({
+            ...this.io,
+            reducedMotion: Boolean(this.io.reducedMotion),
+          }),
+        );
+        applySparkyCue(this.io, land.end, land.endBubble);
+      }
       this.play('welcome-idle', { reducedMotion: this.io?.reducedMotion });
       return;
     }
@@ -279,8 +304,16 @@ class ForgeDirectorImpl implements ForgeDirector {
       this.current.timeline.pause();
       this.io?.setForgeMode('playStage');
       this.io?.setMorphProgress(1);
-      this.io?.patchSparky({ spot: 'rightLip', behaviour: 'attend' });
-      this.io?.patchHoloBubble({ state: 'hidden' });
+      if (this.io) {
+        const land = sparkyCueFor(
+          'game-launch-burst',
+          cueContextFromIo({
+            ...this.io,
+            reducedMotion: true,
+          }),
+        );
+        applySparkyCue(this.io, land.end, land.endBubble);
+      }
       publishDirectorClock();
     }
   }
@@ -449,3 +482,7 @@ export {
   sampleFirstVisitIgnition,
   sampleGameLaunchBurst,
 } from './director/theatrePlayer';
+export {
+  DIRECTOR_SPARKY_SEATS,
+  sparkyCueFor,
+} from './director/sparkyReactions';

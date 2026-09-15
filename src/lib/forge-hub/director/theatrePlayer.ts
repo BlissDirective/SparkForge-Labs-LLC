@@ -15,6 +15,11 @@ import {
 } from './timings';
 import type { ForgeHoloBubbleState, ForgeSparkyState } from '@/lib/forge-hub/types';
 import type { DirectorClock } from './clock';
+import {
+  applySparkyCue,
+  burstSparkyPatch,
+  ignitionSparkyPatch,
+} from './sparkyReactions';
 
 /** Store writes used by Theatre samples — subset of TimelineIo. */
 export interface IgnitionStoreIo {
@@ -178,18 +183,10 @@ export function applyIgnitionSample(
   clock.sparkyHop = 0;
   clock.beams = 0;
 
-  // Wave window (t ≥ 1100): Sparky nearCore + optional HoloBubble tip.
+  // Wave window (t ≥ 1100): spawn behindCore, arrive nearCore + wave.
   // Smith clip `ignition.wave` is a later request; v1 uses sparkyPing.
-  if (sample.sparkyPing > 0.02) {
-    io.patchSparky({ spot: 'nearCore', behaviour: 'react' });
-    io.patchHoloBubble({ state: 'tip' });
-  } else if (sample.appearScale >= 0.999 && sample.contentIn >= 0.999) {
-    io.patchSparky({ spot: 'nearCore', behaviour: 'idle' });
-    io.patchHoloBubble({ state: 'hidden' });
-  } else {
-    io.patchSparky({ spot: 'nearCore', behaviour: 'attend' });
-    io.patchHoloBubble({ state: 'hidden' });
-  }
+  const cue = ignitionSparkyPatch(sample);
+  applySparkyCue(io, cue.sparky, cue.bubble);
 }
 
 /**
@@ -211,13 +208,8 @@ export function applyBurstSample(
   clock.beams = 0;
   clock.roomDim = 1;
 
-  if (sample.sparkyPing > 0.02 || sample.sparkyHop > 0.02) {
-    io.patchSparky({ spot: 'rightLip', behaviour: 'react' });
-    io.patchHoloBubble({ state: 'ping' });
-  } else {
-    io.patchSparky({ spot: 'rightLip', behaviour: 'attend' });
-    io.patchHoloBubble({ state: 'hidden' });
-  }
+  const cue = burstSparkyPatch(sample);
+  applySparkyCue(io, cue.sparky, cue.bubble);
 }
 
 /**

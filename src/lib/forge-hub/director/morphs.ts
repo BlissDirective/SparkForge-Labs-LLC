@@ -6,14 +6,15 @@
 // ════════════════════════════════════════════════════════════════
 
 import gsap from 'gsap';
-import type {
-  ForgeHoloBubbleState,
-  ForgeMode,
-  ForgeSparkyState,
-} from '@/lib/forge-hub/types';
+import type { ForgeMode } from '@/lib/forge-hub/types';
 import { peekDirectorClock } from './clock';
 import type { DirectorRemainderId } from './ids';
 import type { ForgeStingId } from './stings';
+import {
+  applySparkyCue,
+  cueContextFromIo,
+  sparkyCueFor,
+} from './sparkyReactions';
 import { applyLiveSlotsToClock, snapClockToMode } from './targets';
 import {
   bindProgress,
@@ -53,10 +54,7 @@ export interface LayoutMorphSpec {
   stingAtMs?: number;
   hop?: boolean;
   roomDim?: { from: number; to: number; atMs: number; durationMs: number };
-  startSparky: Partial<ForgeSparkyState>;
-  endSparky: Partial<ForgeSparkyState>;
-  startBubble?: Partial<ForgeHoloBubbleState>;
-  endBubble?: Partial<ForgeHoloBubbleState>;
+  destMode?: ForgeMode;
 }
 
 function resolveAnyFrom(
@@ -70,15 +68,11 @@ function resolveAnyFrom(
   return mode;
 }
 
-function applySparky(io: TimelineIo, patch: Partial<ForgeSparkyState>): void {
-  io.patchSparky(patch);
-}
-
-function applyBubble(
-  io: TimelineIo,
-  patch: Partial<ForgeHoloBubbleState> | undefined,
-): void {
-  if (patch) io.patchHoloBubble(patch);
+function remainderCue(io: TimelineIo, id: DirectorRemainderId, destMode?: ForgeMode) {
+  return sparkyCueFor(
+    id,
+    cueContextFromIo({ ...io, destMode: destMode ?? null }),
+  );
 }
 
 export function buildLayoutMorph(
@@ -92,6 +86,7 @@ export function buildLayoutMorph(
   const pingAtMs = spec.pingAtMs ?? 480;
   const stingAtMs = spec.stingAtMs ?? 560;
   const durationMs = INTERACTIVE_MORPH_MS;
+  const cue = remainderCue(io, spec.id, spec.destMode ?? spec.to);
 
   if (io.reducedMotion) {
     return reducedMotionCrossfade(spec.id, io, () => {
@@ -101,8 +96,7 @@ export function buildLayoutMorph(
       io.setMorphProgress(1);
       clock.roomDim = spec.roomDim?.to ?? 0;
       clock.bubbleScale = 0;
-      applySparky(io, spec.endSparky);
-      applyBubble(io, spec.endBubble);
+      applySparkyCue(io, cue.end, cue.endBubble);
     });
   }
 
@@ -127,8 +121,7 @@ export function buildLayoutMorph(
   clock.cameraDollyPercent = 0;
   io.setForgeMode(spec.from);
   io.setMorphProgress(0);
-  applySparky(io, spec.startSparky);
-  applyBubble(io, spec.startBubble);
+  applySparkyCue(io, cue.start, cue.startBubble);
 
   const chargeSec = msToSec(INTERACTIVE_CHARGE_MS);
   const beamsStart = msToSec(beamsAtMs);
@@ -201,7 +194,7 @@ export function buildLayoutMorph(
     pingStart,
   );
 
-  if (spec.hop) {
+  if (spec.hop && cue.start.spot === cue.end.spot) {
     const hopDur = msToSec(Math.min(SPARKY_HOP_MS, durationMs - pingAtMs));
     tl.to(
       clock,
@@ -225,8 +218,7 @@ export function buildLayoutMorph(
     () => {
       stingIfMotion(io, spec.sting);
       io.setForgeMode(spec.to);
-      applySparky(io, spec.endSparky);
-      applyBubble(io, spec.endBubble);
+      applySparkyCue(io, cue.end, cue.endBubble);
     },
     [],
     stingStart,
@@ -260,18 +252,7 @@ export function buildWhisperMorph(
   const sting: ForgeStingId = expand
     ? 'sting.whisperOpen'
     : 'sting.whisperClose';
-  const startSparky: Partial<ForgeSparkyState> = expand
-    ? { spot: 'nearCore', behaviour: 'attend' }
-    : { spot: 'frontCenter', behaviour: 'attend' };
-  const endSparky: Partial<ForgeSparkyState> = expand
-    ? { spot: 'frontCenter', behaviour: 'attend' }
-    : { spot: 'nearCore', behaviour: 'idle' };
-  const startBubble: Partial<ForgeHoloBubbleState> = expand
-    ? { state: 'tip' }
-    : { state: 'whisper' };
-  const endBubble: Partial<ForgeHoloBubbleState> = expand
-    ? { state: 'whisper' }
-    : { state: 'hidden' };
+  const cue = remainderCue(io, kind);
 
   if (io.reducedMotion) {
     return reducedMotionCrossfade(kind, io, () => {
@@ -281,8 +262,7 @@ export function buildWhisperMorph(
       io.setMorphProgress(1);
       clock.roomDim = endDim;
       clock.bubbleScale = endScale;
-      applySparky(io, endSparky);
-      applyBubble(io, endBubble);
+      applySparkyCue(io, cue.end, cue.endBubble);
     });
   }
 
@@ -305,8 +285,7 @@ export function buildWhisperMorph(
   clock.sparkyHop = 0;
   clock.cameraDollyPercent = 0;
   io.setMorphProgress(0);
-  applySparky(io, startSparky);
-  applyBubble(io, startBubble);
+  applySparkyCue(io, cue.start, cue.startBubble);
 
   const chargeSec = msToSec(INTERACTIVE_CHARGE_MS);
   const expandDur = msToSec(WHISPER_EXPAND_WINDOW_MS);
@@ -364,8 +343,7 @@ export function buildWhisperMorph(
   tl.call(
     () => {
       stingIfMotion(io, sting);
-      applySparky(io, endSparky);
-      applyBubble(io, endBubble);
+      applySparkyCue(io, cue.end, cue.endBubble);
     },
     [],
     msToSec(560),
@@ -395,8 +373,6 @@ export function buildRemainderTimeline(
         from: 'hubSplit',
         to: 'labsBrowse',
         sting: 'sting.hubLabsBrowse',
-        startSparky: { spot: 'nearCore', behaviour: 'attend' },
-        endSparky: { spot: 'leftLip', behaviour: 'attend' },
       });
     case 'labsbrowse-hub':
       return buildLayoutMorph(io, {
@@ -404,8 +380,6 @@ export function buildRemainderTimeline(
         from: 'labsBrowse',
         to: 'hubSplit',
         sting: 'sting.labsBrowseHub',
-        startSparky: { spot: 'leftLip', behaviour: 'return' },
-        endSparky: { spot: 'nearCore', behaviour: 'idle' },
       });
     case 'focus-in':
       return buildLayoutMorph(io, {
@@ -413,18 +387,16 @@ export function buildRemainderTimeline(
         from: resolveAnyFrom(io, 'focus', ANY_FROM_FALLBACK),
         to: 'focus',
         sting: 'sting.focusIn',
-        startSparky: { spot: 'nearCore', behaviour: 'attend' },
-        endSparky: { spot: 'nearCore', behaviour: 'attend' },
       });
     case 'focus-out': {
       const to = io.getPreviousMode() ?? FOCUS_OUT_DEFAULT;
+      const dest = to === 'focus' ? FOCUS_OUT_DEFAULT : to;
       return buildLayoutMorph(io, {
         id,
         from: 'focus',
-        to: to === 'focus' ? FOCUS_OUT_DEFAULT : to,
+        to: dest,
+        destMode: dest,
         sting: 'sting.focusOut',
-        startSparky: { spot: 'nearCore', behaviour: 'return' },
-        endSparky: { spot: 'leftLip', behaviour: 'idle' },
       });
     }
     case 'dual-enter':
@@ -433,8 +405,6 @@ export function buildRemainderTimeline(
         from: resolveAnyFrom(io, 'dual', ANY_FROM_FALLBACK),
         to: 'dual',
         sting: 'sting.dualEnter',
-        startSparky: { spot: 'nearCore', behaviour: 'idle' },
-        endSparky: { spot: 'frontCenter', behaviour: 'idle' },
       });
     case 'dual-exit': {
       const to = io.getPreviousMode() ?? DUAL_EXIT_DEFAULT;
@@ -443,8 +413,6 @@ export function buildRemainderTimeline(
         from: 'dual',
         to: to === 'dual' ? DUAL_EXIT_DEFAULT : to,
         sting: 'sting.dualExit',
-        startSparky: { spot: 'frontCenter', behaviour: 'return' },
-        endSparky: { spot: 'nearCore', behaviour: 'idle' },
       });
     }
     case 'lobby-playstage-merge':
@@ -455,8 +423,6 @@ export function buildRemainderTimeline(
         sting: 'sting.gameLaunch',
         hop: true,
         roomDim: { from: 0, to: 1, atMs: 400, durationMs: 100 },
-        startSparky: { spot: 'rightLip', behaviour: 'attend' },
-        endSparky: { spot: 'rightLip', behaviour: 'attend' },
       });
     case 'playstage-lobby-split':
       return buildLayoutMorph(io, {
@@ -472,8 +438,6 @@ export function buildRemainderTimeline(
         pingAtMs: 460,
         stingAtMs: 540,
         roomDim: { from: 1, to: 0, atMs: 0, durationMs: 80 },
-        startSparky: { spot: 'rightLip', behaviour: 'return' },
-        endSparky: { spot: 'rightLip', behaviour: 'idle' },
       });
     case 'whisper-expand':
       return buildWhisperMorph(io, 'whisper-expand');
