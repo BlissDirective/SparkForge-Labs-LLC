@@ -21,6 +21,7 @@ import {
   isDirectorSlice1Id,
   isMotionBibleId,
   type DirectorLiveId,
+  type DirectorRemainderId,
   type DirectorSlice1Id,
   type MotionBibleId,
 } from './director/ids';
