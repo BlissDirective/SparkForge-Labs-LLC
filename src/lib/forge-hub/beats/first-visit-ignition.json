@@ -1,0 +1,8 @@
+{
+  "id": "first-visit-ignition",
+  "status": "stub",
+  "runtime": "theatre.js",
+  "durationMs": 1500,
+  "skipTo": "welcome-idle",
+  "notes": "W2-02 slice 1 stub. Authored Theatre JSON lands in a later Director PR. Production must never load @theatre/studio; /dev/forge-hub?studio=1 is the only studio path (not mounted here)."
+}

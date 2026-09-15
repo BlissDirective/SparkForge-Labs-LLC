@@ -8,3 +8,4 @@ export { ForgeGlassSlabs } from './ForgeGlassSlabs';
 export { HoloPanel } from './HoloPanel';
 export { HoloPanelLayer } from './HoloPanelLayer';
 export { ForgeSlotProjector } from './ForgeSlotProjector';
+export { ForgeDirectorControls } from './ForgeDirectorControls';

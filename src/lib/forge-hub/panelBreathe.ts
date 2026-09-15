@@ -2,6 +2,9 @@
 // Forge Hub — panelBreathe (MOTION_BIBLE ambient token)
 // ════════════════════════════════════════════════════════════════
 // Ambient only — not a Director morph. ~3 s loop, scale 98–102 %.
+// Stagehand owns the loop (ForgeGlassSlabs useFrame). Director must
+// not start a competing breathe tween; morphs snap scale to 1.0 via
+// freezeBreathe on the Director clock, then resume this loop.
 // `prefers-reduced-motion` and `?pose=lock` freeze at 1.0 (no loop).
 // RM substitute for first paint is a 200 ms crossfade (CSS).
 

@@ -28,6 +28,8 @@ Status legend: `todo` · `doing` · `blocked` · `done` · `packet`
 | W1-01 | Stagehand | `/dev/forge-hub` plate+parallax room shell; fixed cam; SSIM harness stub | **done** | merged PR #166 `892e464` |
 | W1-02 | Stagehand | Portal reducer port from PR #164; emitter charge/emit | **done** | merged PR #173 `90706e7` |
 | W1-03 | Stagehand | Three glass slabs + breathe; poster fallback | **done** | merged #175 `a4056cc` |
+| W2-01 | Stagehand | Layout registry + projection hook + HoloPanel reading plate | **done** | PR #176; SoT #170; #164 stays open |
+| W2-02 | Director | GSAP Director runtime from MOTION_BIBLE vs live glass | **doing** | after #176; HoloC `{31.2,24,37.6×48}`; `LAYOUT_MORPH_MS` 420 |
 | W3-01 | Smith | Confirm SPARKY-CHARACTER-SPEC + artist brief | todo | spec may already exist |
 | W3-02 | Smith | Track A candidate sheet (needs AP-001 mesh-gen) | blocked | AP-001 |
 | W3-03 | Stagehand + Smith | Placeholder Sparky + desk spots + behaviour hooks | todo | after W1-01 |
@@ -49,7 +51,5 @@ Status legend: `todo` · `doing` · `blocked` · `done` · `packet`
 | Foreman | SparkForge-Labs (CDO) covering | active |
 | Scribe | Scribe (Forge Hub) | active — channel Forge Hub |
 | Stagehand | Stagehand (Forge Hub) | active — channel Forge Hub |
-| Smith / Director / Inspector / Glazier / Gatekeeper | — | deferred until AP-001 / P1 |
-
-| W2-01 | Stagehand | Layout registry + projection hook + HoloPanel reading plate | **done** | PR #176; SoT #170; #164 stays open |
-| W2-02 | Director | GSAP Director runtime from MOTION_BIBLE vs live glass | **todo** | after W1-03 |
+| Director | Director (Grok Bot Team) | active — W2-02 doing |
+| Smith / Inspector / Glazier / Gatekeeper | — | deferred until AP-001 / P1 |

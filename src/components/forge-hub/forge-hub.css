@@ -69,8 +69,46 @@
   animation: forge-hub-panel-breathe 3s ease-in-out infinite;
 }
 
-.forge-hub-rm-crossfade {
-  animation: forge-hub-rm-crossfade 200ms ease-out both;
+.forge-hub-glass[data-director-freeze='true'] {
+  animation: none;
+  transform: perspective(1200px) rotateY(var(--fh-yaw, 0deg))
+    scale(var(--fh-director-scale, 1));
+}
+
+.forge-hub-director {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  max-width: 22rem;
+}
+
+.forge-hub-director-kicker {
+  margin: 0;
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(167, 243, 255, 0.72);
+}
+
+.forge-hub-director-scrub {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(231, 251, 255, 0.78);
+}
+
+.forge-hub-director-scrub input[type='range'] {
+  flex: 1;
+  accent-color: #4de9ff;
+}
+
+.forge-hub-ignite:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
 .fh-holo-layer {

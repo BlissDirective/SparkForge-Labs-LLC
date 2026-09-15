@@ -498,8 +498,8 @@ Same field contract. Confirmed for v1.
 
 - [x] Replace every `TODO (Director)` on §5 pages (minimum)
 - [x] Confirm or drop §4 / §6 extra ids — **confirmed** all stub ids; **added** `dual-exit` and `labsbrowse-hub`; holiday intro **no id in v1** (documented, not dropped)
-- [ ] Bind each `id` 1:1 to a GSAP timeline or Theatre JSON — **implementation; not this PR**
-- [ ] Scrub tests at 0 / 0.2 / 0.5 / 0.8 / 1 (Inspector) — **needs runtime + Inspector; not this PR**
+- [x] Bind slice-1 ids 1:1 to a GSAP timeline or Theatre stub — **W2-02:** `emit-burst`, `login-success-hubsplit`, `first-visit-ignition` (stub JSON), `welcome-idle` ambient coordinator. Remaining ids: follow-up PRs.
+- [x] Scrub tests at 0 / 0.2 / 0.5 / 0.8 / 1 for slice-1 ids (Director unit tests). Inspector still owns SSIM / Playwright morph recording.
 - [ ] Packet + recording for each kid-visible beat — **when implemented; not this PR**
 - [ ] Align names with `VOCABULARY.md` when W0-05 lands
 - [ ] Then Foreman may mark W0-08 **done**
@@ -514,5 +514,6 @@ Same field contract. Confirmed for v1.
 - Nesting full `emit-burst` inside every interactive morph would blow the 600 ms cap — v1 keeps burst **standalone**. Reversing that composition is Tier 1.
 - Adding holiday-intro as a named id is Tier 1 (new transition).
 - Token duration retunes vs R3F §4 candidates are Director v1 (documented in §1.1); treat further feel changes as Tier 2 once kids see them.
+- **W2-02 Stagehand bind:** `registerMorphTargets(mode)` lives on Stagehand `src/lib/forge-hub/layouts.ts` (PR #176). Director lerps those targets; live HoloC seat is `HUBSPLIT_HOLO_C` `{31.2, 24, 37.6×48}`. `LAYOUT_MORPH_MS` = **420** (`slotSlide`); interactive wall-clock still ≤ 600 ms. Portal charge/emit remains 420/560. `?pose=lock` keeps the painted top seed.
 
 Agent: Director (Grok Bot Team)

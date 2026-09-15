@@ -5,13 +5,16 @@
 // lock, never a regenerated plate. CSS background so LCP stays HTML
 // text and we do not run the lock through next/image.
 //
-// W1-03: optional CSS glass overlays (lock-pose trio) with the same
-// panelBreathe token. Reduced motion: 200 ms crossfade, no loop.
+// W1-03: optional CSS glass overlays with the same panelBreathe token.
+// W2: live slots from Stagehand layouts (HoloC {31.2, 24, 37.6×48}).
+// Director lerps those rects during morphs. Reduced motion: 200 ms
+// crossfade, no loop.
 
 import { FORGE_HUB_DISPLAY_STILL } from '@/config/forgeHub';
 import { HOLO_BLEND_CSS_VARS } from '@/lib/forge-hub/holoBlend';
 import { cssGlassStyle } from '@/lib/forge-hub/glassSlots';
-import { glassSlotsForView } from '@/lib/forge-hub/layouts';
+import { liveDirectorSlots } from '@/lib/forge-hub/director/targets';
+import { useDirectorClock } from '@/lib/forge-hub/useForgeDirector';
 import { useForgeStore } from '@/stores/sceneStore';
 
 interface ForgePosterFallbackProps {
@@ -22,7 +25,8 @@ interface ForgePosterFallbackProps {
 function PosterGlassOverlays() {
   const mode = useForgeStore((s) => s.forge.mode);
   const poseLock = useForgeStore((s) => s.forge.poseLock);
-  const slots = glassSlotsForView(mode, poseLock);
+  const clock = useDirectorClock();
+  const slots = liveDirectorSlots(mode, poseLock);
   return (
     <div className="forge-hub-glass-stage" data-testid="forge-hub-glass-stage">
       {slots.map((slot) => (
@@ -30,9 +34,13 @@ function PosterGlassOverlays() {
           key={slot.id}
           data-testid={`forge-hub-glass-${slot.id}`}
           data-forge-glass-slot={slot.id}
+          data-director-freeze={clock.freezeBreathe ? 'true' : 'false'}
           className="forge-hub-glass"
           aria-hidden="true"
-          style={cssGlassStyle(slot)}
+          style={{
+            ...cssGlassStyle(slot),
+            ['--fh-director-scale' as string]: String(clock.appearScale),
+          }}
         />
       ))}
     </div>

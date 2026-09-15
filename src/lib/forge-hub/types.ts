@@ -1,4 +1,5 @@
 import type { PortalPhase } from './portalMachine';
+import type { MotionBibleId } from './director/ids';
 
 // ════════════════════════════════════════════════════════════════
 // Forge Hub types — W1-01 store slice (TAP v2.2 §2.5)
@@ -76,6 +77,11 @@ export interface ForgeSlice {
    * parallax) so Inspector's SSIM capture is a still of the lock pose.
    */
   poseLock: boolean;
+  /**
+   * W2-02 Director: active MOTION_BIBLE id, or null when idle.
+   * Progress lives on the Director clock (not a new store).
+   */
+  directorId: MotionBibleId | null;
 }
 
 export const FORGE_SLICE_DEFAULTS: ForgeSlice = {
@@ -97,4 +103,5 @@ export const FORGE_SLICE_DEFAULTS: ForgeSlice = {
     anchor: null,
   },
   poseLock: false,
+  directorId: null,
 };

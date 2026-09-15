@@ -2,9 +2,11 @@
 
 // Glass slabs (W1-03 materials + W2 live layout). World materials —
 // not a hotspot shell. `?pose=lock` keeps the painted W1-03 trio
-// (HoloC on the top seed). Live modes read `layouts.ts` so HoloC
-// re-seats to center. Edge glow + scanline via TSL; breathe is a
-// mesh scale loop. Freeze under reduced motion and pose=lock.
+// (HoloC on the top seed). Live modes read Stagehand `layouts.ts` so
+// HoloC re-seats to {31.2, 24, 37.6×48}. Director lerps those targets
+// during morphs; it does not invent registry rects. Edge glow +
+// scanline via TSL; breathe is a mesh scale loop. Freeze under
+// reduced motion and pose=lock. freezeBreathe snaps breathe off.
 
 import { useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
@@ -21,6 +23,8 @@ import {
   percentRectToLocal,
   type GlassSlotId,
 } from '@/lib/forge-hub/glassSlots';
+import { liveDirectorSlot } from '@/lib/forge-hub/director/targets';
+import { peekDirectorClock } from '@/lib/forge-hub/director/clock';
 import { glassSlotsForView, type LayoutSlot } from '@/lib/forge-hub/layouts';
 import {
   PANEL_BREATHE_PHASE_S,
@@ -44,11 +48,36 @@ interface SlabProps {
   freeze: boolean;
 }
 
-function useLocalRect(slot: LayoutSlot, plateSize: readonly [number, number]) {
-  return useMemo(
-    () => percentRectToLocal(slot, plateSize[0], plateSize[1]),
-    [plateSize, slot],
+/** Ambient panelBreathe is Stagehand. Director freezeBreathe snaps it off. */
+function slabScale(
+  elapsedSec: number,
+  phase: number,
+  freeze: boolean,
+): number {
+  const clock = peekDirectorClock();
+  const breathe = clock.freezeBreathe
+    ? 1
+    : panelBreatheScale(elapsedSec, phase, freeze);
+  return breathe * clock.appearScale;
+}
+
+function applyLivePose(
+  group: Group,
+  mesh: Mesh,
+  slot: LayoutSlot,
+  plateSize: readonly [number, number],
+  scale: number,
+) {
+  const local = percentRectToLocal(slot, plateSize[0], plateSize[1]);
+  group.position.set(
+    local.x + local.pivotX,
+    local.y,
+    FORGE_HUB_GLASS.lift,
   );
+  group.rotation.set(0, local.yawRad, 0);
+  group.scale.setScalar(scale);
+  mesh.position.set(-local.pivotX, 0, 0);
+  mesh.scale.set(local.width, local.height, 1);
 }
 
 function useSlotAnchor(
@@ -67,7 +96,6 @@ function GlassSlabGpu({ slot, plateSize, freeze }: SlabProps) {
   const groupRef = useRef<Group>(null);
   const meshRef = useRef<Mesh>(null);
   const glass = useMemo(() => createGlassSlabMaterial(), []);
-  const local = useLocalRect(slot, plateSize);
   const phase = PANEL_BREATHE_PHASE_S[slot.id];
   useSlotAnchor(slot.id, meshRef);
 
@@ -83,28 +111,32 @@ function GlassSlabGpu({ slot, plateSize, freeze }: SlabProps) {
   }, [glass.material]);
 
   useFrame((state) => {
-    const scale = panelBreatheScale(state.clock.elapsedTime, phase, freeze);
+    const store = useForgeStore.getState().forge;
+    const live = liveDirectorSlot(slot.id, store.mode, store.poseLock);
     const group = groupRef.current;
-    if (group) group.scale.setScalar(scale);
+    const mesh = meshRef.current;
+    if (!group || !mesh) return;
+    if (!live) {
+      group.visible = false;
+      return;
+    }
+    group.visible = true;
+    const scale = slabScale(state.clock.elapsedTime, phase, freeze);
+    applyLivePose(group, mesh, live, plateSize, scale);
     glass.uniforms.uTime.value = freeze ? 0 : state.clock.elapsedTime;
     glass.uniforms.uBreathe.value = scale;
-    glass.uniforms.uFrozen.value = freeze ? 1 : 0;
+    glass.uniforms.uFrozen.value =
+      freeze || peekDirectorClock().freezeBreathe ? 1 : 0;
   });
 
   return (
-    <group
-      ref={groupRef}
-      position={[local.x + local.pivotX, local.y, FORGE_HUB_GLASS.lift]}
-      rotation={[0, local.yawRad, 0]}
-      userData={{ forge: 'glass', slot: slot.id }}
-    >
+    <group ref={groupRef} userData={{ forge: 'glass', slot: slot.id }}>
       <mesh
         ref={meshRef}
-        position={[-local.pivotX, 0, 0]}
         material={glass.material}
         userData={{ forge: `glass-${slot.id}` }}
       >
-        <planeGeometry args={[local.width, local.height]} />
+        <planeGeometry args={[1, 1]} />
       </mesh>
     </group>
   );
@@ -115,39 +147,39 @@ function GlassSlabFallback({ slot, plateSize, freeze }: SlabProps) {
   const fillRef = useRef<Mesh>(null);
   const edgeRef = useRef<Mesh>(null);
   const cyan = useMemo(() => new Color('#4de9ff'), []);
-  const local = useLocalRect(slot, plateSize);
   const phase = PANEL_BREATHE_PHASE_S[slot.id];
   useSlotAnchor(slot.id, fillRef);
 
   useFrame((state) => {
-    const scale = panelBreatheScale(state.clock.elapsedTime, phase, freeze);
+    const store = useForgeStore.getState().forge;
+    const live = liveDirectorSlot(slot.id, store.mode, store.poseLock);
     const group = groupRef.current;
-    if (group) group.scale.setScalar(scale);
     const fill = fillRef.current;
     const edge = edgeRef.current;
-    if (fill) {
-      const mat = fill.material as { opacity: number };
-      mat.opacity = 0.08 * (freeze ? 1 : 0.92 + 0.08 * scale);
+    if (!group || !fill) return;
+    if (!live) {
+      group.visible = false;
+      return;
     }
+    group.visible = true;
+    const scale = slabScale(state.clock.elapsedTime, phase, freeze);
+    applyLivePose(group, fill, live, plateSize, scale);
     if (edge) {
-      const mat = edge.material as { opacity: number };
-      mat.opacity = 0.42 * (freeze ? 1 : 0.88 + 0.12 * scale);
+      edge.position.copy(fill.position);
+      edge.scale.copy(fill.scale);
+    }
+    const fillMat = fill.material as { opacity: number };
+    fillMat.opacity = 0.08 * (freeze ? 1 : 0.92 + 0.08 * scale);
+    if (edge) {
+      const edgeMat = edge.material as { opacity: number };
+      edgeMat.opacity = 0.42 * (freeze ? 1 : 0.88 + 0.12 * scale);
     }
   });
 
   return (
-    <group
-      ref={groupRef}
-      position={[local.x + local.pivotX, local.y, FORGE_HUB_GLASS.lift]}
-      rotation={[0, local.yawRad, 0]}
-      userData={{ forge: 'glass', slot: slot.id }}
-    >
-      <mesh
-        ref={fillRef}
-        position={[-local.pivotX, 0, 0]}
-        userData={{ forge: `glass-${slot.id}` }}
-      >
-        <planeGeometry args={[local.width, local.height]} />
+    <group ref={groupRef} userData={{ forge: 'glass', slot: slot.id }}>
+      <mesh ref={fillRef} userData={{ forge: `glass-${slot.id}` }}>
+        <planeGeometry args={[1, 1]} />
         <meshBasicMaterial
           color="#060e1c"
           transparent
@@ -157,12 +189,8 @@ function GlassSlabFallback({ slot, plateSize, freeze }: SlabProps) {
           toneMapped={false}
         />
       </mesh>
-      <mesh
-        ref={edgeRef}
-        position={[-local.pivotX, 0, 0.002]}
-        userData={{ forge: `glass-edge-${slot.id}` }}
-      >
-        <planeGeometry args={[local.width, local.height]} />
+      <mesh ref={edgeRef} userData={{ forge: 'glass-edge' }}>
+        <planeGeometry args={[1, 1]} />
         <meshBasicMaterial
           color={cyan}
           transparent
