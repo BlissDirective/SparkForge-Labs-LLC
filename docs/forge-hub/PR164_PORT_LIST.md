@@ -30,7 +30,7 @@ git show 3862d607bf043d55a9418b009b5fedc2b73efa5a:src/lib/forge-lab/layouts.ts
 
 PR **#164 stayed open** until Stagehand ported the **PORT** table into `/dev/forge-hub` (W1 reducer + W2 layout registry, catalog, tests, blend tokens) and those tests were green on `setup-sparkforge-dev`.
 
-GitHub closed #164 at `2026-09-15T05:09:19Z` (same timestamp as W2-05 merge `#180` `578ec21`) **without** Scribe’s close comment and **before** W2-07 (`#182` `3022ccb`). That was a process bug. W2-09 posts the official close comment (not merged) after this audit.
+GitHub closed #164 at `2026-09-15T05:09:19Z` (same timestamp as W2-05 merge `#180` `578ec21`) **without** Scribe’s close comment and **before** W2-07 (`#182` `3022ccb`). That was a process bug. W2-09 posted the official close comment (not merged): https://github.com/BlissDirective/SparkForge-Labs-LLC/pull/164#issuecomment-5675510821
 
 Do not squash-merge #164 onto `setup-sparkforge-dev` — the hotspot shell, `/dev/forge-lab` route, and `FORGE_LAB_HUB` flag must never land.
 
