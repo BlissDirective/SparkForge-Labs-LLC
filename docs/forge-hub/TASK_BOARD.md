@@ -17,7 +17,7 @@ Status legend: `todo` · `doing` · `blocked` · `done` · `packet`
 
 | ID | Owner | Task | Status | Notes |
 |----|-------|------|--------|-------|
-| W0-01 | Scribe | Decision-lock `docs/01-decisions/2026-09-forge-hub.md` (decisions 1–13) | todo | |
+| W0-01 | Foreman→Scribe | Decision-lock `docs/01-decisions/2026-09-forge-hub.md` (decisions 1–13) | **done** | commit `017d681` |
 | W0-02 | Scribe | Amend Concept 10 §0.1.2–0.1.3 + §1.2 palette | todo | packet for owner if wording sensitive |
 | W0-03 | Scribe | Amend Fable-5 Rebuild Part IV forge-hub outcome | todo | |
 | W0-04 | Scribe | CLAUDE.md v7 draft as approval packet | todo | Tier 2 |
@@ -41,3 +41,12 @@ Status legend: `todo` · `doing` · `blocked` · `done` · `packet`
 - Before push: `npm ci` · `npm run build` · `npm run test` · `npx tsc --noEmit` · Playwright health for UI
 - Never touch `public/forge-hub/` bytes; `sha256sum -c SHA256SUMS` if near that folder
 - Never edit `src/components/games/*`; no new Zustand store; OVERLAY-CRIT-001
+
+
+## Roster live (2026-09-14)
+| Call sign | Agent | Status |
+|-----------|-------|--------|
+| Foreman | SparkForge-Labs (CDO) covering | active |
+| Scribe | Scribe (Forge Hub) | active — channel Forge Hub |
+| Stagehand | Stagehand (Forge Hub) | active — channel Forge Hub |
+| Smith / Director / Inspector / Glazier / Gatekeeper | — | deferred until AP-001 / P1 |
