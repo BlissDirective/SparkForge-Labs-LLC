@@ -2,9 +2,11 @@
 
 *"A futuristic digital forge where players craft intelligence. Molten light, living circuitry, chrome and glass — wrapped around the app we already have."*
 
-**Version:** 1.0 · **Date:** 2026-07-18 · **Status:** APPROVED BUILD PLAN (owner-directed)
+**Version:** 1.1 · **Date:** 2026-07-18 · **Amended:** 2026-09-14 · **Status:** APPROVED BUILD PLAN (owner-directed)
 **Supersedes for art direction:** concepts 05 / 06 / 08 (this plan absorbs their best mechanics — see §1.4)
 **Execution target:** this document is written to be executed end-to-end by an implementing LLM (Opus 4.8 / Sonnet 5 class) with no additional design input. Every phase has exact file paths, component contracts, token values, and pass/fail acceptance gates.
+
+**Amendment (2026-09-14):** §0.1.2, §0.1.3, and §1.2 amended for the Hologram-Forge Hub per TAP v2.2 (`docs/forge-hub/TRANSITION_ACTION_PLAN.md` §3 W0 item 2) and decision lock `docs/01-decisions/2026-09-forge-hub.md`. Decisions 1–13 remain LOCKED and must not be reopened. Docs/governance only — no application behaviour change.
 
 ---
 
@@ -15,8 +17,8 @@ These rules bind every phase below. They encode the cockpit-era lessons and the 
 ### 0.1 Architecture invariants (NEVER violate)
 
 1. **One app, one React tree.** The Forge shell is the existing Next.js 15 / React 19 app's layout + component tree. There are NO iframes, NO postMessage bridges, NO separate SPA shell, NO Web-Component wrappers. Games remain React components mounted exactly as they are today (`GameAdapter` → `HtmlGameShell` on `src/app/(dashboard)/arcade/[gameSlug]/page.tsx`).
-2. **The frame is DOM/CSS. Canvas is a garnish.** Every persistent UI surface (frames, panels, bars, nav, progress, text) is HTML/CSS/SVG. `<canvas>` (R3F/Pixi/Rive) is permitted ONLY for: (a) the marketing hero scene, (b) bounded one-shot ceremony moments, (c) small, lazy, absolutely-positioned ambience layers that are `aria-hidden`, load post-LCP via `next/dynamic` `ssr:false`, and can be removed without any loss of function.
-3. **No WebGL/WebGPU on any dashboard critical path.** The LCP element on every route is HTML/text/an eager image — never a script-hydrated canvas.
+2. **The frame is DOM. The world is canvas.** *(Amended 2026-09-14 — Forge Hub; TAP v2.2 / decisions 1–4.)* Every persistent UI surface (frames, panels, bars, nav, progress, text) remains HTML/CSS/SVG — the **frame**. On desktop and ultrawide tiers (`tier ∈ {desktop, ultrawide}`, width ≥ 1440 px) the **world** may be **one persistent R3F stage** mounted in the root layout *behind* those DOM panels (projected hologram panels: glass meshes carry the motion; server-rendered DOM content rides them and never stretches — TAP §2.1–§2.2, decision 2). Compact tier (`tier ∈ {mobile, tablet}`, width < 1440 px) and no-GPU / canvas-crash fallbacks stay **HTML-first**: today's dashboard shell restyled; a poster of the plate behind the same DOM panels; no canvas below 1440 px (decision 4). Elsewhere, `<canvas>` (R3F/Pixi/Rive) remains permitted only for: (a) the marketing / welcome hero scene, (b) bounded one-shot ceremony moments, (c) small, lazy, absolutely-positioned ambience layers that are `aria-hidden`, load post-LCP via `next/dynamic` `ssr:false`, and can be removed without any loss of function. Invariants 1 and 4–7 are not reopened (one React tree, no canvas above interactive content, games untouched, flag-gated, token indirection).
+3. **LCP element is HTML — never a script-hydrated canvas.** *(Amended 2026-09-14 — LCP guardrail preserved; post-LCP desktop stage allowed.)* The LCP element on every route remains HTML/text/an eager image — never a script-hydrated canvas. The persistent forge stage permitted by §0.1.2 loads **after LCP**: before hydration, panels sit at the static rects from the layout registry over a poster of the plate (TAP §2.2). Compact tier never mounts the stage. Canvas must not become the LCP element on any route. This does not reopen a free-look cockpit or put WebGL/WebGPU on first paint.
 4. **No canvas above interactive content.** Nothing with `pointer-events` may overlay a game viewport. Decorative overlays must set `pointer-events: none` and `aria-hidden="true"`.
 5. **Games are untouched.** Zero edits inside `src/components/games/*` for the retheme phases (F0–F7). Games inherit the new look purely through the shell, tokens, and shared primitives. (Phase F8 *adds* one new game; it edits nothing in existing games.)
 6. **Every phase is flag-gated and individually revertible** via the existing `flag()` pattern in `src/config/feature-flags.ts` (`NEXT_PUBLIC_<KEY>=false` ⇒ instant rollback, no code change).
@@ -66,11 +68,13 @@ F2 depends on F0+F1. F3 depends on F1. F4 depends on F0+F1. F5 depends on F1+F4.
 
 SparkForge is a **futuristic digital forge-laboratory** — a high-tech makerspace where intelligence is crafted, not conjured. Molten data streams feed glowing crucibles; holographic panels float over brushed-alloy workbenches; circuit traces pulse through the walls like veins; every finished lesson is *forged* — heated, hammered, quenched — into something the child made.
 
-### 1.2 Palette temperature — LOCKED: **Molten-Warm**
+### 1.2 Palette temperature — LOCKED: **Forge Hub** *(amended 2026-09-14)*
 
-Per owner acceptance of the review recommendation: the ground is **warm ember charcoal (brown-black), never blue-black gunmetal**. Molten amber/gold is the dominant light source. Spark-cyan is the secondary energy color (the "electric" note against the heat). Plasma-magenta exists ONLY in celebration moments (tertiary, rare). This keeps the premium sci-fi shine, differentiates from every cyan-on-black AI product, reads warmer for ages 7–9, and is literally on-brand (Spark + Forge).
+**Forge Hub** (kid-facing shell on desktop and ultrawide; TAP v2.2, `docs/forge-hub/LOCKED_HUB.md`, decision lock): the world is a **warm rose-gold and cream** lab. **Cyan holograms** are the primary UI surfaces (three glass slabs; edge glow, scanline, breathe). **Molten amber** is reserved for progress fills and ceremonies. Plasma-magenta exists ONLY in celebration moments (tertiary, rare). Hex values for a `forge-hub` theme land with W7 (`forge-hub-theme.css`); this amendment does **not** invent new locked hexes.
 
-**Iridescence rule:** the cyan/amber/magenta triad may co-occur only in (a) celebration ceremonies and (b) the marketing hero. Everywhere else: amber dominant, cyan accent, magenta absent.
+**`forge` theme** (`data-theme="forge"`, Concept 10 F1, remains while that flag is on): the previous **Molten-Warm** rule is unchanged — ground is warm ember charcoal (brown-black), never blue-black gunmetal; molten amber/gold is the dominant light source; spark-cyan is the secondary energy color.
+
+**Iridescence rule (restraint unchanged):** the cyan/amber/magenta triad may co-occur only in (a) celebration ceremonies and (b) the welcome / marketing hero. On Forge Hub surfaces elsewhere: cyan hologram primary, amber for fills and ceremonies, magenta absent. Photosensitivity restraint from §0.2 and §14.4 is unchanged (no element flashes > 3×/second; no full-screen strobes).
 
 ### 1.3 Design language pillars
 

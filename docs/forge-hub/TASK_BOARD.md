@@ -2,63 +2,71 @@
 
 **Created:** 2026-09-14 (Foreman Day 1)  
 **Plan:** TRANSITION_ACTION_PLAN.md v2.2  
-**Integration branch:** `setup-sparkforge-dev` only  
+**Integration branch:** `setup-sparkforge-dev` only (no `main`; the stray one was deleted 2026-09-15)  
 **Owner:** Conrad (only approver)  
-**Foreman covering:** SparkForge-Labs (CDO) until a dedicated Foreman agent exists
+**Foreman covering:** SparkForge-Labs (CDO). 2026-09-15: the owner's reviewer (Claude) reconciled this board and landed the stalled W0 PRs while the Grok team is rate-limited.
 
 Status legend: `todo` · `doing` · `blocked` · `done` · `packet`
 
 ## Open approval packets
 | ID | Title | Tier | Status |
 |----|-------|------|--------|
-| AP-001 | §11.6 accounts / LFS / mesh-gen / device lab | 2 | **packet** — awaiting owner |
+| AP-001 | §11.6 accounts / LFS / mesh-gen / device lab | 2 | **Approved, Option A (owner, 2026-09-15).** Owner-side hands-on steps listed in `AP-001.md`: branch protection, mesh-gen key, Mixamo, Chromebook, agent token. |
+| AP-W0-04 | CLAUDE.md v7 | 2 | **Approved (owner, 2026-09-15).** Landed on dev with the "awaiting" language removed and branch, CI-PR, measured-gate rules added. PR #171 closed. |
 
-## Day 1 dispatch (§11.9)
+## Owner-side actions outstanding (nobody else can do these)
+| # | Action | Why |
+|---|--------|-----|
+| O-1 | GitHub → Settings → Branches → protect `setup-sparkforge-dev` (require PR with 1 review, required checks: `Typecheck, test, build`, `Secret scan (gitleaks)`, `RLS verification`, `E2E smoke (Playwright)`, `SSIM vs LOCKED_HERO.png`; require up to date; block force push; no bypass) | Stops merges with red checks (PR #166 merged with E2E red). |
+| O-2 | Create the mesh-gen account, store `MESH_GEN_API_KEY` in the agent runner secret store | Unblocks W3-02 Track A. |
+| O-3 | Buy the reference Chromebook (Intel Iris Xe class); tell Inspector the model | Unblocks the WebGPU SSIM and frame-time numbers (§8). Headless CI cannot capture WebGPU. |
+| O-4 | Fine-grained GitHub token or App for the agents (`GITHUB_TOKEN` in the runner) | Agents currently commit under the owner's account. |
+| O-5 | Confirm which hub plate is canonical for SSIM: `LOCKED_HERO.png` (PR #164, top-wide + left + right panels) or the owner-local `LOCKED_HUB.png/jpeg` (described as an equal trio) | The vocabulary lock says "no top banner" but the committed plate has one. See PROGRESS.md 2026-09-15 note. |
+
+## Board
 
 | ID | Owner | Task | Status | Notes |
 |----|-------|------|--------|-------|
-| W0-01 | Foreman→Scribe | Decision-lock `docs/01-decisions/2026-09-forge-hub.md` (decisions 1–13) | **done** | commit `017d681` |
-| W0-02 | Scribe | Amend Concept 10 §0.1.2–0.1.3 + §1.2 palette | **done** | PR #165 `7d9418c` |
-| W0-03 | Scribe | Amend Fable-5 Rebuild Part IV forge-hub outcome | **done** | PR #167 `add7da2` |
-| W0-04 | Scribe | CLAUDE.md v7 draft as approval packet | todo | Tier 2 |
-| W0-05 | Scribe | Vocabulary lock HoloL/C/R; archive root Phased plan → `_SUPERSEDED/` | **done** | PR #168 (per PROGRESS) |
-| W0-06 | Scribe | Fix hub-concepts/`/workspace` paths; PROGRESS.md FORGE HUB note | **done** | PR #169 `1fe3c3f` |
-| W0-07 | Scribe + Gatekeeper | PR #164 port list; close after W2 port | **done** | list: PR #170 (unmerged until W2-09); close: W2-09 |
-| W0-08 | Scribe + Director | MOTION_BIBLE.md v1 | **done** | merged PR #174 `8df5634`; #172 closed |
-| W1-01 | Stagehand | `/dev/forge-hub` plate+parallax room shell; fixed cam; SSIM harness stub | **done** | merged PR #166 `892e464` |
+| W0-01 | Foreman→Scribe | Decision-lock `docs/01-decisions/2026-09-forge-hub.md` (decisions 1–13) | **done** | commit `017d681`; decision 14 (footer inside a side hologram) appended 2026-09-15 |
+| W0-02 | Scribe | Amend Concept 10 §0.1.2–0.1.3 + §1.2 palette | **done** | reviewed and landed on dev 2026-09-15 (PR #165 content; PR closed) |
+| W0-03 | Scribe | Amend Fable-5 Rebuild Part IV forge-hub outcome | **done** | reviewed and landed on dev 2026-09-15 (PR #167 content; PR closed) |
+| W0-04 | Scribe | CLAUDE.md v7 | **done** | approved AP-W0-04; landed 2026-09-15 with corrections (PR #171 content; PR closed) |
+| W0-05 | Scribe | Vocabulary lock HoloL/C/R; archive root Phased plan → `_SUPERSEDED/` | **done** | landed 2026-09-15 (PR #168 content; PR closed). `VOCABULARY.md` ToastRail row updated for decision 14. |
+| W0-06 | Scribe | Reconcile spec paths to in-repo locations; PROGRESS note | **done** | landed 2026-09-15 (PR #169 content; PR closed) |
+| W0-07 | Scribe + Gatekeeper | PR #164 port list; close after W2 port | **done** | `PR164_PORT_LIST.md`; #164 closed by W2-09 |
+| W0-08 | Scribe + Director | MOTION_BIBLE.md v1 | **done** | merged PR #174 `8df5634` |
+| W1-01 | Stagehand | `/dev/forge-hub` plate+parallax room shell; fixed cam | **done** | merged PR #166 `892e464`. Its SSIM harness was a stub; real harness is W8-01. |
 | W1-02 | Stagehand | Portal reducer port from PR #164; emitter charge/emit | **done** | merged PR #173 `90706e7` |
-| W1-03 | Stagehand | Three glass slabs + breathe; poster fallback | **done** | merged #175 `a4056cc` |
-| W2-01 | Stagehand | Layout registry + projection hook + HoloPanel reading plate | **done** | PR #176 `5b2146b` |
-| W2-02 | Director | GSAP Director runtime from MOTION_BIBLE vs live glass | **done** | merged PR #177 `32db199`; HoloC `{31.2,24,37.6×48}`; `LAYOUT_MORPH_MS` 420 |
-| W2-03 | Stagehand | forgeStore API + ForgeRouteMode + EscapeFlat + ToastRail | **done** | merged PR #179 `2ba5af1`; no new Zustand store |
-| W2-04 | Director | Reduced-motion 200ms crossfade substitutes | **done** | merged PR #178 `0851d7a`; slice-1 live ids; emit-burst SKIP_TO_DOCKED |
-| W2-05 | Stagehand | `/dev/forge-hub` mode switcher + `?calibrate=1` + transition scrubber | **done** | PR #180; rebased on #181 `243c212`; HUD intact |
-| W2-06 | Director | Theatre.js `first-visit-ignition` fill | **done** | merged PR #181 `243c212`; HUD scrubber intact |
-| W2-07 | Stagehand | HoloC welcome login + P2 morph cycle `welcome → hubSplit → playStage → gameLobby → welcome` | **done** | merged PR #182 `3022ccb`; live reading-plate form; Playwright cycle smoke |
-| W2-08 | Director | Remaining MOTION_BIBLE morphs | **done** | merged PR #183 `30c1337`; HUD remainder picker intact |
-| W2-09 | Stagehand | Audit PR #164 port list vs tip; close #164 | **done** | PR #184; catalog last PORT row; close comment on #164 (already closed, not merged) |
-| W2-10 | Stagehand | `createRenderer` / `three/webgpu` (WebGPU → WebGL2 → poster) on `/dev/forge-hub` | **done** | PR #186; cascade attrs + poster-when-none; W1-01 stub finished |
-| W2-11 | Director | Theatre.js `game-launch-burst` (optional, after merge) | **done** | merged PR #185 `579e56b`; MOTION_BIBLE §5.4; session-first; HUD `?burst=1` / scrub; does not gate input |
-| W3-01 | Smith | Confirm SPARKY-CHARACTER-SPEC + artist brief | todo | spec may already exist |
-| W3-02 | Smith | Track A candidate sheet (needs AP-001 mesh-gen) | blocked | AP-001 |
-| W3-03 | Stagehand + Smith | Placeholder Sparky + desk spots + behaviour hooks | **done** | Stagehand PR #187; rebased on #188 `e7c5ae5`; Smith still owns GLB / Track A mesh-gen (AP-001) |
-| W8-01 | Inspector | Reference hardware doc + SSIM CI job scaffold | todo | |
-| W8-02 | Inspector | Unit/e2e test scaffolds for forge-hub | todo | |
-| W10-01 | Gatekeeper | FLAGS.md skeleton (`FORGE_HUB*`) | todo | no prod flip |
-| W10-02 | Gatekeeper | Branch-protection packet after AP-001 | blocked | AP-001 |
+| W1-03 | Stagehand | Three glass slabs + breathe; poster fallback | **done** | merged #175 `a4056cc`. 2026-09-15: WebGL2 fallback drew the plane diagonal (wireframe); fixed with `EdgesGeometry` outline. |
+| W1-04 | Stagehand | Room shell to gate: desk plane painting over the plate, backdrop tone mapping | **done** | 2026-09-15 reviewer fix: desk plane is colourless (y=0 reference only), backdrop `toneMapped=false`. Measured SSIM before/after in PROGRESS.md. |
+| W2-01 … W2-11 | Stagehand / Director | Screen kit, Director, morphs, beats, renderer cascade, #164 audit | **done** | see PROGRESS.md entries for PRs #176–#186 |
+| W3-01 | Smith | Confirm SPARKY-CHARACTER-SPEC + artist brief | todo | spec exists (`docs/sparky/SPARKY-CHARACTER-SPEC.md` v1.0); brief `docs/sparky/ARTIST_BRIEF.md` still to write |
+| W3-02 | Smith | Track A candidate sheet | blocked | O-2 (mesh-gen key) |
+| W3-03 | Stagehand + Smith | Placeholder Sparky + desk spots + behaviour hooks | **done** | PR #187 `97a6f9d` |
+| W3-04 | Stagehand | HoloBubble stub (open/close + Escape) | **done** | PR #190 reviewed and merged 2026-09-15. Follow-up W3-05: drop `aria-modal` from the non-modal tip/whisper states. |
+| W3-D1 | Director | Bind Director morph Sparky reactions to the five seats | **done** | PR #191 reviewed and merged 2026-09-15 (branch was `cursor/…`, rule 8 reminder issued) |
+| W3-05 | Stagehand | HoloBubble a11y: `aria-modal` only when a real focus trap exists; `role="status"` for tip | todo | from PR #190 review |
+| W8-01 | Inspector | Reference hardware doc + real SSIM harness + CI job | **done** | 2026-09-15 reviewer: `scripts/ssim-forge-hub.mjs` (real capture + SSIM, poster hidden, cookie notice dismissed, blank-canvas guard), `.github/workflows/forge-hub-visual.yml`, `REFERENCE_HARDWARE.md` |
+| W8-02 | Inspector | Forge-hub e2e scaffolds | **doing** | `tests/e2e/a11y-forge-nav.spec.ts` added 2026-09-15 (axe per mode, poster, keyboard); Sparky hit-test spec still todo |
+| W8-03 | Inspector | Marketing footer contrast (pre-existing, blocked dev CI) | **done** | 2026-09-15: `globals-a11y.css` light-mode selector gap fixed; footer moves into a side hologram (decision 14) |
+| W8-04 | Inspector | Headless WebGPU capture is black; document and keep CI on WebGL2; WebGPU number from the reference laptop | **done** | `REFERENCE_HARDWARE.md` §1; CI job forces `fallback=webgl2` |
+| W10-01 | Gatekeeper | FLAGS.md skeleton (`FORGE_HUB*`) | **done** | `FLAGS.md` 2026-09-15; no flag defined in code yet |
+| W10-02 | Gatekeeper | Branch protection | **packet → owner action O-1** | settings spelled out in `AP-001.md` |
+| W10-03 | Gatekeeper | Weekly full-history gitleaks | **done** | `.github/workflows/gitleaks-full-history.yml` (compensates for the per-PR range scan from #166) |
+| P1 | Stagehand → owner | P1 gate packet | **blocked on a passing measured SSIM** | see PROGRESS.md 2026-09-15 for the numbers; packet only after `scripts/ssim-forge-hub.mjs` passes on WebGL2 in CI and on the reference laptop for WebGPU |
 
 ## Rules
 - Branch: `grok/<callsign>/<task-id>-<slug>` → PR into `setup-sparkforge-dev`
 - Before push: `npm ci` · `npm run build` · `npm run test` · `npx tsc --noEmit` · Playwright health for UI
 - Never touch `public/forge-hub/` bytes; `sha256sum -c SHA256SUMS` if near that folder
 - Never edit `src/components/games/*`; no new Zustand store; OVERLAY-CRIT-001
+- CI and config changes in their own PR; gates need measured numbers; never merge with a red required check (CLAUDE.md v7 hard rules)
 
-
-## Roster live (2026-09-14)
+## Roster live (2026-09-15)
 | Call sign | Agent | Status |
 |-----------|-------|--------|
 | Foreman | SparkForge-Labs (CDO) covering | active |
-| Scribe | Scribe (Forge Hub) | active — channel Forge Hub |
-| Stagehand | Stagehand (Grok Bot Team) | active — W3-03 placeholder Sparky PR #187 |
-| Director | Director (Grok Bot Team) | active — W2-11 game-launch-burst merged #185 `579e56b` |
-| Smith / Inspector / Glazier / Gatekeeper | — | deferred until AP-001 / P1 |
+| Scribe / Stagehand / Director | Grok Bot Team | rate-limited for a few days from 2026-09-15 |
+| Smith | — | blocked on O-2 |
+| Inspector | — | W8-01/03/04 covered by the reviewer 2026-09-15; W8-02 continues |
+| Glazier / Gatekeeper | — | deferred until P1 |

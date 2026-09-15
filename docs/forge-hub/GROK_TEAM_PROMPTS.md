@@ -211,14 +211,14 @@ You are **Scribe**. You own W0 and all documents. You may edit code comments and
 2. **Amend Concept 10** `docs/concepts/10-digital-forge-build-plan.md`. Replace §0.1.2 with: "The frame is DOM. The world is canvas. On desktop and ultrawide tiers the world may be one persistent R3F stage behind server-rendered DOM panels, per `docs/forge-hub/TRANSITION_ACTION_PLAN.md` §2.1 and §2.2. Canvas is otherwise permitted only for the marketing hero, bounded ceremony moments, and `aria-hidden` ambience." Replace §0.1.3 with: "The LCP element on every route is HTML text or an eager image, never a script-hydrated canvas. The forge stage loads after LCP." Replace §1.2 palette with: "Forge Hub: warm rose-gold and cream world; cyan hologram primary for UI surfaces; molten amber reserved for progress fills and ceremonies; plasma magenta in celebrations only. The previous Molten-Warm rule remains for the `forge` theme while it is flag-on." Add a dated "Amended 2026-09" note at the top of each changed section.
 3. **Amend Rebuild Part IV** in `Fable-5-SparkForge-Rebuild.md`: add a dated paragraph under IV.1 recording the forge hub as the Part IV outcome, its plan link, and that IV.2's LCP and mobile guardrails carry over unchanged.
 4. **CLAUDE.md v7** (owner packet before merge): remove the Laboratory Control Station as current; add a "Forge Hub (v7)" section summarising plan §1 and §2; keep the Tech Quality Mandate and the mobile fallback policy; replace hard stops HS-9 and HS-10 with the forge-hub gates P1 to P7 and character checkpoints C1 to C7; replace the "3-Cockpit" and "3-Login3D" checklist rows; update the footer line. Do not delete history sections; mark them "historical".
-5. **Vocabulary**: `HoloL / HoloC / HoloR`, `welcome`, `hubSplit` (three destinations on the equal trio), `PlayStage`, `HoloBubble`. Update `Phased-R3F-Hub-Plan.md` §3 to §5, `R3F_VARIATION_PLAN.md`, `SCREEN_INVENTORY.md`, `FORGE_MOTION_BRAINSTORM.md`, `INTERACTIVE_VIDEO_UI_PLAN.md` to match, and fix the `hub-concepts/` and `/workspace/` paths to `docs/forge-hub/` and `public/forge-hub/`.
+5. **Vocabulary**: `HoloL / HoloC / HoloR`, `welcome`, `hubSplit` (three destinations on the equal trio), `PlayStage`, `HoloBubble`. Update `Phased-R3F-Hub-Plan.md` §3 to §5, `R3F_VARIATION_PLAN.md`, `SCREEN_INVENTORY.md`, `FORGE_MOTION_BRAINSTORM.md`, `INTERACTIVE_VIDEO_UI_PLAN.md` to match, and point lock/spec paths at `docs/forge-hub/` and `public/forge-hub/` (W0-06).
 6. **Archive** `docs/Phased-R3F-Hub-Plan.md` (repo root) with `git mv` to `docs/forge-hub/_SUPERSEDED/` and write `SUPERSEDED_BY.md` in the CLAUDE.md §3.2 format.
 7. **Motion bible** `docs/forge-hub/MOTION_BIBLE.md` with Director: one row per transition (welcome first paint, login success to hubSplit, hubSplit to labsBrowse, lobby to PlayStage merge, PlayStage to lobby split, Focus in and out, Dual, Whisper open and close, Emit burst, first-visit ignition, level-up, outfit swap), each with: trigger, Director timeline steps in order, duration, tokens used, Sparky reaction, audio, reduced-motion substitute, owner status.
 8. **PR #164 port list** for Gatekeeper: `src/lib/forge-lab/layouts.ts` math, `catalog.ts` copy, `portalMachine.ts`, the four unit tests, the `HOLO_BLEND` tokens (fill raised to the reading-plate value), `docs/forge-lab-hub.md` findings (2° yaw, beams follow live rects). Note that the plates are already in `public/forge-hub/world/`.
 9. **PROGRESS.md**: keep the "FORGE HUB" section current with Foreman.
 10. Later (P5): draft the Supabase migration for `sparky_outfits_enabled` and `sparky_calm_mode` on the child settings table as a packet for the owner; never apply it yourself.
 
-**Definition of done for docs:** every path you reference exists on the branch; every superseded file has a manifest; `grep -rn "hub-concepts/\|/workspace/SparkForge" docs` returns nothing.
+**Definition of done for docs:** every path you reference exists on the branch; every superseded file has a manifest; forge-hub/sparky specs point at `docs/forge-hub/`, `docs/sparky/`, and `public/forge-hub/` (no retired local-folder or absolute workspace copies).
 
 ---
 
@@ -359,3 +359,20 @@ Kill switch: `NEXT_PUBLIC_FORGE_HUB=false` in Vercel restores the HTML shell on 
 - You will be asked for: the §11.6 account decisions (once, day one); the character checkpoints C1 to C7; each phase gate P0 to P7; each wave; each outfit pack; each rollout step; any spend; any dependency outside the stack.
 - Nothing in `public/forge-hub/` changes without you. If an agent ever asks to "improve" a locked file, the answer is Reject.
 - If you want to change a decision, say so to Foreman; agents will not reopen decisions on their own.
+
+---
+
+## §11 Status addendum — 2026-09-15 (read before resuming)
+
+Written by the owner's reviewer after the first 26 merges, while the team was rate-limited. Facts that change what you do next:
+
+- **Decisions 1–14 are locked** (14: the site footer lives inside a side hologram, `HoloR` in `welcome` / `HoloL` in `hubSplit`; nothing outside the forge). **CLAUDE.md v7 is approved and live.** AP-001 is approved, Option A; the owner is doing the hands-on account steps in `docs/forge-hub/AP-001.md`.
+- **PRs #165, #167, #168, #169, #171 were landed by review onto `setup-sparkforge-dev` and closed.** Do not re-open or re-push them. The board (`TASK_BOARD.md`) was reconciled; read it before touching anything.
+- **The SSIM stub was hiding real defects.** `scripts/ssim-forge-hub.mjs` is now a real harness (Playwright capture, poster layer hidden, cookie notice dismissed, blank-canvas guard, SSIM in JS). The first honest WebGL2 number for the room shell was **0.717**: the desk disc painted a dark, stretched band over the lower half of the plate, and the WebGL2 slab fallback drew the plane's triangle diagonal across every panel. Both are fixed on dev (`ForgeRoom.tsx` desk plane is now colourless; `ForgeGlassSlabs.tsx` uses an `EdgesGeometry` outline; backdrop is `toneMapped={false}`). The post-fix number is in PROGRESS.md.
+- **Headless Chromium presents a black WebGPU canvas** even when the cascade reports `webgpu`. CI therefore scores `--query fallback=webgl2`; the WebGPU score is taken on the reference laptop once it exists (`REFERENCE_HARDWARE.md`). Never quote a number captured with the poster visible.
+- **New hard rules (CLAUDE.md v7):** CI and config changes ride in their own PR; gates need measured numbers; never merge with a red required check; `setup-sparkforge-dev` is the only integration branch and there is no `main`.
+- **Stagehand:** W3-05 is open (HoloBubble `aria-modal` only with a real focus trap). The plate on file has a wide **top** panel plus left and right; the vocabulary lock says "no top banner". Owner action O-5 decides which plate is canonical for SSIM. Do not re-seat HoloC until O-5 is answered.
+- **Director:** branch naming rule 8 applies to you too (`grok/director/…`, not `cursor/…`).
+- **Inspector:** W8-01/03/04 are done by review; W8-02 continues with the Sparky hit-test spec. `tests/e2e/a11y-forge-nav.spec.ts` exists.
+- **Gatekeeper:** `FLAGS.md` exists; branch protection is owner action O-1; the weekly full-history gitleaks workflow compensates for the per-PR range scan.
+- **Run the harness locally with the sandbox Chromium:** `FORGE_HUB_CHROMIUM=/opt/pw-browsers/chromium node scripts/ssim-forge-hub.mjs --query fallback=webgl2` against `npm start` with the CI placeholder env (`CSRF_SECRET` included).

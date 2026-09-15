@@ -2889,3 +2889,45 @@ Agent: Stagehand (Grok Bot Team)
 CDO Tier-1 (Forge Hub channel): the only Sparky desk seats are the five names in `src/config/sparkySpots.ts` / `forge.sparky.spot` — `nearCore` (default), `leftLip`, `rightLip`, `frontCenter`, `behindCore`. Recorded in `docs/01-decisions/2026-09-forge-hub.md` after decisions 1–13. Does not reopen 1–13; narrows decision 6 + SPARKY-CHARACTER-SPEC §7.1. Implementation already in W3-03 PR #187 (`97a6f9d`). Docs-only; board W3-03 left to Stagehand (already **done**).
 Agent: Scribe (Grok Bot Team)
 
+
+### FORGE HUB — daily 2026-09-15 (owner's reviewer covering; Grok team rate-limited)
+
+**Owner decisions recorded:** AP-001 Approved (Option A); AP-W0-04 (CLAUDE.md v7) Approved;
+decision 14 (site footer lives inside a side hologram; no marketing/hero page outside the forge);
+measured-gate rule (P1+ need a real SSIM number, stubs and poster captures do not count).
+
+**Landed by review onto `setup-sparkforge-dev`** (PRs closed, not merged, content reviewed and
+applied): #165 Concept 10 amendments, #167 Rebuild IV amendment, #168 vocabulary lock + root
+Phased plan archived, #169 in-repo path fixes, #171 CLAUDE.md v7 (with the "awaiting owner"
+language removed and branch / CI-PR / measured-gate / no-red-merge rules added). Board reconciled
+(`docs/forge-hub/TASK_BOARD.md`); it had marked W0-02/03/05/06 done while their PRs were unmerged.
+
+**Real SSIM harness (W8-01):** `scripts/ssim-forge-hub.mjs` replaces the stub. Playwright capture
+of `/dev/forge-hub?pose=lock` at 1536×1024, cookie notice pre-dismissed, poster layer hidden so
+only the canvas is scored, blank-canvas guard, JS SSIM (8×8 blocks, Wang constants) at 768×512
+grayscale. CI job `.github/workflows/forge-hub-visual.yml` runs it on forge-hub changes and fails
+under 0.96. `docs/forge-hub/REFERENCE_HARDWARE.md` defines the CI baseline and device protocol.
+
+**What the harness found (all numbers vs `LOCKED_HERO.png` unless stated):**
+| Capture | Score | Note |
+|---|---|---|
+| Display still vs lock (file-to-file) | 0.986 | Ceiling: the room renders the haze-free still |
+| Page screenshot, poster visible (what the stub would have blessed) | 0.986 | Measures the poster image, not the canvas |
+| Canvas only, WebGPU, headless Chromium | blank (luma 11) | Headless presents a black WebGPU canvas; CI scores WebGL2 |
+| Canvas only, WebGL2, before fixes | **0.717** | Desk disc painted a dark stretched band over the lower half (bottom-centre 0.12); slab wireframe drew the plane diagonal across every panel |
+| Canvas only, WebGL2, after fixes | **0.957** | Desk plane now colourless (y=0 reference only); slab edge is an `EdgesGeometry` outline; backdrop `toneMapped=false` |
+| Same capture vs the display still | 0.972 | Passes 0.96 against the image the room actually uses |
+
+**P1 status:** not yet passing the canonical gate on the CI baseline (0.957 vs 0.96). The remaining
+difference is the emitter glow on the pedestal and the slab tint over the painted top panel, both
+intended, plus the plate's own haze. Owner action O-5 decides the SSIM reference (canonical plate
+with haze vs the haze-free display still the room renders) and whether the committed plate, which
+has a wide top panel plus left and right, is the canonical composition given the vocabulary lock's
+"no top banner". The WebGPU number needs the reference laptop (O-3).
+
+**Also:** marketing footer contrast (pre-existing, only visible once CI ran on dev) fixed in
+`globals-a11y.css` (light-mode selector did not match the wrapper carrying both the class and
+`data-surface="dark"`); `tests/e2e/a11y-forge-nav.spec.ts` added; `FLAGS.md`, `.gitattributes`
+(LFS for source art), weekly full-history gitleaks workflow added; PR #190 (HoloBubble stub) and
+#191 (Director Sparky seats) reviewed and merged with a follow-up W3-05 for HoloBubble `aria-modal`.
+Unit: 1103 passed. Typecheck clean.

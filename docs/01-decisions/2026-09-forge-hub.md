@@ -34,6 +34,15 @@ Agents may propose amendments; they may **not** reopen these decisions. Reopenin
 | 12 | Outfit calendar | Year-one catalog in plan §6b (Halloween set, holidays, seasons, suit, unlockables). Parent toggle stays. |
 | 13 | Sparky conversation | **Head-emitter HoloBubble** — chat hologram above other screens. Text only in v1. |
 
+## Decision 14 and the measured-gate rule (owner, 2026-09-15)
+
+| # | Question | Locked answer |
+|---|----------|---------------|
+| 14 | Site footer | **Inside a side hologram.** Copyright, cookie preferences, COPPA / no-tracking badges, legal and pricing links render as a footer strip in `HoloR` (`welcome`) / `HoloL` (`hubSplit`). Not a `ToastRail` chip; no page or strip outside the forge. `MarketingFooter` survives only in the compact-tier HTML shell. |
+| gate | Visual gates | **Measured numbers only.** P1 and every later visual gate need `scripts/ssim-forge-hub.mjs` output from a live canvas (≥ 0.96 vs `LOCKED_HERO.png`). Stub exits, skipped runs, and poster captures are not numbers. CI scores WebGL2; the reference laptop scores WebGPU. |
+| AP-001 | Accounts and platforms | **Approved, Option A.** Owner-side steps in `docs/forge-hub/AP-001.md`. |
+| AP-W0-04 | CLAUDE.md v7 | **Approved.** Landed with corrections 2026-09-15. |
+
 ---
 
 ## Tier-1 follow-on locks (2026-09-15)
@@ -80,3 +89,4 @@ Earlier CDO Phase 0 draft defaults that conflicted: Sparky as 2D overlay-only; h
 | Foreman | W0-01 recorded this file · 2026-09-14 |
 | Scribe | Owns follow-on W0-02…W0-08 amendments referencing this lock |
 | Scribe | 2026-09-15 T1 Sparky desk spots (five names; does not reopen 1–13) |
+| Owner | 2026-09-15 decision 14, measured-gate rule, AP-001 and AP-W0-04 approvals (recorded by the owner's reviewer while the Grok team was rate-limited) |

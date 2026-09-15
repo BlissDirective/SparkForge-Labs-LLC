@@ -36,6 +36,9 @@ Owner answers recorded 2026-09-14:
 | 11 | Marketing long-scroll | **Dropped.** The welcome scene inside the forge is the marketing hero. Features, How-It-Works, and the AI tutor showcase condense into the two side panels and a "Learn more" Focus panel. Pricing and legal remain flat routes. |
 | 12 | Outfit calendar | **Year-one catalog in §6b**: five Halloween variants, Christmas, winter, spring, summer, fall, Fourth of July, a suit for special occasions, plus occasion and unlockable packs. Parent toggle stays. |
 | 13 | Sparky conversation | **Head-emitter chat hologram.** The translucent module on top of Sparky's head is an emitter. It projects a small hologram screen that renders above every other screen and is the chat box for all Sparky conversation (tips, reactions, the tutor chat). See §2.8b. Text only in v1; synthesized voice is a later option. |
+| 14 | Site footer (owner, 2026-09-15) | **The footer lives inside a side hologram.** Copyright, cookie preferences, the COPPA and no-tracking badges, and the legal and pricing links render as a footer strip inside `HoloR` in `welcome` and `HoloL` in `hubSplit`, not on the `ToastRail` and not on a page below the stage. There is no marketing or hero page outside the Hologram-Forge Hub. The current `MarketingFooter` survives only in the compact-tier HTML shell. |
+
+**Measured-gate rule (owner, 2026-09-15):** P1 and every later visual gate require a number produced by `scripts/ssim-forge-hub.mjs` from a live canvas (`.forge-hub-ssim/report.json`), at or above 0.96 against `public/forge-hub/world/LOCKED_HERO.png`. A stub exit, a skipped run, or a capture of the poster layer is not a number. CI runs the WebGL2 baseline on every forge-hub change (`.github/workflows/forge-hub-visual.yml`); the WebGPU number comes from the reference laptop (`REFERENCE_HARDWARE.md`).
 
 ---
 
@@ -111,7 +114,7 @@ Escape hatch: a `stage: 'glass' | 'fullscreen'` field in the game registry, defa
 
 ### 2.8a What the concept art fixes for the spec
 
-Observations from the supplied Sparky concept, to be written into `docs/SPARKY-CHARACTER-SPEC.md` and the artist brief:
+Observations from the supplied Sparky concept, written into `docs/sparky/SPARKY-CHARACTER-SPEC.md` and the artist brief:
 
 - **Silhouette:** chibi humanoid robot, head about a third of total height, rounded coral shell parts over black ball joints. Five-fingered hands. Rounded boots with cyan sole lights. This replaces the "chrome orb" description in the current Rive spec entirely.
 - **Palette:** coral body (warm, sits naturally in the rose-gold and cream room), black joints and inner mechanics, cyan for everything that emits (face, chest badge, head dome, ear discs, boot lights), yellow lightning-bolt decals on shoulders, forearms, hips, and boots.
@@ -139,7 +142,7 @@ Sparky's head dome projects a fourth, small glass: the **HoloBubble**. It is the
 
 `welcome` mode: HoloL and HoloR at about 85 percent scale carrying the hero's key details (what SparkForge is and the 11 labs and 42 games on the left; Sparky's introduction and the demo login on the right). HoloC at full size with "Welcome to SparkForge" above the login form. `/` and `/login` render this scene; `/signup`, `/forgot-password`, and `/reset-password` wipe different content into HoloC without a morph. On successful login the Director grows the sides to equal, wipes the mission into HoloC, and Sparky waves from `nearCore` with a HoloBubble greeting.
 
-There is no marketing page below or beside the forge. The welcome scene is the marketing hero: the side panels carry the pitch, a "Learn more" control opens a Focus panel with the longer Features and How-It-Works copy, and Sparky's HoloBubble offers the demo. All of this is server-rendered DOM so search engines index it. `ForgeHero`, `HeroSection`, `LandingMicroGame`, `NetworkMicroDemo`, `LandingFeatures`, `LandingHowItWorks`, `LandingAITutor`, `LandingCTA`, and `MoltenThread` are retired at cutover; their copy is the source for the side and Focus panels. `/pricing` and the legal pages remain flat routes reached from the footer chip on the `ToastRail`.
+There is no marketing page below or beside the forge. The welcome scene is the marketing hero: the side panels carry the pitch, a "Learn more" control opens a Focus panel with the longer Features and How-It-Works copy, and Sparky's HoloBubble offers the demo. All of this is server-rendered DOM so search engines index it. `ForgeHero`, `HeroSection`, `LandingMicroGame`, `NetworkMicroDemo`, `LandingFeatures`, `LandingHowItWorks`, `LandingAITutor`, `LandingCTA`, and `MoltenThread` are retired at cutover; their copy is the source for the side and Focus panels. `/pricing` and the legal pages remain flat routes, reached from the footer strip inside a side hologram (`HoloR` in `welcome`, `HoloL` in `hubSplit`; decision 14). The footer is not a `ToastRail` chip and there is no strip below the stage.
 
 ### 2.10 Renderer
 
@@ -157,7 +160,7 @@ There is no marketing page below or beside the forge. The welcome scene is the m
 4. CLAUDE.md v7: retire the Laboratory Control Station language, describe the forge hub, keep the Tech Quality Mandate and mobile policy, replace the cockpit checkpoint rows.
 5. Vocabulary lock: `HoloL / HoloC / HoloR`, `welcome`, `hubSplit`; update `Phased-R3F-Hub-Plan.md` §3 to §5; archive the root `docs/Phased-R3F-Hub-Plan.md` under `_SUPERSEDED/`.
 6. Commit lock assets under `public/forge-hub/world/` and `public/forge-hub/sparky/` with SHA manifests; reconcile the two plates.
-7. Fix `hub-concepts/` and `/workspace/` paths in the spec docs. Open the PROGRESS.md "Forge Hub" section.
+7. Reconcile spec paths to in-repo `docs/forge-hub/` and `public/forge-hub/` (W0-06). Open the PROGRESS.md FORGE HUB section.
 8. Close PR #164 with a comment pointing here once W2 has ported what it needs.
 9. **Motion bible** (new): one page listing every transition, its timeline steps, duration, and reduced-motion substitute, kept in `docs/forge-hub/MOTION_BIBLE.md` and treated as the source the Director implements.
 
@@ -171,7 +174,7 @@ Layout registry in world units for every mode including `playStage` as the merge
 
 ### W3 Sparky character
 
-1. Commit `LOCKED_SPARKY.png`; write `docs/SPARKY-CHARACTER-SPEC.md` (replaces the Rive spec as the master): geometry and material notes from the concept, rig and bone naming, clip list with durations, attachment slots, texture budgets, face-screen contract, behaviour inputs, outfit pack format, calendar config format. Keep `SPARKY-RIVE-SPEC.md` as the 2D in-game contract.
+1. Commit `public/forge-hub/sparky/LOCKED_SPARKY.png`; write `docs/sparky/SPARKY-CHARACTER-SPEC.md` (replaces the Rive spec as the master): geometry and material notes from the concept, rig and bone naming, clip list with durations, attachment slots, texture budgets, face-screen contract, behaviour inputs, outfit pack format, calendar config format. Keep `docs/sparky/_SUPERSEDED/SPARKY-RIVE-SPEC.md` as the 2D in-game contract.
 2. Build the behaviour system and desk spots against the procedural placeholder.
 3. Face-screen texture from `SparkyCore` expressions; eye look-at.
 4. External art: model, rig, clip library, GLB export through `optimize:3d`. Base character roughly four to six weeks of artist and animator time; one week per outfit pack.
@@ -225,7 +228,7 @@ As v1: salvage the renderer factory, WebGPU detection, post-processing stack, er
 | Phase | Weeks | Workstreams | Exit gate (owner visual checkpoint at each) |
 |---|---|---|---|
 | **P0 Governance and briefs** | 1 | W0, W3 step 1 | Decision lock, amendments, CLAUDE.md v7, lock assets, motion bible v1, character spec, artist briefed. |
-| **P1 Room shell and placeholder Sparky** | 2 | W1, W3 steps 2–3 | `/dev/forge-hub` at SSIM ≥ 0.96; ignition plays; poster on WebKit; placeholder Sparky walks the desk spots and reacts to mode changes. |
+| **P1 Room shell and placeholder Sparky** | 2 | W1, W3 steps 2–3 | `/dev/forge-hub` at a **measured** SSIM ≥ 0.96 vs `LOCKED_HERO.png` from `scripts/ssim-forge-hub.mjs` on a live canvas (WebGL2 in CI, WebGPU on the reference laptop; stub or poster captures do not count); ignition plays; poster on WebKit; placeholder Sparky walks the desk spots and reacts to mode changes. |
 | **P2 Screen kit and Director** | 2–3 | W2, W7 | Login form through a full morph cycle including merge to `playStage`; Director timelines tested; theme applied; PR #164 ported and closed. |
 | **P3 Welcome, auth, home** | 2 | W4 wave 1, W6 | `/`, `/login`, `/signup`, `/home`, `/onboarding` on the stage; compact tier verified; Lighthouse gates real. |
 | **P4 Labs, content, games on glass** | 3 | W4 waves 2–3, W5 | Lab browse to lesson to game on glass and back with no re-init; all 42 games swept, `fullscreen` list agreed. |
@@ -276,7 +279,7 @@ All 52 `page.tsx` routes on the branch are accounted for.
 | Step | Artifact | Owner | Phase |
 |---|---|---|---|
 | Concept in repo | `public/forge-hub/sparky/LOCKED_SPARKY.png` + SHA manifest | Owner | P0 |
-| Character spec | `docs/SPARKY-CHARACTER-SPEC.md`: rig, bones, clips, slots, budgets, face contract, behaviour inputs, outfit format, calendar format | Engineering | P0 |
+| Character spec | `docs/sparky/SPARKY-CHARACTER-SPEC.md`: rig, bones, clips, slots, budgets, face contract, behaviour inputs, outfit format, calendar format | Engineering | P0 |
 | Artist brief | Spec plus concept plus the plate for scale and lighting | Owner + Engineering | P0 |
 | Placeholder | Procedural orb with face screen, spots, behaviour system | Engineering | P1 |
 | Model, rig, clips | Blender source in a separate assets repo or LFS; GLB through `optimize:3d` | Artist and animator | P1 to P5 |
@@ -376,6 +379,7 @@ Every pack is a small GLB of attachments on the named sockets plus material swap
 - **Frame time:** ≤ 16 ms hub idle; ≤ 8 ms world share while a DOM game runs; on-demand only while a Phaser or Pixi game runs.
 - **Load:** stage chunk and Sparky asset deferred until after LCP; Sparky base GLB ≤ 3 MB compressed; each outfit pack ≤ 500 KB.
 - **Lighthouse:** existing `.lighthouserc.json` budgets on `/`, `/login`, `/pricing`, with accessibility and CLS made blocking.
+- **SSIM measurement:** `node scripts/ssim-forge-hub.mjs` against a running production build. It verifies the lock SHAs, dismisses the cookie notice, hides the poster layer so only the canvas is scored, refuses blank or poster captures, and writes `.forge-hub-ssim/report.json`. Headless Chromium presents a black WebGPU canvas even where an adapter exists (measured 2026-09-15), so CI scores the WebGL2 path (`--query fallback=webgl2`) and the WebGPU score is taken on the reference laptop. Both numbers go in the P1 packet.
 
 ---
 
@@ -393,7 +397,7 @@ Every pack is a small GLB of attachments on the named sockets plus material swap
 1. Owner confirms decisions 2 to 10 (11 to 13 are answered).
 2. Commit `LOCKED_HUB`, the supplied Sparky concept as `LOCKED_SPARKY.png`, and the PR #164 plate with SHA manifests.
 3. Write the decision lock and the Concept 10, Rebuild IV, and CLAUDE.md v7 amendments in one PR.
-4. Write `docs/SPARKY-CHARACTER-SPEC.md` from §2.8a (silhouette, palette, face screen, dome bone and socket, sockets, decal slots, outfit rule) and the artist brief; engage the artist with the base character plus First Day and Sharp Suit as the first order.
+4. Write `docs/sparky/SPARKY-CHARACTER-SPEC.md` from §2.8a (silhouette, palette, face screen, dome bone and socket, sockets, decal slots, outfit rule) and the artist brief; engage the artist with the base character plus First Day and Sharp Suit as the first order.
 5. Write `docs/forge-hub/MOTION_BIBLE.md` v1: welcome, login success, hub to labs, lobby to play stage merge, play stage to lobby split, Whisper, Emit burst, first-visit ignition.
 6. Archive the root `Phased-R3F-Hub-Plan.md`; fix paths and vocabulary in the spec docs; open the PROGRESS.md section.
 7. Start P1: `/dev/forge-hub` room shell, portal reducer ported, SSIM harness, procedural placeholder Sparky with desk spots.
@@ -481,7 +485,7 @@ Everything in this table is the owner's to create or grant. Secrets are stored o
 | Account or platform | Needed for | Who uses it | Status | Where the secret lives |
 |---|---|---|---|---|
 | GitHub `BlissDirective/SparkForge-Labs-LLC` | Branches, PRs, Actions | All agents | Exists | Grant each agent a fine-grained PAT or a GitHub App installation scoped to this repo only, with Contents and Pull requests read/write and Actions read; no admin scope. Store in the agent runner's secret store as `GITHUB_TOKEN`. |
-| GitHub repository settings | Branch protection on `setup-sparkforge-dev`, Git LFS | Owner only | `setup-sparkforge-dev` is and stays the default branch (owner decision 2026-09-14; a stray `main` with no unique commits is pending deletion by the owner in the GitHub UI and must never receive pushes) | Recommended: protect `setup-sparkforge-dev` with required CI and one owner review so agent PRs cannot self-merge. |
+| GitHub repository settings | Branch protection on `setup-sparkforge-dev`, Git LFS | Owner only | `setup-sparkforge-dev` is and stays the default branch; the stray `main` was deleted by the owner 2026-09-15. AP-001 approved 2026-09-15; `.gitattributes` for LFS committed. | **Owner action O-1:** Settings → Branches → rule for `setup-sparkforge-dev`: require a PR with 1 approval and dismiss stale approvals; required checks `Typecheck, test, build`, `Secret scan (gitleaks)`, `RLS verification`, `E2E smoke (Playwright)`, `SSIM vs LOCKED_HERO.png`; require up to date; block force pushes; no bypass. |
 | Vercel team `conrad-steinmeyers-projects`, project `sparkforge-labs` | Preview deployments per PR (already automatic), production env vars, `FORGE_HUB*` flags | Gatekeeper (read), owner (write) | Exists | Vercel dashboard. Agents do not need a Vercel token for previews. If Gatekeeper is to set env vars, create a Vercel token scoped to the project and store it as `VERCEL_TOKEN`; otherwise the owner sets flags by hand from Gatekeeper's packet. |
 | Vercel production branch | Which branch deploys to production | Owner | Latest deployment target is preview; no custom domain attached | Owner confirms the production branch is `setup-sparkforge-dev` when ready for W10; releases are tags on that branch. |
 | Supabase project `gqoaknfboahuqvgpidgw` | Two small additions later: per-child `sparky_outfits_enabled` and `sparky_calm_mode` settings columns (W3 step 6), `sparky_outfit_unlocks` reads from existing badges | Scribe drafts migration; owner reviews; applied via the existing MCP flow | Exists; no change until P5 | Service role key never reaches an agent; `NEXT_PUBLIC_SUPABASE_URL` and anon key already in Vercel and `.env.local`. |

@@ -1,11 +1,12 @@
 # Phased R3F Hub Plan — SparkForge Labs
 
-**Status:** Phase 0 (spec lock) — updated 2026-09-11  
-**Date:** 2026-09-08 (rev 2026-09-11)  
+**Status:** Phase 0 (spec lock) — updated 2026-09-15 (W0-05 vocabulary)  
+**Date:** 2026-09-08 (rev 2026-09-15)  
 **Owner:** SparkForge Labs (CDO)  
 **Repo:** BlissDirective/SparkForge-Labs-LLC  
 **Branch:** `setup-sparkforge-dev`  
-**Related:** PR #164 `/dev/forge-lab`; visual lock `hub-concepts/locked/LOCKED_HUB`; avatar `LOCKED_SPARKY`; unified plan `hub-concepts/locked/R3F_VARIATION_PLAN.md`
+**Vocabulary:** `VOCABULARY.md` (LOCKED) — `HoloL` / `HoloC` / `HoloR`; modes `welcome`, `hubSplit`, …  
+**Related:** TAP v2.2 `docs/forge-hub/TRANSITION_ACTION_PLAN.md`; visual lock `docs/forge-hub/LOCKED_HUB.md` + `public/forge-hub/world/LOCKED_HERO.png`; avatar `docs/forge-hub/LOCKED_SPARKY.md`; unified plan `docs/forge-hub/R3F_VARIATION_PLAN.md`; PR #164 `/dev/forge-lab` (closed, ported per `PR164_PORT_LIST.md`)
 
 ---
 
@@ -42,59 +43,72 @@ No desk dock on `LOCKED_HUB`. Sparky is a **hologram/overlay** (`SparkyOverlay`)
 
 ## 3. Screen module catalog
 
+Locked names: `VOCABULARY.md`. The locked plate is a **Holo trio** — no top banner. Every layout is a placement of one to three slabs.
+
 | Module ID | Role | Typical content |
 |---|---|---|
-| `TopBanner` | Wide top glass | Welcome, XP/streak, Sparky line, alerts |
-| `SideList` | Tall left/right | Labs list, game list, settings nav |
-| `SideDetail` | Tall left/right | Lab detail, game preview, avatar tools |
-| `CenterWide` | Merged L+R (or larger) | Sign-on, big forms |
-| `PlayStage` | **Single large hologram** (meshed from 3 panels) | In-hub play area, Sparky theater, light interactive |
-| `CorePortal` | SF emitter (mostly world mesh) | Ignite / emit / dock |
-| `ToastRail` | Edge chips | Toasts, mission pings |
-| `EscapeFlat` | Full-viewport 2D escape | Parent billing, dense settings |
+| `HoloL` | Left glass of the trio | Lists, stats, tools, welcome key details (what SparkForge is / labs / games) |
+| `HoloC` | Center glass of the trio | Primary surface: welcome headline + login, daily mission, lesson, launch stage |
+| `HoloR` | Right glass of the trio | Detail, preview, feed, rewards; welcome Sparky intro + demo login |
+| `PlayStage` | **Single large hologram** (HoloL+C+R merged) | Games on glass (default), story, lesson viewer |
+| `HoloBubble` | Sparky head-emitter chat (small fourth glass) | Tips, tutor chat, whisper — TAP §2.8b |
+| `CorePortal` | SF emitter (world mesh) | Ignite / emit / dock |
+| `ToastRail` | Edge chips | Toasts, mission pings, footer/legal chip |
+| `EscapeFlat` | Full-viewport 2D escape | Parent billing, legal, dense settings |
+
+**Retired (do not use):** `TopBanner`, `SideList`, `SideDetail`, `CenterWide`. Map any leftover copy to `HoloL` / `HoloC` / `HoloR` (or `PlayStage` when merged).
 
 ---
 
 ## 4. Hub display modes (layout states)
 
+Mode ids match TAP §2.1 / §5. Sub-layouts Focus, Dual, and Whisper are placements of the same trio (plus `HoloBubble`), not extra slabs.
+
 | Mode | Live modules | Purpose |
 |---|---|---|
-| `welcome` (was heroWelcome) | HoloC large + HoloL/R small + CorePortal | **Site home** / first load (replaces marketing hero) |
-| `hubSplit` | Top + L + R | Default navigation dock |
-| `authMerged` | Top + CenterWide | Sign-in / signup / parent gate |
-| `labsBrowse` | Top + SideList + SideDetail | Lab map + detail |
-| `gameLobby` | Top + L games + R preview | Pick a game |
-| `avatarStudio` | Top + side or CenterWide | Avatar / Sparky companion |
-| `settingsDock` | Top + wide or EscapeFlat | Kid vs parent settings |
-| `playStage` | **One PlayStage** (3→1 morph) | Larger in-forge interactive surface |
-| `cinematic` | Minimal UI | Emit/charge animation |
+| `welcome` | HoloC full + HoloL/R ~85% + CorePortal + HoloBubble | **Site home + login** (replaces marketing hero). Auth forms wipe on HoloC. |
+| `hubSplit` | Equal HoloL + HoloC + HoloR | Default post-login dock — **three destinations** on the equal trio |
+| `labsBrowse` | HoloL list + HoloC lab hero + HoloR detail | Lab map + detail |
+| `gameLobby` | HoloL games + HoloC launch + HoloR preview | Pick a game |
+| `avatarStudio` | HoloL stats + HoloC avatar + HoloR Sparky outfits | Child avatar / companion rack |
+| `settingsDock` | HoloL nav + HoloC kid prefs (or EscapeFlat) | Kid settings; security → FLAT |
+| `playStage` | **One PlayStage** (3→1 morph) | Games / story / lessons on the merged slab |
+| `cinematic` | Minimal UI | Emit/charge animation; story beats |
+
+**Retired mode ids:** `heroWelcome` → `welcome`. `authMerged` → `welcome` (signup/forgot/reset wipe HoloC; no morph). Parent/billing is `FLAT` + `EscapeFlat`, not a hologram mode.
+
+**Sub-layouts:** Focus (HoloC ~70–80%, sides yaw/tuck); Dual (two mid panels, HoloC strip); Whisper (`HoloBubble` expands, trio dims).
 
 ### PlayStage morph
 
-Left + Right + Top glass **lerp into one mega-glass** (flat slab first; curved later) in front of SF for a larger play/hit area without leaving the room.
+`HoloL` + `HoloC` + `HoloR` **lerp into one mega-glass** (flat slab first; curved later) in front of SF. Games play inside that slab by default (TAP decision 5).
 
 ```
-heroWelcome → hubSplit ⇄ authMerged
-                 ↓
-         labsBrowse / gameLobby / avatarStudio
-                 ↓
-             playStage → hubSplit
+welcome → hubSplit
+              ↓
+    labsBrowse / gameLobby / avatarStudio
+              ↓
+         playStage → hubSplit (or gameLobby)
 ```
+
+Focus / Dual / Whisper can apply on top of the current mode. `Emit burst` (`cinematic`) can punctuate any change.
 
 ---
 
 ## 5. Live app → mode crosswalk (seed)
 
+Canonical route table: TAP v2.2 §5. This seed uses the locked names only.
+
 | Live surface | R3F mode | Modules |
 |---|---|---|
-| Marketing / first paint | `heroWelcome` | TopBanner welcome copy |
-| Sign-in / signup | `authMerged` | CenterWide forms |
-| Home / daily mission | `hubSplit` or hero + chip | Top + mission/continue |
-| Labs map | `labsBrowse` | SideList + SideDetail |
-| Arcade / game menus | `gameLobby` → exit or `playStage` | Lobby then game runtime |
-| Sparky tutor | `avatarStudio` / `playStage` | Chat + companion |
-| Parent / billing | `EscapeFlat` | Flat UI |
-| Settings | `settingsDock` | Dock or flat |
+| Marketing / first paint + login | `welcome` | HoloL key details · HoloC "Welcome to SparkForge" + login · HoloR Sparky intro / demo |
+| Signup / forgot / reset | `welcome` | Same trio; HoloC form wipes in (no morph) |
+| Home / daily mission | `hubSplit` | HoloL stats / streak · HoloC mission / continue · HoloR feed |
+| Labs map | `labsBrowse` | HoloL list · HoloC selected lab · HoloR detail |
+| Arcade / game menus | `gameLobby` → `playStage` | Lobby on the trio, then merged PlayStage (fullscreen hatch per registry) |
+| Sparky tutor / chat | `HoloBubble` (any mode) | Head-emitter bubble; Whisper expands it. Outfit rack is `avatarStudio` |
+| Parent / billing / legal | `FLAT` | `EscapeFlat` |
+| Settings | `settingsDock` | HoloL nav · HoloC prefs; security routes `FLAT` |
 
 ---
 
@@ -134,9 +148,9 @@ heroWelcome → hubSplit ⇄ authMerged
 
 ## 9. References
 
-- Locked plate: `public/forge-lab/world/LOCKED_HERO.png` + `LOCKED.md`
-- Hotspot hub: PR #164, `docs/forge-lab-hub.md`, `/dev/forge-lab`
-- Cost contrast: `SparkForge_PixelStreaming_Concurrency_Cost_Model.xlsx` (local SparkForge Labs folder / research)
+- Locked plate: `public/forge-hub/world/LOCKED_HERO.png` + `public/forge-hub/world/LOCKED.md` (SHAs in `public/forge-hub/SHA256SUMS`; read-only)
+- Hotspot hub: PR #164 (`/dev/forge-lab` port list is W0-07 / W2); product route is `/dev/forge-hub`
+- Cost contrast: `SparkForge_PixelStreaming_Concurrency_Cost_Model.xlsx` (owner-local research spreadsheet; not in this repo)
 - Prior brainstorm (2026-09-08 CDO chat): modules, modes, phases 0–6
 
 ---
