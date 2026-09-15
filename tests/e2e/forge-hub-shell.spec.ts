@@ -290,9 +290,11 @@ test.describe('W1 /dev/forge-hub room shell + portal', () => {
       'data-forge-director',
       'login-success-hubsplit',
     );
+    // Paused t=0 of login-success-hubsplit keeps store mode at welcome
+    // (Director setForgeMode('welcome') at play). Scrub to 1 lands hubSplit.
     await expect(page.getByTestId('forge-hub-shell')).toHaveAttribute(
       'data-forge-mode',
-      'hubSplit',
+      'welcome',
     );
     await page.getByTestId('forge-hub-transition-scrub').evaluate((el) => {
       const input = el as HTMLInputElement;
@@ -309,6 +311,20 @@ test.describe('W1 /dev/forge-hub room shell + portal', () => {
     );
     await expect(page.getByTestId('forge-hub-director-id')).toContainText(
       'login-success-hubsplit',
+    );
+    await page.getByTestId('forge-hub-transition-scrub').evaluate((el) => {
+      const input = el as HTMLInputElement;
+      const setter = Object.getOwnPropertyDescriptor(
+        HTMLInputElement.prototype,
+        'value',
+      )?.set;
+      setter?.call(input, '100');
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      input.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+    await expect(page.getByTestId('forge-hub-shell')).toHaveAttribute(
+      'data-forge-mode',
+      'hubSplit',
     );
     await page.getByTestId('forge-hub-director-emit').click();
     await expect(page.getByTestId('forge-hub-shell')).toHaveAttribute(
