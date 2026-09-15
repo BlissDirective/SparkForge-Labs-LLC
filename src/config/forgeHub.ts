@@ -1,13 +1,14 @@
 // ════════════════════════════════════════════════════════════════
 // Forge Hub — camera, plate, and budget constants (W1-01)
 // ════════════════════════════════════════════════════════════════
-// Single source for the /dev/forge-hub room shell. Slot / glass /
-// emitter numbers land in later Stagehand tasks — do not add them here.
+// Single source for the /dev/forge-hub room shell. Glass / HoloPanel
+// slot numbers land in W1-03 / W2. CorePortal world pose is W1-02.
 //
 // Framing target: public/forge-hub/world/LOCKED_HERO.png at 1536×1024
 // (TAP v2.2 §2.4, §2.6 camera, §8). Display still is preferred on
 // screen; the canonical plate stays the SSIM reference.
 
+import { FORGE_CORE, PEDESTAL, plateXToUnit } from '@/lib/forge-hub/coreMap';
 import type { ForgeFrameloop } from '@/lib/forge-hub/types';
 
 /** Canonical lock plate — SSIM reference. Never regenerate. */
@@ -63,6 +64,26 @@ export const FORGE_HUB_PLATE = {
     uvRepeat: [1, 0.4] as const,
     uvOffset: [0, 0] as const,
   },
+} as const;
+
+/**
+ * CorePortal world pose (W1-02). Plate-percent FORGE_CORE.cx=50 seats
+ * the disc on the desk origin; r=9.4% of the lock plate is scaled
+ * against the W1-01 desk radius so the glow covers the painted SF
+ * module without a second glyph.
+ */
+export const FORGE_HUB_CORE_PORTAL = {
+  position: [
+    plateXToUnit(FORGE_CORE.cx) * FORGE_HUB_PLATE.desk.radius,
+    0,
+    FORGE_HUB_PLATE.desk.position[2],
+  ] as const,
+  /** Inner emissive disc — smaller than the circular desk platform. */
+  radius: FORGE_HUB_PLATE.desk.radius * (FORGE_CORE.r / (PEDESTAL.width / 2)),
+  lift: 0.055,
+  beamHeight: 1.92,
+  beamRadiusTop: 0.52,
+  beamRadiusBottom: 0.07,
 } as const;
 
 export const FORGE_HUB_BLOOM = {

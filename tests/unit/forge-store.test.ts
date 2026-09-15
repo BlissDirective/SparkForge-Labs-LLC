@@ -66,3 +66,29 @@ describe('W1-01 forgeStore is sceneStore (no new Zustand store)', () => {
     expect(useForgeStore.getState().forge.mode).toBe('hubSplit');
   });
 });
+
+describe('W1-02 dispatchForgePortal uses the ported reducer', () => {
+  it('walks idle → charge → emit → docked on the forge slice', () => {
+    const store = useForgeStore.getState();
+    store.dispatchForgePortal({ type: 'IGNITE' });
+    expect(useForgeStore.getState().forge.portalPhase).toBe('charge');
+    store.dispatchForgePortal({ type: 'ADVANCE' });
+    expect(useForgeStore.getState().forge.portalPhase).toBe('emit');
+    store.dispatchForgePortal({ type: 'ADVANCE' });
+    expect(useForgeStore.getState().forge.portalPhase).toBe('docked');
+  });
+
+  it('SKIP_TO_DOCKED and RETRACT update the same slice (no new store)', () => {
+    useForgeStore.getState().dispatchForgePortal({ type: 'SKIP_TO_DOCKED' });
+    expect(useForgeStore.getState().forge.portalPhase).toBe('docked');
+    useForgeStore.getState().dispatchForgePortal({ type: 'RETRACT' });
+    expect(useForgeStore.getState().forge.portalPhase).toBe('idle');
+    expect(useForgeStore).toBe(useSceneStore);
+  });
+
+  it('IGNITE is a no-op while charging', () => {
+    useForgeStore.getState().dispatchForgePortal({ type: 'IGNITE' });
+    useForgeStore.getState().dispatchForgePortal({ type: 'IGNITE' });
+    expect(useForgeStore.getState().forge.portalPhase).toBe('charge');
+  });
+});

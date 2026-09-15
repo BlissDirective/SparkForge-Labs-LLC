@@ -5,6 +5,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   FORGE_HUB_CAMERA,
+  FORGE_HUB_CORE_PORTAL,
   FORGE_HUB_DISPLAY_STILL,
   FORGE_HUB_DPR,
   FORGE_HUB_LOCK_PLATE,
@@ -42,6 +43,11 @@ describe('W1-01 forge hub config', () => {
   it('maps reduced motion to demand frameloop', () => {
     expect(frameloopForMotion(true)).toBe('demand');
     expect(frameloopForMotion(false)).toBe('always');
+  });
+
+  it('seats CorePortal on the desk using the frozen FORGE_CORE map', () => {
+    expect(FORGE_HUB_CORE_PORTAL.position[0]).toBe(0);
+    expect(FORGE_HUB_CORE_PORTAL.beamHeight).toBeGreaterThan(0);
   });
 });
 

@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-test.describe('W1-01 /dev/forge-hub room shell', () => {
+test.describe('W1 /dev/forge-hub room shell + portal', () => {
   test.beforeEach(async ({ page }) => {
     await page.addInitScript(() => {
       localStorage.setItem('sparkforge:cookie-notice:dismissed', '1');
@@ -42,5 +42,44 @@ test.describe('W1-01 /dev/forge-hub room shell', () => {
       path: 'test-results/forge-hub-poster-fallback.png',
       fullPage: true,
     });
+  });
+
+  test('ignite walks idle → charge → emit → docked', async ({ page }) => {
+    await page.goto('/dev/forge-hub');
+    const shell = page.getByTestId('forge-hub-shell');
+    await expect(shell).toHaveAttribute('data-forge-portal', 'idle');
+    await page.getByTestId('forge-hub-ignite').click();
+    await expect(shell).toHaveAttribute('data-forge-portal', 'charge');
+    await expect(shell).toHaveAttribute('data-forge-portal', 'emit', {
+      timeout: 1200,
+    });
+    await expect(shell).toHaveAttribute('data-forge-portal', 'docked', {
+      timeout: 1200,
+    });
+    await page.screenshot({
+      path: 'test-results/forge-hub-portal-docked.png',
+      fullPage: true,
+    });
+  });
+
+  test('reduced motion skips charge/emit and jumps to docked', async ({
+    page,
+  }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.goto('/dev/forge-hub');
+    await page.getByTestId('forge-hub-ignite').click();
+    await expect(page.getByTestId('forge-hub-shell')).toHaveAttribute(
+      'data-forge-portal',
+      'docked',
+    );
+  });
+
+  test('pose=lock stays idle with no ignite control', async ({ page }) => {
+    await page.goto('/dev/forge-hub?pose=lock');
+    await expect(page.getByTestId('forge-hub-shell')).toHaveAttribute(
+      'data-forge-portal',
+      'idle',
+    );
+    await expect(page.getByTestId('forge-hub-ignite')).toHaveCount(0);
   });
 });

@@ -1,9 +1,10 @@
 /**
- * Forge Hub room shell — /dev/forge-hub (W1-01)
+ * Forge Hub room shell — /dev/forge-hub (W1-01 + W1-02)
  *
  * Public like other /dev/* routes (middleware isDevRoute).
  * Server-rendered heading is the LCP element; the R3F stage loads
  * after hydration. Always on — not gated by FORGE_HUB (W10).
+ * W1-02: portal reducer idle → charge → emit → docked on CorePortal.
  */
 
 import { Suspense } from 'react';
@@ -13,7 +14,7 @@ import { ForgeHubClient } from './client';
 export const metadata: Metadata = {
   title: 'Forge Hub · Dev Lab',
   description:
-    'W1-01 room shell: locked plate plus parallax, fixed camera, SSIM stub',
+    'W1-02 portal reducer on the room shell: idle → charge → emit → docked',
   robots: { index: false, follow: false },
 };
 
@@ -41,8 +42,8 @@ export default async function ForgeHubDevPage({
           Forge Hub
         </h1>
         <p className="mt-2 max-w-md text-sm text-white/70">
-          Room shell (W1-01): plate plus parallax, fixed camera. Glass,
-          Sparky, and the Director land in later tasks.
+          Room shell plus CorePortal (W1-02): idle → charge → emit →
+          docked. Glass, Sparky, and the Director land in later tasks.
         </p>
       </header>
       <Suspense

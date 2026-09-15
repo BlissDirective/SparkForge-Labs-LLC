@@ -71,3 +71,9 @@ export {
   electricVeinsFragment,
   getElectricVeinsUniforms,
 } from './electricVeinsTSL';
+
+// ── Forge Hub CorePortal (W1-02) ──
+export {
+  createCoreGlowMaterial,
+  createBeamConeMaterial,
+} from './forgeCorePortalTSL';

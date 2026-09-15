@@ -11,6 +11,7 @@ import {
   type ForgeSlice,
   type ForgeSparkyState,
 } from '@/lib/forge-hub/types';
+import { reducePortal, type PortalEvent } from '@/lib/forge-hub/portalMachine';
 
 export type ActiveScene = 'hero' | 'cockpit' | 'spatial' | 'game' | 'transitioning';
 export type TransitionType = 'iris-open' | 'iris-close' | 'hero-to-cockpit' | 'cockpit-to-spatial' | 'none';
@@ -85,6 +86,7 @@ interface SceneState {
   setForgeFrameloop: (frameloop: ForgeFrameloop) => void;
   setForgePoseLock: (poseLock: boolean) => void;
   setForgePortalPhase: (portalPhase: ForgePortalPhase) => void;
+  dispatchForgePortal: (event: PortalEvent) => void;
   setForgeActivePanel: (activePanel: ForgePanelId) => void;
   setForgeHoveredPanel: (hoveredPanel: ForgePanelId) => void;
   setForgeMorphProgress: (morphProgress: number) => void;
@@ -303,6 +305,13 @@ export const useSceneStore = create<SceneState>((set, get) => ({
     set({ forge: { ...get().forge, portalPhase } });
   },
 
+  dispatchForgePortal: (event) => {
+    const current = get().forge.portalPhase;
+    const portalPhase = reducePortal(current, event);
+    if (portalPhase === current) return;
+    set({ forge: { ...get().forge, portalPhase } });
+  },
+
   setForgeActivePanel: (activePanel) => {
     set({ forge: { ...get().forge, activePanel } });
   },
@@ -350,6 +359,7 @@ export const selectForge = (s: SceneState) => s.forge;
 export const selectForgeMode = (s: SceneState) => s.forge.mode;
 export const selectForgeFrameloop = (s: SceneState) => s.forge.frameloop;
 export const selectForgePoseLock = (s: SceneState) => s.forge.poseLock;
+export const selectForgePortalPhase = (s: SceneState) => s.forge.portalPhase;
 
 /**
  * TAP §2.5 / STATE_ARCHITECTURE R1: repurpose this store as forgeStore.

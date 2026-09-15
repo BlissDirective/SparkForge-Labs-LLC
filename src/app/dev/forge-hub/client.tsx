@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * /dev/forge-hub client — W1-01 room shell.
+ * /dev/forge-hub client — W1-02 portal reducer on the W1-01 room shell.
  *
  * LCP is the server-rendered <h1> in page.tsx. The R3F stage is
  * dynamically imported after hydration + GPU probe so the heading
@@ -19,6 +19,10 @@ import {
   frameloopForMotion,
 } from '@/config/forgeHub';
 import { detectGPUTier } from '@/lib/webgpuDetection';
+import {
+  portalLiveStatus,
+  useForgePortal,
+} from '@/lib/forge-hub/useForgePortal';
 import { useDeviceStore } from '@/stores/deviceStore';
 import { useForgeStore } from '@/stores/sceneStore';
 
@@ -41,6 +45,8 @@ export function ForgeHubClient() {
   const setForgePoseLock = useForgeStore((s) => s.setForgePoseLock);
   const setForgeFrameloop = useForgeStore((s) => s.setForgeFrameloop);
   const setForgeMode = useForgeStore((s) => s.setForgeMode);
+  const setForgePortalPhase = useForgeStore((s) => s.setForgePortalPhase);
+  const { phase, isOpen, retract, toggle } = useForgePortal();
 
   const [allowStage, setAllowStage] = useState(false);
   const [stageStatus, setStageStatus] = useState<StageStatus>('pending');
@@ -49,12 +55,14 @@ export function ForgeHubClient() {
     setForgePoseLock(poseLock);
     setForgeMode('hubSplit');
     setForgeFrameloop(frameloopForMotion(!!prefersReducedMotion));
+    if (poseLock) setForgePortalPhase('idle');
   }, [
     poseLock,
     prefersReducedMotion,
     setForgeFrameloop,
     setForgeMode,
     setForgePoseLock,
+    setForgePortalPhase,
   ]);
 
   useEffect(() => {
@@ -81,6 +89,18 @@ export function ForgeHubClient() {
     };
   }, [forcePoster]);
 
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if (poseLock) return;
+      if (event.key === 'Escape' && phase !== 'idle') {
+        event.preventDefault();
+        retract();
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [phase, poseLock, retract]);
+
   const onReady = useCallback(() => setStageStatus('ready'), []);
   const onFailure = useCallback(() => setStageStatus('poster'), []);
 
@@ -89,6 +109,7 @@ export function ForgeHubClient() {
       data-testid="forge-hub-shell"
       data-forge-pose={poseLock ? 'lock' : 'idle'}
       data-forge-stage={forcePoster ? 'poster' : stageStatus}
+      data-forge-portal={phase}
       className="relative min-h-screen w-full overflow-hidden bg-[#0b1218]"
     >
       <ForgePosterFallback />
@@ -98,6 +119,35 @@ export function ForgeHubClient() {
           <ForgeStage onReady={onReady} onFailure={onFailure} />
         </div>
       )}
+
+      {!poseLock ? (
+        <div className="pointer-events-auto absolute bottom-6 left-6 z-20 flex flex-col gap-2">
+          <button
+            type="button"
+            data-testid="forge-hub-ignite"
+            className="forge-hub-ignite"
+            aria-pressed={isOpen}
+            aria-label={
+              phase === 'docked'
+                ? 'Retract portal'
+                : 'Ignite SparkForge portal'
+            }
+            onClick={toggle}
+          >
+            {phase === 'docked' ? 'Retract' : 'Ignite portal'}
+          </button>
+          <p
+            data-testid="forge-hub-portal-phase"
+            className="font-mono text-xs uppercase tracking-[0.18em] text-cyan-100/80"
+          >
+            {phase}
+          </p>
+        </div>
+      ) : null}
+
+      <div className="sr-only" role="status" aria-live="polite">
+        {portalLiveStatus(phase)}
+      </div>
     </div>
   );
 }
