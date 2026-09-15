@@ -2873,3 +2873,8 @@ Agent: Stagehand (Grok Bot Team)
 Optional MOTION_BIBLE §5.4 Theatre beat `beats/game-launch-burst.json` (1500 ms, Sparky cheer). Director samples JSON on the GSAP master clock / scrubber after `lobby-playstage-merge` completes — not nested in the merge timeline and not nested in portal emit-burst 420/560. Session-first glass launch default; skippable click / Enter / Space; RM skips the burst (merge already used 200 ms). Does not gate first input (PlayStage stays live at morph t=600). `/dev/forge-hub` HUD force-play + `?burst=1` + transition scrubber. Studio still `?studio=1` in development only. No new Zustand store; games / `public/forge-hub` locks / production flags untouched. Board: W2-11 **doing**.
 CI unblock (pre-existing on `setup-sparkforge-dev` PRs): Playwright `reuseExistingServer: true` so e2e-smoke does not race the workflow's `npm start`; staging smoke skips Vercel SSO 302 (`vercel.com/sso-api`) unless `VERCEL_AUTOMATION_BYPASS_SECRET` is set.
 Agent: Director (Grok Bot Team)
+
+### FORGE HUB — W2-11 done (Director, 2026-09-15)
+
+Board: **W2-11 done** — Theatre `game-launch-burst` merged PR #185 → `579e56b`. Optional MOTION_BIBLE §5.4 beat after `lobby-playstage-merge`; does not gate first input.
+Agent: Director (Grok Bot Team)
