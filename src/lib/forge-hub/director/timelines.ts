@@ -10,6 +10,8 @@ import { PORTAL_HOLD_MS } from '@/lib/forge-hub/portalMachine';
 import type {
   ForgeHoloBubbleState,
   ForgeMode,
+  ForgePanelId,
+  ForgeSparkySpot,
   ForgeSparkyState,
 } from '@/lib/forge-hub/types';
 import { playForgeSting, type ForgeStingId } from './stings';
@@ -22,6 +24,11 @@ import {
   sampleFirstVisitIgnition,
   sampleGameLaunchBurst,
 } from './theatrePlayer';
+import {
+  applySparkyCue,
+  cueContextFromIo,
+  sparkyCueFor,
+} from './sparkyReactions';
 import { applyLiveSlotsToClock, snapClockToMode } from './targets';
 import {
   BEAMS_MS,
@@ -53,6 +60,8 @@ export interface TimelineIo {
   patchHoloBubble: (patch: Partial<ForgeHoloBubbleState>) => void;
   getMode: () => ForgeMode;
   getPreviousMode: () => ForgeMode | null;
+  getSparkySpot: () => ForgeSparkySpot;
+  getHoveredPanel: () => ForgePanelId;
 }
 
 export interface BuiltTimeline {
@@ -212,6 +221,8 @@ export function buildWelcomeIdle(io: TimelineIo): BuiltTimeline {
   snapClockToMode(clock, 'welcome');
   io.setForgeMode('welcome');
   io.setMorphProgress(0);
+  const cue = sparkyCueFor('welcome-idle', cueContextFromIo(io));
+  applySparkyCue(io, cue.end, cue.endBubble);
   publishDirectorClock();
 
   const tl = gsap.timeline({ paused: true, defaults: TL_DEFAULTS });
@@ -228,9 +239,11 @@ export function buildWelcomeIdle(io: TimelineIo): BuiltTimeline {
 }
 
 export function buildEmitBurst(io: TimelineIo): BuiltTimeline {
+  const cue = sparkyCueFor('emit-burst', cueContextFromIo(io));
   if (io.reducedMotion) {
     return reducedMotionCrossfade('emit-burst', io, () => {
       io.dispatchSkipToDocked();
+      applySparkyCue(io, cue.end);
     });
   }
 
@@ -248,6 +261,7 @@ export function buildEmitBurst(io: TimelineIo): BuiltTimeline {
   clock.appearScale = 1;
   clock.layoutFrom = null;
   clock.layoutTo = null;
+  applySparkyCue(io, cue.start);
 
   const chargeSec = msToSec(PORTAL_HOLD_MS.charge);
   const emitSec = msToSec(PORTAL_HOLD_MS.emit);
@@ -274,6 +288,7 @@ export function buildEmitBurst(io: TimelineIo): BuiltTimeline {
   tl.call(() => {
     syncEmitBurstPortal(PORTAL_HOLD_MS.charge, io, 'play');
     stingIfMotion(io, 'sting.emitBurst');
+    applySparkyCue(io, cue.end);
     return undefined;
   }, [], stingAt);
 
@@ -317,6 +332,7 @@ export function buildEmitBurst(io: TimelineIo): BuiltTimeline {
 }
 
 export function buildLoginSuccessHubsplit(io: TimelineIo): BuiltTimeline {
+  const cue = sparkyCueFor('login-success-hubsplit', cueContextFromIo(io));
   if (io.reducedMotion) {
     return reducedMotionCrossfade('login-success-hubsplit', io, () => {
       const clock = peekDirectorClock();
@@ -324,6 +340,7 @@ export function buildLoginSuccessHubsplit(io: TimelineIo): BuiltTimeline {
       io.setForgeMode('hubSplit');
       // Pose snaps; fifths are skipped. Content fades via contentIn.
       io.setMorphProgress(1);
+      applySparkyCue(io, cue.end, cue.endBubble);
     });
   }
 
@@ -346,6 +363,7 @@ export function buildLoginSuccessHubsplit(io: TimelineIo): BuiltTimeline {
   clock.cameraDollyPercent = 0;
   io.setForgeMode('welcome');
   io.setMorphProgress(0);
+  applySparkyCue(io, cue.start, cue.startBubble);
 
   const chargeSec = msToSec(INTERACTIVE_CHARGE_MS);
   const beamsStart = msToSec(50);
@@ -416,6 +434,7 @@ export function buildLoginSuccessHubsplit(io: TimelineIo): BuiltTimeline {
     () => {
       stingIfMotion(io, 'sting.loginSuccess');
       io.setForgeMode('hubSplit');
+      applySparkyCue(io, cue.end, cue.endBubble);
     },
     [],
     stingStart,
@@ -443,13 +462,13 @@ export function buildLoginSuccessHubsplit(io: TimelineIo): BuiltTimeline {
 export function buildFirstVisitIgnition(io: TimelineIo): BuiltTimeline {
   // Skip the Theatre cinematic entirely under RM (bible: skip beat + 200 ms).
   if (io.reducedMotion) {
+    const cue = sparkyCueFor('first-visit-ignition', cueContextFromIo(io));
     return reducedMotionCrossfade('first-visit-ignition', io, () => {
       const live = peekDirectorClock();
       snapClockToMode(live, 'welcome');
       io.setForgeMode('welcome');
       io.setMorphProgress(1);
-      io.patchSparky({ spot: 'nearCore', behaviour: 'idle' });
-      io.patchHoloBubble({ state: 'hidden' });
+      applySparkyCue(io, cue.end, cue.endBubble);
     });
   }
 
@@ -489,7 +508,11 @@ export function buildFirstVisitIgnition(io: TimelineIo): BuiltTimeline {
       clock.contentIn = 1;
       clock.contentOut = 0;
       io.setForgeMode('welcome');
-      io.patchSparky({ spot: 'nearCore', behaviour: 'idle' });
+      const land = sparkyCueFor(
+        'welcome-idle',
+        cueContextFromIo(io),
+      );
+      applySparkyCue(io, land.end, land.endBubble);
     },
     [],
     msToSec(durationMs),
@@ -522,8 +545,8 @@ export function buildGameLaunchBurst(io: TimelineIo): BuiltTimeline {
     snapClockToMode(clock, 'playStage');
     io.setForgeMode('playStage');
     io.setMorphProgress(1);
-    io.patchSparky({ spot: 'rightLip', behaviour: 'attend' });
-    io.patchHoloBubble({ state: 'hidden' });
+    const cue = sparkyCueFor('game-launch-burst', cueContextFromIo(io));
+    applySparkyCue(io, cue.end, cue.endBubble);
     publishDirectorClock();
 
     const tl = gsap.timeline({ paused: true, defaults: TL_DEFAULTS });
@@ -575,8 +598,11 @@ export function buildGameLaunchBurst(io: TimelineIo): BuiltTimeline {
       clock.contentOut = 0;
       clock.roomDim = 1;
       io.setForgeMode('playStage');
-      io.patchSparky({ spot: 'rightLip', behaviour: 'attend' });
-      io.patchHoloBubble({ state: 'hidden' });
+      const land = sparkyCueFor('game-launch-burst', cueContextFromIo({
+        ...io,
+        reducedMotion: true,
+      }));
+      applySparkyCue(io, land.end, land.endBubble);
     },
     [],
     msToSec(durationMs),

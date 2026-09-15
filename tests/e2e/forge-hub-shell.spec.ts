@@ -371,7 +371,22 @@ test.describe('W1 /dev/forge-hub room shell + portal', () => {
       'data-forge-mode',
       'labsBrowse',
     );
+    await expect(page.getByTestId('forge-hub-shell')).toHaveAttribute(
+      'data-forge-sparky-spot',
+      'leftLip',
+    );
     await expect(page.getByRole('region', { name: 'Lab bench' })).toBeVisible();
+  });
+
+  test('RM remainder morph teleports Sparky to leftLip', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.goto('/dev/forge-hub?fallback=poster');
+    const shell = page.getByTestId('forge-hub-shell');
+    await page.getByTestId('forge-hub-transition-id').selectOption('hub-labsbrowse');
+    await expect(shell).toHaveAttribute('data-forge-rm', 'on');
+    await expect(shell).toHaveAttribute('data-forge-sparky-spot', 'leftLip');
+    await expect(shell).toHaveAttribute('data-forge-sparky-move', 'teleport');
+    await expect(page.getByTestId('forge-hub-director')).toBeVisible();
   });
 
   test('pose=lock hides reading plates so the SSIM trio stays empty glass', async ({

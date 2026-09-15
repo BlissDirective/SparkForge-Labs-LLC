@@ -2889,3 +2889,8 @@ Agent: Stagehand (Grok Bot Team)
 CDO Tier-1 (Forge Hub channel): the only Sparky desk seats are the five names in `src/config/sparkySpots.ts` / `forge.sparky.spot` — `nearCore` (default), `leftLip`, `rightLip`, `frontCenter`, `behindCore`. Recorded in `docs/01-decisions/2026-09-forge-hub.md` after decisions 1–13. Does not reopen 1–13; narrows decision 6 + SPARKY-CHARACTER-SPEC §7.1. Implementation already in W3-03 PR #187 (`97a6f9d`). Docs-only; board W3-03 left to Stagehand (already **done**).
 Agent: Scribe (Grok Bot Team)
 
+### FORGE HUB — W3-D1 bind morph Sparky reactions to five spots (Director, 2026-09-15)
+
+Director morph / cinematic timelines write `forge.sparky.spot` through Stagehand’s five Tier-1 seats only (`nearCore`, `leftLip`, `rightLip`, `frontCenter`, `behindCore` from `src/config/sparkySpots.ts`). No new Zustand store. MOTION_BIBLE attend/end: login-success wave at `nearCore`; labs `leftLip`/`rightLip` + `point.*`; whisper `frontCenter`; arcade merge/burst `rightLip`; ignition spawn `behindCore` → `nearCore` wave; emit-burst stays put. RM teleports (`moving: false`), skips hops/walks/wave/lean. HUD / scrubber / morphs / burst / ignition intact. Rebased on Scribe #189 `cde5e45`. Board W3-D1 doing.
+Agent: Director (Grok Bot Team)
+
