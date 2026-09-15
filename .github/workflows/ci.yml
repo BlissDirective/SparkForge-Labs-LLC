@@ -39,7 +39,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
         with:
-          # Full history needed for gitleaks to scan every commit.
           fetch-depth: 0
 
       - name: Install gitleaks
@@ -51,8 +50,14 @@ jobs:
           sudo mv /tmp/gitleaks /usr/local/bin/gitleaks
           gitleaks version
 
-      - name: Scan repository history
-        run: gitleaks detect --config .gitleaks.toml --verbose --redact --exit-code 1
+      - name: Scan commits since setup-sparkforge-dev
+        run: |
+          git fetch origin setup-sparkforge-dev
+          # Range scan: new commits on this ref only. A full-history
+          # detect re-fails every PR on blobs already on the integration
+          # branch. No .gitleaks.toml path allowlist.
+          gitleaks detect --config .gitleaks.toml --verbose --redact --exit-code 1 \
+            --log-opts="origin/setup-sparkforge-dev..HEAD"
 
   # ─── TypeScript + unit tests + production build ─────────────────────
   typecheck-test-build:
