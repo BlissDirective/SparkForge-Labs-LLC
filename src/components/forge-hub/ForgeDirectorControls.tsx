@@ -33,7 +33,9 @@ export function ForgeDirectorControls({
       data-testid="forge-hub-director"
       className="forge-hub-director"
     >
-      <p className="forge-hub-director-kicker">Director · W2-02</p>
+      <p className="forge-hub-director-kicker">
+        Director · {reducedMotion ? 'RM 200ms' : 'W2-02'}
+      </p>
       <div className="flex flex-wrap gap-2">
         <button
           type="button"

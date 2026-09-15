@@ -8,8 +8,8 @@ import gsap from 'gsap';
 import type { PortalPhase } from '@/lib/forge-hub/portalMachine';
 import { PORTAL_HOLD_MS } from '@/lib/forge-hub/portalMachine';
 import type { ForgeMode } from '@/lib/forge-hub/types';
-import { playForgeSting } from './stings';
-import { peekDirectorClock, publishDirectorClock } from './clock';
+import { playForgeSting, type ForgeStingId } from './stings';
+import { peekDirectorClock, publishDirectorClock, type DirectorClock } from './clock';
 import type { DirectorSlice1Id } from './ids';
 import { loadTheatreBeat } from './theatrePlayer';
 import { applyLiveSlotsToClock, snapClockToMode } from './targets';
@@ -112,11 +112,24 @@ export function syncEmitBurstPortal(
   return io.getPortalPhase();
 }
 
+function stingIfMotion(io: TimelineIo, id: ForgeStingId): void {
+  playForgeSting(id, { reducedMotion: io.reducedMotion });
+}
+
+/** MOTION_BIBLE RM: skip cinematic tokens; pose snaps; content 200 ms fade. */
+function zeroCinematicTokens(clock: DirectorClock): void {
+  clock.sparkyHop = 0;
+  clock.sparkyPing = 0;
+  clock.bloom = 0;
+  clock.beams = 0;
+  clock.cameraDollyPercent = 0;
+  clock.appearScale = 1;
+}
+
 function reducedMotionCrossfade(
   id: DirectorSlice1Id,
   io: TimelineIo,
-  onStart: () => void,
-  onEnd?: () => void,
+  snapPose: () => void,
 ): BuiltTimeline {
   const clock = peekDirectorClock();
   const durationMs = REDUCED_MOTION_CROSSFADE_MS;
@@ -124,27 +137,37 @@ function reducedMotionCrossfade(
   clock.durationMs = durationMs;
   clock.skippable = id === 'emit-burst' || id === 'first-visit-ignition';
   clock.freezeBreathe = true;
+  zeroCinematicTokens(clock);
   clock.reducedMotionCrossfade = 0;
-  clock.sparkyHop = 0;
-  clock.bloom = 0;
-  clock.cameraDollyPercent = 0;
-  clock.appearScale = 1;
+  clock.contentOut = 1;
+  clock.contentIn = 0;
+  // Pose / reducer snap is synchronous so paused + scrub(0) tests (and
+  // pause(0, suppressEvents) at play) already sit on the destination.
+  snapPose();
 
   const tl = gsap.timeline({
     paused: true,
     defaults: TL_DEFAULTS,
   });
-  tl.call(onStart, [], 0);
   tl.to(
     clock,
     {
       reducedMotionCrossfade: 1,
+      contentOut: 0,
+      contentIn: 1,
       duration: msToSec(durationMs),
-      ease: 'power1.out',
+      ease: 'none',
     },
     0,
   );
-  if (onEnd) tl.call(onEnd, [], msToSec(durationMs));
+  tl.call(
+    () => {
+      zeroCinematicTokens(clock);
+      clock.freezeBreathe = true;
+    },
+    [],
+    msToSec(durationMs),
+  );
   bindProgress(tl, durationMs, io);
   return { id, timeline: tl, durationMs, skippable: clock.skippable };
 }
@@ -154,12 +177,12 @@ export function buildWelcomeIdle(io: TimelineIo): BuiltTimeline {
   clock.id = 'welcome-idle';
   clock.durationMs = 0;
   clock.skippable = false;
-  clock.freezeBreathe = false;
+  clock.freezeBreathe = io.reducedMotion;
   clock.progress = 1;
-  clock.bloom = 0;
-  clock.sparkyHop = 0;
-  clock.cameraDollyPercent = 0;
-  clock.appearScale = 1;
+  zeroCinematicTokens(clock);
+  clock.contentOut = 0;
+  clock.contentIn = 1;
+  clock.reducedMotionCrossfade = io.reducedMotion ? 1 : 0;
   snapClockToMode(clock, 'welcome');
   io.setForgeMode('welcome');
   io.setMorphProgress(0);
@@ -180,14 +203,9 @@ export function buildWelcomeIdle(io: TimelineIo): BuiltTimeline {
 
 export function buildEmitBurst(io: TimelineIo): BuiltTimeline {
   if (io.reducedMotion) {
-    return reducedMotionCrossfade(
-      'emit-burst',
-      io,
-      () => {
-        io.dispatchSkipToDocked();
-        peekDirectorClock().freezeBreathe = false;
-      },
-    );
+    return reducedMotionCrossfade('emit-burst', io, () => {
+      io.dispatchSkipToDocked();
+    });
   }
 
   const clock = peekDirectorClock();
@@ -229,7 +247,7 @@ export function buildEmitBurst(io: TimelineIo): BuiltTimeline {
 
   tl.call(() => {
     syncEmitBurstPortal(PORTAL_HOLD_MS.charge, io, 'play');
-    playForgeSting('sting.emitBurst');
+    stingIfMotion(io, 'sting.emitBurst');
     return undefined;
   }, [], stingAt);
 
@@ -274,23 +292,13 @@ export function buildEmitBurst(io: TimelineIo): BuiltTimeline {
 
 export function buildLoginSuccessHubsplit(io: TimelineIo): BuiltTimeline {
   if (io.reducedMotion) {
-    return reducedMotionCrossfade(
-      'login-success-hubsplit',
-      io,
-      () => {
-        const clock = peekDirectorClock();
-        clock.appearScale = 1;
-        snapClockToMode(clock, 'hubSplit');
-        clock.contentOut = 0;
-        clock.contentIn = 1;
-        clock.freezeBreathe = true;
-        io.setForgeMode('hubSplit');
-        io.setMorphProgress(1);
-      },
-      () => {
-        peekDirectorClock().freezeBreathe = false;
-      },
-    );
+    return reducedMotionCrossfade('login-success-hubsplit', io, () => {
+      const clock = peekDirectorClock();
+      snapClockToMode(clock, 'hubSplit');
+      io.setForgeMode('hubSplit');
+      // Pose snaps; fifths are skipped. Content fades via contentIn.
+      io.setMorphProgress(1);
+    });
   }
 
   const clock = peekDirectorClock();
@@ -380,7 +388,7 @@ export function buildLoginSuccessHubsplit(io: TimelineIo): BuiltTimeline {
 
   tl.call(
     () => {
-      playForgeSting('sting.loginSuccess');
+      stingIfMotion(io, 'sting.loginSuccess');
       io.setForgeMode('hubSplit');
     },
     [],
@@ -407,26 +415,18 @@ export function buildLoginSuccessHubsplit(io: TimelineIo): BuiltTimeline {
 }
 
 export function buildFirstVisitIgnition(io: TimelineIo): BuiltTimeline {
-  const beat = loadTheatreBeat('first-visit-ignition');
-
+  // Skip the Theatre cinematic entirely under RM (bible: skip beat).
+  // Authored JSON fill waits on Stagehand W2-03 forgeStore.
   if (io.reducedMotion) {
-    return reducedMotionCrossfade(
-      'first-visit-ignition',
-      io,
-      () => {
-        const live = peekDirectorClock();
-        live.appearScale = 1;
-        snapClockToMode(live, 'welcome');
-        live.contentIn = 1;
-        live.contentOut = 0;
-        io.setForgeMode('welcome');
-        io.setMorphProgress(0);
-      },
-      () => {
-        peekDirectorClock().freezeBreathe = false;
-      },
-    );
+    return reducedMotionCrossfade('first-visit-ignition', io, () => {
+      const live = peekDirectorClock();
+      snapClockToMode(live, 'welcome');
+      io.setForgeMode('welcome');
+      io.setMorphProgress(1);
+    });
   }
+
+  const beat = loadTheatreBeat('first-visit-ignition');
 
   const clock = peekDirectorClock();
   const durationMs = beat.durationMs || FIRST_VISIT_IGNITION_MS;
@@ -483,7 +483,7 @@ export function buildFirstVisitIgnition(io: TimelineIo): BuiltTimeline {
   );
 
   tl.call(() => {
-    playForgeSting('sting.ignition');
+    stingIfMotion(io, 'sting.ignition');
   }, [], msToSec(1400));
 
   tl.call(

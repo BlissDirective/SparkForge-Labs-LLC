@@ -6,6 +6,7 @@
 import type { ForgeMode } from '@/lib/forge-hub/types';
 import type { GlassSlotId } from '@/lib/forge-hub/glassSlots';
 import { liveDirectorSlots } from '@/lib/forge-hub/director/targets';
+import { isDirectorRmCrossfade } from '@/lib/forge-hub/director/clock';
 import { useDirectorClock } from '@/lib/forge-hub/useForgeDirector';
 import { useForgeStore } from '@/stores/sceneStore';
 import { HoloPanel } from './HoloPanel';
@@ -83,11 +84,12 @@ export function HoloPanelLayer({
 }: HoloPanelLayerProps) {
   const mode = useForgeStore((s) => s.forge.mode);
   const poseLock = useForgeStore((s) => s.forge.poseLock);
-  useDirectorClock();
+  const clock = useDirectorClock();
   if (poseLock) return null;
 
   const copy = MODE_COPY[mode] ?? DEFAULT_COPY;
   const slots = liveDirectorSlots(mode, false);
+  const rmCrossfade = isDirectorRmCrossfade(clock);
   const stageClass =
     layout === 'stage'
       ? 'forge-hub-glass-stage fh-holo-layer'
@@ -99,6 +101,11 @@ export function HoloPanelLayer({
       data-testid="forge-hub-holo-layer"
       data-forge-calibrate={calibrate ? '1' : '0'}
       data-forge-holo-layout={layout}
+      data-rm-crossfade={rmCrossfade ? '1' : '0'}
+      style={{
+        ['--fh-content-in' as string]: String(clock.contentIn),
+        ['--fh-content-out' as string]: String(clock.contentOut),
+      }}
     >
       {slots.map((slot) => {
         const text = copy[slot.id];

@@ -8,7 +8,7 @@ import type { PercentRect } from '@/lib/forge-hub/coreMap';
 import { registerMorphTargets } from '@/lib/forge-hub/layouts';
 import type { ForgeMode } from '@/lib/forge-hub/types';
 import type { MotionBibleId } from './ids';
-import { clampCameraDollyPercent } from './timings';
+import { clampCameraDollyPercent, REDUCED_MOTION_CROSSFADE_MS } from './timings';
 
 const HUB_SPLIT = registerMorphTargets('hubSplit');
 
@@ -115,4 +115,13 @@ export function publishDirectorClock(): void {
 export function setDirectorClockId(id: MotionBibleId | null): void {
   live.id = id;
   bump();
+}
+
+/** Live MOTION_BIBLE RM substitute: 200 ms crossfade, no cinematic tokens. */
+export function isDirectorRmCrossfade(clock: DirectorClock): boolean {
+  return (
+    clock.durationMs === REDUCED_MOTION_CROSSFADE_MS &&
+    clock.id != null &&
+    clock.id !== 'welcome-idle'
+  );
 }

@@ -8,8 +8,8 @@ import {
 } from '@/lib/forge-hub/director';
 
 let reduceMotion = false;
-vi.mock('@/hooks/useSafeMotion', () => ({
-  useSafeMotion: () => reduceMotion,
+vi.mock('@/lib/forge-hub/useForgeReducedMotion', () => ({
+  useForgeReducedMotion: () => reduceMotion,
 }));
 
 import { useForgePortal } from '@/lib/forge-hub/useForgePortal';
@@ -58,6 +58,8 @@ describe('useForgePortal defers holds to the Director', () => {
       result.current.ignite();
     });
     expect(result.current.phase).toBe('docked');
+    expect(getForgeDirector().durationMs()).toBe(200);
+    expect(getForgeDirector().activeId()).toBe('emit-burst');
   });
 
   it('does not advance while pose=lock', () => {

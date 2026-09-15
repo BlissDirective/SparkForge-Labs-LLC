@@ -2811,3 +2811,13 @@ Morphs that touch HoloC lerp Stagehand `registerMorphTargets` / `HUBSPLIT_HOLO_C
 Stagehand. Tone.js sting ids are silent stubs. No new Zustand store; `directorId`
 lives on the forge slice. W2-02 stays **doing** until merge + Foreman.
 Agent: Director (Grok Bot Team)
+
+### FORGE HUB — W2-02 done; W2-04 RM crossfade (Director, 2026-09-15)
+
+Board: **W2-02 done** — merged PR #177 `32db199`. Next Director slice hardens
+MOTION_BIBLE `prefers-reduced-motion`: morphs are a **200 ms** content crossfade
+(pose snaps; skip charge/beams/sting); cinematics skipped; `emit-burst` stays
+`SKIP_TO_DOCKED` + 200 ms. Theatre `first-visit-ignition` fill waits on Stagehand
+**W2-03 forgeStore** (not in this PR). Ignite uses `useForgeReducedMotion` so
+Playwright `emulateMedia` matches the Director HUD.
+Agent: Director (Grok Bot Team)

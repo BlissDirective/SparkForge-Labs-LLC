@@ -5,7 +5,6 @@
 // ════════════════════════════════════════════════════════════════
 
 import gsap from 'gsap';
-import { REDUCED_MOTION_CROSSFADE_MS } from '@/lib/forge-hub/panelBreathe';
 import { useForgeStore } from '@/stores/sceneStore';
 import {
   peekDirectorClock,
@@ -25,6 +24,7 @@ import {
 import {
   CINEMATIC_CAP_MS,
   INTERACTIVE_CAP_MS,
+  REDUCED_MOTION_CROSSFADE_MS,
 } from './director/timings';
 import {
   buildSlice1Timeline,
@@ -123,7 +123,8 @@ class ForgeDirectorImpl implements ForgeDirector {
 
     resetDirectorClock({
       id,
-      freezeBreathe: id !== 'welcome-idle' && id !== 'emit-burst',
+      freezeBreathe:
+        reducedMotion || (id !== 'welcome-idle' && id !== 'emit-burst'),
     });
     setDirectorClockId(id);
     setStoreDirectorId(id);
@@ -135,9 +136,9 @@ class ForgeDirectorImpl implements ForgeDirector {
     built.timeline.eventCallback('onComplete', () => {
       const clock = peekDirectorClock();
       clock.progress = 1;
-      if (id === 'first-visit-ignition' && !reducedMotion) {
+      if (id === 'first-visit-ignition') {
         clock.id = 'welcome-idle';
-        clock.freezeBreathe = false;
+        clock.freezeBreathe = reducedMotion;
         clock.skippable = false;
         setStoreDirectorId('welcome-idle');
       }
@@ -183,11 +184,20 @@ class ForgeDirectorImpl implements ForgeDirector {
       this.io?.dispatchSkipToDocked();
       const clock = peekDirectorClock();
       clock.progress = 1;
-      clock.bloom = 0.45;
       clock.sparkyHop = 0;
       clock.cameraDollyPercent = 0;
       clock.skippable = false;
-      clock.freezeBreathe = false;
+      if (this.io?.reducedMotion) {
+        clock.bloom = 0;
+        clock.beams = 0;
+        clock.contentIn = 1;
+        clock.contentOut = 0;
+        clock.reducedMotionCrossfade = 1;
+        clock.freezeBreathe = true;
+      } else {
+        clock.bloom = 0.45;
+        clock.freezeBreathe = false;
+      }
       this.current.timeline.progress(1);
       this.current.timeline.pause();
       this.io?.setMorphProgress(1);
@@ -302,6 +312,7 @@ export {
   subscribeDirectorClock,
   getDirectorClockVersion,
   resetDirectorClock,
+  isDirectorRmCrossfade,
 } from './director/clock';
 export {
   FORGE_STING_IDS,

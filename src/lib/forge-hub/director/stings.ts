@@ -34,10 +34,14 @@ export function isForgeStingId(value: string): value is ForgeStingId {
 }
 
 /**
- * Silent stub. Returns false when muted or unknown; true when the id
- * would play (still no oscillator / buffer).
+ * Silent stub. Returns false when muted, reduced-motion, or unknown;
+ * true when the id would play (still no oscillator / buffer).
  */
-export function playForgeSting(id: ForgeStingId | string): boolean {
+export function playForgeSting(
+  id: ForgeStingId | string,
+  opts?: { reducedMotion?: boolean },
+): boolean {
+  if (opts?.reducedMotion) return false;
   if (!isForgeStingId(id)) return false;
   try {
     if (useUIStore.getState().soundEnabled === false) return false;

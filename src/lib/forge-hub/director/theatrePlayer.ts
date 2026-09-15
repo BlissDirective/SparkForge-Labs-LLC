@@ -1,6 +1,8 @@
 // ════════════════════════════════════════════════════════════════
 // Theatre.js beat player — stub for first-visit-ignition.
 // Loads committed JSON later; slice 1 JSON is status: stub.
+// Reduced-motion skips this loader (200 ms GSAP crossfade instead).
+// Authored JSON fill waits on Stagehand W2-03 forgeStore.
 // Never import @theatre/studio in production (TAP §2.6 / bible §5.8).
 // ════════════════════════════════════════════════════════════════
 

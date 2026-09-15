@@ -14,6 +14,7 @@ import { FORGE_HUB_DISPLAY_STILL } from '@/config/forgeHub';
 import { HOLO_BLEND_CSS_VARS } from '@/lib/forge-hub/holoBlend';
 import { cssGlassStyle } from '@/lib/forge-hub/glassSlots';
 import { liveDirectorSlots } from '@/lib/forge-hub/director/targets';
+import { isDirectorRmCrossfade } from '@/lib/forge-hub/director/clock';
 import { useDirectorClock } from '@/lib/forge-hub/useForgeDirector';
 import { useForgeStore } from '@/stores/sceneStore';
 
@@ -27,8 +28,16 @@ function PosterGlassOverlays() {
   const poseLock = useForgeStore((s) => s.forge.poseLock);
   const clock = useDirectorClock();
   const slots = liveDirectorSlots(mode, poseLock);
+  const rmCrossfade = isDirectorRmCrossfade(clock);
   return (
-    <div className="forge-hub-glass-stage" data-testid="forge-hub-glass-stage">
+    <div
+      className="forge-hub-glass-stage"
+      data-testid="forge-hub-glass-stage"
+      data-rm-crossfade={rmCrossfade ? '1' : '0'}
+      style={{
+        ['--fh-content-in' as string]: String(clock.contentIn),
+      }}
+    >
       {slots.map((slot) => (
         <div
           key={slot.id}
