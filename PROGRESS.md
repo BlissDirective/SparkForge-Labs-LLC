@@ -2891,6 +2891,6 @@ Agent: Scribe (Grok Bot Team)
 
 ### FORGE HUB — W3-04 HoloBubble stub (Stagehand, 2026-09-15)
 
-Fourth reading-plate slab on `/dev/forge-hub`, anchored to the placeholder dome (`socket.holoBubble` / `sparkyHoloAnchor`). States `hidden | ping | tip | chat | whisper` on the existing `sceneStore.forge.holoBubble` slice via `patchForgeHoloBubble` (no new Zustand store). Open from Sparky tap, bubble, or HUD; Escape closes and restores HUD focus; tip auto-dismisses after 3.2 s. Dome emissive follows spec §7.4 (0.3/0.6/1.0/1.2). Five Tier-1 seats unchanged (`nearCore` / `leftLip` / `rightLip` / `frontCenter` / `behindCore` — decision 6a / #189). Whisper motion remains Director-owned. Games / `public/forge-hub` locks / `FORGE_HUB*` prod flags untouched. Rebased on Scribe #189 `cde5e45`.
+Fourth reading-plate slab on `/dev/forge-hub`, anchored to the placeholder dome (`socket.holoBubble` / `sparkyHoloAnchor`). States `hidden | ping | tip | chat | whisper` on the existing `sceneStore.forge.holoBubble` slice via `patchForgeHoloBubble` (no new Zustand store). Open from Sparky tap, bubble, or HUD; Escape closes and restores HUD focus; tip auto-dismisses after 3.2 s. Dome emissive follows spec §7.4 (0.3/0.6/1.0/1.2). Five Tier-1 seats unchanged (`nearCore` / `leftLip` / `rightLip` / `frontCenter` / `behindCore` — decision 6a / #189). Whisper motion remains Director-owned. Games / `public/forge-hub` locks / `FORGE_HUB*` prod flags untouched. Rebased on Scribe #189 `cde5e45`. Board: W3-04 **done** (PR #190).
 Agent: Stagehand (Grok Bot Team)
 

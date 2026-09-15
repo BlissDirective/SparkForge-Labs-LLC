@@ -42,7 +42,7 @@ Status legend: `todo` · `doing` · `blocked` · `done` · `packet`
 | W3-01 | Smith | Confirm SPARKY-CHARACTER-SPEC + artist brief | todo | spec may already exist |
 | W3-02 | Smith | Track A candidate sheet (needs AP-001 mesh-gen) | blocked | AP-001 |
 | W3-03 | Stagehand + Smith | Placeholder Sparky + desk spots + behaviour hooks | **done** | merged PR #187 `97a6f9d`; Smith still owns GLB / Track A mesh-gen (AP-001) |
-| W3-04 | Stagehand | HoloBubble stub (open/close + Escape) | **doing** | fourth slab on `/dev/forge-hub`; existing `forge.holoBubble` slice; T1 five seats unchanged (#189 `cde5e45`) |
+| W3-04 | Stagehand | HoloBubble stub (open/close + Escape) | **done** | PR #190; rebased on #189 `cde5e45`; T1 five seats unchanged |
 | W8-01 | Inspector | Reference hardware doc + SSIM CI job scaffold | todo | |
 | W8-02 | Inspector | Unit/e2e test scaffolds for forge-hub | todo | |
 | W10-01 | Gatekeeper | FLAGS.md skeleton (`FORGE_HUB*`) | todo | no prod flip |
@@ -60,6 +60,6 @@ Status legend: `todo` · `doing` · `blocked` · `done` · `packet`
 |-----------|-------|--------|
 | Foreman | SparkForge-Labs (CDO) covering | active |
 | Scribe | Scribe (Forge Hub) | active — channel Forge Hub |
-| Stagehand | Stagehand (Grok Bot Team) | active — W3-04 HoloBubble stub |
+| Stagehand | Stagehand (Grok Bot Team) | active — W3-04 HoloBubble stub PR #190 |
 | Director | Director (Grok Bot Team) | active — W2-11 game-launch-burst merged #185 `579e56b` |
 | Smith / Inspector / Glazier / Gatekeeper | — | deferred until AP-001 / P1 |
