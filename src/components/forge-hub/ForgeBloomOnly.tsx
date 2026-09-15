@@ -5,13 +5,15 @@
 // input zeroed. WebGL2 path mounts EffectComposer + Bloom only.
 // D3D-5: performanceMode omits DoF/SSAO — already omitted here.
 // pose=lock skips post so Inspector's still is the plate.
+// Director clock.bloom is test/scrub state only — do not subscribe
+// here. Re-rendering post on every GSAP tick remounts the composer
+// and can drop the WebGPU context.
 
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
 import { useThree } from '@react-three/fiber';
 import { PostProcessingStackWebGPU } from '@/components/3d/PostProcessingStackWebGPU';
 import { isWebGPURenderer } from '@/lib/3d/webgpuRenderer';
 import { FORGE_HUB_BLOOM } from '@/config/forgeHub';
-import { useDirectorClock } from '@/lib/forge-hub/useForgeDirector';
 import { useForgeStore } from '@/stores/sceneStore';
 import { useUIStore } from '@/stores/uiStore';
 
@@ -19,16 +21,12 @@ export function ForgeBloomOnly() {
   const gl = useThree((s) => s.gl);
   const poseLock = useForgeStore((s) => s.forge.poseLock);
   const performanceMode = useUIStore((s) => s.performanceMode);
-  const directorBloom = useDirectorClock().bloom;
 
   if (poseLock) return null;
 
-  const intensity =
-    (performanceMode
-      ? FORGE_HUB_BLOOM.intensity * 0.7
-      : FORGE_HUB_BLOOM.intensity) *
-    (1 + directorBloom);
-
+  const intensity = performanceMode
+    ? FORGE_HUB_BLOOM.intensity * 0.7
+    : FORGE_HUB_BLOOM.intensity;
 
   if (isWebGPURenderer(gl)) {
     return (
