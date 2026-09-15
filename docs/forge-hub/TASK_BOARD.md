@@ -24,10 +24,10 @@ Status legend: `todo` · `doing` · `blocked` · `done` · `packet`
 | W0-05 | Scribe | Vocabulary lock HoloL/C/R; archive root Phased plan → `_SUPERSEDED/` | **done** | PR #168 (per PROGRESS) |
 | W0-06 | Scribe | Fix hub-concepts/`/workspace` paths; PROGRESS.md FORGE HUB note | **done** | PR #169 `1fe3c3f` |
 | W0-07 | Scribe + Gatekeeper | PR #164 port list; close after W2 port | **done** | PR #170 (list only; #164 stays open) |
-| W0-08 | Scribe + Director | MOTION_BIBLE.md v1 | **doing** | Director fill-in [PR #174](https://github.com/BlissDirective/SparkForge-Labs-LLC/pull/174) landed as DRAFT bodies (stub was [#172](https://github.com/BlissDirective/SparkForge-Labs-LLC/pull/172)). Fill-in landing does **not** claim done; Foreman marks **done** after merge |
+| W0-08 | Scribe + Director | MOTION_BIBLE.md v1 | **done** | merged PR #174 `8df5634`; #172 closed |
 | W1-01 | Stagehand | `/dev/forge-hub` plate+parallax room shell; fixed cam; SSIM harness stub | **done** | merged PR #166 `892e464` |
 | W1-02 | Stagehand | Portal reducer port from PR #164; emitter charge/emit | **done** | merged PR #173 `90706e7` |
-| W1-03 | Stagehand | Three glass slabs + breathe; poster fallback | todo | |
+| W1-03 | Stagehand | Three glass slabs + breathe; poster fallback | **review** | draft PR #175 |
 | W3-01 | Smith | Confirm SPARKY-CHARACTER-SPEC + artist brief | todo | spec may already exist |
 | W3-02 | Smith | Track A candidate sheet (needs AP-001 mesh-gen) | blocked | AP-001 |
 | W3-03 | Stagehand + Smith | Placeholder Sparky + desk spots + behaviour hooks | todo | after W1-01 |
