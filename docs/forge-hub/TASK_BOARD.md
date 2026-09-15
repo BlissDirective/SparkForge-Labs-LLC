@@ -23,9 +23,9 @@ Status legend: `todo` · `doing` · `blocked` · `done` · `packet`
 | W0-04 | Scribe | CLAUDE.md v7 draft as approval packet | todo | Tier 2 |
 | W0-05 | Scribe | Vocabulary lock HoloL/C/R; archive root Phased plan → `_SUPERSEDED/` | **done** | PR #168 (per PROGRESS) |
 | W0-06 | Scribe | Fix hub-concepts/`/workspace` paths; PROGRESS.md FORGE HUB note | **done** | PR #169 `1fe3c3f` |
-| W0-07 | Scribe + Gatekeeper | PR #164 port list; close after W2 port | todo | do not close until port |
+| W0-07 | Scribe + Gatekeeper | PR #164 port list; close after W2 port | **done** | PR #170 (list only; #164 stays open) |
 | W0-08 | Scribe + Director | MOTION_BIBLE.md v1 | todo | |
-| W1-01 | Stagehand | `/dev/forge-hub` plate+parallax room shell; fixed cam; SSIM harness stub | **review** | PR [#166](https://github.com/BlissDirective/SparkForge-Labs-LLC/pull/166) |
+| W1-01 | Stagehand | `/dev/forge-hub` plate+parallax room shell; fixed cam; SSIM harness stub | **done** | merged PR #166 `892e464` |
 | W1-02 | Stagehand | Portal reducer port from PR #164; emitter charge/emit | todo | |
 | W1-03 | Stagehand | Three glass slabs + breathe; poster fallback | todo | |
 | W3-01 | Smith | Confirm SPARKY-CHARACTER-SPEC + artist brief | todo | spec may already exist |
