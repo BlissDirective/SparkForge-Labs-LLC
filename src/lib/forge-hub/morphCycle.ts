@@ -1,8 +1,8 @@
 // ════════════════════════════════════════════════════════════════
 // W2-07 P2 exit morph cycle — welcome → hubSplit → playStage →
-// gameLobby → welcome. Director owns slice-1 ids; later MOTION_BIBLE
-// morphs (lobby-playstage-merge / playstage-lobby-split) are not in
-// slice 1, so those hops `applyForgeRoute` on the live forge slice.
+// gameLobby → welcome. Slice-1 + remainder ids play through Director.
+// hubSplit → playStage has no named morph (#183: merge is
+// gameLobby → playStage) — applyForgeRoute only; do not invent seats.
 // No new Zustand store.
 // ════════════════════════════════════════════════════════════════
 
@@ -11,9 +11,11 @@ import {
   getForgeDirector,
   resetForgeDirector,
   DIRECTOR_RM_MS,
+  INTERACTIVE_MORPH_MS,
   LAYOUT_MORPH_MS,
   LOGIN_SUCCESS_HUBSPLIT_MS,
 } from '@/lib/forge-hub/director';
+import type { DirectorLiveId } from '@/lib/forge-hub/director/ids';
 import type { ForgeMode } from '@/lib/forge-hub/types';
 import { useForgeStore } from '@/stores/sceneStore';
 
@@ -34,8 +36,8 @@ export interface P2MorphHop {
   from: P2MorphCycleMode;
   to: P2MorphCycleMode;
   kind: P2MorphHopKind;
-  /** Slice-1 id, or null when Stagehand hops via applyForgeRoute. */
-  directorId: 'welcome-idle' | 'login-success-hubsplit' | null;
+  /** Live Director id, or null when Stagehand hops via applyForgeRoute. */
+  directorId: DirectorLiveId | null;
 }
 
 export const P2_MORPH_HOPS: readonly P2MorphHop[] = [
@@ -54,8 +56,8 @@ export const P2_MORPH_HOPS: readonly P2MorphHop[] = [
   {
     from: 'playStage',
     to: 'gameLobby',
-    kind: 'route',
-    directorId: null,
+    kind: 'director',
+    directorId: 'playstage-lobby-split',
   },
   {
     from: 'gameLobby',
@@ -68,6 +70,9 @@ export const P2_MORPH_HOPS: readonly P2MorphHop[] = [
 export function p2HopDurationMs(hop: P2MorphHop, reducedMotion: boolean): number {
   if (hop.directorId === 'login-success-hubsplit') {
     return reducedMotion ? DIRECTOR_RM_MS : LOGIN_SUCCESS_HUBSPLIT_MS;
+  }
+  if (hop.directorId === 'playstage-lobby-split') {
+    return reducedMotion ? DIRECTOR_RM_MS : INTERACTIVE_MORPH_MS;
   }
   if (hop.directorId === 'welcome-idle') return 0;
   return reducedMotion ? DIRECTOR_RM_MS : LAYOUT_MORPH_MS;
@@ -87,8 +92,7 @@ function applyDevMode(mode: ForgeMode, reducedMotion: boolean): void {
 
 /**
  * Drop leftover layoutFrom/To so live slots follow `applyForgeRoute`
- * after login-success-hubsplit (W2-05 hops are applyForgeRoute-only).
- * `kill()` alone leaves the last lerp pinned on the clock.
+ * after a Director morph. `kill()` alone leaves the last lerp pinned.
  */
 export function releaseDirectorLayout(): void {
   resetForgeDirector();

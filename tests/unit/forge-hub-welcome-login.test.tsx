@@ -64,11 +64,20 @@ describe('W2-07 P2 morph cycle helper', () => {
       kind: 'director',
       directorId: 'login-success-hubsplit',
     });
+    expect(P2_MORPH_HOPS[1]).toMatchObject({
+      kind: 'route',
+      directorId: null,
+    });
+    expect(P2_MORPH_HOPS[2]).toMatchObject({
+      kind: 'director',
+      directorId: 'playstage-lobby-split',
+    });
     expect(p2HopDurationMs(P2_MORPH_HOPS[0], false)).toBe(
       LOGIN_SUCCESS_HUBSPLIT_MS,
     );
     expect(p2HopDurationMs(P2_MORPH_HOPS[0], true)).toBe(DIRECTOR_RM_MS);
     expect(p2HopDurationMs(P2_MORPH_HOPS[1], false)).toBe(LAYOUT_MORPH_MS);
+    expect(p2HopDurationMs(P2_MORPH_HOPS[2], false)).toBe(600);
     expect(LAYOUT_MORPH_MS).toBe(420);
     expect(HUBSPLIT_HOLO_C).toMatchObject({
       left: 31.2,

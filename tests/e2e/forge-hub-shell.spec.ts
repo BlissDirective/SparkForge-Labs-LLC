@@ -493,6 +493,7 @@ test.describe('W1 /dev/forge-hub room shell + portal', () => {
     const shell = page.getByTestId('forge-hub-shell');
     const form = page.getByTestId('forge-hub-welcome-login');
     await expect(page.getByTestId('forge-hub-director')).toBeVisible();
+    await expect(page.getByTestId('forge-hub-director-remainder')).toBeVisible();
     await expect(page.getByTestId('forge-hub-director-scrub')).toBeVisible();
     await expect(page.getByTestId('forge-hub-transition-scrubber')).toBeVisible();
     await expect(form).toBeVisible();
