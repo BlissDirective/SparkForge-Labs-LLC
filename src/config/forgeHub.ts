@@ -112,6 +112,10 @@ export const FORGE_HUB_QUERY = {
   fallbackPoster: 'poster',
   calibrateParam: 'calibrate',
   calibrateOn: '1',
+  studioParam: 'studio',
+  studioOn: '1',
+  ignitionParam: 'ignition',
+  ignitionOn: '1',
 } as const;
 
 export function plateSizeAtDistance(

@@ -287,4 +287,53 @@ test.describe('W1 /dev/forge-hub room shell + portal', () => {
       timeout: 1000,
     });
   });
+
+  test('Theatre ignition query plays then lands welcome-idle', async ({
+    page,
+  }) => {
+    await page.goto('/dev/forge-hub?fallback=poster&ignition=1');
+    const shell = page.getByTestId('forge-hub-shell');
+    await expect(shell).toHaveAttribute('data-forge-ignition', '1');
+    await expect(page.getByTestId('forge-hub-director')).toBeVisible();
+    await expect(page.getByTestId('forge-hub-director-scrub')).toBeVisible();
+    await expect(shell).toHaveAttribute(
+      'data-forge-director',
+      'first-visit-ignition',
+    );
+    await expect(shell).toHaveAttribute('data-forge-director', 'welcome-idle', {
+      timeout: 4000,
+    });
+    await expect(shell).toHaveAttribute('data-forge-mode', 'welcome');
+  });
+
+  test('click/Space skips Theatre ignition into welcome-idle', async ({
+    page,
+  }) => {
+    await page.goto('/dev/forge-hub?fallback=poster&ignition=1');
+    const shell = page.getByTestId('forge-hub-shell');
+    await expect(shell).toHaveAttribute(
+      'data-forge-director',
+      'first-visit-ignition',
+    );
+    await page.keyboard.press('Space');
+    await expect(shell).toHaveAttribute('data-forge-director', 'welcome-idle');
+    await expect(shell).toHaveAttribute('data-forge-mode', 'welcome');
+  });
+
+  test('RM skip of ignition is the 200ms welcome substitute', async ({
+    page,
+  }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.goto('/dev/forge-hub?fallback=poster&ignition=1');
+    const shell = page.getByTestId('forge-hub-shell');
+    await expect(shell).toHaveAttribute('data-forge-rm', 'on');
+    await expect(page.getByTestId('forge-hub-director')).toBeVisible();
+    await expect(page.getByTestId('forge-hub-director-id')).toContainText('RM');
+    await expect(shell).toHaveAttribute('data-forge-mode', 'welcome', {
+      timeout: 1000,
+    });
+    await expect(shell).toHaveAttribute('data-forge-director', 'welcome-idle', {
+      timeout: 1500,
+    });
+  });
 });

@@ -320,7 +320,7 @@ Holiday intro (Theatre.js candidate in Director prompt): **no id in v1** — do 
 - **Skip / interrupt:** click / Enter / Space → `welcome-idle` (200 ms crossfade or snap). Skip-hero setting never starts this beat.
 - **Camera:** fixed; ± 2 % micro-dolly ok; **no cuts**.
 - **Owner status:** draft
-- **Notes:** Gate P1: “ignition plays”. Kid-visible → approval packet + recording when implemented. Distinct from `welcome-idle`.
+- **Notes:** Gate P1: “ignition plays”. Kid-visible on `/dev/forge-hub?ignition=1` (lab). Production `/` `/login` stay gated until FORGE_HUB (W10). JSON: `src/lib/forge-hub/beats/first-visit-ignition.json`. Distinct from `welcome-idle`.
 
 ---
 
@@ -498,7 +498,7 @@ Same field contract. Confirmed for v1.
 
 - [x] Replace every `TODO (Director)` on §5 pages (minimum)
 - [x] Confirm or drop §4 / §6 extra ids — **confirmed** all stub ids; **added** `dual-exit` and `labsbrowse-hub`; holiday intro **no id in v1** (documented, not dropped)
-- [x] Bind slice-1 ids 1:1 to a GSAP timeline or Theatre stub — **W2-02:** `emit-burst`, `login-success-hubsplit`, `first-visit-ignition` (stub JSON), `welcome-idle` ambient coordinator. Remaining ids: follow-up PRs.
+- [x] Bind slice-1 ids 1:1 to a GSAP timeline or Theatre stub — **W2-02:** `emit-burst`, `login-success-hubsplit`, `first-visit-ignition` (stub JSON), `welcome-idle` ambient coordinator. **W2 Theatre fill:** `beats/first-visit-ignition.json` authored; Director samples JSON (GSAP master clock / scrubber). Remaining ids: follow-up PRs.
 - [x] Scrub tests at 0 / 0.2 / 0.5 / 0.8 / 1 for slice-1 ids (Director unit tests). Inspector still owns SSIM / Playwright morph recording.
 - [ ] Packet + recording for each kid-visible beat — **when implemented; not this PR**
 - [ ] Align names with `VOCABULARY.md` when W0-05 lands
