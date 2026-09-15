@@ -23,10 +23,10 @@ Status legend: `todo` · `doing` · `blocked` · `done` · `packet`
 | W0-04 | Scribe | CLAUDE.md v7 draft as approval packet | todo | Tier 2 |
 | W0-05 | Scribe | Vocabulary lock HoloL/C/R; archive root Phased plan → `_SUPERSEDED/` | todo | |
 | W0-06 | Scribe | Fix hub-concepts/`/workspace` paths in forge-hub specs; PROGRESS.md FORGE HUB note | todo | locks already committed 2026-09-14 |
-| W0-07 | Scribe + Gatekeeper | PR #164 port list; close after W2 port | todo | do not close until port |
+| W0-07 | Scribe + Gatekeeper | PR #164 port list; close after W2 port | **done** (list) | this PR — `docs/forge-hub/PR164_PORT_LIST.md`. **Do not close #164 until W2 port.** Gatekeeper+Scribe close then with TAP decision 9 + that list. |
 | W0-08 | Scribe + Director | MOTION_BIBLE.md v1 | todo | |
 | W1-01 | Stagehand | `/dev/forge-hub` plate+parallax room shell; fixed cam; SSIM harness | todo | needs repo checkout via Cloud Agent |
-| W1-02 | Stagehand | Portal reducer port from PR #164; emitter charge/emit | todo | |
+| W1-02 | Stagehand | Portal reducer port from PR #164; emitter charge/emit | todo | see `PR164_PORT_LIST.md` (PORT: `portalMachine.ts` + portal tests). #164 stays open. |
 | W1-03 | Stagehand | Three glass slabs + breathe; poster fallback | todo | |
 | W3-01 | Smith | Confirm SPARKY-CHARACTER-SPEC + artist brief | todo | spec may already exist |
 | W3-02 | Smith | Track A candidate sheet (needs AP-001 mesh-gen) | blocked | AP-001 |

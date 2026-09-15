@@ -2715,6 +2715,14 @@ Body is filter-free again → fixed = viewport (verified: 844px). Slider +
 BrightnessEffect unchanged. Guard comment added: never put filters/
 transforms/backdrop-filters on html/body/app-shell wrappers.
 
+### FORGE HUB — W0-07 PR #164 port list (2026-09-15)
+
+Scribe published `docs/forge-hub/PR164_PORT_LIST.md` from the real 41-file #164 inventory
+(head `cursor/forge-lab-hotspot-hub-36cc` @ `3862d60`). TAP v2.2 decision 9: port layout
+math, portal reducer, catalog, tests, blend tokens; plates already under
+`public/forge-hub/world/`. Do **not** port the hotspot shell, `/dev/forge-lab`, or
+`FORGE_LAB_HUB`. **PR #164 stays open until W2** (Gatekeeper + Scribe close then).
+
 ### FORGE HUB — locks committed, old avatar designs archived (2026-09-14)
 
 **Owner decisions (2026-09-13/14):** proceed with the animated Hologram-Forge Hub
