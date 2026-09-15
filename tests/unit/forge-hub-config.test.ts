@@ -8,6 +8,7 @@ import {
   FORGE_HUB_CORE_PORTAL,
   FORGE_HUB_DISPLAY_STILL,
   FORGE_HUB_DPR,
+  FORGE_HUB_GLASS,
   FORGE_HUB_LOCK_PLATE,
   FORGE_HUB_REFERENCE_VIEWPORT,
   FORGE_HUB_SSIM_THRESHOLD,
@@ -48,6 +49,11 @@ describe('W1-01 forge hub config', () => {
   it('seats CorePortal on the desk using the frozen FORGE_CORE map', () => {
     expect(FORGE_HUB_CORE_PORTAL.position[0]).toBe(0);
     expect(FORGE_HUB_CORE_PORTAL.beamHeight).toBeGreaterThan(0);
+  });
+
+  it('lifts lock-pose glass off the plate toward the camera', () => {
+    expect(FORGE_HUB_GLASS.lift).toBeGreaterThan(0);
+    expect(FORGE_HUB_GLASS.lift).toBeLessThan(0.2);
   });
 });
 

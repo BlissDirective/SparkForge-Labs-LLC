@@ -4,3 +4,4 @@ export { ForgeFixedCamera } from './ForgeFixedCamera';
 export { ForgePosterFallback } from './ForgePosterFallback';
 export { ForgeBloomOnly } from './ForgeBloomOnly';
 export { CorePortal } from './CorePortal';
+export { ForgeGlassSlabs } from './ForgeGlassSlabs';

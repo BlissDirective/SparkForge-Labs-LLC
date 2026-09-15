@@ -4,11 +4,11 @@
 // Backdrop = display still filling the lock frustum.
 // Desk = real y=0 plane (Sparky's floor in later tasks) textured from
 // the plate. CorePortal (W1-02) is the TSL emitter on the painted SF
-// module. No glass slabs or Sparky in this wave.
+// module. Glass slabs (W1-03) overlay the painted cyan frames.
 
 import { useLayoutEffect, useMemo, useRef } from 'react';
 import { useTexture } from '@react-three/drei';
-import { DoubleSide, type Mesh, SRGBColorSpace, Vector3 } from 'three';
+import { DoubleSide, type Group, SRGBColorSpace, Vector3 } from 'three';
 import {
   FORGE_HUB_CAMERA,
   FORGE_HUB_DISPLAY_STILL,
@@ -17,6 +17,7 @@ import {
   plateSizeAtDistance,
 } from '@/config/forgeHub';
 import { CorePortal } from './CorePortal';
+import { ForgeGlassSlabs } from './ForgeGlassSlabs';
 
 function usePlateTexture(url: string) {
   const texture = useTexture(url);
@@ -28,39 +29,50 @@ function usePlateTexture(url: string) {
   return texture;
 }
 
-function PlateBackdrop() {
+function plateBackdropPose() {
+  const cam = new Vector3(...FORGE_HUB_CAMERA.position);
+  const look = new Vector3(...FORGE_HUB_CAMERA.lookAt);
+  const dir = look.clone().sub(cam).normalize();
+  const pos = cam
+    .clone()
+    .addScaledVector(dir, FORGE_HUB_PLATE.backdropDistance);
+  const size = plateSizeAtDistance(
+    FORGE_HUB_PLATE.backdropDistance,
+    FORGE_HUB_CAMERA.fov,
+    FORGE_HUB_LOCK_ASPECT,
+  );
+  return { position: pos.toArray() as [number, number, number], size };
+}
+
+function PlateFrame({
+  reducedMotion,
+}: {
+  reducedMotion: boolean;
+}) {
   const map = usePlateTexture(FORGE_HUB_DISPLAY_STILL);
-  const meshRef = useRef<Mesh>(null);
-  const { position, size } = useMemo(() => {
-    const cam = new Vector3(...FORGE_HUB_CAMERA.position);
-    const look = new Vector3(...FORGE_HUB_CAMERA.lookAt);
-    const dir = look.clone().sub(cam).normalize();
-    const pos = cam
-      .clone()
-      .addScaledVector(dir, FORGE_HUB_PLATE.backdropDistance);
-    const sizeAt = plateSizeAtDistance(
-      FORGE_HUB_PLATE.backdropDistance,
-      FORGE_HUB_CAMERA.fov,
-      FORGE_HUB_LOCK_ASPECT,
-    );
-    return { position: pos.toArray() as [number, number, number], size: sizeAt };
-  }, []);
+  const groupRef = useRef<Group>(null);
+  const { position, size } = useMemo(() => plateBackdropPose(), []);
 
   useLayoutEffect(() => {
-    if (!meshRef.current) return;
-    meshRef.current.lookAt(new Vector3(...FORGE_HUB_CAMERA.position));
+    if (!groupRef.current) return;
+    groupRef.current.lookAt(new Vector3(...FORGE_HUB_CAMERA.position));
   }, [position]);
 
   return (
-    <mesh
-      ref={meshRef}
+    <group
+      ref={groupRef}
       position={position}
-      frustumCulled={false}
-      userData={{ forge: 'plate' }}
+      userData={{ forge: 'plate-frame' }}
     >
-      <planeGeometry args={[size[0], size[1]]} />
-      <meshBasicMaterial map={map} depthWrite side={DoubleSide} />
-    </mesh>
+      <mesh
+        frustumCulled={false}
+        userData={{ forge: 'plate' }}
+      >
+        <planeGeometry args={[size[0], size[1]]} />
+        <meshBasicMaterial map={map} depthWrite side={DoubleSide} />
+      </mesh>
+      <ForgeGlassSlabs plateSize={size} reducedMotion={reducedMotion} />
+    </group>
   );
 }
 
@@ -106,7 +118,7 @@ function DeskPlane() {
   );
 }
 
-export function ForgeRoom() {
+export function ForgeRoom({ reducedMotion = false }: { reducedMotion?: boolean }) {
   return (
     <group userData={{ forge: 'room' }}>
       <hemisphereLight args={['#9ad8ff', '#3a322c', 0.55]} />
@@ -117,7 +129,7 @@ export function ForgeRoom() {
         color="#7fe7ff"
         distance={8}
       />
-      <PlateBackdrop />
+      <PlateFrame reducedMotion={reducedMotion} />
       <DeskPlane />
       <CorePortal />
     </group>

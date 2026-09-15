@@ -5,8 +5,9 @@ import type { PortalPhase } from './portalMachine';
 // ════════════════════════════════════════════════════════════════
 // Lives on the existing sceneStore (exported as useForgeStore).
 // Do NOT add a new Zustand store. W1-02 owns portalPhase via
-// portalMachine.ts (idle → charge → emit → docked). Glass / Sparky /
-// HoloBubble stay scaffolded for later tasks.
+// portalMachine.ts (idle → charge → emit → docked). W1-03 glass is
+// world materials on the lock-pose trio (no extra store fields).
+// Sparky / HoloBubble stay scaffolded for later tasks.
 
 export type ForgeMode =
   | 'welcome'

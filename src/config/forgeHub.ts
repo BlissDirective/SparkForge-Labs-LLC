@@ -1,8 +1,9 @@
 // ════════════════════════════════════════════════════════════════
 // Forge Hub — camera, plate, and budget constants (W1-01)
 // ════════════════════════════════════════════════════════════════
-// Single source for the /dev/forge-hub room shell. Glass / HoloPanel
-// slot numbers land in W1-03 / W2. CorePortal world pose is W1-02.
+// Single source for the /dev/forge-hub room shell. W1-03 lock-pose
+// glass overlays the painted cyan frames. W2 owns the layout registry
+// (welcome / equal-trio re-seat). CorePortal world pose is W1-02.
 //
 // Framing target: public/forge-hub/world/LOCKED_HERO.png at 1536×1024
 // (TAP v2.2 §2.4, §2.6 camera, §8). Display still is preferred on
@@ -90,6 +91,17 @@ export const FORGE_HUB_BLOOM = {
   intensity: 0.22,
   threshold: 0.78,
   smoothing: 0.9,
+} as const;
+
+/**
+ * Glass slabs (W1-03). World materials on the lock-pose trio.
+ * Breathe is ambient (`panelBreathe` ~3 s, scale 98–102 %). Freeze
+ * under reduced motion and `?pose=lock`. RM first-paint is a 200 ms
+ * CSS crossfade — no continuous loop.
+ */
+export const FORGE_HUB_GLASS = {
+  /** Local +Z toward camera so slabs sit in front of the plate. */
+  lift: 0.05,
 } as const;
 
 export const FORGE_HUB_QUERY = {

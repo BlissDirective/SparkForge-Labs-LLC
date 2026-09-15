@@ -22,7 +22,7 @@ function PosterFallback({ onFailure }: { onFailure?: () => void }) {
   useEffect(() => {
     onFailure?.();
   }, [onFailure]);
-  return <ForgePosterFallback className="h-full w-full" />;
+  return <ForgePosterFallback className="h-full w-full" withGlass />;
 }
 
 function ForgeStageInner({ onReady }: { onReady?: () => void }) {
@@ -58,7 +58,7 @@ function ForgeStageInner({ onReady }: { onReady?: () => void }) {
       <Suspense fallback={null}>
         <AdaptiveDpr pixelated />
         <ForgeFixedCamera reducedMotion={reduced} />
-        <ForgeRoom />
+        <ForgeRoom reducedMotion={reduced} />
         <ForgeBloomOnly />
       </Suspense>
     </Canvas>

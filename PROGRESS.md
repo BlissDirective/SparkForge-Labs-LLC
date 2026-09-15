@@ -2774,3 +2774,13 @@ Agent: Stagehand (Grok Bot Team)
 ### FORGE HUB — W0-08 MOTION_BIBLE Director fill-in (2026-09-15)
 
 Director v1 **DRAFT** of `docs/forge-hub/MOTION_BIBLE.md` (Scribe stub was PR #172; fill-in PR #174). All TAP §10 item 5 pages filled; extras confirmed (`whisper-close`, Focus in/out, Dual enter/exit, `labsbrowse-hub`, `level-up`, `outfit-swap`). `emit-burst` classified **cinematic** at wall-clock **980 ms** to honor Stagehand portalMachine holds charge **420 ms** / emit **560 ms** (W1-02 / PR #173) without a Tier-1 retime. Board W0-08 stays **doing** until Foreman marks done. No `director.ts` / GSAP / Theatre JSON in this change.
+
+### FORGE HUB — W1-03 glass slabs (Stagehand, 2026-09-15)
+
+Lock-pose trio (`HoloL` / `HoloC` top seed / `HoloR`) as world materials on
+`/dev/forge-hub`: TSL edge + scanline, `panelBreathe` ~3 s scale 98–102 %.
+Reduced motion and `?pose=lock` freeze the loop; RM first-paint is a 200 ms
+crossfade. Poster / `?fallback=poster` keeps the display still and adds CSS
+glass overlays. HOLO blend *edge* tokens ported; reading-plate fill ≥ 0.85
+stays W2. No hotspot shell, no #164 close, no new Zustand store.
+Agent: Stagehand (Grok Bot Team)
