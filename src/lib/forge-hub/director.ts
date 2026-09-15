@@ -14,10 +14,13 @@ import {
 } from './director/clock';
 import {
   CINEMATIC_IDS,
+  DIRECTOR_LIVE_IDS,
   DIRECTOR_SLICE1_IDS,
   isCinematicId,
+  isDirectorLiveId,
   isDirectorSlice1Id,
   isMotionBibleId,
+  type DirectorLiveId,
   type DirectorSlice1Id,
   type MotionBibleId,
 } from './director/ids';
@@ -26,6 +29,7 @@ import {
   INTERACTIVE_CAP_MS,
   REDUCED_MOTION_CROSSFADE_MS,
 } from './director/timings';
+import { buildRemainderTimeline } from './director/morphs';
 import {
   buildSlice1Timeline,
   syncEmitBurstPortal,
@@ -37,7 +41,7 @@ import {
   sampleFirstVisitIgnition,
 } from './director/theatrePlayer';
 
-export type { MotionBibleId, DirectorSlice1Id };
+export type { MotionBibleId, DirectorSlice1Id, DirectorLiveId, DirectorRemainderId };
 export type { DirectorClock } from './director/clock';
 
 export interface PlayOptions {
@@ -56,7 +60,7 @@ export interface ForgeDirector {
   durationMs(): number;
   activeId(): MotionBibleId | null;
   isPlaying(): boolean;
-  registeredIds(): readonly DirectorSlice1Id[];
+  registeredIds(): readonly DirectorLiveId[];
 }
 
 function storeIo(reducedMotion: boolean): TimelineIo {
@@ -75,6 +79,8 @@ function storeIo(reducedMotion: boolean): TimelineIo {
       store().setForgeMorphProgress(morphProgress),
     patchSparky: (patch) => store().patchForgeSparky(patch),
     patchHoloBubble: (patch) => store().patchForgeHoloBubble(patch),
+    getMode: () => store().forge.mode,
+    getPreviousMode: () => store().forge.previousMode,
   };
 }
 
@@ -86,8 +92,8 @@ class ForgeDirectorImpl implements ForgeDirector {
   private current: BuiltTimeline | null = null;
   private io: TimelineIo | null = null;
 
-  registeredIds(): readonly DirectorSlice1Id[] {
-    return DIRECTOR_SLICE1_IDS;
+  registeredIds(): readonly DirectorLiveId[] {
+    return DIRECTOR_LIVE_IDS;
   }
 
   activeId(): MotionBibleId | null {
@@ -111,9 +117,9 @@ class ForgeDirectorImpl implements ForgeDirector {
     if (!isMotionBibleId(id)) {
       throw new Error(`Director: unknown MOTION_BIBLE id "${id}"`);
     }
-    if (!isDirectorSlice1Id(id)) {
+    if (!isDirectorLiveId(id)) {
       throw new Error(
-        `Director: "${id}" is not in W2-02 slice 1 (${DIRECTOR_SLICE1_IDS.join(', ')})`,
+        `Director: "${id}" is not a live MOTION_BIBLE id (${DIRECTOR_LIVE_IDS.join(', ')})`,
       );
     }
     if (useForgeStore.getState().forge.poseLock) {
@@ -135,7 +141,9 @@ class ForgeDirectorImpl implements ForgeDirector {
     setDirectorClockId(id);
     setStoreDirectorId(id);
 
-    const built = buildSlice1Timeline(id, io);
+    const built = isDirectorSlice1Id(id)
+      ? buildSlice1Timeline(id, io)
+      : buildRemainderTimeline(id, io);
     this.assertCaps(built, reducedMotion);
     this.current = built;
 
@@ -303,10 +311,14 @@ export function playForgeTransition(
 export {
   MOTION_BIBLE_IDS,
   DIRECTOR_SLICE1_IDS,
+  DIRECTOR_REMAINDER_IDS,
+  DIRECTOR_LIVE_IDS,
   CINEMATIC_IDS,
   isMotionBibleId,
   isCinematicId,
   isDirectorSlice1Id,
+  isDirectorRemainderId,
+  isDirectorLiveId,
 } from './director/ids';
 export {
   INTERACTIVE_CAP_MS,
@@ -314,6 +326,10 @@ export {
   EMIT_BURST_MS,
   LOGIN_SUCCESS_HUBSPLIT_MS,
   LOGIN_SLAB_WINDOW_MS,
+  INTERACTIVE_MORPH_MS,
+  SPLIT_SLAB_WINDOW_MS,
+  WHISPER_EXPAND_WINDOW_MS,
+  YAW_TUCK_MS,
   FIRST_VISIT_IGNITION_MS,
   REDUCED_MOTION_CROSSFADE_MS as DIRECTOR_RM_MS,
   WELCOME_SIDE_SCALE,

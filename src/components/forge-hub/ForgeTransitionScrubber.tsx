@@ -8,7 +8,7 @@
  */
 
 import { useCallback } from 'react';
-import { DIRECTOR_SLICE1_IDS, isDevDirectorId } from '@/lib/forge-hub/devHud';
+import { DIRECTOR_LIVE_IDS, isDevDirectorId } from '@/lib/forge-hub/devHud';
 import {
   getForgeDirector,
   playForgeTransition,
@@ -74,7 +74,7 @@ export function ForgeTransitionScrubber({
           }}
         >
           <option value="">idle</option>
-          {DIRECTOR_SLICE1_IDS.map((id) => (
+          {DIRECTOR_LIVE_IDS.map((id) => (
             <option key={id} value={id}>
               {id}
             </option>

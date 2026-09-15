@@ -50,6 +50,12 @@ describe('W2-05 mode hop helpers', () => {
     expect(directorIdForModeChange('hubSplit', 'welcome')).toBe('welcome-idle');
     expect(directorIdForModeChange('hubSplit', 'playStage')).toBeNull();
     expect(directorIdForModeChange('hubSplit', 'flat')).toBeNull();
+    expect(directorIdForModeChange('hubSplit', 'labsBrowse')).toBe(
+      'hub-labsbrowse',
+    );
+    expect(directorIdForModeChange('gameLobby', 'playStage')).toBe(
+      'lobby-playstage-merge',
+    );
   });
 
   it('writes FLAT as frameloop never on the existing forge slice', () => {
@@ -140,6 +146,11 @@ describe('W2-05 transition scrubber vs live forgeStore', () => {
     render(
       <ForgeTransitionScrubber reducedMotion={false} poseLock={false} />,
     );
+    expect(
+      screen
+        .getByTestId('forge-hub-transition-id')
+        .querySelector('option[value="hub-labsbrowse"]'),
+    ).toBeTruthy();
     expect(
       screen
         .getByTestId('forge-hub-transition-id')

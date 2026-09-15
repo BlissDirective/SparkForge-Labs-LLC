@@ -102,9 +102,13 @@ export function HoloPanelLayer({
       data-forge-calibrate={calibrate ? '1' : '0'}
       data-forge-holo-layout={layout}
       data-rm-crossfade={rmCrossfade ? '1' : '0'}
+      data-forge-room-dim={clock.roomDim > 0.05 ? '1' : '0'}
+      data-forge-bubble={clock.bubbleScale > 0.02 ? '1' : '0'}
       style={{
         ['--fh-content-in' as string]: String(clock.contentIn),
         ['--fh-content-out' as string]: String(clock.contentOut),
+        ['--fh-room-dim' as string]: String(clock.roomDim),
+        ['--fh-bubble-scale' as string]: String(clock.bubbleScale),
       }}
     >
       {slots.map((slot) => {
@@ -115,6 +119,15 @@ export function HoloPanelLayer({
           </HoloPanel>
         );
       })}
+      {clock.bubbleScale > 0.02 ? (
+        <div
+          data-testid="forge-hub-whisper-bubble"
+          className="fh-whisper-bubble"
+          aria-hidden="true"
+        >
+          Whisper
+        </div>
+      ) : null}
     </div>
   );
 }

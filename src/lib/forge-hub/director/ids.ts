@@ -34,6 +34,30 @@ export const DIRECTOR_SLICE1_IDS = [
 
 export type DirectorSlice1Id = (typeof DIRECTOR_SLICE1_IDS)[number];
 
+/** Remaining MOTION_BIBLE interactive morphs (W2 remainder). */
+export const DIRECTOR_REMAINDER_IDS = [
+  'hub-labsbrowse',
+  'labsbrowse-hub',
+  'focus-in',
+  'focus-out',
+  'dual-enter',
+  'dual-exit',
+  'whisper-expand',
+  'whisper-close',
+  'lobby-playstage-merge',
+  'playstage-lobby-split',
+] as const satisfies readonly MotionBibleId[];
+
+export type DirectorRemainderId = (typeof DIRECTOR_REMAINDER_IDS)[number];
+
+/** Slice 1 + remainder. Theatre `level-up` / `outfit-swap` stay unregistered. */
+export const DIRECTOR_LIVE_IDS = [
+  ...DIRECTOR_SLICE1_IDS,
+  ...DIRECTOR_REMAINDER_IDS,
+] as const satisfies readonly MotionBibleId[];
+
+export type DirectorLiveId = (typeof DIRECTOR_LIVE_IDS)[number];
+
 export const CINEMATIC_IDS: readonly MotionBibleId[] = [
   'emit-burst',
   'first-visit-ignition',
@@ -51,4 +75,14 @@ export function isCinematicId(id: MotionBibleId): boolean {
 
 export function isDirectorSlice1Id(id: MotionBibleId): id is DirectorSlice1Id {
   return (DIRECTOR_SLICE1_IDS as readonly MotionBibleId[]).includes(id);
+}
+
+export function isDirectorRemainderId(
+  id: MotionBibleId,
+): id is DirectorRemainderId {
+  return (DIRECTOR_REMAINDER_IDS as readonly MotionBibleId[]).includes(id);
+}
+
+export function isDirectorLiveId(id: MotionBibleId): id is DirectorLiveId {
+  return (DIRECTOR_LIVE_IDS as readonly MotionBibleId[]).includes(id);
 }

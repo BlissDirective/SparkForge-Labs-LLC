@@ -12,8 +12,10 @@ import {
   type PercentCircle,
 } from './coreMap';
 import {
+  DIRECTOR_LIVE_IDS,
+  DIRECTOR_REMAINDER_IDS,
   DIRECTOR_SLICE1_IDS,
-  type DirectorSlice1Id,
+  type DirectorLiveId,
 } from './director/ids';
 import {
   percentRectToLocal,
@@ -28,26 +30,36 @@ import {
 import { morphPhaseFromProgress, type MorphPhase } from './projectionMath';
 import type { ForgeMode, ForgeRouteApply } from './types';
 
-export { DIRECTOR_SLICE1_IDS, LAYOUT_MORPH_MS };
+export { DIRECTOR_SLICE1_IDS, DIRECTOR_REMAINDER_IDS, DIRECTOR_LIVE_IDS, LAYOUT_MORPH_MS };
 
 const SLOT_IDS: readonly GlassSlotId[] = ['holoL', 'holoC', 'holoR'];
 
 /**
- * Slice-1 Director id for a mode hop, or null when Stagehand should
- * only `applyForgeRoute` (later MOTION_BIBLE ids are not registered).
+ * Live Director id for a mode hop, or null when Stagehand should
+ * only `applyForgeRoute`. Mode switcher still does not auto-play —
+ * HUD / scrubber own MOTION_BIBLE playback so t=0 `setForgeMode`
+ * cannot overwrite a hop.
  */
 export function directorIdForModeChange(
   from: ForgeMode,
   to: ForgeMode,
-): DirectorSlice1Id | null {
+): DirectorLiveId | null {
   if (from === to) return null;
   if (from === 'welcome' && to === 'hubSplit') return 'login-success-hubsplit';
   if (to === 'welcome') return 'welcome-idle';
+  if (from === 'hubSplit' && to === 'labsBrowse') return 'hub-labsbrowse';
+  if (from === 'labsBrowse' && to === 'hubSplit') return 'labsbrowse-hub';
+  if (from === 'gameLobby' && to === 'playStage') return 'lobby-playstage-merge';
+  if (from === 'playStage' && to === 'gameLobby') return 'playstage-lobby-split';
+  if (to === 'focus' && from !== 'focus') return 'focus-in';
+  if (from === 'focus' && to !== 'focus') return 'focus-out';
+  if (to === 'dual' && from !== 'dual') return 'dual-enter';
+  if (from === 'dual' && to !== 'dual') return 'dual-exit';
   return null;
 }
 
-export function isDevDirectorId(value: string): value is DirectorSlice1Id {
-  return (DIRECTOR_SLICE1_IDS as readonly string[]).includes(value);
+export function isDevDirectorId(value: string): value is DirectorLiveId {
+  return (DIRECTOR_LIVE_IDS as readonly string[]).includes(value);
 }
 
 export function forgeRouteForDevMode(

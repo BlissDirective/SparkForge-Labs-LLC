@@ -14,7 +14,7 @@ import type {
 } from '@/lib/forge-hub/types';
 import { playForgeSting, type ForgeStingId } from './stings';
 import { peekDirectorClock, publishDirectorClock, type DirectorClock } from './clock';
-import type { DirectorSlice1Id } from './ids';
+import type { DirectorLiveId, DirectorSlice1Id } from './ids';
 import {
   applyIgnitionSample,
   loadTheatreBeat,
@@ -48,16 +48,18 @@ export interface TimelineIo {
   setMorphProgress: (progress: number) => void;
   patchSparky: (patch: Partial<ForgeSparkyState>) => void;
   patchHoloBubble: (patch: Partial<ForgeHoloBubbleState>) => void;
+  getMode: () => ForgeMode;
+  getPreviousMode: () => ForgeMode | null;
 }
 
 export interface BuiltTimeline {
-  id: DirectorSlice1Id;
+  id: DirectorLiveId;
   timeline: gsap.core.Timeline;
   durationMs: number;
   skippable: boolean;
 }
 
-const TL_DEFAULTS = { overwrite: 'auto' as const, ease: 'power2.inOut' };
+export const TL_DEFAULTS = { overwrite: 'auto' as const, ease: 'power2.inOut' };
 
 function syncClock(durationMs: number, io: TimelineIo): void {
   const clock = peekDirectorClock();
@@ -77,7 +79,7 @@ function syncClock(durationMs: number, io: TimelineIo): void {
   publishDirectorClock();
 }
 
-function bindProgress(
+export function bindProgress(
   tl: gsap.core.Timeline,
   durationMs: number,
   io: TimelineIo,
@@ -126,12 +128,12 @@ export function syncEmitBurstPortal(
   return io.getPortalPhase();
 }
 
-function stingIfMotion(io: TimelineIo, id: ForgeStingId): void {
+export function stingIfMotion(io: TimelineIo, id: ForgeStingId): void {
   playForgeSting(id, { reducedMotion: io.reducedMotion });
 }
 
 /** MOTION_BIBLE RM: skip cinematic tokens; pose snaps; content 200 ms fade. */
-function zeroCinematicTokens(clock: DirectorClock): void {
+export function zeroCinematicTokens(clock: DirectorClock): void {
   clock.sparkyHop = 0;
   clock.sparkyPing = 0;
   clock.bloom = 0;
@@ -140,8 +142,8 @@ function zeroCinematicTokens(clock: DirectorClock): void {
   clock.appearScale = 1;
 }
 
-function reducedMotionCrossfade(
-  id: DirectorSlice1Id,
+export function reducedMotionCrossfade(
+  id: DirectorLiveId,
   io: TimelineIo,
   snapPose: () => void,
 ): BuiltTimeline {

@@ -498,8 +498,8 @@ Same field contract. Confirmed for v1.
 
 - [x] Replace every `TODO (Director)` on §5 pages (minimum)
 - [x] Confirm or drop §4 / §6 extra ids — **confirmed** all stub ids; **added** `dual-exit` and `labsbrowse-hub`; holiday intro **no id in v1** (documented, not dropped)
-- [x] Bind slice-1 ids 1:1 to a GSAP timeline or Theatre stub — **W2-02:** `emit-burst`, `login-success-hubsplit`, `first-visit-ignition` (stub JSON), `welcome-idle` ambient coordinator. **W2 Theatre fill:** `beats/first-visit-ignition.json` authored; Director samples JSON (GSAP master clock / scrubber). Remaining ids: follow-up PRs.
-- [x] Scrub tests at 0 / 0.2 / 0.5 / 0.8 / 1 for slice-1 ids (Director unit tests). Inspector still owns SSIM / Playwright morph recording.
+- [x] Bind slice-1 ids 1:1 to a GSAP timeline or Theatre stub — **W2-02:** `emit-burst`, `login-success-hubsplit`, `first-visit-ignition` (stub JSON), `welcome-idle` ambient coordinator. **W2 Theatre fill:** `beats/first-visit-ignition.json` authored; Director samples JSON (GSAP master clock / scrubber). **W2 remainder:** `hub-labsbrowse` / `labsbrowse-hub`, `focus-in` / `focus-out`, `dual-enter` / `dual-exit`, `whisper-expand` / `whisper-close`, `lobby-playstage-merge` / `playstage-lobby-split`. Theatre `level-up` / `outfit-swap` stay unregistered.
+- [x] Scrub tests at 0 / 0.2 / 0.5 / 0.8 / 1 for slice-1 ids **and W2 remainder morphs** (Director unit tests). Inspector still owns SSIM / Playwright morph recording.
 - [ ] Packet + recording for each kid-visible beat — **when implemented; not this PR**
 - [ ] Align names with `VOCABULARY.md` when W0-05 lands
 - [ ] Then Foreman may mark W0-08 **done**
@@ -515,5 +515,6 @@ Same field contract. Confirmed for v1.
 - Adding holiday-intro as a named id is Tier 1 (new transition).
 - Token duration retunes vs R3F §4 candidates are Director v1 (documented in §1.1); treat further feel changes as Tier 2 once kids see them.
 - **W2-02 Stagehand bind:** `registerMorphTargets(mode)` lives on Stagehand `src/lib/forge-hub/layouts.ts` (PR #176). Director lerps those targets; live HoloC seat is `HUBSPLIT_HOLO_C` `{31.2, 24, 37.6×48}`. `LAYOUT_MORPH_MS` = **420** (`slotSlide`); interactive wall-clock still ≤ 600 ms. Portal charge/emit remains 420/560. `?pose=lock` keeps the painted top seed.
+- **W2 remainder (Director):** remaining interactive morphs bind the same Stagehand APIs. `playstage-lobby-split` slab is **340 ms** (bible §5.5) — not a `LAYOUT_MORPH_MS` retime. Whisper is a sub-layout (dim + HoloBubble), not a `ForgeRouteMode`. Do not nest `emit-burst` 420/560 inside these morphs. Stagehand W2-07 still owns login-on-HoloC + cycle smoke.
 
 Agent: Director (Grok Bot Team)

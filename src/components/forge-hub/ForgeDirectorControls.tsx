@@ -6,7 +6,9 @@
  * Scrubber API is unchanged for Stagehand W2-05.
  */
 
+import { DIRECTOR_REMAINDER_IDS } from '@/lib/forge-hub/director/ids';
 import { useForgeDirector } from '@/lib/forge-hub/useForgeDirector';
+import { isMotionBibleId } from '@/lib/forge-hub/director';
 
 interface ForgeDirectorControlsProps {
   reducedMotion: boolean;
@@ -72,6 +74,31 @@ export function ForgeDirectorControls({
           Skip
         </button>
       </div>
+      <label className="font-mono text-[0.65rem] uppercase tracking-[0.18em] text-cyan-100/80">
+        Remainder morph
+        <select
+          data-testid="forge-hub-director-remainder"
+          className="forge-hub-mode ml-2"
+          aria-label="Director remainder morph id"
+          value={
+            clock.id &&
+            (DIRECTOR_REMAINDER_IDS as readonly string[]).includes(clock.id)
+              ? clock.id
+              : ''
+          }
+          onChange={(event) => {
+            const next = event.target.value;
+            if (next && isMotionBibleId(next)) play(next);
+          }}
+        >
+          <option value="">pick id</option>
+          {DIRECTOR_REMAINDER_IDS.map((id) => (
+            <option key={id} value={id}>
+              {id}
+            </option>
+          ))}
+        </select>
+      </label>
       <label className="forge-hub-director-scrub">
         <span>Scrub</span>
         <input
