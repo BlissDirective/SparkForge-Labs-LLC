@@ -65,7 +65,7 @@ export default async function ForgeHubDevPage({
       <Suspense
         fallback={
           <div
-            data-testid="forge-hub-shell"
+            data-testid="forge-hub-shell-ssr"
             data-forge-stage="pending"
             className="min-h-screen"
           />

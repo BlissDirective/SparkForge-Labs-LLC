@@ -12,7 +12,10 @@ test.describe('W1 /dev/forge-hub room shell + portal', () => {
     await expect(
       page.getByRole('heading', { name: 'Forge Hub', exact: true }),
     ).toBeVisible();
-    await expect(page.getByTestId('forge-hub-shell')).toBeVisible();
+    await expect(page.getByTestId('forge-hub-shell')).toHaveAttribute(
+      'data-forge-screen-kit',
+      'w2',
+    );
     await page.screenshot({
       path: 'test-results/forge-hub-shell.png',
       fullPage: true,
