@@ -7,6 +7,8 @@
  * W2: layout registry, projection hook, HoloPanel reading plate.
  * W2-02: Director GSAP timelines on MOTION_BIBLE ids (dev HUD).
  * W2-03: ForgeRouteMode + EscapeFlat + ToastRail (same sceneStore).
+ * W2 Theatre: first-visit-ignition JSON; ?ignition=1 auto-plays on this
+ * lab. Studio: ?studio=1 in development only. Production routes gated.
  */
 
 import { Suspense } from 'react';
@@ -16,7 +18,7 @@ import { ForgeHubClient } from './client';
 export const metadata: Metadata = {
   title: 'Forge Hub · Dev Lab',
   description:
-    'W2 screen kit + Director + EscapeFlat/ToastRail on the room shell',
+    'W2 screen kit + Director Theatre ignition on the room shell',
   robots: { index: false, follow: false },
 };
 
@@ -45,8 +47,10 @@ export default async function ForgeHubDevPage({
         </h1>
         <p className="mt-2 max-w-md text-sm text-white/70">
           Screen kit on the room shell: HoloL / HoloC / HoloR reading
-          plates. Director HUD drives emit-burst and login-success-hubsplit.
-          EscapeFlat and ToastRail sit outside transformed wrappers.
+          plates. Director HUD drives emit-burst, login-success-hubsplit,
+          and first-visit-ignition. EscapeFlat and ToastRail sit outside
+          transformed wrappers. Kid-visible ignition is this lab only
+          (?ignition=1); production `/` `/login` stay gated.
         </p>
       </header>
       <Suspense

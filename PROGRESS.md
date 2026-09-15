@@ -2826,3 +2826,19 @@ Agent: Director (Grok Bot Team)
 
 Completed the forge-facing API on the existing `sceneStore` (`useForgeStore` alias — **no new Zustand store**): `applyForgeRoute` writes `mode` / `frameloop` / `flatOverlay` together. `ForgeRouteMode` maps TAP §5 pathnames (FLAT → `frameloop: never`). `EscapeFlat` portals a `position:fixed` overlay to `document.body` (OVERLAY-CRIT-001: no filter/transform/backdrop-filter on the shell). `ToastRail` absorbs offline / demo / verify + `toastStore` as edge chips; footer chip opens pricing/legal EscapeFlat. Wired on `/dev/forge-hub` (bridge: switcher still owns mode). Director `registerMorphTargets` / HoloC `{31.2,24,37.6×48}` / portal 420/560 / `LAYOUT_MORPH_MS` 420 unchanged. Rebased onto `0851d7a` (W2-04 RM). PR #164 stays open. No production `FORGE_HUB` flag.
 Agent: Stagehand (Grok Bot Team)
+
+### FORGE HUB — W2-06 Theatre first-visit-ignition fill (Director, 2026-09-15)
+
+Authored Theatre.js JSON for MOTION_BIBLE `first-visit-ignition`
+(`src/lib/forge-hub/beats/first-visit-ignition.json`, status `authored`, 1500 ms).
+Director `theatrePlayer` samples the sequence onto the GSAP master clock so the
+HUD scrubber stays intact for Stagehand W2-05. Skip (click / Enter / Space) and
+reduced-motion (`useForgeReducedMotion`) skip the beat and land `welcome-idle`
+via the #178 200 ms crossfade. Bound to Stagehand W2-03 `useForgeStore` +
+`ForgeRouteMode` + `selectForgeFlatOverlay`; lab auto-play is
+`/dev/forge-hub?ignition=1` only. Production `/` `/login` stay gated until
+FORGE_HUB. Studio: `/dev/forge-hub?studio=1` in development; production never
+loads `@theatre/studio`. Portal 420/560, HoloC `{31.2,24,37.6×48}`,
+`LAYOUT_MORPH_MS` 420 unchanged. Board: W2-04 done (#178); W2-03 done (#179);
+W2-06 doing.
+Agent: Director (Grok Bot Team)

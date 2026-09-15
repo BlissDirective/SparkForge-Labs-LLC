@@ -70,10 +70,12 @@ describe('W2-02 Director duration caps', () => {
     expect(director.durationMs()).toBeLessThanOrEqual(INTERACTIVE_CAP_MS);
   });
 
-  it('keeps the Theatre ignition stub at 1500ms', () => {
+  it('plays the authored Theatre ignition at 1500ms', () => {
     const beat = loadTheatreBeat('first-visit-ignition');
-    expect(beat.status).toBe('stub');
+    expect(beat.status).toBe('authored');
+    expect(beat.runtime).toBe('theatre.js');
     expect(beat.skipTo).toBe('welcome-idle');
+    expect(beat.tracks?.bloom.length).toBeGreaterThan(1);
     const director = getForgeDirector();
     director.play('first-visit-ignition', {
       paused: true,
@@ -231,6 +233,8 @@ describe('W2-02 Director overwrite, skip, stings, Stagehand hook', () => {
     director.skip();
     expect(director.activeId()).toBe('welcome-idle');
     expect(useForgeStore.getState().forge.mode).toBe('welcome');
+    expect(useForgeStore.getState().forge.sparky.spot).toBe('nearCore');
+    expect(useForgeStore.getState().forge.sparky.behaviour).toBe('idle');
   });
 
   it('sting ids match the bible list and the stub is silent', () => {
@@ -257,6 +261,52 @@ describe('W2-02 Director overwrite, skip, stings, Stagehand hook', () => {
     });
     expect(hub.holoC).toMatchObject(HUBSPLIT_HOLO_C);
     expect(welcome.holoC.left).toBe(hub.holoC.left);
+    expect(LAYOUT_MORPH_MS).toBe(420);
+  });
+
+  it('scrubs first-visit-ignition Theatre tracks without portal 420/560', () => {
+    const director = getForgeDirector();
+    director.play('first-visit-ignition', {
+      paused: true,
+      reducedMotion: false,
+    });
+    expect(useForgeStore.getState().forge.mode).toBe('cinematic');
+    expect(useForgeStore.getState().forge.portalPhase).toBe('idle');
+
+    director.scrub(0);
+    expect(peekDirectorClock().appearScale).toBeCloseTo(0, 5);
+    expect(peekDirectorClock().bloom).toBeCloseTo(0, 5);
+    expect(peekDirectorClock().holoC).toMatchObject({
+      left: 31.2,
+      top: 24,
+      width: 37.6,
+      height: 48,
+    });
+
+    director.scrub(0.2);
+    expect(peekDirectorClock().cameraDollyPercent).toBeCloseTo(0.02, 5);
+    expect(peekDirectorClock().appearScale).toBeCloseTo(0, 5);
+
+    director.scrub(0.5);
+    expect(peekDirectorClock().appearScale).toBeGreaterThan(0.4);
+    expect(peekDirectorClock().appearScale).toBeLessThan(1);
+    expect(peekDirectorClock().contentOut).toBeCloseTo(0, 5);
+    expect(
+      Math.abs(peekDirectorClock().cameraDollyPercent),
+    ).toBeLessThanOrEqual(CAMERA_MICRO_DOLLY + 1e-9);
+    expect(useForgeStore.getState().forge.portalPhase).toBe('idle');
+
+    director.scrub(0.8);
+    expect(peekDirectorClock().appearScale).toBeCloseTo(1, 5);
+    expect(peekDirectorClock().contentIn).toBeCloseTo(1, 5);
+    expect(peekDirectorClock().sparkyPing).toBeGreaterThan(0);
+    expect(useForgeStore.getState().forge.sparky.spot).toBe('nearCore');
+
+    director.scrub(1);
+    expect(peekDirectorClock().bloom).toBeCloseTo(0, 4);
+    expect(peekDirectorClock().cameraDollyPercent).toBeCloseTo(0, 4);
+    expect(useForgeStore.getState().forge.mode).toBe('welcome');
+    expect(useForgeStore.getState().forge.portalPhase).toBe('idle');
     expect(LAYOUT_MORPH_MS).toBe(420);
   });
 

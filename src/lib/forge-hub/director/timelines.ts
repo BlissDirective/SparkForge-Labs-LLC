@@ -7,11 +7,19 @@
 import gsap from 'gsap';
 import type { PortalPhase } from '@/lib/forge-hub/portalMachine';
 import { PORTAL_HOLD_MS } from '@/lib/forge-hub/portalMachine';
-import type { ForgeMode } from '@/lib/forge-hub/types';
+import type {
+  ForgeHoloBubbleState,
+  ForgeMode,
+  ForgeSparkyState,
+} from '@/lib/forge-hub/types';
 import { playForgeSting, type ForgeStingId } from './stings';
 import { peekDirectorClock, publishDirectorClock, type DirectorClock } from './clock';
 import type { DirectorSlice1Id } from './ids';
-import { loadTheatreBeat } from './theatrePlayer';
+import {
+  applyIgnitionSample,
+  loadTheatreBeat,
+  sampleFirstVisitIgnition,
+} from './theatrePlayer';
 import { applyLiveSlotsToClock, snapClockToMode } from './targets';
 import {
   BEAMS_MS,
@@ -38,6 +46,8 @@ export interface TimelineIo {
   setPortalPhase: (phase: PortalPhase) => void;
   setForgeMode: (mode: ForgeMode) => void;
   setMorphProgress: (progress: number) => void;
+  patchSparky: (patch: Partial<ForgeSparkyState>) => void;
+  patchHoloBubble: (patch: Partial<ForgeHoloBubbleState>) => void;
 }
 
 export interface BuiltTimeline {
@@ -52,6 +62,10 @@ const TL_DEFAULTS = { overwrite: 'auto' as const, ease: 'power2.inOut' };
 function syncClock(durationMs: number, io: TimelineIo): void {
   const clock = peekDirectorClock();
   clock.progress = durationMs <= 0 ? 1 : clock.progress;
+  if (clock.id === 'first-visit-ignition' && !io.reducedMotion) {
+    const timeMs = clock.progress * (durationMs || clock.durationMs);
+    applyIgnitionSample(clock, sampleFirstVisitIgnition(timeMs), io);
+  }
   clock.cameraDollyPercent = Math.max(
     -CAMERA_MICRO_DOLLY,
     Math.min(CAMERA_MICRO_DOLLY, clock.cameraDollyPercent),
@@ -415,14 +429,15 @@ export function buildLoginSuccessHubsplit(io: TimelineIo): BuiltTimeline {
 }
 
 export function buildFirstVisitIgnition(io: TimelineIo): BuiltTimeline {
-  // Skip the Theatre cinematic entirely under RM (bible: skip beat).
-  // Authored JSON fill waits on Stagehand W2-03 forgeStore.
+  // Skip the Theatre cinematic entirely under RM (bible: skip beat + 200 ms).
   if (io.reducedMotion) {
     return reducedMotionCrossfade('first-visit-ignition', io, () => {
       const live = peekDirectorClock();
       snapClockToMode(live, 'welcome');
       io.setForgeMode('welcome');
       io.setMorphProgress(1);
+      io.patchSparky({ spot: 'nearCore', behaviour: 'idle' });
+      io.patchHoloBubble({ state: 'hidden' });
     });
   }
 
@@ -430,68 +445,39 @@ export function buildFirstVisitIgnition(io: TimelineIo): BuiltTimeline {
 
   const clock = peekDirectorClock();
   const durationMs = beat.durationMs || FIRST_VISIT_IGNITION_MS;
+  const stingAt = beat.stingAtMs ?? 1400;
   clock.id = 'first-visit-ignition';
   clock.durationMs = durationMs;
   clock.skippable = true;
   clock.freezeBreathe = true;
   // Cinematic settle-from-empty — rects are Stagehand welcome (HoloC live seat).
   snapClockToMode(clock, 'welcome');
-  clock.appearScale = 0;
-  clock.contentOut = 1;
-  clock.contentIn = 0;
-  clock.bloom = 0;
-  clock.cameraDollyPercent = 0;
   io.setForgeMode('cinematic');
   io.setMorphProgress(0);
+  applyIgnitionSample(clock, sampleFirstVisitIgnition(0), io);
 
+  const cursor = { t: 0 };
   const tl = gsap.timeline({ paused: true, defaults: TL_DEFAULTS });
-  const settleStart = msToSec(300);
-  const settleDur = msToSec(800);
-  const fadeDur = settleDur / 5;
-  const wipeStart = settleStart + settleDur * 0.8;
-
   tl.to(
-    clock,
-    {
-      bloom: 1,
-      cameraDollyPercent: CAMERA_MICRO_DOLLY,
-      duration: msToSec(700),
-      ease: 'power2.inOut',
-    },
-    msToSec(200),
-  );
-
-  tl.to(
-    clock,
-    {
-      appearScale: 1,
-      duration: settleDur,
-      ease: 'power2.out',
-    },
-    settleStart,
-  );
-
-  tl.to(
-    clock,
-    { contentOut: 0, duration: fadeDur, ease: 'none' },
-    settleStart,
-  );
-  tl.to(
-    clock,
-    { contentIn: 1, duration: fadeDur, ease: 'none' },
-    wipeStart,
+    cursor,
+    { t: 1, duration: msToSec(durationMs), ease: 'none' },
+    0,
   );
 
   tl.call(() => {
     stingIfMotion(io, 'sting.ignition');
-  }, [], msToSec(1400));
+  }, [], msToSec(stingAt));
 
   tl.call(
     () => {
+      applyIgnitionSample(clock, sampleFirstVisitIgnition(durationMs), io);
       clock.cameraDollyPercent = 0;
       clock.freezeBreathe = false;
       clock.appearScale = 1;
+      clock.contentIn = 1;
+      clock.contentOut = 0;
       io.setForgeMode('welcome');
+      io.patchSparky({ spot: 'nearCore', behaviour: 'idle' });
     },
     [],
     msToSec(durationMs),

@@ -9,11 +9,13 @@
  *
  * W2-03: ForgeRouteMode (bridge, no store sync), EscapeFlat,
  * ToastRail. Same sceneStore forge slice — no new Zustand store.
+ * W2 Theatre: first-visit-ignition JSON on ?ignition=1; Studio on
+ * ?studio=1 in development only. Production `/` `/login` stay gated.
  */
 
 import { useCallback, useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, usePathname } from 'next/navigation';
 import '@/components/forge-hub/forge-hub.css';
 import { EscapeFlat } from '@/components/forge-hub/EscapeFlat';
 import { ForgeDirectorControls } from '@/components/forge-hub/ForgeDirectorControls';
@@ -38,6 +40,8 @@ import {
   useForgePortal,
 } from '@/lib/forge-hub/useForgePortal';
 import { useForgeReducedMotion } from '@/lib/forge-hub/useForgeReducedMotion';
+import { useFirstVisitIgnition } from '@/lib/forge-hub/useFirstVisitIgnition';
+import { maybeLoadForgeTheatreStudio } from '@/lib/forge-hub/director';
 import type { ForgeMode } from '@/lib/forge-hub/types';
 import { useDeviceStore } from '@/stores/deviceStore';
 import { toast } from '@/stores/toastStore';
@@ -60,6 +64,7 @@ export function ForgeHubClient() {
 
 function ForgeHubClientInner() {
   const searchParams = useSearchParams();
+  const pathname = usePathname() ?? '/dev/forge-hub';
   const route = useForgeRouteMode();
   const prefersReducedMotion = useForgeReducedMotion();
   const poseLock =
@@ -70,6 +75,11 @@ function ForgeHubClientInner() {
   const calibrate =
     searchParams.get(FORGE_HUB_QUERY.calibrateParam) ===
     FORGE_HUB_QUERY.calibrateOn;
+  const studioOn =
+    searchParams.get(FORGE_HUB_QUERY.studioParam) === FORGE_HUB_QUERY.studioOn;
+  const ignitionQuery =
+    searchParams.get(FORGE_HUB_QUERY.ignitionParam) ===
+    FORGE_HUB_QUERY.ignitionOn;
   const modeParam = searchParams.get('mode');
 
   const setForgePoseLock = useForgeStore((s) => s.setForgePoseLock);
@@ -82,6 +92,18 @@ function ForgeHubClientInner() {
   const frameloop = useForgeStore((s) => s.forge.frameloop);
   const { phase, isOpen, retract, toggle } = useForgePortal();
   const directorId = useForgeStore((s) => s.forge.directorId);
+
+  useFirstVisitIgnition({
+    pathname,
+    routeKind: route.kind,
+    poseLock,
+    reducedMotion: !!prefersReducedMotion,
+    ignitionQuery,
+  });
+
+  useEffect(() => {
+    void maybeLoadForgeTheatreStudio(studioOn);
+  }, [studioOn]);
 
   const [allowStage, setAllowStage] = useState(false);
   const [stageStatus, setStageStatus] = useState<StageStatus>('pending');
@@ -130,6 +152,7 @@ function ForgeHubClientInner() {
   ]);
 
   useEffect(() => {
+    if (ignitionQuery && directorId === 'first-visit-ignition') return;
     if (modeParam && isForgeMode(modeParam)) {
       applyForgeRoute({
         mode: modeParam,
@@ -140,7 +163,13 @@ function ForgeHubClientInner() {
         flatOverlay: modeParam === 'flat',
       });
     }
-  }, [applyForgeRoute, modeParam, prefersReducedMotion]);
+  }, [
+    applyForgeRoute,
+    directorId,
+    ignitionQuery,
+    modeParam,
+    prefersReducedMotion,
+  ]);
 
   useEffect(() => {
     if (forcePoster) {
@@ -207,6 +236,8 @@ function ForgeHubClientInner() {
       data-forge-director={directorId ?? 'idle'}
       data-forge-rm={prefersReducedMotion ? 'on' : 'off'}
       data-forge-route-kind={route.kind}
+      data-forge-ignition={ignitionQuery ? '1' : '0'}
+      data-forge-studio={studioOn ? '1' : '0'}
       data-forge-flat={stageHidden ? '1' : '0'}
       data-forge-frameloop={frameloop}
       className="relative min-h-screen w-full overflow-hidden bg-[#0b1218]"

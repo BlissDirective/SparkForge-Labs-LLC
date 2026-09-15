@@ -2,7 +2,8 @@
 
 /**
  * Minimal /dev/forge-hub Director HUD — emit-burst, one morph,
- * Theatre ignition stub, and a 0–1 scrubber. Not a kid-facing control.
+ * Theatre ignition fill + a 0–1 scrubber. Not a kid-facing control.
+ * Scrubber API is unchanged for Stagehand W2-05.
  */
 
 import { useForgeDirector } from '@/lib/forge-hub/useForgeDirector';
@@ -34,7 +35,7 @@ export function ForgeDirectorControls({
       className="forge-hub-director"
     >
       <p className="forge-hub-director-kicker">
-        Director · {reducedMotion ? 'RM 200ms' : 'W2-02'}
+        Director · {reducedMotion ? 'RM 200ms' : 'W2 Theatre'}
       </p>
       <div className="flex flex-wrap gap-2">
         <button

@@ -1,6 +1,6 @@
 // ════════════════════════════════════════════════════════════════
 // Forge Hub Director — sole owner of MOTION_BIBLE transition timelines.
-// GSAP at runtime; Theatre.js JSON via theatrePlayer (stub in slice 1).
+// GSAP at runtime; Theatre.js JSON via theatrePlayer (authored ignition).
 // One interruptible timeline per play(); overwrite kills the previous.
 // ════════════════════════════════════════════════════════════════
 
@@ -32,6 +32,10 @@ import {
   type BuiltTimeline,
   type TimelineIo,
 } from './director/timelines';
+import {
+  applyIgnitionSample,
+  sampleFirstVisitIgnition,
+} from './director/theatrePlayer';
 
 export type { MotionBibleId, DirectorSlice1Id };
 export type { DirectorClock } from './director/clock';
@@ -69,6 +73,8 @@ function storeIo(reducedMotion: boolean): TimelineIo {
     setForgeMode: (mode) => store().setForgeMode(mode),
     setMorphProgress: (morphProgress) =>
       store().setForgeMorphProgress(morphProgress),
+    patchSparky: (patch) => store().patchForgeSparky(patch),
+    patchHoloBubble: (patch) => store().patchForgeHoloBubble(patch),
   };
 }
 
@@ -206,6 +212,8 @@ class ForgeDirectorImpl implements ForgeDirector {
     }
 
     if (id === 'first-visit-ignition') {
+      this.io?.patchSparky({ spot: 'nearCore', behaviour: 'idle' });
+      this.io?.patchHoloBubble({ state: 'hidden' });
       this.play('welcome-idle', { reducedMotion: this.io?.reducedMotion });
     }
   }
@@ -234,6 +242,13 @@ class ForgeDirectorImpl implements ForgeDirector {
         return;
       }
       syncEmitBurstPortal(timeMs, io, 'scrub');
+    }
+    if (id === 'first-visit-ignition' && !io.reducedMotion) {
+      applyIgnitionSample(
+        peekDirectorClock(),
+        sampleFirstVisitIgnition(timeMs),
+        io,
+      );
     }
   }
 
@@ -327,4 +342,4 @@ export {
   liveDirectorSlots,
   applyLiveSlotsToClock,
 } from './director/targets';
-export { loadTheatreBeat, maybeLoadForgeTheatreStudio } from './director/theatrePlayer';
+export { loadTheatreBeat, maybeLoadForgeTheatreStudio, sampleFirstVisitIgnition } from './director/theatrePlayer';
