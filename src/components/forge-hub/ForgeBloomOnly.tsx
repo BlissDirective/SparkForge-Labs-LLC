@@ -12,8 +12,8 @@
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
 import { useThree } from '@react-three/fiber';
 import { PostProcessingStackWebGPU } from '@/components/3d/PostProcessingStackWebGPU';
-import { isWebGPURenderer } from '@/lib/3d/webgpuRenderer';
 import { FORGE_HUB_BLOOM } from '@/config/forgeHub';
+import { forgeBloomPath } from '@/lib/forge-hub/rendererCascade';
 import { useForgeStore } from '@/stores/sceneStore';
 import { useUIStore } from '@/stores/uiStore';
 
@@ -21,14 +21,15 @@ export function ForgeBloomOnly() {
   const gl = useThree((s) => s.gl);
   const poseLock = useForgeStore((s) => s.forge.poseLock);
   const performanceMode = useUIStore((s) => s.performanceMode);
+  const path = forgeBloomPath(gl, poseLock);
 
-  if (poseLock) return null;
+  if (path === 'skip') return null;
 
   const intensity = performanceMode
     ? FORGE_HUB_BLOOM.intensity * 0.7
     : FORGE_HUB_BLOOM.intensity;
 
-  if (isWebGPURenderer(gl)) {
+  if (path === 'webgpu') {
     return (
       <PostProcessingStackWebGPU
         bloomIntensity={intensity}

@@ -7,20 +7,25 @@
 //   2. If available, request adapter + device
 //   3. Probe maxStorageBufferBindingSize for stripe count
 //   4. If no WebGPU, check WebGL2 context
-//   5. Fallback to CSS tier
+//   5. Fallback to poster (`backend: 'none'`) when neither GPU path works
 //
-// Returns: { tier, stripeCount, maxBufferSize, maxComputeWorkgroups }
-// Called once at app mount, result cached in deviceStore
+// Returns: { tier, stripeCount, maxBufferSize, maxComputeWorkgroups, backend }
+// Called once at app mount, result cached in deviceStore.
+// backend `none` is the TAP poster rung (no WebGPU and no WebGL2).
 // ════════════════════════════════════════════════════
 
 import type { GPUTier } from '@/stores/deviceStore';
 
 // ■■ Detection Result ■■
+/** TAP cascade rung. `none` → poster (no WebGPU and no WebGL2). */
+export type GpuCanvasBackend = 'webgpu' | 'webgl2' | 'none';
+
 export interface GPUDetectionResult {
   tier: GPUTier;
   stripeCount: number;
   maxBufferSize: number;       // bytes, 0 if not WebGPU
   maxComputeWorkgroups: number; // 0 if not WebGPU
+  backend: GpuCanvasBackend;
 }
 
 // ■■ Tier Thresholds ■■
@@ -42,6 +47,13 @@ const WEBGL2_FALLBACK: GPUDetectionResult = {
   stripeCount: 0,
   maxBufferSize: 0,
   maxComputeWorkgroups: 0,
+  backend: 'webgl2',
+};
+
+/** No GPU canvas — forge-hub unmounts the stage and shows the poster. */
+const NONE_FALLBACK: GPUDetectionResult = {
+  ...WEBGL2_FALLBACK,
+  backend: 'none',
 };
 
 /**
@@ -53,7 +65,7 @@ const WEBGL2_FALLBACK: GPUDetectionResult = {
  * Probe WebGL2 support by attempting to create a context on an
  * offscreen canvas. Returns true if a WebGL2 context is available.
  */
-function probeWebGL2(): boolean {
+export function probeWebGL2(): boolean {
   try {
     if (typeof OffscreenCanvas !== 'undefined') {
       const canvas = new OffscreenCanvas(1, 1);
@@ -110,6 +122,7 @@ async function probeWebGPU(): Promise<GPUDetectionResult | null> {
         stripeCount: 4,
         maxBufferSize,
         maxComputeWorkgroups,
+        backend: 'webgpu',
       };
     }
 
@@ -119,6 +132,7 @@ async function probeWebGPU(): Promise<GPUDetectionResult | null> {
         stripeCount: 2,
         maxBufferSize,
         maxComputeWorkgroups,
+        backend: 'webgpu',
       };
     }
 
@@ -128,6 +142,7 @@ async function probeWebGPU(): Promise<GPUDetectionResult | null> {
       stripeCount: 1,
       maxBufferSize,
       maxComputeWorkgroups,
+      backend: 'webgpu',
     };
   } catch {
     // Adapter or device request failed — WebGPU not usable
@@ -141,7 +156,7 @@ async function probeWebGPU(): Promise<GPUDetectionResult | null> {
  * Detection order:
  *   1. WebGPU (high / mid / low) via navigator.gpu
  *   2. WebGL2 via canvas context probe
- *   3. CSS fallback
+ *   3. `backend: 'none'` when neither GPU path is available (poster)
  *
  * This function never throws — it always returns a valid result.
  * Call once at app mount and cache the result in deviceStore via:
@@ -164,6 +179,6 @@ export async function detectGPUTier(): Promise<GPUDetectionResult> {
     return WEBGL2_FALLBACK;
   }
 
-  // No GPU rendering available
-  return WEBGL2_FALLBACK;
+  // No GPU rendering available — TAP poster rung (W2-10)
+  return NONE_FALLBACK;
 }

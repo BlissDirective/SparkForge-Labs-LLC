@@ -37,7 +37,7 @@ Status legend: `todo` · `doing` · `blocked` · `done` · `packet`
 | W2-07 | Stagehand | HoloC welcome login + P2 morph cycle `welcome → hubSplit → playStage → gameLobby → welcome` | **done** | merged PR #182 `3022ccb`; live reading-plate form; Playwright cycle smoke |
 | W2-08 | Director | Remaining MOTION_BIBLE morphs | **done** | merged PR #183 `30c1337`; HUD remainder picker intact |
 | W2-09 | Stagehand | Audit PR #164 port list vs tip; close #164 | **done** | PR #184; catalog last PORT row; close comment on #164 (already closed, not merged) |
-| W2-10 | Stagehand | `createRenderer` / `three/webgpu` (WebGPU → WebGL2 → poster) on `/dev/forge-hub` | todo | after #164 close; W1-01 already calls `createRenderer` |
+| W2-10 | Stagehand | `createRenderer` / `three/webgpu` (WebGPU → WebGL2 → poster) on `/dev/forge-hub` | **doing** | after #164 close; W1-01 already calls `createRenderer`; cascade attrs + poster-when-none |
 | W3-01 | Smith | Confirm SPARKY-CHARACTER-SPEC + artist brief | todo | spec may already exist |
 | W3-02 | Smith | Track A candidate sheet (needs AP-001 mesh-gen) | blocked | AP-001 |
 | W3-03 | Stagehand + Smith | Placeholder Sparky + desk spots + behaviour hooks | todo | after W1-01 |
@@ -58,6 +58,6 @@ Status legend: `todo` · `doing` · `blocked` · `done` · `packet`
 |-----------|-------|--------|
 | Foreman | SparkForge-Labs (CDO) covering | active |
 | Scribe | Scribe (Forge Hub) | active — channel Forge Hub |
-| Stagehand | Stagehand (Forge Hub) | active — next W2-10 createRenderer/webgpu |
+| Stagehand | Stagehand (Forge Hub) | active — W2-10 createRenderer/webgpu doing |
 | Director | Director (Grok Bot Team) | active — W2-08 remaining morphs merged #183 `30c1337` |
 | Smith / Inspector / Glazier / Gatekeeper | — | deferred until AP-001 / P1 |

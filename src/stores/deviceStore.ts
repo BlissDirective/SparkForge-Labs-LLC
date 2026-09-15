@@ -64,6 +64,12 @@ interface DeviceState {
   profile: PerformanceProfile;
   gpuTier: GPUTier;
   stripeCount: number;
+  /**
+   * True after this session's `setGpuTier` (fresh detect). Not persisted.
+   * The persist default is `webgl2`; without this flag `createRenderer`
+   * would skip WebGPU on a stale or never-detected cache (W2-10).
+   */
+  gpuTierResolved: boolean;
   setGpuTier: (tier: GPUTier, stripes?: number) => void;
   getTriangleBudget: (tier: TriangleBudgetTier) => number;
   getParticleCount: (baseCount: number) => number;
@@ -76,8 +82,10 @@ export const useDeviceStore = create<DeviceState>()(
       profile: DESKTOP_ULTRA_PROFILE,
       gpuTier: 'webgl2' as GPUTier,
       stripeCount: 0,
+      gpuTierResolved: false,
 
-      setGpuTier: (gpuTier, stripes = 0) => set({ gpuTier, stripeCount: stripes }),
+      setGpuTier: (gpuTier, stripes = 0) =>
+        set({ gpuTier, stripeCount: stripes, gpuTierResolved: true }),
 
       getTriangleBudget: (tier) => TRIANGLE_BUDGETS[tier],
 
@@ -107,6 +115,29 @@ export const useDeviceStore = create<DeviceState>()(
 export const selectProfile = (s: DeviceState) => s.profile;
 export const selectGpuTier = (s: DeviceState) => s.gpuTier;
 export const selectStripeCount = (s: DeviceState) => s.stripeCount;
+export const selectGpuTierResolved = (s: DeviceState) => s.gpuTierResolved;
+
+/**
+ * Wait for zustand persist rehydration so a stale `sparkforge-device`
+ * `webgl2` default cannot race a fresh `detectGPUTier` write (W2-10).
+ */
+export function waitForDeviceStoreHydration(timeoutMs = 1000): Promise<void> {
+  const persistApi = useDeviceStore.persist;
+  if (!persistApi || persistApi.hasHydrated()) return Promise.resolve();
+  return new Promise((resolve) => {
+    let settled = false;
+    const finish = () => {
+      if (settled) return;
+      settled = true;
+      resolve();
+    };
+    const unsub = persistApi.onFinishHydration(() => {
+      if (typeof unsub === 'function') unsub();
+      finish();
+    });
+    setTimeout(finish, timeoutMs);
+  });
+}
 
 // REMOVED (D3D-1): DeviceType, LODLevel, selectDeviceType, selectHasSelected,
 // PERFORMANCE_PROFILES (multi-device), TRIANGLE_BUDGETS (multi-device)
