@@ -1,0 +1,161 @@
+{
+  "id": "game-launch-burst",
+  "status": "authored",
+  "runtime": "theatre.js",
+  "durationMs": 1500,
+  "skipTo": "game-launch-burst",
+  "project": "SparkForgeForgeHubBurst",
+  "sheet": "game-launch-burst",
+  "object": "burst",
+  "stingAtMs": 200,
+  "notes": "MOTION_BIBLE §5.4. Optional cinematic AFTER lobby-playstage-merge. Sparky cheer (≤1.5s) IS the burst. Does not gate first input (enabled at morph t=600). Bloom is this clock — not portal emit-burst charge 420 / emit 560. Skip / RM → already-merged PlayStage + dim; do not un-merge. Camera ±2% micro-dolly, no cuts.",
+  "tracks": {
+    "bloom": [
+      { "t": 0, "v": 0 },
+      { "t": 180, "v": 0.28 },
+      { "t": 360, "v": 0.5 },
+      { "t": 800, "v": 0.22 },
+      { "t": 1500, "v": 0 }
+    ],
+    "cameraDollyPercent": [
+      { "t": 0, "v": 0 },
+      { "t": 200, "v": 0.02 },
+      { "t": 1200, "v": 0.02 },
+      { "t": 1500, "v": 0 }
+    ],
+    "appearScale": [
+      { "t": 0, "v": 1 },
+      { "t": 1500, "v": 1 }
+    ],
+    "contentOut": [
+      { "t": 0, "v": 0 },
+      { "t": 1500, "v": 0 }
+    ],
+    "contentIn": [
+      { "t": 0, "v": 1 },
+      { "t": 1500, "v": 1 }
+    ],
+    "sparkyPing": [
+      { "t": 0, "v": 0 },
+      { "t": 80, "v": 0.15 },
+      { "t": 250, "v": 1 },
+      { "t": 1100, "v": 1 },
+      { "t": 1500, "v": 0 }
+    ],
+    "sparkyHop": [
+      { "t": 0, "v": 0 },
+      { "t": 80, "v": 0 },
+      { "t": 200, "v": 1 },
+      { "t": 330, "v": 0 },
+      { "t": 1500, "v": 0 }
+    ]
+  },
+  "theatreState": {
+    "definitionVersion": "0.4.0",
+    "revisionHistory": ["w2-theatre-game-launch-burst"],
+    "sheetsById": {
+      "game-launch-burst": {
+        "staticOverrides": {
+          "byObject": {
+            "burst": {
+              "bloom": 0,
+              "cameraDollyPercent": 0,
+              "appearScale": 1,
+              "contentOut": 0,
+              "contentIn": 1,
+              "sparkyPing": 0,
+              "sparkyHop": 0
+            }
+          }
+        },
+        "sequence": {
+          "subUnitsPerUnit": 30,
+          "length": 1.5,
+          "type": "PositionalSequence",
+          "tracksByObject": {
+            "burst": {
+              "trackIdByPropPath": {
+                "[\"bloom\"]": "bloomTrack",
+                "[\"cameraDollyPercent\"]": "dollyTrack",
+                "[\"appearScale\"]": "appearTrack",
+                "[\"contentOut\"]": "outTrack",
+                "[\"contentIn\"]": "inTrack",
+                "[\"sparkyPing\"]": "pingTrack",
+                "[\"sparkyHop\"]": "hopTrack"
+              },
+              "trackData": {
+                "bloomTrack": {
+                  "type": "BasicKeyframedTrack",
+                  "__debugName": "burst:[\"bloom\"]",
+                  "keyframes": [
+                    { "id": "bloom-0", "position": 0, "connectedRight": true, "handles": [0.5, 1, 0.5, 0], "type": "bezier", "value": 0 },
+                    { "id": "bloom-180", "position": 0.18, "connectedRight": true, "handles": [0.5, 1, 0.5, 0], "type": "bezier", "value": 0.28 },
+                    { "id": "bloom-360", "position": 0.36, "connectedRight": true, "handles": [0.5, 1, 0.5, 0], "type": "bezier", "value": 0.5 },
+                    { "id": "bloom-800", "position": 0.8, "connectedRight": true, "handles": [0.5, 1, 0.5, 0], "type": "bezier", "value": 0.22 },
+                    { "id": "bloom-1500", "position": 1.5, "connectedRight": true, "handles": [0.5, 1, 0.5, 0], "type": "bezier", "value": 0 }
+                  ]
+                },
+                "dollyTrack": {
+                  "type": "BasicKeyframedTrack",
+                  "__debugName": "burst:[\"cameraDollyPercent\"]",
+                  "keyframes": [
+                    { "id": "dolly-0", "position": 0, "connectedRight": true, "handles": [0.5, 1, 0.5, 0], "type": "bezier", "value": 0 },
+                    { "id": "dolly-200", "position": 0.2, "connectedRight": true, "handles": [0.5, 1, 0.5, 0], "type": "bezier", "value": 0.02 },
+                    { "id": "dolly-1200", "position": 1.2, "connectedRight": true, "handles": [0.5, 1, 0.5, 0], "type": "bezier", "value": 0.02 },
+                    { "id": "dolly-1500", "position": 1.5, "connectedRight": true, "handles": [0.5, 1, 0.5, 0], "type": "bezier", "value": 0 }
+                  ]
+                },
+                "appearTrack": {
+                  "type": "BasicKeyframedTrack",
+                  "__debugName": "burst:[\"appearScale\"]",
+                  "keyframes": [
+                    { "id": "appear-0", "position": 0, "connectedRight": true, "handles": [0.5, 1, 0.5, 0], "type": "bezier", "value": 1 },
+                    { "id": "appear-1500", "position": 1.5, "connectedRight": true, "handles": [0.5, 1, 0.5, 0], "type": "bezier", "value": 1 }
+                  ]
+                },
+                "outTrack": {
+                  "type": "BasicKeyframedTrack",
+                  "__debugName": "burst:[\"contentOut\"]",
+                  "keyframes": [
+                    { "id": "out-0", "position": 0, "connectedRight": true, "handles": [0.5, 1, 0.5, 0], "type": "bezier", "value": 0 },
+                    { "id": "out-1500", "position": 1.5, "connectedRight": true, "handles": [0.5, 1, 0.5, 0], "type": "bezier", "value": 0 }
+                  ]
+                },
+                "inTrack": {
+                  "type": "BasicKeyframedTrack",
+                  "__debugName": "burst:[\"contentIn\"]",
+                  "keyframes": [
+                    { "id": "in-0", "position": 0, "connectedRight": true, "handles": [0.5, 1, 0.5, 0], "type": "bezier", "value": 1 },
+                    { "id": "in-1500", "position": 1.5, "connectedRight": true, "handles": [0.5, 1, 0.5, 0], "type": "bezier", "value": 1 }
+                  ]
+                },
+                "pingTrack": {
+                  "type": "BasicKeyframedTrack",
+                  "__debugName": "burst:[\"sparkyPing\"]",
+                  "keyframes": [
+                    { "id": "ping-0", "position": 0, "connectedRight": true, "handles": [0.5, 1, 0.5, 0], "type": "bezier", "value": 0 },
+                    { "id": "ping-80", "position": 0.08, "connectedRight": true, "handles": [0.5, 1, 0.5, 0], "type": "bezier", "value": 0.15 },
+                    { "id": "ping-250", "position": 0.25, "connectedRight": true, "handles": [0.5, 1, 0.5, 0], "type": "bezier", "value": 1 },
+                    { "id": "ping-1100", "position": 1.1, "connectedRight": true, "handles": [0.5, 1, 0.5, 0], "type": "bezier", "value": 1 },
+                    { "id": "ping-1500", "position": 1.5, "connectedRight": true, "handles": [0.5, 1, 0.5, 0], "type": "bezier", "value": 0 }
+                  ]
+                },
+                "hopTrack": {
+                  "type": "BasicKeyframedTrack",
+                  "__debugName": "burst:[\"sparkyHop\"]",
+                  "keyframes": [
+                    { "id": "hop-0", "position": 0, "connectedRight": true, "handles": [0.5, 1, 0.5, 0], "type": "bezier", "value": 0 },
+                    { "id": "hop-80", "position": 0.08, "connectedRight": true, "handles": [0.5, 1, 0.5, 0], "type": "bezier", "value": 0 },
+                    { "id": "hop-200", "position": 0.2, "connectedRight": true, "handles": [0.5, 1, 0.5, 0], "type": "bezier", "value": 1 },
+                    { "id": "hop-330", "position": 0.33, "connectedRight": true, "handles": [0.5, 1, 0.5, 0], "type": "bezier", "value": 0 },
+                    { "id": "hop-1500", "position": 1.5, "connectedRight": true, "handles": [0.5, 1, 0.5, 0], "type": "bezier", "value": 0 }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

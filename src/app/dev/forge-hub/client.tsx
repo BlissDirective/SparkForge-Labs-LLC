@@ -9,7 +9,8 @@
  *
  * W2-03: ForgeRouteMode (bridge, no store sync), EscapeFlat,
  * ToastRail. Same sceneStore forge slice — no new Zustand store.
- * W2 Theatre: first-visit-ignition JSON on ?ignition=1; Studio on
+ * W2 Theatre: first-visit-ignition JSON on ?ignition=1; game-launch-burst
+ * on ?burst=1 (also follows live lobby-playstage-merge). Studio on
  * ?studio=1 in development only. Production `/` `/login` stay gated.
  * W2-05: mode switcher + ?calibrate=1 + transition scrubber on the
  * live forge slice / Director APIs. Director HUD stays intact.
@@ -54,6 +55,7 @@ import {
 } from '@/lib/forge-hub/useForgePortal';
 import { useForgeReducedMotion } from '@/lib/forge-hub/useForgeReducedMotion';
 import { useFirstVisitIgnition } from '@/lib/forge-hub/useFirstVisitIgnition';
+import { useGameLaunchBurst } from '@/lib/forge-hub/useGameLaunchBurst';
 import { maybeLoadForgeTheatreStudio } from '@/lib/forge-hub/director';
 import {
   useDeviceStore,
@@ -97,6 +99,8 @@ function ForgeHubClientInner() {
   const ignitionQuery =
     searchParams.get(FORGE_HUB_QUERY.ignitionParam) ===
     FORGE_HUB_QUERY.ignitionOn;
+  const burstQuery =
+    searchParams.get(FORGE_HUB_QUERY.burstParam) === FORGE_HUB_QUERY.burstOn;
   const modeParam = searchParams.get('mode');
 
   const setForgePoseLock = useForgeStore((s) => s.setForgePoseLock);
@@ -119,6 +123,12 @@ function ForgeHubClientInner() {
     poseLock,
     reducedMotion: !!prefersReducedMotion,
     ignitionQuery,
+  });
+
+  useGameLaunchBurst({
+    poseLock,
+    reducedMotion: !!prefersReducedMotion,
+    burstQuery,
   });
 
   useEffect(() => {
@@ -175,6 +185,7 @@ function ForgeHubClientInner() {
 
   useEffect(() => {
     if (ignitionQuery && directorId === 'first-visit-ignition') return;
+    if (burstQuery && directorId === 'game-launch-burst') return;
     if (modeParam && isForgeMode(modeParam)) {
       applyForgeRoute(forgeRouteForDevMode(modeParam, !!prefersReducedMotion));
     }
@@ -182,6 +193,7 @@ function ForgeHubClientInner() {
     applyForgeRoute,
     directorId,
     ignitionQuery,
+    burstQuery,
     modeParam,
     prefersReducedMotion,
   ]);
@@ -266,6 +278,7 @@ function ForgeHubClientInner() {
       data-forge-rm={prefersReducedMotion ? 'on' : 'off'}
       data-forge-route-kind={route.kind}
       data-forge-ignition={ignitionQuery ? '1' : '0'}
+      data-forge-burst={burstQuery ? '1' : '0'}
       data-forge-studio={studioOn ? '1' : '0'}
       data-forge-flat={stageHidden ? '1' : '0'}
       data-forge-frameloop={frameloop}

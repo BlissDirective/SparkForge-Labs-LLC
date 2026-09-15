@@ -18,9 +18,12 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: 'npm run dev',
+    command: process.env.CI ? 'npm start' : 'npm run dev',
     url: 'http://localhost:3000',
-    reuseExistingServer: !process.env.CI,
+    // CI's e2e-smoke job already `npm start`s the production build.
+    // Playwright's default `reuseExistingServer: !CI` then races that
+    // listener and exits: "http://localhost:3000 is already used".
+    reuseExistingServer: true,
     timeout: 120_000,
     // Inherit process.env only. CI injects NEXT_PUBLIC_SUPABASE_* as
     // placeholders in .github/workflows/ci.yml; local `next dev` loads

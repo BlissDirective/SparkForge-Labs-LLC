@@ -16,9 +16,11 @@ import { playForgeSting, type ForgeStingId } from './stings';
 import { peekDirectorClock, publishDirectorClock, type DirectorClock } from './clock';
 import type { DirectorLiveId, DirectorSlice1Id } from './ids';
 import {
+  applyBurstSample,
   applyIgnitionSample,
   loadTheatreBeat,
   sampleFirstVisitIgnition,
+  sampleGameLaunchBurst,
 } from './theatrePlayer';
 import { applyLiveSlotsToClock, snapClockToMode } from './targets';
 import {
@@ -26,6 +28,7 @@ import {
   CAMERA_MICRO_DOLLY,
   EMIT_BURST_MS,
   FIRST_VISIT_IGNITION_MS,
+  GAME_LAUNCH_BURST_MS,
   INTERACTIVE_CHARGE_MS,
   LOGIN_SLAB_WINDOW_MS,
   LOGIN_SUCCESS_HUBSPLIT_MS,
@@ -67,6 +70,10 @@ function syncClock(durationMs: number, io: TimelineIo): void {
   if (clock.id === 'first-visit-ignition' && !io.reducedMotion) {
     const timeMs = clock.progress * (durationMs || clock.durationMs);
     applyIgnitionSample(clock, sampleFirstVisitIgnition(timeMs), io);
+  }
+  if (clock.id === 'game-launch-burst' && !io.reducedMotion) {
+    const timeMs = clock.progress * (durationMs || clock.durationMs);
+    applyBurstSample(clock, sampleGameLaunchBurst(timeMs), io);
   }
   clock.cameraDollyPercent = Math.max(
     -CAMERA_MICRO_DOLLY,
@@ -151,7 +158,10 @@ export function reducedMotionCrossfade(
   const durationMs = REDUCED_MOTION_CROSSFADE_MS;
   clock.id = id;
   clock.durationMs = durationMs;
-  clock.skippable = id === 'emit-burst' || id === 'first-visit-ignition';
+  clock.skippable =
+    id === 'emit-burst' ||
+    id === 'first-visit-ignition' ||
+    id === 'game-launch-burst';
   clock.freezeBreathe = true;
   zeroCinematicTokens(clock);
   clock.reducedMotionCrossfade = 0;
@@ -488,6 +498,93 @@ export function buildFirstVisitIgnition(io: TimelineIo): BuiltTimeline {
   bindProgress(tl, durationMs, io);
   return {
     id: 'first-visit-ignition',
+    timeline: tl,
+    durationMs,
+    skippable: true,
+  };
+}
+
+export function buildGameLaunchBurst(io: TimelineIo): BuiltTimeline {
+  // Bible §5.4: RM skips the burst (merge already used the 200 ms fade).
+  if (io.reducedMotion) {
+    const clock = peekDirectorClock();
+    clock.id = 'game-launch-burst';
+    clock.durationMs = 0;
+    clock.skippable = false;
+    clock.freezeBreathe = true;
+    clock.progress = 1;
+    zeroCinematicTokens(clock);
+    clock.contentOut = 0;
+    clock.contentIn = 1;
+    clock.appearScale = 1;
+    clock.roomDim = 1;
+    clock.reducedMotionCrossfade = 1;
+    snapClockToMode(clock, 'playStage');
+    io.setForgeMode('playStage');
+    io.setMorphProgress(1);
+    io.patchSparky({ spot: 'rightLip', behaviour: 'attend' });
+    io.patchHoloBubble({ state: 'hidden' });
+    publishDirectorClock();
+
+    const tl = gsap.timeline({ paused: true, defaults: TL_DEFAULTS });
+    tl.set(clock, { progress: 1 }, 0);
+    bindProgress(tl, 0, io);
+    return {
+      id: 'game-launch-burst',
+      timeline: tl,
+      durationMs: 0,
+      skippable: false,
+    };
+  }
+
+  const beat = loadTheatreBeat('game-launch-burst');
+  const clock = peekDirectorClock();
+  const durationMs = beat.durationMs || GAME_LAUNCH_BURST_MS;
+  const stingAt = beat.stingAtMs ?? 200;
+  clock.id = 'game-launch-burst';
+  clock.durationMs = durationMs;
+  clock.skippable = true;
+  clock.freezeBreathe = true;
+  // Already merged — stay on PlayStage. Do not switch to cinematic (input stays live).
+  snapClockToMode(clock, 'playStage');
+  io.setForgeMode('playStage');
+  io.setMorphProgress(1);
+  clock.roomDim = 1;
+  applyBurstSample(clock, sampleGameLaunchBurst(0), io);
+
+  const cursor = { t: 0 };
+  const tl = gsap.timeline({ paused: true, defaults: TL_DEFAULTS });
+  tl.to(
+    cursor,
+    { t: 1, duration: msToSec(durationMs), ease: 'none' },
+    0,
+  );
+
+  tl.call(() => {
+    stingIfMotion(io, 'sting.gameLaunchBurst');
+  }, [], msToSec(stingAt));
+
+  tl.call(
+    () => {
+      applyBurstSample(clock, sampleGameLaunchBurst(durationMs), io);
+      clock.cameraDollyPercent = 0;
+      clock.sparkyHop = 0;
+      clock.freezeBreathe = false;
+      clock.appearScale = 1;
+      clock.contentIn = 1;
+      clock.contentOut = 0;
+      clock.roomDim = 1;
+      io.setForgeMode('playStage');
+      io.patchSparky({ spot: 'rightLip', behaviour: 'attend' });
+      io.patchHoloBubble({ state: 'hidden' });
+    },
+    [],
+    msToSec(durationMs),
+  );
+
+  bindProgress(tl, durationMs, io);
+  return {
+    id: 'game-launch-burst',
     timeline: tl,
     durationMs,
     skippable: true,

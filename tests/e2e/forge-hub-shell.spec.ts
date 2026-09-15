@@ -542,6 +542,70 @@ test.describe('W1 /dev/forge-hub room shell + portal', () => {
     await expect(page.getByTestId('forge-hub-welcome-login')).toBeAttached();
     await expect(page.getByTestId('forge-hub-director')).toBeVisible();
   });
+
+  test('Theatre game-launch-burst HUD force-play stays on PlayStage', async ({
+    page,
+  }) => {
+    await page.goto('/dev/forge-hub?fallback=poster');
+    const shell = page.getByTestId('forge-hub-shell');
+    await expect(page.getByTestId('forge-hub-director-burst')).toBeVisible();
+    await expect(page.getByTestId('forge-hub-director-ignition')).toBeVisible();
+    await expect(
+      page.getByTestId('forge-hub-transition-id').locator('option[value="game-launch-burst"]'),
+    ).toHaveCount(1);
+    await page.getByTestId('forge-hub-director-burst').click();
+    await expect(shell).toHaveAttribute('data-forge-director', 'game-launch-burst');
+    await expect(shell).toHaveAttribute('data-forge-mode', 'playStage');
+    await expect(shell).toHaveAttribute('data-forge-portal', 'idle');
+    await expect(page.getByTestId('forge-hub-director-id')).toContainText(
+      'game-launch-burst',
+    );
+  });
+
+  test('Theatre burst query plays cheer without gating PlayStage', async ({
+    page,
+  }) => {
+    await page.goto('/dev/forge-hub?fallback=poster&burst=1');
+    const shell = page.getByTestId('forge-hub-shell');
+    await expect(shell).toHaveAttribute('data-forge-burst', '1');
+    await expect(shell).toHaveAttribute('data-forge-director', 'game-launch-burst');
+    await expect(shell).toHaveAttribute('data-forge-mode', 'playStage');
+    await expect(shell).toHaveAttribute('data-forge-portal', 'idle');
+    await expect(page.getByTestId('forge-hub-transition-progress')).toContainText(
+      'game-launch-burst',
+    );
+  });
+
+  test('click/Space skips Theatre burst and keeps the merged pose', async ({
+    page,
+  }) => {
+    await page.goto('/dev/forge-hub?fallback=poster&burst=1');
+    const shell = page.getByTestId('forge-hub-shell');
+    await expect(shell).toHaveAttribute(
+      'data-forge-director',
+      'game-launch-burst',
+    );
+    await page.keyboard.press('Space');
+    await expect(shell).toHaveAttribute('data-forge-mode', 'playStage');
+    await expect(shell).toHaveAttribute('data-forge-portal', 'idle');
+    await expect(page.getByTestId('forge-hub-director-id')).toContainText(
+      'game-launch-burst',
+    );
+  });
+
+  test('RM skip of burst is instant (merge already used 200ms)', async ({
+    page,
+  }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.goto('/dev/forge-hub?fallback=poster&burst=1');
+    const shell = page.getByTestId('forge-hub-shell');
+    await expect(shell).toHaveAttribute('data-forge-rm', 'on');
+    await expect(shell).toHaveAttribute('data-forge-mode', 'playStage', {
+      timeout: 2000,
+    });
+    await expect(shell).toHaveAttribute('data-forge-portal', 'idle');
+    await expect(page.getByTestId('forge-hub-director-id')).toContainText('RM');
+  });
 });
 
 test.describe('W2-10 createRenderer cascade', () => {

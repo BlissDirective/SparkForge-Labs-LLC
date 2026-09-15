@@ -1,6 +1,6 @@
 // ════════════════════════════════════════════════════════════════
 // Forge Hub Director — sole owner of MOTION_BIBLE transition timelines.
-// GSAP at runtime; Theatre.js JSON via theatrePlayer (authored ignition).
+// GSAP at runtime; Theatre.js JSON via theatrePlayer (ignition + burst).
 // One interruptible timeline per play(); overwrite kills the previous.
 // ════════════════════════════════════════════════════════════════
 
@@ -15,14 +15,16 @@ import {
 import {
   CINEMATIC_IDS,
   DIRECTOR_LIVE_IDS,
-  DIRECTOR_SLICE1_IDS,
   isCinematicId,
   isDirectorLiveId,
+  isDirectorRemainderId,
   isDirectorSlice1Id,
+  isDirectorTheatreBeatId,
   isMotionBibleId,
   type DirectorLiveId,
   type DirectorRemainderId,
   type DirectorSlice1Id,
+  type DirectorTheatreBeatId,
   type MotionBibleId,
 } from './director/ids';
 import {
@@ -32,17 +34,25 @@ import {
 } from './director/timings';
 import { buildRemainderTimeline } from './director/morphs';
 import {
+  buildGameLaunchBurst,
   buildSlice1Timeline,
   syncEmitBurstPortal,
   type BuiltTimeline,
   type TimelineIo,
 } from './director/timelines';
 import {
+  applyBurstSample,
   applyIgnitionSample,
   sampleFirstVisitIgnition,
+  sampleGameLaunchBurst,
 } from './director/theatrePlayer';
+import {
+  armGameLaunchBurst,
+  readBurstSeen,
+  writeBurstSeen,
+} from './gameLaunchBurst';
 
-export type { MotionBibleId, DirectorSlice1Id, DirectorLiveId, DirectorRemainderId };
+export type { MotionBibleId, DirectorSlice1Id, DirectorLiveId, DirectorRemainderId, DirectorTheatreBeatId };
 export type { DirectorClock } from './director/clock';
 
 export interface PlayOptions {
@@ -92,6 +102,7 @@ function setStoreDirectorId(id: MotionBibleId | null): void {
 class ForgeDirectorImpl implements ForgeDirector {
   private current: BuiltTimeline | null = null;
   private io: TimelineIo | null = null;
+  private playGeneration = 0;
 
   registeredIds(): readonly DirectorLiveId[] {
     return DIRECTOR_LIVE_IDS;
@@ -129,6 +140,8 @@ class ForgeDirectorImpl implements ForgeDirector {
     }
 
     this.kill();
+    this.playGeneration += 1;
+    const generation = this.playGeneration;
 
     const reducedMotion = Boolean(opts.reducedMotion);
     const io = storeIo(reducedMotion);
@@ -142,11 +155,26 @@ class ForgeDirectorImpl implements ForgeDirector {
     setDirectorClockId(id);
     setStoreDirectorId(id);
 
-    const built = isDirectorSlice1Id(id)
-      ? buildSlice1Timeline(id, io)
-      : buildRemainderTimeline(id, io);
+    if (id === 'game-launch-burst' && !opts.paused) {
+      writeBurstSeen();
+    }
+
+    let built: BuiltTimeline;
+    if (isDirectorSlice1Id(id)) {
+      built = buildSlice1Timeline(id, io);
+    } else if (isDirectorRemainderId(id)) {
+      built = buildRemainderTimeline(id, io);
+    } else if (isDirectorTheatreBeatId(id)) {
+      built = buildGameLaunchBurst(io);
+    } else {
+      throw new Error(
+        `Director: "${id}" is not a live MOTION_BIBLE id (${DIRECTOR_LIVE_IDS.join(', ')})`,
+      );
+    }
     this.assertCaps(built, reducedMotion);
     this.current = built;
+
+    const followOnBurst = id === 'lobby-playstage-merge' && !opts.paused;
 
     built.timeline.eventCallback('onComplete', () => {
       const clock = peekDirectorClock();
@@ -157,11 +185,17 @@ class ForgeDirectorImpl implements ForgeDirector {
         clock.skippable = false;
         setStoreDirectorId('welcome-idle');
       }
-      if (id === 'emit-burst') {
+      if (id === 'emit-burst' || id === 'game-launch-burst') {
         clock.skippable = false;
       }
       io.setMorphProgress(1);
       publishDirectorClock();
+      if (followOnBurst) {
+        queueMicrotask(() => {
+          if (this.playGeneration !== generation) return;
+          this.tryPlayGameLaunchBurst(reducedMotion);
+        });
+      }
     });
 
     // Seek t=0 so portal IGNITE / welcome pose apply even when paused.
@@ -224,6 +258,30 @@ class ForgeDirectorImpl implements ForgeDirector {
       this.io?.patchSparky({ spot: 'nearCore', behaviour: 'idle' });
       this.io?.patchHoloBubble({ state: 'hidden' });
       this.play('welcome-idle', { reducedMotion: this.io?.reducedMotion });
+      return;
+    }
+
+    if (id === 'game-launch-burst') {
+      const clock = peekDirectorClock();
+      const durationMs = this.current.durationMs;
+      if (this.io && !this.io.reducedMotion) {
+        applyBurstSample(clock, sampleGameLaunchBurst(durationMs), this.io);
+      }
+      clock.cameraDollyPercent = 0;
+      clock.sparkyHop = 0;
+      clock.skippable = false;
+      clock.progress = 1;
+      clock.roomDim = 1;
+      clock.appearScale = 1;
+      clock.contentIn = 1;
+      clock.contentOut = 0;
+      this.current.timeline.progress(1);
+      this.current.timeline.pause();
+      this.io?.setForgeMode('playStage');
+      this.io?.setMorphProgress(1);
+      this.io?.patchSparky({ spot: 'rightLip', behaviour: 'attend' });
+      this.io?.patchHoloBubble({ state: 'hidden' });
+      publishDirectorClock();
     }
   }
 
@@ -259,6 +317,29 @@ class ForgeDirectorImpl implements ForgeDirector {
         io,
       );
     }
+    if (id === 'game-launch-burst' && !io.reducedMotion) {
+      applyBurstSample(
+        peekDirectorClock(),
+        sampleGameLaunchBurst(timeMs),
+        io,
+      );
+    }
+  }
+
+  private tryPlayGameLaunchBurst(reducedMotion: boolean): void {
+    const forge = useForgeStore.getState().forge;
+    const arm = armGameLaunchBurst({
+      poseLock: forge.poseLock,
+      flatOverlay: forge.flatOverlay,
+      reducedMotion,
+      seen: readBurstSeen(),
+      force: false,
+      fromMerge: true,
+      mode: forge.mode,
+      morphProgress: forge.morphProgress,
+    });
+    if (arm.kind !== 'play') return;
+    this.play('game-launch-burst', { reducedMotion });
   }
 
   private assertCaps(built: BuiltTimeline, reducedMotion: boolean): void {
@@ -313,12 +394,14 @@ export {
   MOTION_BIBLE_IDS,
   DIRECTOR_SLICE1_IDS,
   DIRECTOR_REMAINDER_IDS,
+  DIRECTOR_THEATRE_BEAT_IDS,
   DIRECTOR_LIVE_IDS,
   CINEMATIC_IDS,
   isMotionBibleId,
   isCinematicId,
   isDirectorSlice1Id,
   isDirectorRemainderId,
+  isDirectorTheatreBeatId,
   isDirectorLiveId,
 } from './director/ids';
 export {
@@ -332,6 +415,7 @@ export {
   WHISPER_EXPAND_WINDOW_MS,
   YAW_TUCK_MS,
   FIRST_VISIT_IGNITION_MS,
+  GAME_LAUNCH_BURST_MS,
   REDUCED_MOTION_CROSSFADE_MS as DIRECTOR_RM_MS,
   WELCOME_SIDE_SCALE,
   LAYOUT_MORPH_MS,
@@ -359,4 +443,9 @@ export {
   liveDirectorSlots,
   applyLiveSlotsToClock,
 } from './director/targets';
-export { loadTheatreBeat, maybeLoadForgeTheatreStudio, sampleFirstVisitIgnition } from './director/theatrePlayer';
+export {
+  loadTheatreBeat,
+  maybeLoadForgeTheatreStudio,
+  sampleFirstVisitIgnition,
+  sampleGameLaunchBurst,
+} from './director/theatrePlayer';

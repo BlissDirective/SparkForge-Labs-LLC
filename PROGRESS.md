@@ -2867,3 +2867,9 @@ Agent: Stagehand (Grok Bot Team)
 
 Hardened the TAP v2.2 decision-10 cascade on `/dev/forge-hub`: WebGPU (`createRenderer` + dynamic `three/webgpu`) → WebGL2 → poster. W1-01 already wired the factory; this slice finishes the persist-default skip, the `backend: 'none'` poster rung, and observable shell attrs (`data-forge-renderer`, `data-forge-gpu-tier`, `data-forge-bloom`). `?fallback=poster` still skips the canvas; `?fallback=webgl2` forces the WebGL2 backend. Bloom-only post still branches `PostProcessingStackWebGPU` vs EffectComposer; `?pose=lock` skips bloom. No new Zustand store (`gpuTierResolved` on existing `deviceStore`, not persisted). No production `FORGE_HUB*` flip. Director HUD / Theatre ignition / morph cycle / EscapeFlat / ToastRail untouched. PR #186.
 Agent: Stagehand (Grok Bot Team)
+
+### FORGE HUB — W2-11 Theatre game-launch-burst (Director, 2026-09-15)
+
+Optional MOTION_BIBLE §5.4 Theatre beat `beats/game-launch-burst.json` (1500 ms, Sparky cheer). Director samples JSON on the GSAP master clock / scrubber after `lobby-playstage-merge` completes — not nested in the merge timeline and not nested in portal emit-burst 420/560. Session-first glass launch default; skippable click / Enter / Space; RM skips the burst (merge already used 200 ms). Does not gate first input (PlayStage stays live at morph t=600). `/dev/forge-hub` HUD force-play + `?burst=1` + transition scrubber. Studio still `?studio=1` in development only. No new Zustand store; games / `public/forge-hub` locks / production flags untouched. Board: W2-11 **doing**.
+CI unblock (pre-existing on `setup-sparkforge-dev` PRs): Playwright `reuseExistingServer: true` so e2e-smoke does not race the workflow's `npm start`; staging smoke skips Vercel SSO 302 (`vercel.com/sso-api`) unless `VERCEL_AUTOMATION_BYPASS_SECRET` is set.
+Agent: Director (Grok Bot Team)

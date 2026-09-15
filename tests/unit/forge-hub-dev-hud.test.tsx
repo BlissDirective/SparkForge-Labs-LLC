@@ -6,6 +6,7 @@ import { cleanup, render, screen, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { ForgeCalibrateOverlay } from '@/components/forge-hub/ForgeCalibrateOverlay';
+import { ForgeDirectorControls } from '@/components/forge-hub/ForgeDirectorControls';
 import { ForgeModeSwitcher } from '@/components/forge-hub/ForgeModeSwitcher';
 import { ForgeTransitionScrubber } from '@/components/forge-hub/ForgeTransitionScrubber';
 import {
@@ -156,7 +157,21 @@ describe('W2-05 transition scrubber vs live forgeStore', () => {
         .getByTestId('forge-hub-transition-id')
         .querySelector('option[value="first-visit-ignition"]'),
     ).toBeTruthy();
+    expect(
+      screen
+        .getByTestId('forge-hub-transition-id')
+        .querySelector('option[value="game-launch-burst"]'),
+    ).toBeTruthy();
     expect(screen.queryByTestId('forge-hub-director-ignition')).toBeNull();
+  });
+
+  it('lists Theatre game-launch-burst on the Director HUD without replacing Skip', () => {
+    render(<ForgeDirectorControls reducedMotion={false} poseLock={false} />);
+    expect(screen.getByTestId('forge-hub-director-burst')).toBeTruthy();
+    expect(screen.getByTestId('forge-hub-director-ignition')).toBeTruthy();
+    expect(screen.getByTestId('forge-hub-director-skip')).toBeTruthy();
+    expect(screen.getByTestId('forge-hub-director-remainder')).toBeTruthy();
+    expect(screen.getByTestId('forge-hub-director-scrub')).toBeTruthy();
   });
 
   it('scrubs a paused Director id onto forge.morphProgress', async () => {

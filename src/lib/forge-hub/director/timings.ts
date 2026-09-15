@@ -29,6 +29,9 @@ export const INTERACTIVE_MORPH_MS = INTERACTIVE_CAP_MS;
 
 export const FIRST_VISIT_IGNITION_MS = 1500;
 
+/** Optional Theatre cheer burst after lobby-playstage-merge (bible §5.4). */
+export const GAME_LAUNCH_BURST_MS = 1500;
+
 /** playstage-lobby-split slab window (bible §5.5) — not a LAYOUT_MORPH_MS retime. */
 export const SPLIT_SLAB_WINDOW_MS = 340;
 

@@ -2,7 +2,7 @@
 
 /**
  * Minimal /dev/forge-hub Director HUD — emit-burst, one morph,
- * Theatre ignition fill + a 0–1 scrubber. Not a kid-facing control.
+ * Theatre ignition fill, optional game-launch-burst, + a 0–1 scrubber. Not a kid-facing control.
  * Scrubber API is unchanged for Stagehand W2-05.
  */
 
@@ -63,6 +63,14 @@ export function ForgeDirectorControls({
           onClick={() => play('first-visit-ignition')}
         >
           first-visit-ignition
+        </button>
+        <button
+          type="button"
+          data-testid="forge-hub-director-burst"
+          className="forge-hub-ignite"
+          onClick={() => play('game-launch-burst')}
+        >
+          game-launch-burst
         </button>
         <button
           type="button"
