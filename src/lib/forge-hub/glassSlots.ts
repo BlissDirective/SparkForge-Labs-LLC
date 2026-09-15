@@ -6,8 +6,9 @@
 //
 // Vocab: HoloL / HoloC / HoloR. Lock-pose HoloC sits on the painted
 // top frame (was TopMonitor) so Phase 1 SSIM still sees the plate's
-// SF monogram. W2's layout registry re-seats HoloC to center for
-// `welcome` / equal-trio `hubSplit`. This is not a fourth TopBanner.
+// SF monogram. W2 `layouts.ts` re-seats live HoloC to center for
+// `welcome` / equal-trio `hubSplit`. `?pose=lock` keeps this trio.
+// This is not a fourth TopBanner.
 //
 // Not ported: HOTSPOTS, WORLD_MEDIA, hit-map, hotspot shell CSS.
 

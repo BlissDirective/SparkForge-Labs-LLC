@@ -25,5 +25,9 @@ test.describe('Health Check', () => {
     await expect(
       page.getByRole('heading', { name: 'Forge Hub', exact: true }),
     ).toBeVisible();
+    await expect(page.getByTestId('forge-hub-shell')).toHaveAttribute(
+      'data-forge-screen-kit',
+      'w2',
+    );
   });
 });

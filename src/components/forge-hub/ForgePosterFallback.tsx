@@ -10,7 +10,9 @@
 
 import { FORGE_HUB_DISPLAY_STILL } from '@/config/forgeHub';
 import { HOLO_BLEND_CSS_VARS } from '@/lib/forge-hub/holoBlend';
-import { cssGlassStyle, GLASS_LOCK_SLOT_LIST } from '@/lib/forge-hub/glassSlots';
+import { cssGlassStyle } from '@/lib/forge-hub/glassSlots';
+import { glassSlotsForView } from '@/lib/forge-hub/layouts';
+import { useForgeStore } from '@/stores/sceneStore';
 
 interface ForgePosterFallbackProps {
   className?: string;
@@ -18,9 +20,12 @@ interface ForgePosterFallbackProps {
 }
 
 function PosterGlassOverlays() {
+  const mode = useForgeStore((s) => s.forge.mode);
+  const poseLock = useForgeStore((s) => s.forge.poseLock);
+  const slots = glassSlotsForView(mode, poseLock);
   return (
     <div className="forge-hub-glass-stage" data-testid="forge-hub-glass-stage">
-      {GLASS_LOCK_SLOT_LIST.map((slot) => (
+      {slots.map((slot) => (
         <div
           key={slot.id}
           data-testid={`forge-hub-glass-${slot.id}`}

@@ -1,10 +1,10 @@
 /**
- * Forge Hub room shell — /dev/forge-hub (W1-01 + W1-02 + W1-03)
+ * Forge Hub room shell — /dev/forge-hub (W1 + W2 screen kit)
  *
  * Public like other /dev/* routes (middleware isDevRoute).
  * Server-rendered heading is the LCP element; the R3F stage loads
  * after hydration. Always on — not gated by FORGE_HUB (W10).
- * W1-03: three lock-pose glass slabs (edge / scanline / breathe).
+ * W2: layout registry, projection hook, HoloPanel reading plate.
  */
 
 import { Suspense } from 'react';
@@ -14,7 +14,7 @@ import { ForgeHubClient } from './client';
 export const metadata: Metadata = {
   title: 'Forge Hub · Dev Lab',
   description:
-    'W1-03 glass slabs on the room shell: lock-pose HoloL / HoloC / HoloR',
+    'W2 screen kit: layout registry, projected HoloPanels, reading plate',
   robots: { index: false, follow: false },
 };
 
@@ -42,8 +42,8 @@ export default async function ForgeHubDevPage({
           Forge Hub
         </h1>
         <p className="mt-2 max-w-md text-sm text-white/70">
-          Room shell with CorePortal and lock-pose glass slabs (W1-03).
-          Sparky and the Director land in later tasks.
+          Screen kit on the room shell: HoloL / HoloC / HoloR reading
+          plates. Sparky and the Director land in later tasks.
         </p>
       </header>
       <Suspense

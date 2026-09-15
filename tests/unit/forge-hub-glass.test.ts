@@ -35,6 +35,12 @@ describe('W1-03 HOLO blend tokens', () => {
     expect(HOLO_BLEND.fill).toBe('rgba(6,14,28,0.48)');
     expect(HOLO_BLEND_CSS_VARS['--fh-holo-edge']).toBe(HOLO_BLEND.edge);
   });
+
+  it('raises the reading-plate fill to ≥ 0.85 opaque navy', () => {
+    expect(HOLO_BLEND.readingFillAlpha).toBeGreaterThanOrEqual(0.85);
+    expect(HOLO_BLEND.readingFill).toBe('rgba(6,14,28,0.88)');
+    expect(HOLO_BLEND_CSS_VARS['--fh-holo-reading']).toBe(HOLO_BLEND.readingFill);
+  });
 });
 
 describe('W1-03 lock-pose glass slots', () => {
