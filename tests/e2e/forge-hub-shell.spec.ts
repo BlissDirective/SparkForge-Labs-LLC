@@ -719,3 +719,63 @@ test.describe('W2-10 createRenderer cascade', () => {
     expect(['webgpu', 'webgl2', 'poster']).toContain(renderer);
   });
 });
+
+test.describe('W3-03 placeholder Sparky', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.addInitScript(() => {
+      localStorage.setItem('sparkforge:cookie-notice:dismissed', '1');
+    });
+  });
+
+  test('shell exposes default spot + behaviour attrs', async ({ page }) => {
+    await page.goto('/dev/forge-hub?fallback=poster');
+    const shell = page.getByTestId('forge-hub-shell');
+    await expect(shell).toHaveAttribute('data-forge-sparky-spot', 'nearCore');
+    await expect(shell).toHaveAttribute('data-forge-sparky-behaviour', 'idle');
+    await expect(page.getByTestId('forge-hub-sparky-panel')).toBeVisible();
+    await expect(page.getByTestId('forge-hub-mode-switch')).toBeVisible();
+    await expect(page.getByTestId('forge-hub-director')).toBeVisible();
+  });
+
+  test('spot picker updates data-forge-sparky-spot', async ({ page }) => {
+    await page.goto('/dev/forge-hub?fallback=poster');
+    const shell = page.getByTestId('forge-hub-shell');
+    await page.getByTestId('forge-hub-sparky-spot').selectOption('leftLip');
+    await expect(shell).toHaveAttribute('data-forge-sparky-spot', 'leftLip');
+    await page.getByTestId('forge-hub-sparky-spot').selectOption('frontCenter');
+    await expect(shell).toHaveAttribute('data-forge-sparky-spot', 'frontCenter');
+  });
+
+  test('reduced motion teleports between spots', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.goto('/dev/forge-hub?fallback=poster');
+    const shell = page.getByTestId('forge-hub-shell');
+    await expect(shell).toHaveAttribute('data-forge-rm', 'on');
+    await expect(shell).toHaveAttribute('data-forge-sparky-move', 'teleport');
+    await page.getByTestId('forge-hub-sparky-spot').selectOption('rightLip');
+    await expect(shell).toHaveAttribute('data-forge-sparky-spot', 'rightLip');
+    await expect(shell).toHaveAttribute('data-forge-sparky-move', 'teleport');
+  });
+
+  test('force react patches behaviour then the Director HUD stays', async ({
+    page,
+  }) => {
+    await page.goto('/dev/forge-hub?fallback=poster');
+    const shell = page.getByTestId('forge-hub-shell');
+    await page.getByTestId('forge-hub-sparky-react').click();
+    await expect(shell).toHaveAttribute('data-forge-sparky-behaviour', 'react');
+    await expect(page.getByTestId('forge-hub-director')).toBeVisible();
+    await expect(page.getByTestId('forge-hub-mode-switch')).toBeVisible();
+  });
+
+  test('pose=lock hides Sparky controls and freezes motion', async ({
+    page,
+  }) => {
+    await page.goto('/dev/forge-hub?pose=lock');
+    const shell = page.getByTestId('forge-hub-shell');
+    await expect(shell).toHaveAttribute('data-forge-pose', 'lock');
+    await expect(shell).toHaveAttribute('data-forge-sparky-move', 'frozen');
+    await expect(shell).toHaveAttribute('data-forge-sparky-mounted', '0');
+    await expect(page.getByTestId('forge-hub-sparky-panel')).toHaveCount(0);
+  });
+});

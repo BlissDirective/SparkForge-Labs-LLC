@@ -14,6 +14,7 @@
  * W2-05: mode switcher + ?calibrate=1 + transition scrubber.
  * W2-07: live HoloC login form + P2 morph cycle smoke.
  * W2-10: createRenderer cascade (WebGPU → WebGL2 → poster).
+ * W3-03: placeholder Sparky + desk spots + behaviour hooks.
  */
 
 import { Suspense } from 'react';
@@ -59,7 +60,8 @@ export default async function ForgeHubDevPage({
           drives emit-burst, login-success-hubsplit, first-visit-ignition,
           and game-launch-burst. Mode switcher, P2 morph cycle,
           ?calibrate=1 slot outlines, and the transition scrubber bind
-          the live forge slice. EscapeFlat and ToastRail sit outside
+          the live forge slice. Placeholder Sparky walks desk spots
+          (behaviour panel). EscapeFlat and ToastRail sit outside
           transformed wrappers. Kid-visible ignition is this lab only
           (?ignition=1); ?burst=1 force-plays the optional launch cheer.
           Production `/` `/login` stay gated.

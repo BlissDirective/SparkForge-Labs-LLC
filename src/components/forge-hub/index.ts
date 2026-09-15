@@ -14,6 +14,8 @@ export { ForgeDirectorControls } from './ForgeDirectorControls';
 export { ForgeModeSwitcher } from './ForgeModeSwitcher';
 export { ForgeCalibrateOverlay } from './ForgeCalibrateOverlay';
 export { ForgeTransitionScrubber } from './ForgeTransitionScrubber';
+export { SparkyBehaviourPanel } from './SparkyBehaviourPanel';
+export { PlaceholderSparky } from './PlaceholderSparky';
 export { ForgeRouteMode, useForgeRouteMode } from './ForgeRouteMode';
 export { EscapeFlat } from './EscapeFlat';
 export { ToastRail } from './ToastRail';

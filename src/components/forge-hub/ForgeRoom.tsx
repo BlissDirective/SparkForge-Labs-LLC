@@ -19,6 +19,7 @@ import {
 import { CorePortal } from './CorePortal';
 import { ForgeGlassSlabs } from './ForgeGlassSlabs';
 import { ForgeSlotProjector } from './ForgeSlotProjector';
+import { PlaceholderSparky } from './PlaceholderSparky';
 
 function usePlateTexture(url: string) {
   const texture = useTexture(url);
@@ -134,6 +135,7 @@ export function ForgeRoom({ reducedMotion = false }: { reducedMotion?: boolean }
       <PlateFrame reducedMotion={reducedMotion} />
       <DeskPlane />
       <CorePortal />
+      <PlaceholderSparky />
     </group>
   );
 }

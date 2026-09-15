@@ -39,7 +39,10 @@ describe('W1-01 forgeStore is sceneStore (no new Zustand store)', () => {
     expect(forge.portalPhase).toBe('idle');
     expect(forge.poseLock).toBe(false);
     expect(forge.sparky.spot).toBe('nearCore');
+    expect(forge.sparky.behaviour).toBe('idle');
+    expect(forge.sparky.expression).toBe('idle');
     expect(forge.holoBubble.state).toBe('hidden');
+    expect(forge.holoBubble.tip).toBeNull();
     expect(forge.directorId).toBeNull();
   });
 

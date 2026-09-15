@@ -18,6 +18,7 @@
  * W2-10: WebGPU → WebGL2 → poster cascade via `createRenderer`
  * (`three/webgpu`). Shell reports the winning backend on
  * `data-forge-renderer`. `?fallback=poster` / `?fallback=webgl2`.
+ * W3-03: placeholder Sparky, desk spots, behaviour panel.
  */
 
 import { useCallback, useEffect, useState } from 'react';
@@ -35,6 +36,7 @@ import {
   useForgeRouteMode,
 } from '@/components/forge-hub/ForgeRouteMode';
 import { ForgeTransitionScrubber } from '@/components/forge-hub/ForgeTransitionScrubber';
+import { SparkyBehaviourPanel } from '@/components/forge-hub/SparkyBehaviourPanel';
 import { HoloPanelLayer } from '@/components/forge-hub/HoloPanelLayer';
 import { ToastRail } from '@/components/forge-hub/ToastRail';
 import {
@@ -54,6 +56,8 @@ import {
   useForgePortal,
 } from '@/lib/forge-hub/useForgePortal';
 import { useForgeReducedMotion } from '@/lib/forge-hub/useForgeReducedMotion';
+import { useSparkyBehaviour } from '@/lib/forge-hub/useSparkyBehaviour';
+import { sparkyMoveAttr } from '@/lib/forge-hub/sparkyBehaviour';
 import { useFirstVisitIgnition } from '@/lib/forge-hub/useFirstVisitIgnition';
 import { useGameLaunchBurst } from '@/lib/forge-hub/useGameLaunchBurst';
 import { maybeLoadForgeTheatreStudio } from '@/lib/forge-hub/director';
@@ -113,6 +117,7 @@ function ForgeHubClientInner() {
   const frameloop = useForgeStore((s) => s.forge.frameloop);
   const { phase, isOpen, retract, toggle } = useForgePortal();
   const directorId = useForgeStore((s) => s.forge.directorId);
+  const sparky = useForgeStore((s) => s.forge.sparky);
   const [cycleStatus, setCycleStatus] = useState('idle');
   const [cycleStep, setCycleStep] = useState('idle');
   const [cycleTrace, setCycleTrace] = useState('');
@@ -130,6 +135,8 @@ function ForgeHubClientInner() {
     reducedMotion: !!prefersReducedMotion,
     burstQuery,
   });
+
+  useSparkyBehaviour(!!prefersReducedMotion, poseLock);
 
   useEffect(() => {
     void maybeLoadForgeTheatreStudio(studioOn);
@@ -286,6 +293,17 @@ function ForgeHubClientInner() {
       data-forge-morph-cycle={cycleStatus}
       data-forge-morph-cycle-step={cycleStep}
       data-forge-morph-cycle-trace={cycleTrace}
+      data-forge-sparky-spot={sparky.spot}
+      data-forge-sparky-behaviour={sparky.behaviour}
+      data-forge-sparky-expression={sparky.expression}
+      data-forge-sparky-move={sparkyMoveAttr(
+        poseLock,
+        !!prefersReducedMotion,
+        sparky.moving,
+      )}
+      data-forge-sparky-mounted={
+        allowStage && !forcePoster && !poseLock && !stageHidden ? '1' : '0'
+      }
       className="relative min-h-screen w-full overflow-hidden bg-[#0b1218]"
     >
       <ForgePosterFallback
@@ -363,6 +381,10 @@ function ForgeHubClientInner() {
             onTrace={setCycleTrace}
           />
           <ForgeTransitionScrubber
+            reducedMotion={!!prefersReducedMotion}
+            poseLock={poseLock}
+          />
+          <SparkyBehaviourPanel
             reducedMotion={!!prefersReducedMotion}
             poseLock={poseLock}
           />
