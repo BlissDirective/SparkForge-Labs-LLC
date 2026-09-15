@@ -11,7 +11,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
 import { useSearchParams } from 'next/navigation';
-import { useReducedMotion } from 'motion/react';
 import '@/components/forge-hub/forge-hub.css';
 import { ForgePosterFallback } from '@/components/forge-hub/ForgePosterFallback';
 import {
@@ -23,6 +22,7 @@ import {
   portalLiveStatus,
   useForgePortal,
 } from '@/lib/forge-hub/useForgePortal';
+import { useForgeReducedMotion } from '@/lib/forge-hub/useForgeReducedMotion';
 import { useDeviceStore } from '@/stores/deviceStore';
 import { useForgeStore } from '@/stores/sceneStore';
 
@@ -35,7 +35,7 @@ type StageStatus = 'pending' | 'ready' | 'poster';
 
 export function ForgeHubClient() {
   const searchParams = useSearchParams();
-  const prefersReducedMotion = useReducedMotion();
+  const prefersReducedMotion = useForgeReducedMotion();
   const poseLock =
     searchParams.get(FORGE_HUB_QUERY.poseParam) === FORGE_HUB_QUERY.poseLock;
   const forcePoster =
