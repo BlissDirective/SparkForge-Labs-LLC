@@ -2749,3 +2749,7 @@ instruction; it has no unique commits and is to be deleted by the owner in the G
 should ever be pushed to it. `.github/workflows/ci.yml` triggers
 were pointing at the non-existent `main` (so CI never ran on pushes to the default branch or on
 PRs into it); they now target `setup-sparkforge-dev`, `claude/**`, and `grok/**`.
+
+### FORGE HUB — W0-04 CLAUDE.md v7 packet (2026-09-15)
+
+Scribe drafted **CLAUDE.md v7.0** as **AP-W0-04** (Tier 2). Status is **packet**, not done/merged. Draft PR; do **not** merge until the owner replies **Approve**. Until then TAP v2.2 §1 still wins on conflicts. Decisions 1–13 not reopened. No `public/forge-hub/` bytes, no `games/*`, no production flags.

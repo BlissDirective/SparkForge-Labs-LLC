@@ -12,6 +12,7 @@ Status legend: `todo` · `doing` · `blocked` · `done` · `packet`
 | ID | Title | Tier | Status |
 |----|-------|------|--------|
 | AP-001 | §11.6 accounts / LFS / mesh-gen / device lab | 2 | **packet** — awaiting owner |
+| AP-W0-04 | CLAUDE.md v7 (retire cockpit-as-shell; Forge Hub vision) | 2 | **packet** — awaiting owner. **Do NOT merge** until owner replies Approve |
 
 ## Day 1 dispatch (§11.9)
 
@@ -20,7 +21,7 @@ Status legend: `todo` · `doing` · `blocked` · `done` · `packet`
 | W0-01 | Foreman→Scribe | Decision-lock `docs/01-decisions/2026-09-forge-hub.md` (decisions 1–13) | **done** | commit `017d681` |
 | W0-02 | Scribe | Amend Concept 10 §0.1.2–0.1.3 + §1.2 palette | **done** | PR #165 `7d9418c` |
 | W0-03 | Scribe | Amend Fable-5 Rebuild Part IV forge-hub outcome | **done** | PR #167 `add7da2` |
-| W0-04 | Scribe | CLAUDE.md v7 draft as approval packet | todo | Tier 2 |
+| W0-04 | Scribe | CLAUDE.md v7 draft as approval packet | **packet** | Tier 2 — AP-W0-04. Draft PR; **not done/merged** until owner Approve |
 | W0-05 | Scribe | Vocabulary lock HoloL/C/R; archive root Phased plan → `_SUPERSEDED/` | **done** | PR #168 (per PROGRESS) |
 | W0-06 | Scribe | Fix hub-concepts/`/workspace` paths; PROGRESS.md FORGE HUB note | **done** | PR #169 `1fe3c3f` |
 | W0-07 | Scribe + Gatekeeper | PR #164 port list; close after W2 port | todo | do not close until port |

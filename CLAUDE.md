@@ -2,13 +2,39 @@
 
 ## Autonomous Development Playbook for Claude Code
 
-**Version:** 6.5 | **Date:** April 21, 2026 | **Vision:** Laboratory Control Station
-**Supersedes:** CLAUDE.md v6.4 (April 9, 2026) — Standard Tier Games Audit complete. T11–T20 Phase 2 completion adds: react-joyride cockpit tutorial (T11), cooperative scheduler + Web Worker (T12), next/image enforcement + OptimizedImage wrapper (T13), lazy game-loader factory (T14), Performance toggle with D3D-5 relaxation (T15a+b), Sentry environment/release tagging + perf transactions (T16), verifyCronBearer shared helper (T17), Supabase PITR runbook + recovery script (T18), text-white/10-40 → /50+ WCAG sweep (T19), 30 non-flagship games migrated to Zustand selectors (
+**Version:** 7.0 | **Date:** 2026-09-14 | **Vision:** Hologram-Forge Hub
+**Status:** **TIER-2 DRAFT — AWAITING OWNER. DO NOT TREAT AS MERGED POLICY UNTIL THE OWNER REPLIES Approve ON AP-W0-04.**
+**Supersedes:** CLAUDE.md v6.5–6.8 (Laboratory Control Station as the *live* kid-facing shell). v6.x remains the historical cockpit-era playbook. Product direction lock: [`docs/01-decisions/2026-09-forge-hub.md`](docs/01-decisions/2026-09-forge-hub.md) (2026-09-14) and TAP v2.2.
+
+> **Conflict rule (until owner Approve):** `docs/forge-hub/TRANSITION_ACTION_PLAN.md` v2.2 **§1 (target end state) and §11 (operating model) win** on any conflict with this file or with v6.x. After Approve, this v7 playbook is the agent autonomy source; TAP still wins on forge-hub architecture. Agents may **not** reopen decisions 1–13.
+
 ---
 
 ## 1. PROJECT IDENTITY
 
-SparkForge is a gamified AI learning platform for children ages 7–16. It teaches AI concepts through **42 interactive games** across **11 themed Labs** (Lab 11 *Agentic AI* adopted April 30, 2026 — see *Lab-11 Adoption Decision* below). The platform uses a dark-mode-only aesthetic called **Frost-Prismatic** with chrome bezels, neon accents, and glassmorphism. The v3 vision transforms the platform into a **Laboratory Control Station** — a futuristic command console with persistent chrome frames, hero animation arrivals (8-phase cinematic sequence), lab reconfiguration transitions, and themed 3D game elements.
+SparkForge is a gamified AI learning platform for children ages 7–16. It teaches AI concepts through **42 interactive games** across **11 themed Labs** (Lab 11 *Agentic AI* adopted April 30, 2026 — see *Lab-11 Adoption Decision* below).
+
+**Live kid-facing vision (v7):** the **Hologram-Forge Hub** — a warm rose-gold / cream forge room with three cyan hologram slabs, a desk-bound Sparky, and one persistent R3F stage on desktop/ultrawide. See *Forge Hub (v7)* below.
+
+**Historical (v3–v6.8, not the live shell):** Frost-Prismatic Laboratory Control Station — chrome bezels, 8-phase hero arrival, cockpit spatial dashboard, wormhole lab entry. That language is retired as product vision. Cockpit code remains in-tree until W9 archive; do not extend it as the kid shell.
+
+### Forge Hub (v7) — live product vision
+
+**Sources:** TAP v2.2 §1–§2 · decision lock `docs/01-decisions/2026-09-forge-hub.md`.
+
+- **Desktop and ultrawide (≥ 1440 px):** every kid-facing route lives inside one persistent forge stage (room, emitter, desk, three glass slabs). Fixed camera. Navigation is choreographed morphs, never a page flash. Modes include `welcome`, `hubSplit`, `labsBrowse`, `gameLobby`, `playStage`, `avatarStudio`, `settingsDock`, `cinematic`, plus Focus/Dual sub-layouts. Parent, billing, security, legal, and admin routes are `FLAT` (`EscapeFlat`); the stage pauses.
+- **One canvas in the root layout**, mode by pathname; FLAT routes pause and hide it. Renderer: `three/webgpu` via `createRenderer` + TSL (WebGPU → WebGL2 → poster). Flag family `FORGE_HUB*` in `src/config/feature-flags.ts`. No production flag flip without an owner packet.
+- **Panels:** DOM panels projected from the 3D scene. Glass meshes carry motion; DOM content rides them and **never stretches**. Reading plate: opaque ≥ 0.85 backing inside the glass. Yaw ≤ 8° as CSS perspective; forms, games, and long text sit at yaw 0.
+- **LCP:** the LCP element on every route is **HTML text** (or an eager image), never a script-hydrated canvas. The stage loads after LCP. Pre-hydration: static rects over a poster of the plate.
+- **Welcome:** `welcome` = shrunken side panels (HoloL / HoloR) with hero key details + center login (HoloC) under "Welcome to SparkForge". `/`, `/login`, `/signup` share the scene. Marketing long-scroll is dropped (decision 11); pricing + legal stay flat.
+- **Hub:** after login, sides grow to equal (`hubSplit`); HoloC becomes today's mission.
+- **Games:** play inside the merged hologram **`PlayStage` by default**, with a per-game fullscreen escape hatch. **Never edit** `src/components/games/*`.
+- **Sparky:** rigged 3D character on the desk (not a painted dock, not overlay-only). Face from the expression system; outfit packs by calendar; 2D stills from the same model for in-game + compact. Conversation is the head-emitter **HoloBubble** (text only in v1).
+- **State:** **no new Zustand store.** Repurpose `sceneStore` → `forgeStore` (`mode`, `previousMode`, `morphProgress`, `portalPhase`, `activePanel`, `hoveredPanel`, `sparky`, `flatOverlay`, `holoBubble`, `frameloop`). `cockpitStore` / cockpit atoms retire with W9.
+- **Choreography:** every state change is a directed, interruptible Director sequence (GSAP runtime; Theatre.js for authored beats). `prefers-reduced-motion` → 200 ms crossfade.
+- **OVERLAY-CRIT-001:** never put `filter`, `transform`, or `backdrop-filter` on `html`, `body`, or an app-shell wrapper. `EscapeFlat` sits outside any transformed forge wrapper.
+- **Art lock:** never regenerate or restyle `public/forge-hub/` bytes. SSIM ≥ 0.96 vs `public/forge-hub/world/LOCKED_HERO.png` (LOCKED_HUB). Verify `SHA256SUMS` if near that folder.
+- **Rollback:** `FORGE_HUB` off returns the HTML shell on every tier.
 
 ### Lab-11 Adoption Decision (v6.7 — April 30, 2026)
 
@@ -18,7 +44,7 @@ SparkForge is a gamified AI learning platform for children ages 7–16. It teach
 
 - `src/config/labColors.ts` — 11th `LabColor` entry; `family` union extended with `'Mint-Cyan'`.
 - `src/config/labs.ts` — `LAB_ICONS[11] = '🕸️'`.
-- `src/stores/cockpitStore.ts` — `LAB_COUNT = 11`, ring math recalculated.
+- `src/stores/cockpitStore.ts` — `LAB_COUNT = 11`, ring math recalculated. *(historical cockpit store; W9 retires it into `forgeStore` — do not extend as the kid shell.)*
 - `src/components/3d/HolographicLabMap.tsx` — local `LAB_COLORS` + `LAB_ADJACENCY` extended; `_LAB_ANGLE_STEP_RAD = 2π/11`.
 - `src/types/index.ts` — `LABS` array gains 11th entry (games array starts empty; populated as Stages 11D / 11E / 11G ship).
 - `tailwind.config.ts` — auto-generated via `buildTailwindLabColors()`. No manual change.
@@ -33,13 +59,13 @@ SparkForge is a gamified AI learning platform for children ages 7–16. It teach
 | Language | TypeScript (strict mode) | Type safety |
 | Styling | Tailwind CSS 4 (Oxide engine) | Utility-first CSS |
 | Database | Supabase (PostgreSQL + Auth + Storage) | All persistent data |
-| State | Zustand (~19 stores) + Jotai (3D atoms) | Client state |
+| State | Zustand (~19 stores) + Jotai (3D atoms) | Client state. **No new Zustand store** for forge-hub — repurpose `sceneStore` → `forgeStore`. |
 | Data Fetching | React Query (@tanstack/react-query) | Server state + caching |
 | Validation | Zod | Schema validation |
 | Payments | Stripe | Subscriptions (Free/Plus/Forge) |
 | AI | Anthropic Claude API | Prompt Lab game + Content Agent |
 | 2D Motion | Motion (ex Framer Motion) + GSAP | Transitions, scroll |
-| 3D Rendering | React Three Fiber v9 + drei + postprocessing + three-bvh-csg | 3D scenes + WebGPU+TSL shaders (Three.js r183+) |
+| 3D Rendering | React Three Fiber v9 + drei + postprocessing + three-bvh-csg | 3D scenes + WebGPU+TSL (Three.js r183+). Forge stage: WebGPU → WebGL2 → poster. |
 | Charts | @nivo/core + @nivo/line + @nivo/bar + @nivo/radar | Data visualization |
 | Audio | Tone.js | Game audio feedback |
 | Monitoring | Sentry (@sentry/nextjs) | Error tracking + performance |
@@ -50,32 +76,34 @@ SparkForge is a gamified AI learning platform for children ages 7–16. It teach
 
 **Use the highest-quality tech stack tool available, at all times.** Quality and visual fidelity are the only first-order constraints; workload, build time, generation cost, and bundle size are *informational* and must be reported to the user, but they are **not** restrictions on tool choice. The only valid reasons to refuse a higher-quality tool are:
 
-1. The tool would introduce a *functional conflict* with another locked stack component (e.g. would break the hero→cockpit single-canvas handoff).
+1. The tool would introduce a *functional conflict* with another locked stack component (e.g. would break the single root-layout forge canvas, TAP §2.1, or the WebGPU → WebGL2 → poster fallback chain).
 2. The tool is not in a stable release channel.
 3. The user explicitly downgrades the choice in chat.
 
 **Implications already in effect:**
 
-- Live hero animation runs on **WebGPU + TSL only**. There is **no** WebGL2 / CSS fallback chain. Devices without WebGPU receive a thin MP4-poster fallback derived from the same shader (no fork).
+- **Forge stage (kid shell, desktop/ultrawide):** `three/webgpu` via `createRenderer` + TSL materials. WebGPU first, automatic WebGL2 backend, poster of the locked plate below that (or on `Canvas3DErrorBoundary`). No shader fork for compact tier — compact never mounts the canvas.
 - All branding-surface materials (`BrandingMaterial.tsx`, `<BrandWordmark>`) draw from a single source-of-truth config (`src/lib/branding/sf-material.config.ts`) — eye-extracted from `public/branding/IMG_4607.png`. No duplicate material code paths.
-- Visual checkpoints halt at **SSIM ≥ 0.96** vs reference (Mythos halt rule). Iterate until convergence; never ship below threshold.
-- Optional dependencies that materially raise the visual ceiling (e.g. `three-bvh-csg`, `@theatre/core`) are added without budget review when their use is documented in a phase plan.
+- Visual checkpoints halt at **SSIM ≥ 0.96** vs reference (Mythos halt rule). Forge-hub room shell: SSIM ≥ 0.96 vs `LOCKED_HERO.png`. Iterate until convergence; never ship below threshold.
+- Optional dependencies that materially raise the visual ceiling (e.g. `three-bvh-csg`, `@theatre/core`) are added without budget review when their use is documented in a phase plan. Workload, build time, generation cost, and bundle size are **informational** — report them; they are not a reason to refuse the higher-quality tool.
+- **Historical (cockpit-era hero):** live hero animation was WebGPU+TSL-only with an MP4 poster and no WebGL2 chain. That path is not the kid-facing shell. Do not revive it as product vision.
 
-### Mobile Fallback Policy (v6.8 — May 12, 2026)
+### Mobile Fallback Policy (v6.8, aligned v7 forge-hub)
 
-**The desktop-only D3D mandate is superseded.** The platform now ships a real 2D HTML/CSS fallback dashboard for `tier ∈ {mobile, tablet}` while preserving the full 3D Laboratory Control Station for `tier ∈ {desktop, ultrawide}`. Single source of truth: `src/hooks/useDeviceProfile.ts`.
+**Compact `< 1440` = HTML shell, no canvas. Desktop ≥ 1440 = forge stage. LCP = HTML text.** The desktop-only D3D mandate stays superseded. Single source of truth: `src/hooks/useDeviceProfile.ts`.
 
-- **Gate location:** `src/components/3d/CockpitCanvas.tsx` wraps the 537-line `CockpitCanvasImpl` in `CockpitCanvasGate`, which short-circuits to `<MobileDashboard />` when the post-hydration tier is mobile or tablet. Pre-hydration SSR continues to render the 3D tree (matches `SSR_DEFAULT` desktop assumption).
-- **Mobile dashboard:** `src/components/dashboard/MobileDashboard.tsx` is a real HTML/CSS dashboard (header + Demo badge + level/XP/streak strip + Continue CTA + 5 nav tiles + 11-lab grid). Reads personalized data via `useActiveChild` + `useAllLabsProgress`. No Canvas, no WebGPU.
-- **Hero on mobile:** the 8-beat hero animation auto-skips on mobile/tablet — `src/app/(dashboard)/layout.tsx` sets `cockpitReady=true` + fires `completeHero()` when `isCompactDevice` is true. `HeroScene` returns null, `HeroOverlay` is omitted entirely.
-- **Reduced-motion:** `prefers-reduced-motion` now pauses `CockpitFloor3D` LED pulse + conduit emissive. Hero (via `useHeroAnimation`), ScrollJourney parallax, and useParallaxMouse already honored it.
-- **Desktop tier preserved:** WebGPU+TSL primary path, SSIM ≥ 0.96 branding rule, full cockpit chrome — all unchanged for `tier ∈ {desktop, ultrawide}`. Tech Quality Mandate §1 still applies inside the desktop branch.
+- **Compact (`mobile` + `tablet`, width < 1440):** today's HTML dashboard shell stays as the compact-tier shell, restyled to the forge-hub palette. **No canvas** below 1440 px. 2D Sparky stills from the same 3D model. Same page content components as desktop slots.
+- **Desktop / ultrawide (width ≥ 1440):** Hologram-Forge Hub stage (not cockpit chrome). Tech Quality Mandate still applies inside this branch.
+- **LCP:** HTML text or an eager image on every route, including desktop. The forge stage loads after LCP (poster + static rects before hydration).
+- **No-GPU desktop or canvas crash:** unmount the stage; poster of the plate behind the same DOM panels; 2D Sparky. Nothing functional is lost.
+- **Current code (until W4/W9 cutover):** `CockpitCanvasGate` still short-circuits to `<MobileDashboard />` on compact; `MobileDashboard.tsx` is the live HTML shell (header + Demo badge + level/XP/streak + Continue CTA + nav tiles + 11-lab grid). Pre-hydration SSR still assumes desktop. Do not add a second compact canvas. Do not extend cockpit chrome for compact.
+- **Reduced-motion:** Director replaces morphs/beats with a 200 ms crossfade. Existing honors (`useHeroAnimation`, ScrollJourney, `useParallaxMouse`, cockpit floor pulse while that code remains) stay. Do not add independent tweens that ignore `prefers-reduced-motion`.
 
-Tier thresholds (aligned with `ADAPTIVE_CURVATURE` in `src/lib/3d/cockpitConfig.ts`):
+Tier thresholds (same cut as TAP decision 4 / `useDeviceProfile`):
 - `mobile`: width < 768
-- `tablet`: 768 ≤ width < 1440
-- `desktop`: 1440 ≤ width < 1920
-- `ultrawide`: width ≥ 1920
+- `tablet`: 768 ≤ width < 1440  ← compact HTML shell; **no canvas**
+- `desktop`: 1440 ≤ width < 1920  ← forge stage
+- `ultrawide`: width ≥ 1920  ← forge stage
 
 
 
@@ -108,6 +136,17 @@ A soft stop means: **log the issue, attempt to fix it, and continue if the fix r
 | Minor CSS/layout discrepancy between expected and actual | Log in PROGRESS.md, continue. Visual review happens at stage-level HARD STOP. |
 | npm package version conflict | Install the version specified in stage doc. If conflict persists, use `--legacy-peer-deps`. Log it. |
 
+### Forge Hub hard rules (v7; TAP §11.3)
+
+These are absolute. They do not weaken existing autonomy rules; they constrain forge-hub work.
+
+- Never regenerate, re-render, recompress, upscale, or restyle any file under `public/forge-hub/`. Run `cd public/forge-hub && sha256sum -c SHA256SUMS` before and after any task that touches that folder.
+- Never edit `src/components/games/*`. Never skip, disable, or quarantine a test.
+- Never add a Zustand store. Repurpose `sceneStore` → `forgeStore`. Never put `filter`, `transform`, or `backdrop-filter` on `html`, `body`, or an app-shell wrapper (OVERLAY-CRIT-001).
+- Never create a release tag, flip a production `FORGE_HUB*` flag, or change Vercel production / GitHub repository settings without an owner packet marked Approve.
+- Never reopen decisions 1–13. Propose amendments; do not relitigate.
+- Until this v7 is owner-Approved, TAP §1 still wins on conflicts (see preamble).
+
 ### HARD STOPS — Wait for Human Input
 
 A hard stop means: **STOP ALL WORK. Output a clear status message. Wait for the human to respond before continuing.**
@@ -118,11 +157,39 @@ A hard stop means: **STOP ALL WORK. Output a clear status message. Wait for the 
 | HS-2 | Stripe account setup | Before Stage 8 Part 1 | "HARD STOP: I need your Stripe test-mode API keys and 4 price IDs (Plus monthly, Plus yearly, Forge monthly, Forge yearly) added to `.env.local`." |
 | HS-3 | Anthropic API key | Before Stage 9 Part 1 | "HARD STOP: I need your `ANTHROPIC_API_KEY` added to `.env.local`." |
 | HS-4 | Vercel deployment | Before Stage 10 deploy step | "HARD STOP: I need you to create a Vercel account, connect the GitHub repo, and configure environment variables in the Vercel dashboard." |
-| HS-5 | Stage-level visual verification | After completing ALL parts of a stage | "VISUAL CHECKPOINT — Stage N complete. Please run `npm run dev`, open localhost:3000, and verify: [specific checklist]. Reply 'approved' to continue or describe issues." |
+| HS-5 | Stage-level visual verification | After completing ALL parts of a stage | "VISUAL CHECKPOINT — Stage N complete. Please run `npm run dev`, open localhost:3000, and verify: [specific checklist]. Reply Approve to continue or describe issues." For forge-hub kid-visible work, use P1–P7 / C1–C7 packets instead of cockpit-era checklists. |
 | HS-6 | Build failure after 2 auto-fix attempts | Any time | "HARD STOP: Build is failing and I've exhausted auto-fix attempts. Here's the error: [error]. Here's what I've tried: [attempts]. Please advise." |
 | HS-8 | GLB/3D asset creation | Stage 6B (Pet Trainer) | "SOFT NOTE: Pet Trainer will use procedural fallback (orb) until GLB assets are placed in `public/models/pets/`. This is non-blocking — game is fully playable." |
-| HS-9 | Hero-to-Cockpit handoff verification | After Phase 5D (Cockpit Architecture Part 2) | "HARD STOP: Hero Animation + Cockpit Architecture complete. Please verify: (1) 8-phase hero animation plays on first visit, (2) Fast-forward (click/Enter/Space) accelerates to 4x, (3) Skip toggle works in Settings, (4) Hero→cockpit handoff is seamless (no canvas swap, no flash), (5) Cockpit spatial dashboard renders with holographic lab map, (6) Lab entry wormhole transition works. Reply 'approved' to continue to Stage 4." |
-| HS-10 | Login 3D + Demo Login verification | After Phase 5F (Login Enhancement Part B) | "HARD STOP: Login 3D Enhancement complete. Please verify: (1) 3D crystal portal renders behind login card on desktop, (2) Chrome bezel glow pulses on login card, (3) Demo Login button visible with confirmation flow, (4) Demo starts and redirects to /home with hero animation, (5) Demo banner shows countdown timer at top of dashboard, (6) Banner turns red/urgent when <5 min remain, (7) Expired modal appears when timer hits 0:00, (8) ?demo=expired shows amber notification on login page. Reply 'approved' to continue to Stage 4." |
+| HS-9 | **HISTORICAL** Hero-to-Cockpit handoff | Cockpit-era Phase 5D | **Retired as a live gate.** Do not verify 8-phase hero → cockpit as the kid shell. Live gates: P1 room shell + `welcome` / `hubSplit`. |
+| HS-10 | **HISTORICAL** Login 3D + crystal portal | Cockpit-era Phase 5F | **Retired as a live gate.** Demo login lives on HoloR in `welcome`. Live gate: P2 (login form on HoloC through `welcome → hubSplit → playStage → gameLobby → welcome`) and P3 Wave 1 routes. |
+
+### Forge Hub visual gates (v7 — replace cockpit-era HS-9 / HS-10)
+
+Owner visual checkpoints (TAP §4 + SPARKY-CHARACTER-SPEC §11). Reply **Approve** on the gate packet. Kid-visible work does not pass a gate without that word.
+
+#### Phase gates P1–P7
+
+| ID | Trigger | When | What to tell the owner |
+|----|---------|------|------------------------|
+| P1 | Room shell + placeholder Sparky | After W1 / W3 steps 2–3 | "VISUAL CHECKPOINT — P1. Verify: (1) `/dev/forge-hub` at SSIM ≥ 0.96 vs `public/forge-hub/world/LOCKED_HERO.png`, (2) ignition plays, (3) WebKit shows the poster fallback, (4) placeholder Sparky walks desk spots and reacts to mode changes, (5) fixed camera (no free-look), (6) SHA256SUMS still OK. Reply Approve / Revise / Reject." |
+| P2 | Screen kit + Director | After W2 / W7 | "VISUAL CHECKPOINT — P2. Verify: (1) login form on HoloC survives `welcome → hubSplit → playStage → gameLobby → welcome` with content never stretching, (2) Director timelines tested, (3) forge-hub theme applied, (4) PR #164 ported and closed, (5) `EscapeFlat` outside any transformed wrapper (OVERLAY-CRIT-001), (6) axe + keyboard-only pass. Reply Approve / Revise / Reject." |
+| P3 | Welcome, auth, home | After W4 wave 1 + W6 | "VISUAL CHECKPOINT — P3. Verify: `/`, `/login`, `/signup`, `/home`, `/onboarding` on the stage; compact `<1440` is HTML-only (no canvas); LCP is HTML text; Lighthouse a11y/CLS gates real. Reply Approve / Revise / Reject." |
+| P4 | Labs, content, games on glass | After W4 waves 2–3 + W5 | "VISUAL CHECKPOINT — P4. Verify: lab browse → lesson → game on `PlayStage` and back with no renderer re-init; all 42 games swept; `fullscreen` escape-hatch list agreed; **zero** `src/components/games/*` edits. Reply Approve / Revise / Reject." |
+| P5 | Rigged Sparky + remaining kid routes | After W3 steps 5–8 + W4 waves 4–5 | "VISUAL CHECKPOINT — P5. Verify: rigged Sparky live with the clip set; First Day / Sharp Suit / nearest seasonal pack; HoloBubble replaces the floating tutor; every kid route migrated or FLAT. Reply Approve / Revise / Reject." |
+| P6 | Polish and hardening | After W8 / W7 guards | "VISUAL CHECKPOINT — P6. Verify: jobs green flag-on and flag-off; SSIM in CI; reduced-motion pass; COPPA review of Sparky interaction and outfits. Reply Approve / Revise / Reject." |
+| P7 | Cutover | After W10 / W9 | "VISUAL CHECKPOINT — P7. Verify: staged rollout; cockpit archive PR; tag only after owner packet Approve. Reply Approve / Revise / Reject." |
+
+#### Character checkpoints C1–C7
+
+| ID | Gate | What the owner reviews | Pass condition |
+|----|------|------------------------|----------------|
+| C1 | Turnaround and expression sheet | D1 | Reads as `LOCKED_SPARKY.png` from every angle; nine faces unmistakable at 72 px |
+| C2 | Blocking model in the room | D2 on the desk in `/dev/forge-hub` | Scale and silhouette feel right beside the holograms |
+| C3 | Final model and materials | D3 turntable + still against the plate | SSIM ≥ 0.90 vs a matched crop of the concept; coral / cyan / yellow read under room light |
+| C4 | Rig and clip library | D4 and D5 in `/dev/forge-hub` | Every spec clip present and named; no pinching; interruptible blends look natural |
+| C5 | Runtime GLB and behaviour | D6 in the hub, reacting to real events | Budgets met; reaction map verified; dome uncovered (outfit rule) |
+| C6 | Each outfit pack | D7 in the outfit rack and held poses | Pack rules; thumbnail approved |
+| C7 | 2D stills | D8 in the compact shell and a game | Matches the 3D look; 72 px legible |
 
 ### Escalation Rules
 
@@ -250,17 +317,20 @@ If a v3-FINAL is **additive** (layers on top of v2 rather than replacing it), th
 |-------|---------------|
 | 1 | Dev server starts, no errors in console |
 | 2 | API routes respond (test /api/health), Supabase connected |
-| 3 | Signup → Login → Dashboard loads with sidebar. Station frame visible (Part 3). |
-| 3-Hero | 8-phase hero animation plays (19s) on WebGPU+TSL primary path. Fast-forward works (4x). Skip toggle in Settings. Non-WebGPU devices receive thin MP4-poster fallback (no shader fork). Audio plays (mutable). `prefers-reduced-motion` skips to cockpit. |
-| 3-Cockpit | Cockpit renders at ~37.8M tris (desktop-ultra). Hero→cockpit seamless handoff (CPA2-3). Spatial dashboard with holographic lab map. 4 consoles, NPCs, dynamic environment. Wormhole transitions. |
-| 3-Login3D | 3D crystal portal behind login card (desktop). Chrome bezel glow pulses. Demo Login button with confirmation. Demo → /home with hero animation. Timer banner at dashboard top. Urgent mode at <5min. Expiry modal at 0:00. ?demo=expired amber notice. |
-| 4 | Dashboard home, Labs map, Profile page. Lab reconfiguration transitions work. |
-| 5 | XP popup, streak fire, badge displays, trophy room. 3D particle effects on desktop. |
-| 6 | All 5 flagship games playable: full phase cycle (welcome→learn→play→complete). 3D visible on desktop. |
-| 7 | All 30 remaining games playable. Game registry shows 35 entries. Arcade page lists all. |
-| 8 | Parent dashboard, subscription flow, pricing page with scroll journey. Stripe test checkout works. |
-| 9 | Content agent produces content via admin trigger. Admin review dashboard shows items. |
-| 10 | Accessibility toolbar, PWA install, Lighthouse audit. All routes resolve. Production build clean. |
+| 3 | Signup → Login → `/home`. Compact `<1440`: HTML shell, no canvas. Desktop ≥1440 with `FORGE_HUB`: forge stage (not station-frame / cockpit chrome). |
+| Forge-welcome | `welcome`: HoloL/HoloR ~85% with hero key details; HoloC "Welcome to SparkForge" + login. `/`, `/login`, `/signup` share the scene. LCP is HTML text. Demo login on HoloR. |
+| Forge-hub | `hubSplit` after login; sides grow to equal; HoloC = today's mission. Morphs, not page flashes. |
+| Forge-playStage | Three slabs merge; game in `HtmlGameShell` `stage` variant; room dims; Sparky reacts. **No `games/*` edits.** Fullscreen only via registry escape hatch. |
+| 3-Hero *(historical)* | Cockpit-era 8-phase hero — **retired as the kid-facing shell.** Welcome scene is the marketing hero (decision 11). Do not restore long-scroll marketing. |
+| 3-Cockpit *(historical)* | Laboratory Control Station / cockpit-as-product — **retired.** W9 archives cockpit shell, HUD, station frame, NPCs, iris. Salvage renderer/post/error-boundary/`sceneStore`/`deviceStore` only. |
+| 3-Login3D *(historical)* | Crystal-portal login card — **replaced** by `welcome` on the forge stage. Keep demo-session timer/expiry behaviour; retarget banners onto `ToastRail`. |
+| 4 | Labs browse (`labsBrowse`) → lab Focus; profile `avatarStudio`. Compact remains HTML. |
+| 5 | XP popup, streak fire, badge displays, trophy room. Ceremonies re-targeted to the forge stage on desktop. |
+| 6 | All 5 flagship games playable: full phase cycle (welcome→learn→play→complete). On desktop, play inside `PlayStage` unless registry `fullscreen`. |
+| 7 | All remaining games playable. Game registry lists all 42. Arcade is `gameLobby`. |
+| 8 | Parent dashboard + billing are **FLAT**. Pricing is a flat route (no marketing long-scroll). Stripe test checkout works. |
+| 9 | Content agent produces content via admin trigger. Admin review dashboard shows items. Admin is FLAT. |
+| 10 | Accessibility toolbar, PWA install, Lighthouse audit. All routes resolve (forge or FLAT per TAP §5). Production build clean. `FORGE_HUB` off rolls back to HTML shell. |
 
 ### Commit Strategy
 
@@ -272,10 +342,11 @@ git add -A
 git commit -m "Stage 3 Part 2: Dashboard shell, sidebar, TopBar"
 
 # Stage milestone tag (after ALL parts + visual approval)
+# Forge-hub: never create a release tag without an owner packet marked Approve (TAP §11.3).
 git tag -a v0.3.0 -m "Stage 3 complete: Auth + Layout + Station Frame"
 ```
 
-**Tag format:** `v0.{stage}.0` (e.g., `v0.1.0`, `v0.2.0`, ... `v0.10.0`)
+**Tag format:** `v0.{stage}.0` (e.g., `v0.1.0`, `v0.2.0`, ... `v0.10.0`). Forge-hub cutover tag `v1.0.0-forge-hub` is P7 and owner-gated.
 
 ---
 
@@ -320,6 +391,13 @@ const Component3D = dynamic(
 <Component3D {...props} />
 ```
 
+### Forge Hub constraint (v7) — games on glass
+
+- Default: games play inside merged hologram **`PlayStage`** via `HtmlGameShell` `variant="stage"`. Registry field `stage: 'glass' | 'fullscreen'` defaults to `glass`.
+- **Never edit** `src/components/games/*` for forge-hub, overlay, or shell work. Game internals (phases, age bands, `completeGame()`, in-game 3D) stay as they are.
+- Phaser/Pixi games (`TreatTrainer`, `SortToyBox`, `BuildClassifier`, `AiOrNot`, `FutureForge`): world `frameloop: 'demand'` so two GPU contexts are never both hot.
+- Compact `<1440`: HTML shell; in-game 72 px Sparky stills from the 3D master — still no `games/*` edits.
+
 ---
 
 ## 8. FILE & FOLDER CONVENTIONS
@@ -337,6 +415,10 @@ const Component3D = dynamic(
 | API routes | `src/app/api/resource/route.ts` | `src/app/api/children/route.ts` |
 | Hooks | camelCase with `use` prefix | `useGSAPScroll.ts` |
 | Shaders | `src/shaders/labPatternN.glsl` | `labPattern3.glsl` |
+| Forge stage | `src/components/forge-hub/` | `ForgeStage.tsx` |
+| Forge config | `src/config/forgeHub.ts`, `src/lib/forge-hub/` | layouts, routeModes, portalMachine |
+| Forge store | `src/stores/sceneStore.ts` → `forgeStore` | **Do not add a new store** |
+| Locked hub art | `public/forge-hub/` | **Never regenerate**; `SHA256SUMS` |
 
 
 ---
@@ -350,7 +432,11 @@ const Component3D = dynamic(
 
 
 
-### Standard Tier Content & AI Integration (April 9-10, 2026)
+### Historical build records (v6.x — not live vision)
+
+The following sections record completed game/content work. They are not the kid-facing shell. Forge-hub must not edit `src/components/games/*` to "update" these.
+
+### Standard Tier Content & AI Integration (April 9-10, 2026) — historical
 
 - **Content expansion:** IMPLEMENTED — 20 games receiving ~3x hardcoded content expansion with difficulty tags. Vocabulary expansions (SentimentScanner 30→90 words). Multi-maze system (TreatTrainer 1→6 mazes).
 - **AI prompt templates:** IMPLEMENTED — 60 new content types in `ai-content-generator.ts` (3 per Standard game). 20 new GameIds. Rate limit maintained at 15/game/session.
@@ -382,5 +468,8 @@ Claude Code maintains a separate **PROGRESS.md** file at the repo root. Update a
 
 
 
-*End of CLAUDE.md v6.5 — SparkForge Autonomous Development Playbook*
-*131+ doc files | 172 3D component files | 35 games (6 Flagship + 9 FL-Lite + 20 Standard) | 15 stores | 150 design decisions (131 design + 19 implementation) + 84 architecture decisions (48 core + 4 OD + 12 CPA2 + 20 D3D) | 20 v3-FINAL documents (14 original + 4 Hero/Cockpit + 2 Login 3D) | 32 build phases | Full 3D UI Migration COMPLETE (7 phases, 49 components, dashboard/auth/game/marketing) | Enhancement 1.1 IMPLEMENTED (37.8M Cockpit Upgrade) | Enhancement 1.2 PLANNED | CPA v2.0 IMPLEMENTED (Single Canvas + Seamless Handoff) | Hero Animation v2.0 IMPLEMENTED | Login 3D Enhancement IMPLEMENTED (3D Portal + Demo Login) | D3D Overhaul IMPLEMENTED (Desktop-First, 50M budget, Mechanical Iris, Scene Routing) | 20 D3D decision locks (9 D3D + 6 D3D-B + 5 D3D-C) | AmbientParticles REMOVED (Decision 20.0) | HolographicHUD REPOSITIONED (Decision 6.0: peripheral frame) | Flagship Game Audit COMPLETE (17 bugs fixed, 6 games expanded 2-3x, AI content infra added) | FL-Lite Game Audit COMPLETE (43 bugs found, 9 games expanded ~11x, 27 AI content types) | Standard Tier Game Audit COMPLETE (76 bugs found, 20 games planned ~11x expansion, 60 AI content types, 6-phase roadmap) | **v6.5 (April 21, 2026): D3D-5 relaxation authorized — user-facing Performance toggle in Settings may omit DepthOfField + N8AO/SSAO (opt-in, persisted).** | **v6.7 (April 30, 2026): Lab 11 *Agentic AI* ADOPTED (Mint-Cyan #6FFFE6); 7 new flagship concepts greenlit as Stage 11A–11G; Build→Equip→Constrain arc seeded in Lab 11.** | April 30, 2026*
+*End of CLAUDE.md v7.0 — SparkForge Autonomous Development Playbook (TIER-2 DRAFT, AP-W0-04, awaiting owner Approve)*
+*Live vision: Hologram-Forge Hub (desktop/ultrawide ≥1440 forge stage; compact <1440 HTML shell, no canvas; LCP = HTML text). Decision lock 2026-09-14. Until Approve, TAP v2.2 §1 wins on conflicts.*
+*Historical v6.x (cockpit-era, not live shell): Laboratory Control Station | 8-phase hero | CPA v2.0 single-canvas handoff | Login 3D crystal portal | 37.8M Cockpit Upgrade | D3D Overhaul / Mechanical Iris | 20 D3D decision locks | AmbientParticles REMOVED | HolographicHUD peripheral frame.*
+*Still in force: Tech Quality Mandate (v6.6; highest-quality tools; cost/size informational) | Mobile Fallback Policy aligned v7 | Lab 11 Agentic AI | 42 games / 11 labs | D3D-5 Performance toggle | game template + autonomy/process sections.*
+*Forge-hub constraints: no `public/forge-hub/` byte edits | no `src/components/games/*` edits | no new Zustand store (repurpose sceneStore) | OVERLAY-CRIT-001 | SSIM ≥ 0.96 vs LOCKED_HERO | P1–P7 / C1–C7 owner gates.*
