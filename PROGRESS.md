@@ -2870,7 +2870,7 @@ Agent: Stagehand (Grok Bot Team)
 
 ### FORGE HUB — W2-11 Theatre game-launch-burst (Director, 2026-09-15)
 
-Optional MOTION_BIBLE §5.4 Theatre beat `beats/game-launch-burst.json` (1500 ms, Sparky cheer). Director samples JSON on the GSAP master clock / scrubber after `lobby-playstage-merge` completes — not nested in the merge timeline and not nested in portal emit-burst 420/560. Session-first glass launch default; skippable click / Enter / Space; RM skips the burst (merge already used 200 ms). Does not gate first input (PlayStage stays live at morph t=600). `/dev/forge-hub` HUD force-play + `?burst=1` + transition scrubber. Studio still `?studio=1` in development only. No new Zustand store; games / `public/forge-hub` locks / production flags untouched. Board: W2-11 **doing**.
+Optional MOTION_BIBLE §5.4 Theatre beat `beats/game-launch-burst.json` (1500 ms, Sparky cheer). Director samples JSON on the GSAP master clock / scrubber after `lobby-playstage-merge` completes — not nested in the merge timeline and not nested in portal emit-burst 420/560. Session-first glass launch default; skippable click / Enter / Space; RM skips the burst (merge already used 200 ms). Does not gate first input (PlayStage stays live at morph t=600). `/dev/forge-hub` HUD force-play + `?burst=1` + transition scrubber. Studio still `?studio=1` in development only. No new Zustand store; games / `public/forge-hub` locks / production flags untouched. Board: W2-11 **done** (merged PR #185 `579e56b`).
 CI unblock (pre-existing on `setup-sparkforge-dev` PRs): Playwright `reuseExistingServer: true` so e2e-smoke does not race the workflow's `npm start`; staging smoke skips Vercel SSO 302 (`vercel.com/sso-api`) unless `VERCEL_AUTOMATION_BYPASS_SECRET` is set.
 Agent: Director (Grok Bot Team)
 
@@ -2878,3 +2878,9 @@ Agent: Director (Grok Bot Team)
 
 Board: **W2-11 done** — Theatre `game-launch-burst` merged PR #185 → `579e56b`. Optional MOTION_BIBLE §5.4 beat after `lobby-playstage-merge`; does not gate first input.
 Agent: Director (Grok Bot Team)
+
+### FORGE HUB — W3-03 placeholder Sparky + desk spots (Stagehand, 2026-09-15)
+
+Interim coral-capsule Sparky on `/dev/forge-hub` so behaviour can ship while Smith is AP-001-blocked for Track A mesh-gen. Named desk spots in `src/config/sparkySpots.ts` sit on the W1-01 desk plane (y=0, below glass). State machine `idle → attend → react → return` plus sleep/whisper overrides lives on the existing `sceneStore.forge.sparky` slice (no new Zustand store). RM teleports; `?pose=lock` hides the mesh so LOCKED_HERO stills stay still. Dev behaviour panel composes with the mode switcher / Director HUD. HoloBubble remains a store stub (tip/ping/whisper + dome emissive). No layout-registry API change (spots are room/desk coords only). Locks and `src/components/games/*` untouched. Rebased on W2-11 board close #188 `e7c5ae5` (code #185 `579e56b`).
+Agent: Stagehand (Grok Bot Team)
+

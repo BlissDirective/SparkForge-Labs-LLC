@@ -394,6 +394,34 @@
   align-items: flex-end;
 }
 
+.forge-hub-sparky-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  align-items: flex-end;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid rgba(77, 233, 255, 0.35);
+  border-radius: 12px;
+  background: rgba(6, 14, 28, 0.72);
+}
+
+.forge-hub-sparky-label {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(207, 250, 254, 0.8);
+}
+
+.forge-hub-sparky-status {
+  margin: 0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(207, 250, 254, 0.8);
+}
+
 .forge-hub-mode {
   border: 1px solid rgba(77, 233, 255, 0.45);
   background: rgba(6, 14, 28, 0.72);

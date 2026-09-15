@@ -10,6 +10,7 @@ import FocusTrap from 'focus-trap-react';
 import type { GlassSlotId } from '@/lib/forge-hub/glassSlots';
 import { HOLO_BLEND_CSS_VARS } from '@/lib/forge-hub/holoBlend';
 import { useProjectedSlot } from '@/lib/forge-hub/useProjectedSlot';
+import { useForgeStore } from '@/stores/sceneStore';
 
 export interface HoloPanelProps {
   slotId: GlassSlotId;
@@ -26,6 +27,8 @@ export function HoloPanel({
   modal = false,
 }: HoloPanelProps) {
   const { ref, style, slot, morphPhase, reading } = useProjectedSlot(slotId);
+  const setHovered = useForgeStore((s) => s.setForgeHoveredPanel);
+  const setActive = useForgeStore((s) => s.setForgeActivePanel);
   if (!slot.visible) return null;
 
   const panel = (
@@ -40,6 +43,14 @@ export function HoloPanel({
       data-morph-phase={morphPhase}
       className="fh-holo-panel"
       style={{ ...HOLO_BLEND_CSS_VARS, ...style }}
+      onPointerEnter={() => setHovered(slotId)}
+      onPointerLeave={() => setHovered(null)}
+      onFocusCapture={() => setActive(slotId)}
+      onBlurCapture={(event) => {
+        const next = event.relatedTarget;
+        if (next instanceof Node && event.currentTarget.contains(next)) return;
+        setActive(null);
+      }}
     >
       <div className="fh-holo-panel__edge">
         <div className="fh-holo-panel__plate">

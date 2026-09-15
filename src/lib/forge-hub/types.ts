@@ -10,7 +10,7 @@ import type { MotionBibleId } from './director/ids';
 // world materials on the lock-pose trio. W2 layouts / projection /
 // HoloPanel read `mode` + `morphProgress` from this same slice.
 // W2-03: ForgeRouteMode + applyForgeRoute + EscapeFlat/ToastRail.
-// Sparky / HoloBubble stay scaffolded for later tasks.
+// W3-03: placeholder Sparky + spots + behaviour on this same slice.
 
 export type ForgeMorphPhase = 'idle' | 'fade-out' | 'glass' | 'wipe-in';
 
@@ -41,7 +41,35 @@ export type ForgeSparkySpot =
   | 'frontCenter'
   | 'behindCore';
 
-export type ForgeSparkyBehaviour = 'idle' | 'attend' | 'react' | 'return';
+export type ForgeSparkyBehaviour =
+  | 'idle'
+  | 'attend'
+  | 'react'
+  | 'return'
+  | 'sleep'
+  | 'whisper';
+
+/** SparkyCore / spec §5 face names — 3D placeholder reuses the names. */
+export type ForgeSparkyExpression =
+  | 'idle'
+  | 'happy'
+  | 'thinking'
+  | 'speaking'
+  | 'excited'
+  | 'sleepy'
+  | 'sad'
+  | 'celebrating'
+  | 'surprised';
+
+export type ForgeSparkyReaction =
+  | 'tapReact'
+  | 'cheer'
+  | 'wave'
+  | 'pointL'
+  | 'pointR'
+  | 'lookAround'
+  | 'sadNod'
+  | 'surprised';
 
 export type ForgeHoloBubbleStateId =
   | 'hidden'
@@ -54,12 +82,22 @@ export interface ForgeSparkyState {
   spot: ForgeSparkySpot;
   behaviour: ForgeSparkyBehaviour;
   outfit: string | null;
+  /** Face-screen expression (SparkyCore names). */
+  expression: ForgeSparkyExpression;
+  /** Panel the placeholder is attending, if any. */
+  attendPanel: ForgePanelId;
+  /** Last one-shot reaction; null when idle/attend/return. */
+  reaction: ForgeSparkyReaction | null;
+  /** True while lerping between desk spots (false under reduced motion). */
+  moving: boolean;
 }
 
 export interface ForgeHoloBubbleState {
   state: ForgeHoloBubbleStateId;
   /** World-space anchor; Smith fills from the holoEmitter socket. */
   anchor: readonly [number, number, number] | null;
+  /** Stub tip copy (W3-03). Full HoloBubble UI is Stagehand+Smith later. */
+  tip: string | null;
 }
 
 /**
@@ -121,10 +159,15 @@ export const FORGE_SLICE_DEFAULTS: ForgeSlice = {
     spot: 'nearCore',
     behaviour: 'idle',
     outfit: null,
+    expression: 'idle',
+    attendPanel: null,
+    reaction: null,
+    moving: false,
   },
   holoBubble: {
     state: 'hidden',
     anchor: null,
+    tip: null,
   },
   poseLock: false,
   directorId: null,
