@@ -24,7 +24,7 @@ Status legend: `todo` · `doing` · `blocked` · `done` · `packet`
 | W0-05 | Scribe | Vocabulary lock HoloL/C/R; archive root Phased plan → `_SUPERSEDED/` | **done** | PR #168 (per PROGRESS) |
 | W0-06 | Scribe | Fix hub-concepts/`/workspace` paths; PROGRESS.md FORGE HUB note | **done** | PR #169 `1fe3c3f` |
 | W0-07 | Scribe + Gatekeeper | PR #164 port list; close after W2 port | **done** | PR #170 (list only; #164 stays open) |
-| W0-08 | Scribe + Director | MOTION_BIBLE.md v1 | **doing** | stub skeleton PR pending Director fill-in — **not** a complete bible |
+| W0-08 | Scribe + Director | MOTION_BIBLE.md v1 | **doing** | stub skeleton [PR #172](https://github.com/BlissDirective/SparkForge-Labs-LLC/pull/172) pending Director fill-in — **not** a complete bible |
 | W1-01 | Stagehand | `/dev/forge-hub` plate+parallax room shell; fixed cam; SSIM harness stub | **done** | merged PR #166 `892e464` |
 | W1-02 | Stagehand | Portal reducer port from PR #164; emitter charge/emit | **done** | merged PR #173 `90706e7` |
 | W1-03 | Stagehand | Three glass slabs + breathe; poster fallback | todo | |
