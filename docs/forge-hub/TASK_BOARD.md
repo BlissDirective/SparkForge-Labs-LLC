@@ -26,7 +26,7 @@ Status legend: `todo` · `doing` · `blocked` · `done` · `packet`
 | W0-07 | Scribe + Gatekeeper | PR #164 port list; close after W2 port | **done** | PR #170 (list only; #164 stays open) |
 | W0-08 | Scribe + Director | MOTION_BIBLE.md v1 | todo | |
 | W1-01 | Stagehand | `/dev/forge-hub` plate+parallax room shell; fixed cam; SSIM harness stub | **done** | merged PR #166 `892e464` |
-| W1-02 | Stagehand | Portal reducer port from PR #164; emitter charge/emit | **doing** | branch `grok/stagehand/W1-02-portal-reducer` |
+| W1-02 | Stagehand | Portal reducer port from PR #164; emitter charge/emit | **done** | PR #173 |
 | W1-03 | Stagehand | Three glass slabs + breathe; poster fallback | todo | |
 | W3-01 | Smith | Confirm SPARKY-CHARACTER-SPEC + artist brief | todo | spec may already exist |
 | W3-02 | Smith | Track A candidate sheet (needs AP-001 mesh-gen) | blocked | AP-001 |

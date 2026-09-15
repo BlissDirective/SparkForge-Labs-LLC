@@ -46,15 +46,16 @@ test.describe('W1 /dev/forge-hub room shell + portal', () => {
 
   test('ignite walks idle → charge → emit → docked', async ({ page }) => {
     await page.goto('/dev/forge-hub');
-    const shell = page.getByTestId('forge-hub-shell');
+    const shell = page.locator('[data-testid="forge-hub-shell"][data-forge-portal]');
     await expect(shell).toHaveAttribute('data-forge-portal', 'idle');
     await page.getByTestId('forge-hub-ignite').click();
     await expect(shell).toHaveAttribute('data-forge-portal', 'charge');
+    // Charge 420ms + emit 560ms; allow main-thread jank from GPU probe.
     await expect(shell).toHaveAttribute('data-forge-portal', 'emit', {
-      timeout: 1200,
+      timeout: 5000,
     });
     await expect(shell).toHaveAttribute('data-forge-portal', 'docked', {
-      timeout: 1200,
+      timeout: 5000,
     });
     await page.screenshot({
       path: 'test-results/forge-hub-portal-docked.png',

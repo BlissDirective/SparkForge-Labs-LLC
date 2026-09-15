@@ -37,14 +37,14 @@ export function useForgePortal(): ForgePortalControls {
     const hold = nextHoldMs(phase);
     if (hold == null) return;
     if (reduceMotion) {
-      dispatch({ type: 'SKIP_TO_DOCKED' });
+      useForgeStore.getState().dispatchForgePortal({ type: 'SKIP_TO_DOCKED' });
       return;
     }
     const id = window.setTimeout(() => {
-      dispatch({ type: 'ADVANCE' });
+      useForgeStore.getState().dispatchForgePortal({ type: 'ADVANCE' });
     }, hold);
     return () => window.clearTimeout(id);
-  }, [dispatch, phase, poseLock, reduceMotion]);
+  }, [phase, poseLock, reduceMotion]);
 
   const ignite = useCallback(() => {
     if (poseLock) return;
