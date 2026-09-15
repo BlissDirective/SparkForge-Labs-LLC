@@ -2,8 +2,8 @@
 // Forge Hub — CorePortal plate math (PR #164 hotspotMap.ts, math only)
 // ════════════════════════════════════════════════════════════════
 // W1-02 needs the frozen plate aspect + FORGE_CORE / PEDESTAL so the
-// TSL emitter sits on the painted SF module. Panel slots, HOTSPOTS,
-// WORLD_MEDIA, and yaw helpers stay on the #164 branch until W2.
+// TSL emitter sits on the painted SF module. Panel slots live in
+// glassSlots.ts / layouts.ts. HOTSPOTS and WORLD_MEDIA were not ported.
 //
 // Coordinates are percentages of the 1536×1024 lock plate.
 

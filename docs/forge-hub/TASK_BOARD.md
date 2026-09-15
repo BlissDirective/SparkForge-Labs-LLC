@@ -23,19 +23,21 @@ Status legend: `todo` · `doing` · `blocked` · `done` · `packet`
 | W0-04 | Scribe | CLAUDE.md v7 draft as approval packet | todo | Tier 2 |
 | W0-05 | Scribe | Vocabulary lock HoloL/C/R; archive root Phased plan → `_SUPERSEDED/` | **done** | PR #168 (per PROGRESS) |
 | W0-06 | Scribe | Fix hub-concepts/`/workspace` paths; PROGRESS.md FORGE HUB note | **done** | PR #169 `1fe3c3f` |
-| W0-07 | Scribe + Gatekeeper | PR #164 port list; close after W2 port | **done** | PR #170 (list only; #164 stays open) |
+| W0-07 | Scribe + Gatekeeper | PR #164 port list; close after W2 port | **done** | list: PR #170 (unmerged until W2-09); close: W2-09 |
 | W0-08 | Scribe + Director | MOTION_BIBLE.md v1 | **done** | merged PR #174 `8df5634`; #172 closed |
 | W1-01 | Stagehand | `/dev/forge-hub` plate+parallax room shell; fixed cam; SSIM harness stub | **done** | merged PR #166 `892e464` |
 | W1-02 | Stagehand | Portal reducer port from PR #164; emitter charge/emit | **done** | merged PR #173 `90706e7` |
 | W1-03 | Stagehand | Three glass slabs + breathe; poster fallback | **done** | merged #175 `a4056cc` |
-| W2-01 | Stagehand | Layout registry + projection hook + HoloPanel reading plate | **done** | PR #176 `5b2146b`; SoT #170; #164 stays open |
+| W2-01 | Stagehand | Layout registry + projection hook + HoloPanel reading plate | **done** | PR #176 `5b2146b` |
 | W2-02 | Director | GSAP Director runtime from MOTION_BIBLE vs live glass | **done** | merged PR #177 `32db199`; HoloC `{31.2,24,37.6×48}`; `LAYOUT_MORPH_MS` 420 |
-| W2-03 | Stagehand | forgeStore API + ForgeRouteMode + EscapeFlat + ToastRail | **done** | merged PR #179 `2ba5af1`; no new Zustand store; #164 stays open |
+| W2-03 | Stagehand | forgeStore API + ForgeRouteMode + EscapeFlat + ToastRail | **done** | merged PR #179 `2ba5af1`; no new Zustand store |
 | W2-04 | Director | Reduced-motion 200ms crossfade substitutes | **done** | merged PR #178 `0851d7a`; slice-1 live ids; emit-burst SKIP_TO_DOCKED |
-| W2-05 | Stagehand | `/dev/forge-hub` mode switcher + `?calibrate=1` + transition scrubber | **done** | PR #180; rebased on #181 `243c212`; HUD intact; #164 stays open |
+| W2-05 | Stagehand | `/dev/forge-hub` mode switcher + `?calibrate=1` + transition scrubber | **done** | PR #180; rebased on #181 `243c212`; HUD intact |
 | W2-06 | Director | Theatre.js `first-visit-ignition` fill | **done** | merged PR #181 `243c212`; HUD scrubber intact |
-| W2-07 | Stagehand | HoloC welcome login + P2 morph cycle `welcome → hubSplit → playStage → gameLobby → welcome` | **done** | rebased on #183 `30c1337`; live reading-plate form; Playwright cycle smoke; #164 stays open |
+| W2-07 | Stagehand | HoloC welcome login + P2 morph cycle `welcome → hubSplit → playStage → gameLobby → welcome` | **done** | merged PR #182 `3022ccb`; live reading-plate form; Playwright cycle smoke |
 | W2-08 | Director | Remaining MOTION_BIBLE morphs | **done** | merged PR #183 `30c1337`; HUD remainder picker intact |
+| W2-09 | Stagehand | Audit PR #164 port list vs tip; close #164 | **doing** | catalog was the last Stagehand PORT row; no hotspot leftovers |
+| W2-10 | Stagehand | `createRenderer` / `three/webgpu` (WebGPU → WebGL2 → poster) on `/dev/forge-hub` | todo | after #164 close; W1-01 already calls `createRenderer` |
 | W3-01 | Smith | Confirm SPARKY-CHARACTER-SPEC + artist brief | todo | spec may already exist |
 | W3-02 | Smith | Track A candidate sheet (needs AP-001 mesh-gen) | blocked | AP-001 |
 | W3-03 | Stagehand + Smith | Placeholder Sparky + desk spots + behaviour hooks | todo | after W1-01 |
@@ -56,6 +58,6 @@ Status legend: `todo` · `doing` · `blocked` · `done` · `packet`
 |-----------|-------|--------|
 | Foreman | SparkForge-Labs (CDO) covering | active |
 | Scribe | Scribe (Forge Hub) | active — channel Forge Hub |
-| Stagehand | Stagehand (Forge Hub) | active — W2-07 HoloC login + P2 cycle (rebased on #183) |
+| Stagehand | Stagehand (Forge Hub) | active — W2-09 #164 close; next W2-10 createRenderer/webgpu |
 | Director | Director (Grok Bot Team) | active — W2-08 remaining morphs merged #183 `30c1337` |
 | Smith / Inspector / Glazier / Gatekeeper | — | deferred until AP-001 / P1 |
