@@ -76,6 +76,7 @@ export function ForgeDirectorControls({
         <span>Scrub</span>
         <input
           data-testid="forge-hub-director-scrub"
+          data-forge-transition-scrub="director"
           type="range"
           min={0}
           max={100}

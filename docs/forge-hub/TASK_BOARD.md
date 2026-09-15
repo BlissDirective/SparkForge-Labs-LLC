@@ -32,8 +32,8 @@ Status legend: `todo` · `doing` · `blocked` · `done` · `packet`
 | W2-02 | Director | GSAP Director runtime from MOTION_BIBLE vs live glass | **done** | merged PR #177 `32db199`; HoloC `{31.2,24,37.6×48}`; `LAYOUT_MORPH_MS` 420 |
 | W2-03 | Stagehand | forgeStore API + ForgeRouteMode + EscapeFlat + ToastRail | **done** | merged PR #179 `2ba5af1`; no new Zustand store; #164 stays open |
 | W2-04 | Director | Reduced-motion 200ms crossfade substitutes | **done** | merged PR #178 `0851d7a`; slice-1 live ids; emit-burst SKIP_TO_DOCKED |
-| W2-05 | Stagehand | Director HUD scrubber (in flight) | doing | parallel — Director must not break scrubber hooks |
-| W2-06 | Director | Theatre.js `first-visit-ignition` fill | **doing** | PR #181; bind to W2-03 tip; HUD scrubber intact for W2-05 |
+| W2-05 | Stagehand | `/dev/forge-hub` mode switcher + `?calibrate=1` + transition scrubber | **doing** | PR #180; composes with Theatre HUD scrubber; #164 stays open |
+| W2-06 | Director | Theatre.js `first-visit-ignition` fill | **done** | merged PR #181 `243c212`; HUD scrubber intact |
 | W3-01 | Smith | Confirm SPARKY-CHARACTER-SPEC + artist brief | todo | spec may already exist |
 | W3-02 | Smith | Track A candidate sheet (needs AP-001 mesh-gen) | blocked | AP-001 |
 | W3-03 | Stagehand + Smith | Placeholder Sparky + desk spots + behaviour hooks | todo | after W1-01 |

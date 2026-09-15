@@ -11,6 +11,8 @@
  * ToastRail. Same sceneStore forge slice — no new Zustand store.
  * W2 Theatre: first-visit-ignition JSON on ?ignition=1; Studio on
  * ?studio=1 in development only. Production `/` `/login` stay gated.
+ * W2-05: mode switcher + ?calibrate=1 + transition scrubber on the
+ * live forge slice / Director APIs. Director HUD stays intact.
  */
 
 import { useCallback, useEffect, useState } from 'react';
@@ -18,12 +20,15 @@ import dynamic from 'next/dynamic';
 import { useSearchParams, usePathname } from 'next/navigation';
 import '@/components/forge-hub/forge-hub.css';
 import { EscapeFlat } from '@/components/forge-hub/EscapeFlat';
+import { ForgeCalibrateOverlay } from '@/components/forge-hub/ForgeCalibrateOverlay';
 import { ForgeDirectorControls } from '@/components/forge-hub/ForgeDirectorControls';
+import { ForgeModeSwitcher } from '@/components/forge-hub/ForgeModeSwitcher';
 import { ForgePosterFallback } from '@/components/forge-hub/ForgePosterFallback';
 import {
   ForgeRouteMode,
   useForgeRouteMode,
 } from '@/components/forge-hub/ForgeRouteMode';
+import { ForgeTransitionScrubber } from '@/components/forge-hub/ForgeTransitionScrubber';
 import { HoloPanelLayer } from '@/components/forge-hub/HoloPanelLayer';
 import { ToastRail } from '@/components/forge-hub/ToastRail';
 import {
@@ -31,10 +36,8 @@ import {
   frameloopForMotion,
 } from '@/config/forgeHub';
 import { detectGPUTier } from '@/lib/webgpuDetection';
-import {
-  FORGE_LAYOUT_MODES,
-  isForgeMode,
-} from '@/lib/forge-hub/layouts';
+import { forgeRouteForDevMode } from '@/lib/forge-hub/devHud';
+import { isForgeMode } from '@/lib/forge-hub/layouts';
 import {
   portalLiveStatus,
   useForgePortal,
@@ -42,7 +45,6 @@ import {
 import { useForgeReducedMotion } from '@/lib/forge-hub/useForgeReducedMotion';
 import { useFirstVisitIgnition } from '@/lib/forge-hub/useFirstVisitIgnition';
 import { maybeLoadForgeTheatreStudio } from '@/lib/forge-hub/director';
-import type { ForgeMode } from '@/lib/forge-hub/types';
 import { useDeviceStore } from '@/stores/deviceStore';
 import { toast } from '@/stores/toastStore';
 import { useForgeStore } from '@/stores/sceneStore';
@@ -117,20 +119,12 @@ function ForgeHubClientInner() {
   const closeFlat = useCallback(() => {
     const back =
       previousMode && previousMode !== 'flat' ? previousMode : 'hubSplit';
-    applyForgeRoute({
-      mode: back,
-      frameloop: frameloopForMotion(!!prefersReducedMotion),
-      flatOverlay: false,
-    });
+    applyForgeRoute(forgeRouteForDevMode(back, !!prefersReducedMotion));
   }, [applyForgeRoute, prefersReducedMotion, previousMode]);
 
   const openFlat = useCallback(() => {
-    applyForgeRoute({
-      mode: 'flat',
-      frameloop: 'never',
-      flatOverlay: true,
-    });
-  }, [applyForgeRoute]);
+    applyForgeRoute(forgeRouteForDevMode('flat', !!prefersReducedMotion));
+  }, [applyForgeRoute, prefersReducedMotion]);
 
   useEffect(() => {
     setForgePoseLock(poseLock);
@@ -154,14 +148,7 @@ function ForgeHubClientInner() {
   useEffect(() => {
     if (ignitionQuery && directorId === 'first-visit-ignition') return;
     if (modeParam && isForgeMode(modeParam)) {
-      applyForgeRoute({
-        mode: modeParam,
-        frameloop:
-          modeParam === 'flat'
-            ? 'never'
-            : frameloopForMotion(!!prefersReducedMotion),
-        flatOverlay: modeParam === 'flat',
-      });
+      applyForgeRoute(forgeRouteForDevMode(modeParam, !!prefersReducedMotion));
     }
   }, [
     applyForgeRoute,
@@ -210,19 +197,6 @@ function ForgeHubClientInner() {
   const onReady = useCallback(() => setStageStatus('ready'), []);
   const onFailure = useCallback(() => setStageStatus('poster'), []);
 
-  const pickMode = (next: string) => {
-    if (!isForgeMode(next)) return;
-    if (next === 'flat') {
-      openFlat();
-      return;
-    }
-    applyForgeRoute({
-      mode: next,
-      frameloop: frameloopForMotion(!!prefersReducedMotion),
-      flatOverlay: false,
-    });
-  };
-
   return (
     <div
       data-testid="forge-hub-shell"
@@ -240,6 +214,7 @@ function ForgeHubClientInner() {
       data-forge-studio={studioOn ? '1' : '0'}
       data-forge-flat={stageHidden ? '1' : '0'}
       data-forge-frameloop={frameloop}
+      data-forge-calibrate={calibrate ? '1' : '0'}
       className="relative min-h-screen w-full overflow-hidden bg-[#0b1218]"
     >
       <ForgePosterFallback
@@ -263,6 +238,10 @@ function ForgeHubClientInner() {
 
       {!poseLock && !stageHidden ? (
         <HoloPanelLayer layout={holoLayout} calibrate={calibrate} />
+      ) : null}
+
+      {calibrate && !poseLock && !stageHidden ? (
+        <ForgeCalibrateOverlay layout={holoLayout} />
       ) : null}
 
       {!poseLock && !stageHidden ? (
@@ -299,22 +278,11 @@ function ForgeHubClientInner() {
 
       {!poseLock && !stageHidden ? (
         <div className="pointer-events-auto absolute bottom-6 right-6 z-20 flex flex-col items-end gap-2">
-          <label className="font-mono text-[0.65rem] uppercase tracking-[0.18em] text-cyan-100/80">
-            Layout
-            <select
-              data-testid="forge-hub-mode-switch"
-              className="forge-hub-mode ml-2"
-              aria-label="Forge hub layout mode"
-              value={mode}
-              onChange={(event) => pickMode(event.target.value)}
-            >
-              {FORGE_LAYOUT_MODES.map((id: ForgeMode) => (
-                <option key={id} value={id}>
-                  {id}
-                </option>
-              ))}
-            </select>
-          </label>
+          <ForgeModeSwitcher reducedMotion={!!prefersReducedMotion} />
+          <ForgeTransitionScrubber
+            reducedMotion={!!prefersReducedMotion}
+            poseLock={poseLock}
+          />
           <button
             type="button"
             data-testid="forge-hub-toast-ping"

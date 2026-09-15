@@ -249,6 +249,74 @@ test.describe('W1 /dev/forge-hub room shell + portal', () => {
     await expect(page.getByTestId('forge-hub-escape-flat')).toHaveCount(0);
   });
 
+  test('?calibrate=1 draws slot outlines including hidden PlayStage wings', async ({
+    page,
+  }) => {
+    await page.goto(
+      '/dev/forge-hub?fallback=poster&calibrate=1&mode=playStage',
+    );
+    const shell = page.getByTestId('forge-hub-shell');
+    await expect(shell).toHaveAttribute('data-forge-calibrate', '1');
+    await expect(shell).toHaveAttribute('data-forge-mode', 'playStage');
+    const overlay = page.getByTestId('forge-hub-calibrate');
+    await expect(overlay).toBeVisible();
+    await expect(overlay.locator('[data-forge-calibrate-slot="holoC"]')).toHaveAttribute(
+      'data-visible',
+      'true',
+    );
+    await expect(overlay.locator('[data-forge-calibrate-slot="holoL"]')).toHaveAttribute(
+      'data-visible',
+      'false',
+    );
+    await expect(page.getByTestId('forge-hub-calibrate-hud')).toContainText(
+      'playStage',
+    );
+    await expect(page.getByTestId('forge-hub-calibrate-hud')).toContainText(
+      '420ms',
+    );
+  });
+
+  test('transition scrubber composes with the Director HUD on the live store', async ({
+    page,
+  }) => {
+    await page.goto('/dev/forge-hub?fallback=poster');
+    await expect(page.getByTestId('forge-hub-director')).toBeVisible();
+    await expect(page.getByTestId('forge-hub-director-scrub')).toBeVisible();
+    await expect(page.getByTestId('forge-hub-transition-scrubber')).toBeVisible();
+    await page
+      .getByTestId('forge-hub-transition-id')
+      .selectOption('login-success-hubsplit');
+    await expect(page.getByTestId('forge-hub-shell')).toHaveAttribute(
+      'data-forge-director',
+      'login-success-hubsplit',
+    );
+    await expect(page.getByTestId('forge-hub-shell')).toHaveAttribute(
+      'data-forge-mode',
+      'hubSplit',
+    );
+    await page.getByTestId('forge-hub-transition-scrub').evaluate((el) => {
+      const input = el as HTMLInputElement;
+      const setter = Object.getOwnPropertyDescriptor(
+        HTMLInputElement.prototype,
+        'value',
+      )?.set;
+      setter?.call(input, '40');
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      input.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+    await expect(page.getByTestId('forge-hub-transition-progress')).toContainText(
+      '0.40',
+    );
+    await expect(page.getByTestId('forge-hub-director-id')).toContainText(
+      'login-success-hubsplit',
+    );
+    await page.getByTestId('forge-hub-director-emit').click();
+    await expect(page.getByTestId('forge-hub-shell')).toHaveAttribute(
+      'data-forge-director',
+      'emit-burst',
+    );
+  });
+
   test('pose=lock hides reading plates so the SSIM trio stays empty glass', async ({
     page,
   }) => {
