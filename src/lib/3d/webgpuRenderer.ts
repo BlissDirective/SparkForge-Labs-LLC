@@ -5,23 +5,22 @@
 // Provides an async renderer factory compatible with R3F 9.x's
 // `<Canvas gl={async (defaultProps) => Promise<Renderer>}>` signature.
 //
-// Behavior:
-//   1. Read gpuTier from deviceStore (populated by webgpuDetection at boot).
-//   2. If webgpu-*: construct WebGPURenderer, await init(), return it.
-//   3. If webgl2 or init fails: fall back to WebGLRenderer (R3F default behavior).
+// TAP v2.2 decision 10 / W2-10 cascade:
+//   1. WebGPU (`three/webgpu` WebGPURenderer) when detection says so,
+//      or when the persist default has not been resolved this session
+//      and `navigator.gpu` exists (do not skip on stale `webgl2`).
+//   2. Automatic WebGL2 backend if WebGPU init fails or the live
+//      detect resolved to webgl2.
+//   3. Throw `RendererUnavailableError` below WebGL2 so the hub
+//      error boundary / poster path can unmount the canvas.
 //
-// Importantly, this factory does NOT create the renderer eagerly on server
-// side — all calls happen inside a browser context (Canvas mounts client-side).
-//
-// Mythos note: This is the MoE router picking its expert. Each call to
-// `createRenderer` evaluates the gpuTier "input" and dispatches to the
-// appropriate "expert" (WebGPU vs WebGL2). ACT halting applies too: if
-// the WebGPU adapter init takes too long or fails, we "halt early" to
-// WebGL2 rather than stalling indefinitely.
+// Importantly, this factory does NOT create the renderer eagerly on
+// server side — all calls happen inside a browser context.
 // ════════════════════════════════════════════════════════════════
 
 import { WebGLRenderer, type WebGLRendererParameters } from 'three';
-import { useDeviceStore } from '@/stores/deviceStore';
+import { useDeviceStore, type GPUTier } from '@/stores/deviceStore';
+import { probeWebGL2 } from '@/lib/webgpuDetection';
 
 // Loose structural type — R3F passes its own DefaultGLProps in (which
 // includes an OffscreenCanvas from lib.webworker, not lib.dom), so we
@@ -29,6 +28,32 @@ import { useDeviceStore } from '@/stores/deviceStore';
 // "two unrelated OffscreenCanvas types" conflict when both lib.dom and
 // lib.webworker type declarations are in scope.
 export type RendererFactoryProps = Record<string, unknown>;
+
+export type CanvasRendererBackend = 'webgpu' | 'webgl2';
+
+export type CreateRendererPrefer = 'auto' | 'webgpu' | 'webgl2';
+
+export interface CreateRendererOptions {
+  /** Override deviceStore gpuTier (tests + hub after detect). */
+  gpuTier?: GPUTier;
+  /** Override the session resolved flag. */
+  gpuTierResolved?: boolean;
+  /**
+   * `webgl2` skips WebGPU (hub `?fallback=webgl2`).
+   * `webgpu` attempts WebGPU then falls through.
+   * `auto` follows TAP: WebGPU first when the tier / unresolved
+   * persist default says so.
+   */
+  prefer?: CreateRendererPrefer;
+}
+
+/** Thrown when neither WebGPU nor WebGL2 can be constructed. */
+export class RendererUnavailableError extends Error {
+  constructor(message = 'No WebGPU or WebGL2 renderer available') {
+    super(message);
+    this.name = 'RendererUnavailableError';
+  }
+}
 
 /** Narrow guard — true only when the renderer is a WebGPURenderer instance. */
 export function isWebGPURenderer(renderer: unknown): boolean {
@@ -39,9 +64,47 @@ export function isWebGPURenderer(renderer: unknown): boolean {
   );
 }
 
+export function rendererBackendOf(renderer: unknown): CanvasRendererBackend {
+  return isWebGPURenderer(renderer) ? 'webgpu' : 'webgl2';
+}
+
+/**
+ * Whether the factory should attempt `three/webgpu`.
+ * Unresolved persist default is `webgl2` — still try when the browser
+ * exposes `navigator.gpu` so a stale `sparkforge-device` cache cannot
+ * skip the TAP WebGPU-first cascade.
+ */
+export function shouldAttemptWebGPU(args: {
+  gpuTier: GPUTier;
+  gpuTierResolved: boolean;
+  prefer?: CreateRendererPrefer;
+  hasNavigatorGpu: boolean;
+}): boolean {
+  const prefer = args.prefer ?? 'auto';
+  if (prefer === 'webgl2') return false;
+  if (prefer === 'webgpu') return args.hasNavigatorGpu;
+  if (args.gpuTier.startsWith('webgpu')) return true;
+  if (!args.gpuTierResolved && args.hasNavigatorGpu) return true;
+  return false;
+}
+
 /** Soft timeout for WebGPURenderer initialization. Beyond this window we
  *  fall back to WebGLRenderer — matches the ACT early-exit pattern. */
 const WEBGPU_INIT_TIMEOUT_MS = 3000;
+
+let lastRendererBackend: CanvasRendererBackend | null = null;
+
+export function getLastRendererBackend(): CanvasRendererBackend | null {
+  return lastRendererBackend;
+}
+
+export function resetLastRendererBackend(): void {
+  lastRendererBackend = null;
+}
+
+function rememberBackend(backend: CanvasRendererBackend): void {
+  lastRendererBackend = backend;
+}
 
 /** Dev/debug flag — logs which renderer path was selected. Read from
  *  `NEXT_PUBLIC_DEBUG_RENDERER=1` to enable. Narrow string read → no heavy
@@ -49,6 +112,23 @@ const WEBGPU_INIT_TIMEOUT_MS = 3000;
 function shouldLog(): boolean {
   if (typeof process === 'undefined' || !process.env) return false;
   return process.env.NEXT_PUBLIC_DEBUG_RENDERER === '1';
+}
+
+function hasNavigatorGpu(): boolean {
+  return typeof navigator !== 'undefined' && 'gpu' in navigator;
+}
+
+function createWebGL2Renderer(props: RendererFactoryProps): WebGLRenderer {
+  if (typeof window !== 'undefined' && !probeWebGL2()) {
+    throw new RendererUnavailableError();
+  }
+  const renderer = new WebGLRenderer(props as WebGLRendererParameters);
+  rememberBackend('webgl2');
+  if (shouldLog()) {
+    // eslint-disable-next-line no-console
+    console.info('[Renderer] Using WebGLRenderer (WebGL2)');
+  }
+  return renderer;
 }
 
 /** Construct a WebGPURenderer dynamically. Imported lazily so the ~250KB
@@ -75,6 +155,7 @@ async function createWebGPURenderer(props: RendererFactoryProps) {
     ),
   ]);
 
+  rememberBackend('webgpu');
   if (shouldLog()) {
     console.info('[Renderer] WebGPURenderer initialized successfully');
   }
@@ -83,39 +164,47 @@ async function createWebGPURenderer(props: RendererFactoryProps) {
 }
 
 /** The factory R3F's `<Canvas gl={...}>` expects. Returns a WebGPURenderer
- *  when tier + device support it, otherwise falls through to WebGLRenderer.
+ *  when tier + device support it, otherwise falls through to WebGL2.
+ *  Below WebGL2, throws `RendererUnavailableError` (poster rung).
  *
  *  Usage:
  *    <Canvas gl={(props) => createRenderer(props)}>
+ *    <Canvas gl={(props) => createRenderer(props, { prefer: 'webgl2' })}>
  */
 export async function createRenderer(
   props: RendererFactoryProps,
+  options: CreateRendererOptions = {},
 ): Promise<WebGLRenderer | Awaited<ReturnType<typeof createWebGPURenderer>>> {
   // SSR guard — this function is only called client-side, but be defensive.
   if (typeof window === 'undefined') {
     return new WebGLRenderer(props as WebGLRendererParameters);
   }
 
-  const gpuTier = useDeviceStore.getState().gpuTier;
+  const store = useDeviceStore.getState();
+  const gpuTier = options.gpuTier ?? store.gpuTier;
+  const gpuTierResolved = options.gpuTierResolved ?? store.gpuTierResolved;
+  const prefer = options.prefer ?? 'auto';
 
-  // WebGL2 tier (or unknown): stick with WebGLRenderer — postprocessing
-  // stack stays compatible.
-  if (gpuTier === 'webgl2') {
-    if (shouldLog()) {
-      // eslint-disable-next-line no-console
-      console.info('[Renderer] Using WebGLRenderer (tier: webgl2)');
+  const tryWebGPU = shouldAttemptWebGPU({
+    gpuTier,
+    gpuTierResolved,
+    prefer,
+    hasNavigatorGpu: hasNavigatorGpu(),
+  });
+
+  if (tryWebGPU) {
+    try {
+      return await createWebGPURenderer(props);
+    } catch (err) {
+      if (shouldLog()) {
+        // eslint-disable-next-line no-console
+        console.warn('[Renderer] WebGPU init failed, falling back to WebGL2:', err);
+      }
     }
-    return new WebGLRenderer(props as WebGLRendererParameters);
+  } else if (shouldLog() && gpuTier === 'webgl2') {
+    // eslint-disable-next-line no-console
+    console.info('[Renderer] Using WebGLRenderer (tier: webgl2)');
   }
 
-  // WebGPU-tier device detected. Attempt GPU renderer with fallback.
-  try {
-    return await createWebGPURenderer(props);
-  } catch (err) {
-    if (shouldLog()) {
-      // eslint-disable-next-line no-console
-      console.warn('[Renderer] WebGPU init failed, falling back to WebGLRenderer:', err);
-    }
-    return new WebGLRenderer(props as WebGLRendererParameters);
-  }
+  return createWebGL2Renderer(props);
 }

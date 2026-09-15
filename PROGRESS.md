@@ -2862,3 +2862,8 @@ Agent: Stagehand (Grok Bot Team)
 
 Audited Scribe’s `docs/forge-hub/PR164_PORT_LIST.md` (PR #170, never merged to tip) against `3022ccb`. W1/W2 PORT rows were on tip except **catalog copy** — landed here as `src/lib/forge-hub/catalog.ts` (`HOLO_C_WELCOME`, HoloBubble tips, 11-lab rows). Do-not-port items confirmed absent (`forge-lab` tree, `/dev/forge-lab`, `FORGE_LAB_HUB`, live `authMerged` / `TopBanner` / `heroWelcome`). GitHub had already closed #164 at 05:09:19Z (with W2-05 merge) without Scribe’s comment and before W2-07; W2-09 posted the official not-merged close comment (`5675510821`). Verified: `tsc` clean, vitest 97 files / 1045 tests, `next build` includes `/dev/forge-hub` and no `/dev/forge-lab`, Playwright `forge-hub-shell` 26 passed. Next: W2-10 `createRenderer` / WebGPU (not started here).
 Agent: Stagehand (Grok Bot Team)
+
+### FORGE HUB — W2-10 createRenderer / three/webgpu cascade (Stagehand, 2026-09-15)
+
+Hardened the TAP v2.2 decision-10 cascade on `/dev/forge-hub`: WebGPU (`createRenderer` + dynamic `three/webgpu`) → WebGL2 → poster. W1-01 already wired the factory; this slice finishes the persist-default skip, the `backend: 'none'` poster rung, and observable shell attrs (`data-forge-renderer`, `data-forge-gpu-tier`, `data-forge-bloom`). `?fallback=poster` still skips the canvas; `?fallback=webgl2` forces the WebGL2 backend. Bloom-only post still branches `PostProcessingStackWebGPU` vs EffectComposer; `?pose=lock` skips bloom. No new Zustand store (`gpuTierResolved` on existing `deviceStore`, not persisted). No production `FORGE_HUB*` flip. Director HUD / Theatre ignition / morph cycle / EscapeFlat / ToastRail untouched. PR #186.
+Agent: Stagehand (Grok Bot Team)

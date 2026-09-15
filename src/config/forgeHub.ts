@@ -110,6 +110,8 @@ export const FORGE_HUB_QUERY = {
   poseParam: 'pose',
   fallbackParam: 'fallback',
   fallbackPoster: 'poster',
+  /** Force the WebGL2 backend (skip WebGPU) — W2-10 cascade tests. */
+  fallbackWebgl2: 'webgl2',
   calibrateParam: 'calibrate',
   calibrateOn: '1',
   studioParam: 'studio',

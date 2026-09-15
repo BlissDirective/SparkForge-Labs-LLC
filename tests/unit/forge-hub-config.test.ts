@@ -10,6 +10,7 @@ import {
   FORGE_HUB_DPR,
   FORGE_HUB_GLASS,
   FORGE_HUB_LOCK_PLATE,
+  FORGE_HUB_QUERY,
   FORGE_HUB_REFERENCE_VIEWPORT,
   FORGE_HUB_SSIM_THRESHOLD,
   frameloopForMotion,
@@ -44,6 +45,12 @@ describe('W1-01 forge hub config', () => {
   it('maps reduced motion to demand frameloop', () => {
     expect(frameloopForMotion(true)).toBe('demand');
     expect(frameloopForMotion(false)).toBe('always');
+  });
+
+  it('names the W2-10 cascade query rungs', () => {
+    expect(FORGE_HUB_QUERY.fallbackPoster).toBe('poster');
+    expect(FORGE_HUB_QUERY.fallbackWebgl2).toBe('webgl2');
+    expect(FORGE_HUB_QUERY.fallbackParam).toBe('fallback');
   });
 
   it('seats CorePortal on the desk using the frozen FORGE_CORE map', () => {

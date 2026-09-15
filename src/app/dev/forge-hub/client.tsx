@@ -14,6 +14,9 @@
  * W2-05: mode switcher + ?calibrate=1 + transition scrubber on the
  * live forge slice / Director APIs. Director HUD stays intact.
  * W2-07: live HoloC welcome login + P2 morph cycle smoke.
+ * W2-10: WebGPU → WebGL2 → poster cascade via `createRenderer`
+ * (`three/webgpu`). Shell reports the winning backend on
+ * `data-forge-renderer`. `?fallback=poster` / `?fallback=webgl2`.
  */
 
 import { useCallback, useEffect, useState } from 'react';
@@ -41,13 +44,21 @@ import { detectGPUTier } from '@/lib/webgpuDetection';
 import { forgeRouteForDevMode } from '@/lib/forge-hub/devHud';
 import { isForgeMode } from '@/lib/forge-hub/layouts';
 import {
+  forgeFallbackFromQuery,
+  forgeStagePlan,
+  type ForgeRendererPath,
+} from '@/lib/forge-hub/rendererCascade';
+import {
   portalLiveStatus,
   useForgePortal,
 } from '@/lib/forge-hub/useForgePortal';
 import { useForgeReducedMotion } from '@/lib/forge-hub/useForgeReducedMotion';
 import { useFirstVisitIgnition } from '@/lib/forge-hub/useFirstVisitIgnition';
 import { maybeLoadForgeTheatreStudio } from '@/lib/forge-hub/director';
-import { useDeviceStore } from '@/stores/deviceStore';
+import {
+  useDeviceStore,
+  waitForDeviceStoreHydration,
+} from '@/stores/deviceStore';
 import { toast } from '@/stores/toastStore';
 import { useForgeStore } from '@/stores/sceneStore';
 
@@ -73,9 +84,11 @@ function ForgeHubClientInner() {
   const prefersReducedMotion = useForgeReducedMotion();
   const poseLock =
     searchParams.get(FORGE_HUB_QUERY.poseParam) === FORGE_HUB_QUERY.poseLock;
-  const forcePoster =
-    searchParams.get(FORGE_HUB_QUERY.fallbackParam) ===
-    FORGE_HUB_QUERY.fallbackPoster;
+  const fallback = forgeFallbackFromQuery(
+    searchParams.get(FORGE_HUB_QUERY.fallbackParam),
+  );
+  const forcePoster = fallback === 'poster';
+  const forceWebgl2 = fallback === 'webgl2';
   const calibrate =
     searchParams.get(FORGE_HUB_QUERY.calibrateParam) ===
     FORGE_HUB_QUERY.calibrateOn;
@@ -114,12 +127,22 @@ function ForgeHubClientInner() {
 
   const [allowStage, setAllowStage] = useState(false);
   const [stageStatus, setStageStatus] = useState<StageStatus>('pending');
+  const [rendererPath, setRendererPath] =
+    useState<ForgeRendererPath>('pending');
+  const [gpuTierLabel, setGpuTierLabel] = useState('pending');
+  const [stagePrefer, setStagePrefer] = useState<'auto' | 'webgl2'>('auto');
 
   const posterVisible = forcePoster || stageStatus === 'poster';
   const glassReady = posterVisible || stageStatus === 'ready';
   const breatheOff = !!prefersReducedMotion || poseLock;
   const holoLayout = stageStatus === 'ready' && !forcePoster ? 'viewport' : 'stage';
   const stageHidden = flatOverlay || mode === 'flat';
+  const bloomPath =
+    poseLock || rendererPath === 'poster'
+      ? 'off'
+      : rendererPath === 'pending'
+        ? 'pending'
+        : rendererPath;
 
   const closeFlat = useCallback(() => {
     const back =
@@ -166,14 +189,31 @@ function ForgeHubClientInner() {
   useEffect(() => {
     if (forcePoster) {
       setStageStatus('poster');
+      setRendererPath('poster');
+      setGpuTierLabel('skipped');
+      setAllowStage(false);
       return;
     }
 
     let cancelled = false;
     (async () => {
+      await waitForDeviceStoreHydration();
       const result = await detectGPUTier();
       if (cancelled) return;
       useDeviceStore.getState().setGpuTier(result.tier, result.stripeCount);
+      setGpuTierLabel(result.backend === 'none' ? 'none' : result.tier);
+
+      const plan = forgeStagePlan(
+        result.backend,
+        forceWebgl2 ? 'webgl2' : null,
+      );
+      setStagePrefer(plan.prefer);
+      if (!plan.mountStage) {
+        setStageStatus('poster');
+        setRendererPath('poster');
+        setAllowStage(false);
+        return;
+      }
 
       // Two rAFs so the LCP heading can paint before the R3F chunk mounts.
       await new Promise<void>((resolve) => {
@@ -185,7 +225,7 @@ function ForgeHubClientInner() {
     return () => {
       cancelled = true;
     };
-  }, [forcePoster]);
+  }, [forcePoster, forceWebgl2]);
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
@@ -199,14 +239,24 @@ function ForgeHubClientInner() {
     return () => window.removeEventListener('keydown', onKey);
   }, [phase, poseLock, retract, stageHidden]);
 
-  const onReady = useCallback(() => setStageStatus('ready'), []);
-  const onFailure = useCallback(() => setStageStatus('poster'), []);
+  const onReady = useCallback((backend: 'webgpu' | 'webgl2') => {
+    setStageStatus('ready');
+    setRendererPath(backend);
+  }, []);
+  const onFailure = useCallback(() => {
+    setStageStatus('poster');
+    setRendererPath('poster');
+    setAllowStage(false);
+  }, []);
 
   return (
     <div
       data-testid="forge-hub-shell"
       data-forge-pose={poseLock ? 'lock' : 'idle'}
       data-forge-stage={forcePoster ? 'poster' : stageStatus}
+      data-forge-renderer={rendererPath}
+      data-forge-gpu-tier={gpuTierLabel}
+      data-forge-bloom={bloomPath}
       data-forge-portal={phase}
       data-forge-glass={glassReady ? 'trio' : 'pending'}
       data-forge-breathe={breatheOff ? 'off' : 'on'}
@@ -240,7 +290,11 @@ function ForgeHubClientInner() {
           aria-hidden="true"
           hidden={stageHidden}
         >
-          <ForgeStage onReady={onReady} onFailure={onFailure} />
+          <ForgeStage
+            prefer={stagePrefer}
+            onReady={onReady}
+            onFailure={onFailure}
+          />
         </div>
       )}
 

@@ -12,7 +12,10 @@ test.describe('W1 /dev/forge-hub room shell + portal', () => {
     await expect(
       page.getByRole('heading', { name: 'Forge Hub', exact: true }),
     ).toBeVisible();
-    await expect(page.getByTestId('forge-hub-shell')).toBeVisible();
+    await expect(page.getByTestId('forge-hub-shell')).toHaveAttribute(
+      'data-forge-screen-kit',
+      'w2',
+    );
     await page.screenshot({
       path: 'test-results/forge-hub-shell.png',
       fullPage: true,
@@ -538,5 +541,117 @@ test.describe('W1 /dev/forge-hub room shell + portal', () => {
     });
     await expect(page.getByTestId('forge-hub-welcome-login')).toBeAttached();
     await expect(page.getByTestId('forge-hub-director')).toBeVisible();
+  });
+});
+
+test.describe('W2-10 createRenderer cascade', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.addInitScript(() => {
+      localStorage.setItem('sparkforge:cookie-notice:dismissed', '1');
+    });
+  });
+
+  test('LCP heading is in the server HTML before any canvas', async ({
+    request,
+  }) => {
+    const response = await request.get('/dev/forge-hub');
+    expect(response.status()).toBeLessThan(500);
+    const html = await response.text();
+    expect(html).toContain('data-forge-lcp="html"');
+    expect(html).toMatch(/<h1[^>]*>\s*Forge Hub\s*<\/h1>/);
+    expect(html).not.toMatch(/<canvas/i);
+  });
+
+  test('?fallback=poster reports the poster rung and keeps Director HUD', async ({
+    page,
+  }) => {
+    await page.goto('/dev/forge-hub?fallback=poster');
+    const shell = page.getByTestId('forge-hub-shell');
+    await expect(shell).toHaveAttribute('data-forge-stage', 'poster');
+    await expect(shell).toHaveAttribute('data-forge-renderer', 'poster');
+    await expect(shell).toHaveAttribute('data-forge-gpu-tier', 'skipped');
+    await expect(shell).toHaveAttribute('data-forge-bloom', 'off');
+    await expect(page.locator('canvas')).toHaveCount(0);
+    await expect(page.getByTestId('forge-hub-director')).toBeVisible();
+    await expect(page.getByTestId('forge-hub-toast-rail')).toBeVisible();
+  });
+
+  test('stage mounts after GPU probe and reports the winning backend', async ({
+    page,
+  }) => {
+    await page.goto('/dev/forge-hub');
+    await expect(
+      page.getByRole('heading', { name: 'Forge Hub', exact: true }),
+    ).toBeVisible();
+    const shell = page.getByTestId('forge-hub-shell');
+    await expect(shell).not.toHaveAttribute('data-forge-renderer', 'pending', {
+      timeout: 15_000,
+    });
+    const renderer = await shell.getAttribute('data-forge-renderer');
+    expect(['webgpu', 'webgl2', 'poster']).toContain(renderer);
+    if (renderer === 'poster') {
+      await expect(page.locator('canvas')).toHaveCount(0);
+      await expect(shell).toHaveAttribute('data-forge-stage', 'poster');
+      await expect(shell).toHaveAttribute('data-forge-bloom', 'off');
+    } else {
+      await expect(page.locator('canvas')).toHaveCount(1);
+      await expect(shell).toHaveAttribute('data-forge-stage', 'ready');
+      await expect(shell).toHaveAttribute('data-forge-bloom', renderer!);
+      await expect(shell).toHaveAttribute(
+        'data-forge-gpu-tier',
+        renderer === 'webgpu' ? /webgpu-/ : 'webgl2',
+      );
+    }
+    await expect(page.getByTestId('forge-hub-director')).toBeVisible();
+  });
+
+  test('?fallback=webgl2 skips WebGPU when a GPU canvas is available', async ({
+    page,
+  }) => {
+    await page.goto('/dev/forge-hub?fallback=webgl2');
+    const shell = page.getByTestId('forge-hub-shell');
+    await expect(shell).not.toHaveAttribute('data-forge-renderer', 'pending', {
+      timeout: 15_000,
+    });
+    const renderer = await shell.getAttribute('data-forge-renderer');
+    expect(['webgl2', 'poster']).toContain(renderer);
+    if (renderer === 'webgl2') {
+      await expect(page.locator('canvas')).toHaveCount(1);
+      await expect(shell).toHaveAttribute('data-forge-bloom', 'webgl2');
+    } else {
+      await expect(page.locator('canvas')).toHaveCount(0);
+    }
+  });
+
+  test('pose=lock keeps bloom off while the cascade still runs', async ({
+    page,
+  }) => {
+    await page.goto('/dev/forge-hub?pose=lock');
+    const shell = page.getByTestId('forge-hub-shell');
+    await expect(shell).toHaveAttribute('data-forge-pose', 'lock');
+    await expect(shell).toHaveAttribute('data-forge-bloom', 'off');
+    await expect(shell).toHaveAttribute('data-forge-breathe', 'off');
+    await expect(page.getByTestId('forge-hub-director')).toHaveCount(0);
+  });
+
+  test('stale persisted webgl2 does not pin the shell on pending', async ({
+    page,
+  }) => {
+    await page.addInitScript(() => {
+      localStorage.setItem(
+        'sparkforge-device',
+        JSON.stringify({
+          state: { gpuTier: 'webgl2', stripeCount: 0 },
+          version: 0,
+        }),
+      );
+    });
+    await page.goto('/dev/forge-hub');
+    const shell = page.getByTestId('forge-hub-shell');
+    await expect(shell).not.toHaveAttribute('data-forge-renderer', 'pending', {
+      timeout: 15_000,
+    });
+    const renderer = await shell.getAttribute('data-forge-renderer');
+    expect(['webgpu', 'webgl2', 'poster']).toContain(renderer);
   });
 });

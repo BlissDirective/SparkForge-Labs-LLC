@@ -11,6 +11,7 @@
  * lab. Studio: ?studio=1 in development only. Production routes gated.
  * W2-05: mode switcher + ?calibrate=1 + transition scrubber.
  * W2-07: live HoloC login form + P2 morph cycle smoke.
+ * W2-10: createRenderer cascade (WebGPU → WebGL2 → poster).
  */
 
 import { Suspense } from 'react';
@@ -44,7 +45,10 @@ export default async function ForgeHubDevPage({
         <p className="text-xs font-medium uppercase tracking-[0.2em] text-cyan-200/80">
           SparkForge · /dev/forge-hub
         </p>
-        <h1 className="mt-2 font-display text-4xl font-bold leading-tight text-white">
+        <h1
+          data-forge-lcp="html"
+          className="mt-2 font-display text-4xl font-bold leading-tight text-white"
+        >
           Forge Hub
         </h1>
         <p className="mt-2 max-w-md text-sm text-white/70">
@@ -61,7 +65,7 @@ export default async function ForgeHubDevPage({
       <Suspense
         fallback={
           <div
-            data-testid="forge-hub-shell"
+            data-testid="forge-hub-shell-ssr"
             data-forge-stage="pending"
             className="min-h-screen"
           />
