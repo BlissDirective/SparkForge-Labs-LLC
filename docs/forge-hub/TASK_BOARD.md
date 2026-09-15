@@ -34,7 +34,8 @@ Status legend: `todo` · `doing` · `blocked` · `done` · `packet`
 | W2-04 | Director | Reduced-motion 200ms crossfade substitutes | **done** | merged PR #178 `0851d7a`; slice-1 live ids; emit-burst SKIP_TO_DOCKED |
 | W2-05 | Stagehand | `/dev/forge-hub` mode switcher + `?calibrate=1` + transition scrubber | **done** | PR #180; rebased on #181 `243c212`; HUD intact; #164 stays open |
 | W2-06 | Director | Theatre.js `first-visit-ignition` fill | **done** | merged PR #181 `243c212`; HUD scrubber intact |
-| W2-08 | Director | Remaining MOTION_BIBLE morphs | **doing** | `hub-labsbrowse` ± reverse, Focus, Dual, Whisper, merge/split; HUD/scrubber/ignition intact for Stagehand W2-07 |
+| W2-07 | Stagehand | HoloC welcome login + P2 morph cycle `welcome → hubSplit → playStage → gameLobby → welcome` | **done** | rebased on #183 `30c1337`; live reading-plate form; Playwright cycle smoke; #164 stays open |
+| W2-08 | Director | Remaining MOTION_BIBLE morphs | **done** | merged PR #183 `30c1337`; HUD remainder picker intact |
 | W3-01 | Smith | Confirm SPARKY-CHARACTER-SPEC + artist brief | todo | spec may already exist |
 | W3-02 | Smith | Track A candidate sheet (needs AP-001 mesh-gen) | blocked | AP-001 |
 | W3-03 | Stagehand + Smith | Placeholder Sparky + desk spots + behaviour hooks | todo | after W1-01 |
@@ -55,6 +56,6 @@ Status legend: `todo` · `doing` · `blocked` · `done` · `packet`
 |-----------|-------|--------|
 | Foreman | SparkForge-Labs (CDO) covering | active |
 | Scribe | Scribe (Forge Hub) | active — channel Forge Hub |
-| Stagehand | Stagehand (Forge Hub) | active — channel Forge Hub |
-| Director | Director (Grok Bot Team) | active — W2-08 remaining morphs (W2-06 ignition done #181) |
+| Stagehand | Stagehand (Forge Hub) | active — W2-07 HoloC login + P2 cycle (rebased on #183) |
+| Director | Director (Grok Bot Team) | active — W2-08 remaining morphs merged #183 `30c1337` |
 | Smith / Inspector / Glazier / Gatekeeper | — | deferred until AP-001 / P1 |

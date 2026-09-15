@@ -204,8 +204,17 @@ test.describe('W1 /dev/forge-hub room shell + portal', () => {
     await expect(
       page.getByRole('region', { name: 'Welcome to SparkForge' }),
     ).toBeVisible();
+    await expect(page.getByTestId('forge-hub-welcome-login')).toBeVisible();
+    await expect(page.getByTestId('forge-hub-login-email')).toBeVisible();
+    await expect(page.getByTestId('forge-hub-login-password')).toBeVisible();
     await expect(page.getByTestId('forge-hub-holo-holoL')).toBeVisible();
     await expect(page.getByTestId('forge-hub-holo-holoR')).toBeVisible();
+    const transform = await page
+      .getByTestId('forge-hub-holo-holoC')
+      .evaluate((el) => getComputedStyle(el).transform);
+    expect(transform === 'none' || transform === 'matrix(1, 0, 0, 1, 0, 0)').toBe(
+      true,
+    );
   });
 
   test('toast rail sits on the hub and EscapeFlat covers FLAT', async ({
@@ -453,5 +462,80 @@ test.describe('W1 /dev/forge-hub room shell + portal', () => {
     await expect(shell).toHaveAttribute('data-forge-director', 'welcome-idle', {
       timeout: 1500,
     });
+  });
+
+  test('HoloC login form is live in welcome and stays attached on hubSplit', async ({
+    page,
+  }) => {
+    await page.goto('/dev/forge-hub?fallback=poster&mode=welcome');
+    const form = page.getByTestId('forge-hub-welcome-login');
+    await expect(form).toBeVisible();
+    await page.getByTestId('forge-hub-login-email').fill('kid@sparkforge.test');
+    await page.getByTestId('forge-hub-mode-switch').selectOption('hubSplit');
+    await expect(page.getByTestId('forge-hub-shell')).toHaveAttribute(
+      'data-forge-mode',
+      'hubSplit',
+    );
+    await expect(form).toBeAttached();
+    await expect(form).toBeHidden();
+    await expect(page.getByTestId('forge-hub-login-email')).toHaveValue(
+      'kid@sparkforge.test',
+    );
+    await expect(
+      page.getByRole('region', { name: "Today's mission" }),
+    ).toBeVisible();
+  });
+
+  test('P2 morph cycle welcome → hubSplit → playStage → gameLobby → welcome', async ({
+    page,
+  }) => {
+    await page.goto('/dev/forge-hub?fallback=poster&mode=welcome');
+    const shell = page.getByTestId('forge-hub-shell');
+    const form = page.getByTestId('forge-hub-welcome-login');
+    await expect(page.getByTestId('forge-hub-director')).toBeVisible();
+    await expect(page.getByTestId('forge-hub-director-scrub')).toBeVisible();
+    await expect(page.getByTestId('forge-hub-transition-scrubber')).toBeVisible();
+    await expect(form).toBeVisible();
+    await page.getByTestId('forge-hub-login-email').fill('cycle@sparkforge.test');
+
+    await page.getByTestId('forge-hub-p2-cycle').click();
+    await expect(shell).toHaveAttribute('data-forge-morph-cycle', 'running');
+
+    await expect(shell).toHaveAttribute('data-forge-morph-cycle', 'done', {
+      timeout: 12_000,
+    });
+    await expect(shell).toHaveAttribute(
+      'data-forge-morph-cycle-trace',
+      'welcome,hubSplit,playStage,gameLobby,welcome',
+    );
+    await expect(shell).toHaveAttribute('data-forge-mode', 'welcome');
+    await expect(form).toBeVisible();
+    await expect(page.getByTestId('forge-hub-login-email')).toHaveValue(
+      'cycle@sparkforge.test',
+    );
+    await expect(page.getByTestId('forge-hub-director')).toBeVisible();
+    const transform = await page
+      .getByTestId('forge-hub-holo-holoC')
+      .evaluate((el) => getComputedStyle(el).transform);
+    expect(transform === 'none' || transform === 'matrix(1, 0, 0, 1, 0, 0)').toBe(
+      true,
+    );
+  });
+
+  test('welcome login submit plays login-success-hubsplit', async ({ page }) => {
+    await page.goto('/dev/forge-hub?fallback=poster&mode=welcome');
+    const shell = page.getByTestId('forge-hub-shell');
+    await page.getByTestId('forge-hub-login-email').fill('kid@sparkforge.test');
+    await page.getByTestId('forge-hub-login-password').fill('lab-login');
+    await page.getByTestId('forge-hub-login-submit').click();
+    await expect(shell).toHaveAttribute(
+      'data-forge-director',
+      'login-success-hubsplit',
+    );
+    await expect(shell).toHaveAttribute('data-forge-mode', 'hubSplit', {
+      timeout: 4000,
+    });
+    await expect(page.getByTestId('forge-hub-welcome-login')).toBeAttached();
+    await expect(page.getByTestId('forge-hub-director')).toBeVisible();
   });
 });

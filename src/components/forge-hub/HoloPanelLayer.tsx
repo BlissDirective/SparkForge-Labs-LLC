@@ -10,6 +10,7 @@ import { isDirectorRmCrossfade } from '@/lib/forge-hub/director/clock';
 import { useDirectorClock } from '@/lib/forge-hub/useForgeDirector';
 import { useForgeStore } from '@/stores/sceneStore';
 import { HoloPanel } from './HoloPanel';
+import { WelcomeLoginForm } from './WelcomeLoginForm';
 
 type PanelCopy = { title: string; body: string };
 
@@ -27,7 +28,7 @@ const MODE_COPY: Partial<Record<ForgeMode, Record<GlassSlotId, PanelCopy>>> = {
     },
     holoC: {
       title: 'Welcome to SparkForge',
-      body: 'Login lands on this reading plate. Glazier will mount the real form here.',
+      body: '',
     },
     holoR: {
       title: 'Meet Sparky',
@@ -101,6 +102,7 @@ export function HoloPanelLayer({
       data-testid="forge-hub-holo-layer"
       data-forge-calibrate={calibrate ? '1' : '0'}
       data-forge-holo-layout={layout}
+      data-forge-holoc-login="1"
       data-rm-crossfade={rmCrossfade ? '1' : '0'}
       data-forge-room-dim={clock.roomDim > 0.05 ? '1' : '0'}
       data-forge-bubble={clock.bubbleScale > 0.02 ? '1' : '0'}
@@ -115,7 +117,14 @@ export function HoloPanelLayer({
         const text = copy[slot.id];
         return (
           <HoloPanel key={slot.id} slotId={slot.id} title={text.title}>
-            <p>{text.body}</p>
+            {slot.id === 'holoC' ? (
+              <>
+                <WelcomeLoginForm active={mode === 'welcome'} />
+                {mode !== 'welcome' && text.body ? <p>{text.body}</p> : null}
+              </>
+            ) : (
+              <p>{text.body}</p>
+            )}
           </HoloPanel>
         );
       })}

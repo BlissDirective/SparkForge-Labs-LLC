@@ -13,6 +13,7 @@
  * ?studio=1 in development only. Production `/` `/login` stay gated.
  * W2-05: mode switcher + ?calibrate=1 + transition scrubber on the
  * live forge slice / Director APIs. Director HUD stays intact.
+ * W2-07: live HoloC welcome login + P2 morph cycle smoke.
  */
 
 import { useCallback, useEffect, useState } from 'react';
@@ -23,6 +24,7 @@ import { EscapeFlat } from '@/components/forge-hub/EscapeFlat';
 import { ForgeCalibrateOverlay } from '@/components/forge-hub/ForgeCalibrateOverlay';
 import { ForgeDirectorControls } from '@/components/forge-hub/ForgeDirectorControls';
 import { ForgeModeSwitcher } from '@/components/forge-hub/ForgeModeSwitcher';
+import { ForgeMorphCycle } from '@/components/forge-hub/ForgeMorphCycle';
 import { ForgePosterFallback } from '@/components/forge-hub/ForgePosterFallback';
 import {
   ForgeRouteMode,
@@ -94,6 +96,9 @@ function ForgeHubClientInner() {
   const frameloop = useForgeStore((s) => s.forge.frameloop);
   const { phase, isOpen, retract, toggle } = useForgePortal();
   const directorId = useForgeStore((s) => s.forge.directorId);
+  const [cycleStatus, setCycleStatus] = useState('idle');
+  const [cycleStep, setCycleStep] = useState('idle');
+  const [cycleTrace, setCycleTrace] = useState('');
 
   useFirstVisitIgnition({
     pathname,
@@ -215,6 +220,9 @@ function ForgeHubClientInner() {
       data-forge-flat={stageHidden ? '1' : '0'}
       data-forge-frameloop={frameloop}
       data-forge-calibrate={calibrate ? '1' : '0'}
+      data-forge-morph-cycle={cycleStatus}
+      data-forge-morph-cycle-step={cycleStep}
+      data-forge-morph-cycle-trace={cycleTrace}
       className="relative min-h-screen w-full overflow-hidden bg-[#0b1218]"
     >
       <ForgePosterFallback
@@ -279,6 +287,14 @@ function ForgeHubClientInner() {
       {!poseLock && !stageHidden ? (
         <div className="pointer-events-auto absolute bottom-6 right-6 z-20 flex flex-col items-end gap-2">
           <ForgeModeSwitcher reducedMotion={!!prefersReducedMotion} />
+          <ForgeMorphCycle
+            reducedMotion={!!prefersReducedMotion}
+            onStatus={(status, step) => {
+              setCycleStatus(status);
+              setCycleStep(step);
+            }}
+            onTrace={setCycleTrace}
+          />
           <ForgeTransitionScrubber
             reducedMotion={!!prefersReducedMotion}
             poseLock={poseLock}
