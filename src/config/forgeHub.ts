@@ -95,6 +95,7 @@ export const FORGE_HUB_BLOOM = {
 
 /**
  * Glass slabs (W1-03). World materials on the lock-pose trio.
+ * W2 live modes re-seat HoloC from the top seed via `layouts.ts`.
  * Breathe is ambient (`panelBreathe` ~3 s, scale 98–102 %). Freeze
  * under reduced motion and `?pose=lock`. RM first-paint is a 200 ms
  * CSS crossfade — no continuous loop.
@@ -109,6 +110,8 @@ export const FORGE_HUB_QUERY = {
   poseParam: 'pose',
   fallbackParam: 'fallback',
   fallbackPoster: 'poster',
+  calibrateParam: 'calibrate',
+  calibrateOn: '1',
 } as const;
 
 export function plateSizeAtDistance(

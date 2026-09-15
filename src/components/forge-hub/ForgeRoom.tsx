@@ -18,6 +18,7 @@ import {
 } from '@/config/forgeHub';
 import { CorePortal } from './CorePortal';
 import { ForgeGlassSlabs } from './ForgeGlassSlabs';
+import { ForgeSlotProjector } from './ForgeSlotProjector';
 
 function usePlateTexture(url: string) {
   const texture = useTexture(url);
@@ -72,6 +73,7 @@ function PlateFrame({
         <meshBasicMaterial map={map} depthWrite side={DoubleSide} />
       </mesh>
       <ForgeGlassSlabs plateSize={size} reducedMotion={reducedMotion} />
+      <ForgeSlotProjector />
     </group>
   );
 }

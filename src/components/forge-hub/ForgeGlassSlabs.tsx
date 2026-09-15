@@ -1,11 +1,12 @@
 'use client';
 
-// Three lock-pose glass slabs (W1-03). World materials — not a hotspot
-// shell. Overlay the painted cyan frames on LOCKED_HERO: HoloL, HoloR,
-// lock-pose HoloC (top glass). Edge glow + scanline via TSL; breathe
-// is a mesh scale loop. Freeze under reduced motion and pose=lock.
+// Glass slabs (W1-03 materials + W2 live layout). World materials —
+// not a hotspot shell. `?pose=lock` keeps the painted W1-03 trio
+// (HoloC on the top seed). Live modes read `layouts.ts` so HoloC
+// re-seats to center. Edge glow + scanline via TSL; breathe is a
+// mesh scale loop. Freeze under reduced motion and pose=lock.
 
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import {
   AdditiveBlending,
@@ -17,14 +18,18 @@ import {
 import { isWebGPURenderer } from '@/lib/3d/webgpuRenderer';
 import { FORGE_HUB_GLASS } from '@/config/forgeHub';
 import {
-  GLASS_LOCK_SLOT_LIST,
   percentRectToLocal,
-  type GlassLockSlot,
+  type GlassSlotId,
 } from '@/lib/forge-hub/glassSlots';
+import { glassSlotsForView, type LayoutSlot } from '@/lib/forge-hub/layouts';
 import {
   PANEL_BREATHE_PHASE_S,
   panelBreatheScale,
 } from '@/lib/forge-hub/panelBreathe';
+import {
+  registerSlotAnchor,
+  unregisterSlotAnchor,
+} from '@/lib/forge-hub/slotAnchors';
 import { useForgeStore } from '@/stores/sceneStore';
 import { createGlassSlabMaterial } from '@/shaders/tsl/forgeGlassTSL';
 
@@ -34,23 +39,37 @@ interface ForgeGlassSlabsProps {
 }
 
 interface SlabProps {
-  slot: GlassLockSlot;
+  slot: LayoutSlot;
   plateSize: readonly [number, number];
   freeze: boolean;
 }
 
-function useLocalRect(slot: GlassLockSlot, plateSize: readonly [number, number]) {
+function useLocalRect(slot: LayoutSlot, plateSize: readonly [number, number]) {
   return useMemo(
     () => percentRectToLocal(slot, plateSize[0], plateSize[1]),
     [plateSize, slot],
   );
 }
 
+function useSlotAnchor(
+  id: GlassSlotId,
+  meshRef: { current: Mesh | null },
+) {
+  useLayoutEffect(() => {
+    const mesh = meshRef.current;
+    if (!mesh) return;
+    registerSlotAnchor(id, mesh);
+    return () => unregisterSlotAnchor(id, mesh);
+  }, [id, meshRef]);
+}
+
 function GlassSlabGpu({ slot, plateSize, freeze }: SlabProps) {
   const groupRef = useRef<Group>(null);
+  const meshRef = useRef<Mesh>(null);
   const glass = useMemo(() => createGlassSlabMaterial(), []);
   const local = useLocalRect(slot, plateSize);
   const phase = PANEL_BREATHE_PHASE_S[slot.id];
+  useSlotAnchor(slot.id, meshRef);
 
   useEffect(() => {
     const mat = glass.material;
@@ -80,6 +99,7 @@ function GlassSlabGpu({ slot, plateSize, freeze }: SlabProps) {
       userData={{ forge: 'glass', slot: slot.id }}
     >
       <mesh
+        ref={meshRef}
         position={[-local.pivotX, 0, 0]}
         material={glass.material}
         userData={{ forge: `glass-${slot.id}` }}
@@ -97,6 +117,7 @@ function GlassSlabFallback({ slot, plateSize, freeze }: SlabProps) {
   const cyan = useMemo(() => new Color('#4de9ff'), []);
   const local = useLocalRect(slot, plateSize);
   const phase = PANEL_BREATHE_PHASE_S[slot.id];
+  useSlotAnchor(slot.id, fillRef);
 
   useFrame((state) => {
     const scale = panelBreatheScale(state.clock.elapsedTime, phase, freeze);
@@ -163,13 +184,15 @@ export function ForgeGlassSlabs({
 }: ForgeGlassSlabsProps) {
   const gl = useThree((s) => s.gl);
   const poseLock = useForgeStore((s) => s.forge.poseLock);
+  const mode = useForgeStore((s) => s.forge.mode);
   const freeze = poseLock || reducedMotion;
   const gpu = isWebGPURenderer(gl);
   const Slab = gpu ? GlassSlabGpu : GlassSlabFallback;
+  const slots = glassSlotsForView(mode, poseLock);
 
   return (
     <group userData={{ forge: 'glass-trio' }}>
-      {GLASS_LOCK_SLOT_LIST.map((slot) => (
+      {slots.map((slot) => (
         <Slab
           key={slot.id}
           slot={slot}

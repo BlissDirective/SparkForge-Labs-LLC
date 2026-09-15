@@ -51,5 +51,5 @@ Status legend: `todo` · `doing` · `blocked` · `done` · `packet`
 | Stagehand | Stagehand (Forge Hub) | active — channel Forge Hub |
 | Smith / Director / Inspector / Glazier / Gatekeeper | — | deferred until AP-001 / P1 |
 
-| W2-01 | Stagehand | Layout registry + projection hook + HoloPanel reading plate | **todo** | SoT #170; after W1-03 |
+| W2-01 | Stagehand | Layout registry + projection hook + HoloPanel reading plate | **doing** | SoT #170; after W1-03; branch `grok/stagehand/W2-screen-kit` |
 | W2-02 | Director | GSAP Director runtime from MOTION_BIBLE vs live glass | **todo** | after W1-03 |

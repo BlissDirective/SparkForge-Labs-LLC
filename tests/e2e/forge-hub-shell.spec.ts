@@ -129,4 +129,67 @@ test.describe('W1 /dev/forge-hub room shell + portal', () => {
       .evaluate((el) => getComputedStyle(el).animationName);
     expect(animation).toContain('forge-hub-rm-crossfade');
   });
+
+  test('HoloPanel reading plates sit on HoloL / HoloC / HoloR', async ({
+    page,
+  }) => {
+    await page.goto('/dev/forge-hub?fallback=poster');
+    const shell = page.getByTestId('forge-hub-shell');
+    await expect(shell).toHaveAttribute('data-forge-screen-kit', 'w2');
+    await expect(shell).toHaveAttribute('data-forge-mode', 'hubSplit');
+    await expect(page.getByTestId('forge-hub-holo-holoL')).toBeVisible();
+    await expect(page.getByTestId('forge-hub-holo-holoC')).toBeVisible();
+    await expect(page.getByTestId('forge-hub-holo-holoR')).toBeVisible();
+    await expect(
+      page.getByRole('region', { name: "Today's mission" }),
+    ).toBeVisible();
+    const fill = await page
+      .getByTestId('forge-hub-holo-holoC')
+      .evaluate((el) =>
+        getComputedStyle(el.querySelector('.fh-holo-panel__plate')!).backgroundColor,
+      );
+    expect(fill).toMatch(/rgba?\(6,\s*14,\s*28/);
+    await page.screenshot({
+      path: 'test-results/forge-hub-holo-panels.png',
+      fullPage: true,
+    });
+  });
+
+  test('mode switcher reseats PlayStage to a single merged plate', async ({
+    page,
+  }) => {
+    await page.goto('/dev/forge-hub?fallback=poster');
+    await page.getByTestId('forge-hub-mode-switch').selectOption('playStage');
+    await expect(page.getByTestId('forge-hub-shell')).toHaveAttribute(
+      'data-forge-mode',
+      'playStage',
+    );
+    await expect(page.getByTestId('forge-hub-holo-holoC')).toBeVisible();
+    await expect(page.getByTestId('forge-hub-holo-holoL')).toHaveCount(0);
+    await expect(page.getByTestId('forge-hub-holo-holoR')).toHaveCount(0);
+    await expect(page.getByRole('region', { name: 'PlayStage' })).toBeVisible();
+  });
+
+  test('welcome query reseats sides to 85 percent and keeps HoloC', async ({
+    page,
+  }) => {
+    await page.goto('/dev/forge-hub?fallback=poster&mode=welcome');
+    await expect(page.getByTestId('forge-hub-shell')).toHaveAttribute(
+      'data-forge-mode',
+      'welcome',
+    );
+    await expect(
+      page.getByRole('region', { name: 'Welcome to SparkForge' }),
+    ).toBeVisible();
+    await expect(page.getByTestId('forge-hub-holo-holoL')).toBeVisible();
+    await expect(page.getByTestId('forge-hub-holo-holoR')).toBeVisible();
+  });
+
+  test('pose=lock hides reading plates so the SSIM trio stays empty glass', async ({
+    page,
+  }) => {
+    await page.goto('/dev/forge-hub?pose=lock');
+    await expect(page.getByTestId('forge-hub-holo-layer')).toHaveCount(0);
+    await expect(page.getByTestId('forge-hub-mode-switch')).toHaveCount(0);
+  });
 });

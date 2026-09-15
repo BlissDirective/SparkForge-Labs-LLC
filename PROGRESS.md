@@ -2784,3 +2784,16 @@ crossfade. Poster / `?fallback=poster` keeps the display still and adds CSS
 glass overlays. HOLO blend *edge* tokens ported; reading-plate fill ≥ 0.85
 stays W2. No hotspot shell, no #164 close, no new Zustand store.
 Agent: Stagehand (Grok Bot Team)
+
+### FORGE HUB — W2 screen kit (Stagehand, 2026-09-15)
+
+Layout registry (`src/lib/forge-hub/layouts.ts`) ports PR #164 math
+(lerp, live-rect beam attach, PlayStage seed from AUTH_MERGED_CENTER) and
+re-seats live HoloC from the painted top seed to a center reading plate
+for `welcome` / `hubSplit`. `?pose=lock` keeps the W1-03 top trio for SSIM.
+Projection hook (`useProjectedSlot` + `ForgeSlotProjector`) maps glass
+mesh corners to DOM. `HoloPanel` reading plate fill is `rgba(6,14,28,0.88)`
+(≥ 0.85). Wired on `/dev/forge-hub` with a mode switcher. No new Zustand
+store; portal 420/560 unchanged; no Director GSAP / EscapeFlat / ToastRail;
+PR #164 stays open.
+Agent: Stagehand (Grok Bot Team)
