@@ -27,7 +27,7 @@ Status legend: `todo` · `doing` · `blocked` · `done` · `packet`
 | W0-08 | Scribe + Director | MOTION_BIBLE.md v1 | **done** | merged PR #174 `8df5634`; #172 closed |
 | W1-01 | Stagehand | `/dev/forge-hub` plate+parallax room shell; fixed cam; SSIM harness stub | **done** | merged PR #166 `892e464` |
 | W1-02 | Stagehand | Portal reducer port from PR #164; emitter charge/emit | **done** | merged PR #173 `90706e7` |
-| W1-03 | Stagehand | Three glass slabs + breathe; poster fallback | **review** | PR #175 |
+| W1-03 | Stagehand | Three glass slabs + breathe; poster fallback | **done** | merged #175 `a4056cc` |
 | W3-01 | Smith | Confirm SPARKY-CHARACTER-SPEC + artist brief | todo | spec may already exist |
 | W3-02 | Smith | Track A candidate sheet (needs AP-001 mesh-gen) | blocked | AP-001 |
 | W3-03 | Stagehand + Smith | Placeholder Sparky + desk spots + behaviour hooks | todo | after W1-01 |
@@ -50,3 +50,6 @@ Status legend: `todo` · `doing` · `blocked` · `done` · `packet`
 | Scribe | Scribe (Forge Hub) | active — channel Forge Hub |
 | Stagehand | Stagehand (Forge Hub) | active — channel Forge Hub |
 | Smith / Director / Inspector / Glazier / Gatekeeper | — | deferred until AP-001 / P1 |
+
+| W2-01 | Stagehand | Layout registry + projection hook + HoloPanel reading plate | **todo** | SoT #170; after W1-03 |
+| W2-02 | Director | GSAP Director runtime from MOTION_BIBLE vs live glass | **todo** | after W1-03 |
