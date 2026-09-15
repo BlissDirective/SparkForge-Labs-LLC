@@ -3,7 +3,8 @@
 // Plate + parallax world (TAP v2.2 §2.4).
 // Backdrop = display still filling the lock frustum.
 // Desk = real y=0 plane (Sparky's floor in later tasks) textured from
-// the plate. No glass slabs, emitter mesh, or Sparky in W1-01.
+// the plate. CorePortal (W1-02) is the TSL emitter on the painted SF
+// module. No glass slabs or Sparky in this wave.
 
 import { useLayoutEffect, useMemo, useRef } from 'react';
 import { useTexture } from '@react-three/drei';
@@ -15,6 +16,7 @@ import {
   FORGE_HUB_PLATE,
   plateSizeAtDistance,
 } from '@/config/forgeHub';
+import { CorePortal } from './CorePortal';
 
 function usePlateTexture(url: string) {
   const texture = useTexture(url);
@@ -117,6 +119,7 @@ export function ForgeRoom() {
       />
       <PlateBackdrop />
       <DeskPlane />
+      <CorePortal />
     </group>
   );
 }

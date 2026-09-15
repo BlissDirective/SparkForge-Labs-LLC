@@ -1,11 +1,12 @@
+import type { PortalPhase } from './portalMachine';
+
 // ════════════════════════════════════════════════════════════════
 // Forge Hub types — W1-01 store slice (TAP v2.2 §2.5)
 // ════════════════════════════════════════════════════════════════
 // Lives on the existing sceneStore (exported as useForgeStore).
-// Do NOT add a new Zustand store. Glass / portal / Sparky / HoloBubble
-// values are scaffolded here so later Stagehand + Smith tasks write
-// into this slice instead of creating stores. Those features are NOT
-// implemented in W1-01.
+// Do NOT add a new Zustand store. W1-02 owns portalPhase via
+// portalMachine.ts (idle → charge → emit → docked). Glass / Sparky /
+// HoloBubble stay scaffolded for later tasks.
 
 export type ForgeMode =
   | 'welcome'
@@ -24,8 +25,8 @@ export type ForgeFrameloop = 'always' | 'demand' | 'never';
 
 export type ForgePanelId = 'holoL' | 'holoC' | 'holoR' | null;
 
-/** Portal reducer phases — W1-02 owns the machine. Idle default only. */
-export type ForgePortalPhase = 'idle' | 'charge' | 'emit' | 'docked';
+/** Portal reducer phases — source of truth is portalMachine.ts. */
+export type ForgePortalPhase = PortalPhase;
 
 export type ForgeSparkySpot =
   | 'nearCore'

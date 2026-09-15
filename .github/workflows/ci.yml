@@ -221,13 +221,20 @@ jobs:
         env:
           NEXT_PUBLIC_SUPABASE_URL: https://ci.placeholder.supabase.co
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-placeholder-anon-key
+          SUPABASE_SERVICE_ROLE_KEY: ci-placeholder-service-key
+          SKIP_ENV_VALIDATION: '1'
+          # Production middleware requires CSRF_SECRET (src/lib/csrf.ts).
+          # CI placeholder only — not a real secret; gitleaks should ignore.
+          CSRF_SECRET: ci-placeholder-csrf-secret-do-not-use-in-prod
         run: |
           npm start &
           SERVER_PID=$!
           trap "kill $SERVER_PID 2>/dev/null || true" EXIT
-          # Poll the health endpoint until it responds.
+          # Poll until the server answers. Placeholder Supabase makes
+          # /api/health 503 (unhealthy) — that still means the process is up.
           for i in {1..30}; do
-            if curl -sSf http://localhost:3000/api/health > /dev/null; then
+            code=$(curl -sS -o /dev/null -w '%{http_code}' http://localhost:3000/api/health || true)
+            if [[ "$code" == "200" || "$code" == "503" ]]; then
               break
             fi
             sleep 2
@@ -263,12 +270,16 @@ jobs:
         env:
           NEXT_PUBLIC_SUPABASE_URL: https://ci.placeholder.supabase.co
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-placeholder-anon-key
+          SUPABASE_SERVICE_ROLE_KEY: ci-placeholder-service-key
+          SKIP_ENV_VALIDATION: '1'
+          CSRF_SECRET: ci-placeholder-csrf-secret-do-not-use-in-prod
         run: |
           npm start &
           SERVER_PID=$!
           trap "kill $SERVER_PID 2>/dev/null || true" EXIT
           for i in {1..30}; do
-            if curl -sSf http://localhost:3000/api/health > /dev/null; then break; fi
+            code=$(curl -sS -o /dev/null -w '%{http_code}' http://localhost:3000/api/health || true)
+            if [[ "$code" == "200" || "$code" == "503" ]]; then break; fi
             sleep 2
           done
           lhci autorun --config=.lighthouserc.json || true

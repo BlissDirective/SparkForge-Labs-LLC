@@ -1,3 +1,23 @@
+.forge-hub-ignite {
+  border: 1px solid rgba(77, 233, 255, 0.45);
+  background: rgba(6, 14, 28, 0.72);
+  color: #e7fbff;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.55rem 0.9rem;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.forge-hub-ignite:hover,
+.forge-hub-ignite:focus-visible {
+  border-color: rgba(77, 233, 255, 0.9);
+  outline: 2px solid rgba(77, 233, 255, 0.55);
+  outline-offset: 2px;
+}
+
 @keyframes forge-hub-poster-breathe {
   0%,
   100% {

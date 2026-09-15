@@ -2760,3 +2760,13 @@ W8-01. `sceneStore` gained a `forge` slice; `useForgeStore` is an alias — no n
 Zustand store. Not in this task: glass slabs, portal reducer, Sparky, HoloPanel,
 EscapeFlat, ToastRail, production `FORGE_HUB` flip.
 Agent: Stagehand (Grok Bot Team)
+
+### FORGE HUB — W1-02 portal reducer (Stagehand, 2026-09-15)
+
+Ported PR #164 `portalMachine` (`idle → charge → emit → docked`) into
+`src/lib/forge-hub/portalMachine.ts` and wired it through the existing
+`forge` slice (`dispatchForgePortal` on `useForgeStore` / `sceneStore`).
+`/dev/forge-hub` Ignite control + CorePortal TSL emitter (WebGL additive
+fallback). Reduced motion sends `SKIP_TO_DOCKED`. Frozen `FORGE_CORE` /
+plate math only — no hotspot shell, no catalog, no HoloPanel, no #164 close.
+Agent: Stagehand (Grok Bot Team)
