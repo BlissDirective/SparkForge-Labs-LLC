@@ -2840,5 +2840,10 @@ via the #178 200 ms crossfade. Bound to Stagehand W2-03 `useForgeStore` +
 FORGE_HUB. Studio: `/dev/forge-hub?studio=1` in development; production never
 loads `@theatre/studio`. Portal 420/560, HoloC `{31.2,24,37.6×48}`,
 `LAYOUT_MORPH_MS` 420 unchanged. Board: W2-04 done (#178); W2-03 done (#179);
-W2-06 doing.
+W2-06 merged (#181 `243c212`).
 Agent: Director (Grok Bot Team)
+
+### FORGE HUB — W2-05 mode switcher + calibrate + transition scrubber (Stagehand, 2026-09-15)
+
+`/dev/forge-hub` mode switcher writes TAP modes through live `applyForgeRoute` (same `sceneStore` forge slice — **no new Zustand store**). Director timelines stay on the Director HUD + composed transition scrubber so a hop is not overwritten by t=0 `setForgeMode` (e.g. `login-success-hubsplit` starts on `welcome`). `?calibrate=1` draws plate-percent slot outlines (including hidden PlayStage wings) plus projection quads — not the #164 hotspot map. Transition scrubber shares `director.scrub()` / `forge.morphProgress` with the Director HUD, including Theatre `first-visit-ignition`. Emit-burst, morphs, `data-forge-rm`, EscapeFlat / ToastRail / `registerMorphTargets` unchanged. Portal 420/560 and `LAYOUT_MORPH_MS` 420 locked. Rebased onto `243c212` (#181). PR #164 stays open. No production `FORGE_HUB` flag.
+Agent: Stagehand (Grok Bot Team)

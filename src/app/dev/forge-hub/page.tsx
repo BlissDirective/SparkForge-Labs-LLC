@@ -9,6 +9,7 @@
  * W2-03: ForgeRouteMode + EscapeFlat + ToastRail (same sceneStore).
  * W2 Theatre: first-visit-ignition JSON; ?ignition=1 auto-plays on this
  * lab. Studio: ?studio=1 in development only. Production routes gated.
+ * W2-05: mode switcher + ?calibrate=1 + transition scrubber.
  */
 
 import { Suspense } from 'react';
@@ -48,9 +49,11 @@ export default async function ForgeHubDevPage({
         <p className="mt-2 max-w-md text-sm text-white/70">
           Screen kit on the room shell: HoloL / HoloC / HoloR reading
           plates. Director HUD drives emit-burst, login-success-hubsplit,
-          and first-visit-ignition. EscapeFlat and ToastRail sit outside
-          transformed wrappers. Kid-visible ignition is this lab only
-          (?ignition=1); production `/` `/login` stay gated.
+          and first-visit-ignition. Mode switcher, ?calibrate=1 slot
+          outlines, and the transition scrubber bind the live forge slice.
+          EscapeFlat and ToastRail sit outside transformed wrappers.
+          Kid-visible ignition is this lab only (?ignition=1); production
+          `/` `/login` stay gated.
         </p>
       </header>
       <Suspense
