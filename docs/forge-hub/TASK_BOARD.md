@@ -42,7 +42,7 @@ Status legend: `todo` · `doing` · `blocked` · `done` · `packet`
 | W3-01 | Smith | Confirm SPARKY-CHARACTER-SPEC + artist brief | todo | spec may already exist |
 | W3-02 | Smith | Track A candidate sheet (needs AP-001 mesh-gen) | blocked | AP-001 |
 | W3-03 | Stagehand + Smith | Placeholder Sparky + desk spots + behaviour hooks | **done** | Stagehand PR #187; rebased on #188 `e7c5ae5`; Smith still owns GLB / Track A mesh-gen (AP-001) |
-| W3-D1 | Director | Bind morph Sparky reactions to five `sparkySpots` | **doing** | after W3-03 #187 `97a6f9d`; seats only (`nearCore` `leftLip` `rightLip` `frontCenter` `behindCore`) |
+| W3-D1 | Director | Bind morph Sparky reactions to five `sparkySpots` | **doing** | after W3-03 #187 `97a6f9d`; rebased on Scribe #189 `cde5e45`; seats only |
 | W8-01 | Inspector | Reference hardware doc + SSIM CI job scaffold | todo | |
 | W8-02 | Inspector | Unit/e2e test scaffolds for forge-hub | todo | |
 | W10-01 | Gatekeeper | FLAGS.md skeleton (`FORGE_HUB*`) | todo | no prod flip |
