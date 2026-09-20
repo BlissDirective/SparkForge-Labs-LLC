@@ -66,14 +66,21 @@ export const LAYOUT_MORPH_MS_PR164 = 480;
 export const WELCOME_SIDE_SCALE = 0.85;
 
 /**
- * PlayStage merge-target seed. Same numbers as #164 AUTH_MERGED_CENTER.
- * Not a live `authMerged` mode.
+ * PlayStage merge-target seed — the three slabs merge into one game slab.
+ * Owner call (2026-09-19): tall, spec-literal ~70 % viewport width × ~73 %
+ * height (TAP §2.7 / MOTION_BIBLE §5.4), re-read off LOCKED_HUB.jpg. Top
+ * aligns with the painted glass (13.5 %); the slab reaches DOWN over the
+ * bottom-centre SF emitter disc (FORGE_CORE cy 78) so the merged glass
+ * englobes the core and the room dims behind it. Because the slab now
+ * contains the core, `liveBeams` draws no external cone in the merged
+ * state (was a short cone under the old y24–68 seed). Not a live
+ * `authMerged` mode.
  */
 export const PLAYSTAGE_CENTER: PercentRect = {
-  left: 20,
-  top: 24,
-  width: 60,
-  height: 44,
+  left: 15,
+  top: 13.5,
+  width: 70,
+  height: 73,
   yaw: 0,
 };
 
@@ -81,16 +88,20 @@ export const PLAYSTAGE_CENTER: PercentRect = {
 export const AUTH_MERGED_CENTER = PLAYSTAGE_CENTER;
 
 /**
- * hubSplit HoloC — re-seated off the painted top frame into the
- * inter-wing bay. Symmetric 3.2% gaps to the lock wings. Covers the
- * SF core (reading plate ≥0.85) — Tier-1 note for Director: lock pose
- * still uses `HOLO_C_LOCK` so SSIM / `?pose=lock` is unchanged.
+ * hubSplit HoloC — the "today's mission" / welcome-login reading plate.
+ * Re-read off LOCKED_HUB.jpg (2026-09-19, W1-05): seated in the painted
+ * glass band (top 13.5 %, bottom 62.5 %) so it clears the desk edge (~70 %)
+ * and the emitter disc (FORGE_CORE cy 78) the old y24–72 seed dipped into.
+ * Centred on x50 with ~1.8 % symmetric gaps to the lock wings (L right
+ * edge 35.2 %, R left edge 64.8 %); a touch wider/taller than HOLO_C_LOCK
+ * so it reads as the focal plate. Lock pose still uses `HOLO_C_LOCK`, so
+ * SSIM / `?pose=lock` is unchanged.
  */
 export const HUBSPLIT_HOLO_C: PercentRect = {
-  left: 31.2,
-  top: 24,
-  width: 37.6,
-  height: 48,
+  left: 37,
+  top: 13.5,
+  width: 26,
+  height: 49,
   yaw: 0,
 };
 
@@ -190,33 +201,49 @@ const PLAY_STAGE_LAYOUT: ForgeLayout = {
   },
 };
 
+// Live-mode trios re-read off LOCKED_HUB.jpg (2026-09-19, W1-05). Every
+// resting panel sits in the painted glass band (top ≥13.5 %, bottom ≤62.5 %)
+// so it clears the desk edge (~70 %) and the bottom-centre emitter disc
+// (FORGE_CORE cy 78). Symmetric compositions are centred on x50. The old
+// rects were authored for the superseded top-monitor plate and pushed panel
+// bottoms to y66–94 (onto the desk / disc).
+
+// labsBrowse: dominant centre hero (selected lab) between two thin columns
+// (lab list · detail+progress). TAP route `/labs`.
 const LABS_BROWSE_LAYOUT = trio(
   'labsBrowse',
-  { left: 4, top: 22, width: 18, height: 54, yaw: 0 },
-  { left: 24, top: 16, width: 52, height: 62, yaw: 0 },
-  { left: 78, top: 22, width: 18, height: 54, yaw: 0 },
+  { left: 6, top: 15, width: 17, height: 45, yaw: 0 },
+  { left: 26, top: 13.5, width: 48, height: 49, yaw: 0 },
+  { left: 77, top: 15, width: 17, height: 45, yaw: 0 },
 );
 
+// focus: one large centre reading plate with the two side wings tucked to
+// thin ±8° lips. TAP routes `/labs/[labId]`, `/mastery`, `/competencies`.
 const FOCUS_LAYOUT = trio(
   'focus',
-  { left: 2.5, top: 28, width: 12, height: 38, yaw: -8 },
-  { left: 16, top: 16, width: 68, height: 62, yaw: 0 },
-  { left: 85.5, top: 28, width: 12, height: 38, yaw: 8 },
+  { left: 2.5, top: 20, width: 11, height: 36, yaw: -8 },
+  { left: 16, top: 13.5, width: 68, height: 49, yaw: 0 },
+  { left: 86.5, top: 20, width: 11, height: 36, yaw: 8 },
   { l: false, c: true, r: false },
 );
 
+// dual: two strong side panels over a wide, short centre chart band
+// (lifted up off the emitter into the glass band). TAP routes `/progress`
+// (stats · chart · detail) and `/buddies` (friends · — · invite).
 const DUAL_LAYOUT = trio(
   'dual',
-  { left: 6, top: 20, width: 42, height: 54, yaw: 0 },
-  { left: 20, top: 78, width: 60, height: 16, yaw: 0 },
-  { left: 52, top: 20, width: 42, height: 54, yaw: 0 },
+  { left: 5, top: 13.5, width: 41, height: 40, yaw: 0 },
+  { left: 8, top: 55, width: 84, height: 9, yaw: 0 },
+  { left: 54, top: 13.5, width: 41, height: 40, yaw: 0 },
 );
 
+// avatarStudio: centred child-avatar plate flanked by stats and the Sparky
+// outfit rack. TAP route `/profile`.
 const AVATAR_STUDIO_LAYOUT = trio(
   'avatarStudio',
-  { left: 6, top: 26, width: 18, height: 46, yaw: 0 },
-  { left: 26, top: 18, width: 40, height: 58, yaw: 0 },
-  { left: 68, top: 22, width: 26, height: 52, yaw: 0 },
+  { left: 5, top: 16, width: 22, height: 44, yaw: 0 },
+  { left: 33, top: 13.5, width: 34, height: 49, yaw: 0 },
+  { left: 73, top: 16, width: 22, height: 44, yaw: 0 },
 );
 
 export const FORGE_LAYOUTS: Record<ForgeMode, ForgeLayout> = {

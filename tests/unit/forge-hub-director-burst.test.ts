@@ -89,8 +89,8 @@ describe('Director game-launch-burst Theatre follow-on', () => {
     expect(peekDirectorClock().contentIn).toBeCloseTo(1, 5);
     expect(peekDirectorClock().roomDim).toBeCloseTo(1, 5);
     expect(peekDirectorClock().holoC).toMatchObject({
-      left: 20,
-      width: 60,
+      left: 15,
+      width: 70,
     });
 
     for (const p of STATIONS) {

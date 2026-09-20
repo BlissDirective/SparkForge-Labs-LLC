@@ -60,7 +60,7 @@ describe('W2 layout registry', () => {
     expect(FORGE_LAYOUTS.playStage.slots.holoL.visible).toBe(false);
     expect(FORGE_LAYOUTS.playStage.slots.holoR.visible).toBe(false);
     expect(AUTH_MERGED_CENTER).toEqual(PLAYSTAGE_CENTER);
-    expect(PLAYSTAGE_CENTER).toMatchObject({ left: 20, width: 60, yaw: 0 });
+    expect(PLAYSTAGE_CENTER).toMatchObject({ left: 15, width: 70, yaw: 0 });
   });
 
   it('does not keep authMerged as a live mode', () => {
@@ -123,8 +123,8 @@ describe('W2 layout registry', () => {
 
   it('reports content size in CSS pixels at the 1280×720 plate', () => {
     const size = slotContentSizePx(PLAYSTAGE_CENTER);
-    expect(size.width).toBeCloseTo(1280 * 0.6);
-    expect(size.height).toBeCloseTo(720 * 0.44);
+    expect(size.width).toBeCloseTo(1280 * 0.7);
+    expect(size.height).toBeCloseTo(720 * 0.73);
     const world = slotToWorld(HOLO_L_LOCK, 10, 10);
     expect(world.width).toBeCloseTo(2.43, 5);
   });
@@ -164,10 +164,15 @@ describe('W2 layout math ported from PR #164', () => {
     // HoloC now beams too (disc below the panel), so the docked trio is all three.
     expect(docked.map((b) => b.id)).toEqual(['holoC', 'holoL', 'holoR']);
 
-    // Merged PlayStage ends at y68; the disc (cy 78) is below it, so the
-    // cone still reaches the merged panel — HoloC keeps its beam.
+    // Merged PlayStage is now the tall spec-literal slab (y13.5–86.5), so it
+    // ENGLOBES the disc (cy 78). liveBeams drops any panel that contains the
+    // core, so the merged state draws no external cone — the merged glass
+    // sits over the emitter and the room dims behind it (W1-05, owner call).
     const merged = liveBeams(beamSlotsForState(1, true));
-    expect(merged.map((b) => b.id)).toEqual(['holoC']);
+    expect(merged.map((b) => b.id)).toEqual([]);
+    expect(containsPoint(resolvedSlots(1).holoC, FORGE_CORE.cx, FORGE_CORE.cy)).toBe(
+      true,
+    );
     expect(resolvedSlots(1).merged).toBe(true);
   });
 

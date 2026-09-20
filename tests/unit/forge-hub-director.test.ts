@@ -105,12 +105,7 @@ describe('W2-02 Director reduced-motion path', () => {
     director.scrub(1);
     expect(peekDirectorClock().holoLScale).toBe(1);
     expect(peekDirectorClock().holoRScale).toBe(1);
-    expect(peekDirectorClock().holoC).toMatchObject({
-      left: 31.2,
-      top: 24,
-      width: 37.6,
-      height: 48,
-    });
+    expect(peekDirectorClock().holoC).toMatchObject(HUBSPLIT_HOLO_C);
     expect(useForgeStore.getState().forge.mode).toBe('hubSplit');
   });
 
@@ -189,12 +184,7 @@ describe('W2-02 Director scrub + portal 420/560 alignment', () => {
     director.scrub(1);
     expect(peekDirectorClock().holoLScale).toBeCloseTo(1, 4);
     expect(peekDirectorClock().holoRScale).toBeCloseTo(1, 4);
-    expect(peekDirectorClock().holoC).toMatchObject({
-      left: 31.2,
-      top: 24,
-      width: 37.6,
-      height: 48,
-    });
+    expect(peekDirectorClock().holoC).toMatchObject(HUBSPLIT_HOLO_C);
     expect(peekDirectorClock().contentIn).toBeCloseTo(1, 4);
     expect(peekDirectorClock().contentOut).toBeCloseTo(0, 4);
     expect(peekDirectorClock().layoutT).toBeCloseTo(1, 4);
@@ -252,13 +242,7 @@ describe('W2-02 Director overwrite, skip, stings, Stagehand hook', () => {
   it('binds morphs to Stagehand registerMorphTargets / HoloC live seat', () => {
     const welcome = morphTargetsFor('welcome');
     const hub = registerMorphTargets('hubSplit');
-    expect(welcome.holoC).toMatchObject({
-      left: 31.2,
-      top: 24,
-      width: 37.6,
-      height: 48,
-      yaw: 0,
-    });
+    expect(welcome.holoC).toMatchObject(HUBSPLIT_HOLO_C);
     expect(hub.holoC).toMatchObject(HUBSPLIT_HOLO_C);
     expect(welcome.holoC.left).toBe(hub.holoC.left);
     expect(LAYOUT_MORPH_MS).toBe(420);
@@ -276,12 +260,7 @@ describe('W2-02 Director overwrite, skip, stings, Stagehand hook', () => {
     director.scrub(0);
     expect(peekDirectorClock().appearScale).toBeCloseTo(0, 5);
     expect(peekDirectorClock().bloom).toBeCloseTo(0, 5);
-    expect(peekDirectorClock().holoC).toMatchObject({
-      left: 31.2,
-      top: 24,
-      width: 37.6,
-      height: 48,
-    });
+    expect(peekDirectorClock().holoC).toMatchObject(HUBSPLIT_HOLO_C);
 
     director.scrub(0.2);
     expect(peekDirectorClock().cameraDollyPercent).toBeCloseTo(0.02, 5);

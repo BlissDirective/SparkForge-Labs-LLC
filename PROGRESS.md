@@ -2965,3 +2965,39 @@ dual / avatarStudio rects, and the `HUBSPLIT_HOLO_C` / `PLAYSTAGE_CENTER` centre
 against the old composition and should be re-read off the equal-trio plate with `?calibrate=1`. The
 lock pose (what SSIM measures) and the hubSplit/welcome side wings already derive from the new lock
 rects and are correct. The P1 packet waits on that re-tune plus the WebGPU number.
+
+### FORGE HUB — W1-05 live-mode registry re-tuned to the equal trio (2026-09-19)
+
+The live-mode rects in `src/lib/forge-hub/layouts.ts` were re-read off `LOCKED_HUB.jpg`. Every
+resting-mode panel now sits inside the painted glass band (top ≥ 13.5 %, bottom ≤ 62.5 %) so it
+clears the desk edge (~70 %) and the bottom-centre emitter disc (FORGE_CORE cy 78 r 12). The old
+rects were seated for the superseded top-monitor plate and pushed panel bottoms to y 66–94 (onto
+the desk / disc). Changes:
+
+- `HUBSPLIT_HOLO_C` {31.2, 24, 37.6, 48} → **{37, 13.5, 26, 49}** — the "today's mission" /
+  welcome-login plate, centred on x50 with symmetric ~1.8 % gaps to the lock wings; lifted out of
+  the desk band it used to dip into. Feeds `welcome`, `gameLobby`, `settingsDock`, `flat` (all
+  reuse it) and the Director HoloC live seat.
+- `labsBrowse` — dominant centre hero {26, 13.5, 48, 49} between two thin columns {6/77, 15, 17, 45}.
+- `focus` — large centre reading plate {16, 13.5, 68, 49}; the two wings tuck to thin ±8° lips
+  {2.5/86.5, 20, 11, 36} (reading L/R = false so yaw is kept).
+- `dual` — two strong side panels {5/54, 13.5, 41, 40} over a **wide, short centre chart band**
+  {8, 55, 84, 9} lifted up off the emitter (the old band sat at y78, now the disc). `/progress`
+  populates stats · chart · detail; `/buddies` populates friends · — · invite.
+- `avatarStudio` — centred child-avatar plate {33, 13.5, 34, 49} flanked by stats {5,16,22,44} and
+  the Sparky outfit rack {73,16,22,44}.
+- `PLAYSTAGE_CENTER` {20, 24, 60, 44} → **{15, 13.5, 70, 73}** — **owner call (2026-09-19): tall,
+  spec-literal ~70 % × ~73 %** (TAP §2.7 / MOTION_BIBLE §5.4). The merged game slab reaches DOWN
+  over the emitter disc and **englobes the core**, so `liveBeams` now draws no external cone in the
+  merged state (was a short cone under the old y24–68 seed). `AUTH_MERGED_CENTER` alias + the
+  `morphWingRect` / `resolvedSlots` merge math follow it automatically.
+
+Lock pose (`HOLO_*_LOCK`, what `?pose=lock` / SSIM measures) is **unchanged**, so SSIM stays 0.969.
+Verified by rendering each mode's rects over `LOCKED_HUB.jpg` (sharp overlay): all resting modes
+clear the desk line and emitter disc; only `playStage` covers the disc, as chosen. Tests updated —
+guard assertions on `HUBSPLIT_HOLO_C` / `PLAYSTAGE_CENTER` moved to the new geometry, and the
+director lerp-target assertions were made symbolic (reference the constants) so they no longer pin
+literals. `npx tsc --noEmit` clean; **all 27 forge-hub unit files (253 tests) pass**.
+
+Owner visual sign-off (P1 room shell / P4 PlayStage) still pending; this is the geometry the gate
+packets will show. WebGPU SSIM number (O-3) still outstanding.

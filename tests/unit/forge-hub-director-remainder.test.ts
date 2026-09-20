@@ -136,12 +136,7 @@ describe('W2 remainder scrub stations', () => {
     expect(useForgeStore.getState().forge.mode).toBe('labsBrowse');
     director.scrub(1);
     expect(useForgeStore.getState().forge.mode).toBe('hubSplit');
-    expect(peekDirectorClock().holoC).toMatchObject({
-      left: 31.2,
-      top: 24,
-      width: 37.6,
-      height: 48,
-    });
+    expect(peekDirectorClock().holoC).toMatchObject(HUBSPLIT_HOLO_C);
     expect(useForgeStore.getState().forge.sparky.spot).toBe('nearCore');
   });
 
@@ -199,8 +194,8 @@ describe('W2 remainder scrub stations', () => {
     expect(useForgeStore.getState().forge.portalPhase).toBe('idle');
     expect(peekDirectorClock().roomDim).toBeCloseTo(1, 4);
     expect(peekDirectorClock().holoC).toMatchObject({
-      left: 20,
-      width: 60,
+      left: 15,
+      width: 70,
       yaw: 0,
     });
     const live = registerMorphTargets('playStage');

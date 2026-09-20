@@ -100,10 +100,10 @@ describe('game-launch-burst session arm', () => {
 
   it('does not retouch Stagehand HoloC or portal holds', () => {
     expect(HUBSPLIT_HOLO_C).toMatchObject({
-      left: 31.2,
-      top: 24,
-      width: 37.6,
-      height: 48,
+      left: 37,
+      top: 13.5,
+      width: 26,
+      height: 49,
     });
     expect(LAYOUT_MORPH_MS).toBe(420);
     expect(PORTAL_HOLD_MS).toEqual({ charge: 420, emit: 560 });

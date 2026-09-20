@@ -103,12 +103,7 @@ describe('W2-04 Director reduced-motion substitutes', () => {
     director.scrub(0.5);
     expect(peekDirectorClock().contentIn).toBeCloseTo(0.5, 5);
     expect(peekDirectorClock().contentOut).toBeCloseTo(0.5, 5);
-    expect(peekDirectorClock().holoC).toMatchObject({
-      left: 31.2,
-      top: 24,
-      width: 37.6,
-      height: 48,
-    });
+    expect(peekDirectorClock().holoC).toMatchObject(HUBSPLIT_HOLO_C);
 
     director.scrub(1);
     expect(peekDirectorClock().contentIn).toBeCloseTo(1, 4);
