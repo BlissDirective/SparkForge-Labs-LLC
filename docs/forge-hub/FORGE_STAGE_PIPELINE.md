@@ -1,6 +1,6 @@
 # Forge Stage — Authored-Object Pipeline (Blender → GLB)
 
-**Status:** DRAFT — owner approval required (Tier 2 packet). Amends the *implementation* of decision 2 (DOM panels projected from the scene) and the plate-lock; does **not** reopen decisions 1–14.
+**Status:** **APPROVED (owner, 2026-09-30)** — AP-002. Amends the *implementation* of decision 2 (DOM panels projected from the scene) and the plate-lock; does **not** reopen decisions 1–14. Owner §15 choices: **clean room (new owner-supplied background plate)** · **Spline (screens) + Blender (desk, emitter), hand-authored via a computer-use agent with owner guidance** · object gates **folded into P1/P4** · AI mesh-gen **not used**. Build prompts: `docs/forge-hub/FORGE_STAGE_ASSET_PROMPTS.md`.
 **Date:** 2026-09-30
 **Owner:** Conrad (sole approver)
 **Sources:** TAP v2.2 §2.2 / §2.7 / §8 · decision lock `docs/01-decisions/2026-09-forge-hub.md` · `docs/sparky/SPARKY-CHARACTER-SPEC.md` · runtime constants `src/config/forgeHub.ts`, `src/lib/forge-hub/coreMap.ts`, `src/lib/forge-hub/glassSlots.ts`
@@ -164,14 +164,13 @@ Compact tier (< 1440 px) never mounts the canvas — unchanged.
 
 ---
 
-## 11. Clean-room backdrop & the SSIM gate (owner decision)
+## 11. Clean-room backdrop & the SSIM gate (DECIDED — clean room)
 
-The backdrop must lose its painted holograms. Two options:
+**Owner decision (2026-09-30): clean room.** A modeled room would eat the §8 GPU budget and pull focus from the activity in a kids' app. The backdrop is a **new, flat, owner-supplied background image** — an actual empty forge room (no holograms, no live desk/emitter painted in), authored fresh because the original `LOCKED_HUB.jpg` was composed *before* the live-object decision.
 
-- **A — Clean-room plate (recommended first):** re-cut `LOCKED_HUB.jpg` to the **empty room** (holograms removed; desk/emitter also removed since they become live objects). Ship as a **companion asset** (e.g. `world/ROOM_CLEAN.jpg`) — this does **not** alter the locked bytes of `LOCKED_HUB.jpg`, which stays the composed acceptance target. Cheapest; keeps a static backdrop.
-- **B — Modeled room:** author the room as geometry too (a later optional upgrade per TAP §2.2). More cost; enables lighting/parallax on the room itself.
-
-**SSIM gate change:** today SSIM scores live glass over the *painted* plate. Under this pipeline it scores the **full live render at the lock pose** (clean room + five live objects, no baked holograms) against `LOCKED_HUB.jpg`, still ≥ 0.96. `scripts/ssim-forge-hub.mjs` is unchanged mechanically; only what's on screen changes. Producing `ROOM_CLEAN.jpg` (or the modeled room) is an **owner-gated art action** (it's new `public/forge-hub/` bytes → add to `SHA256SUMS`).
+- **New background plate:** owner supplies (target `public/forge-hub/world/ROOM_CLEAN.jpg` — final name TBD by the owner). 1280×720, 16:9, same fixed camera. It is the runtime backdrop; the five live objects render on top of it. New `public/forge-hub/` bytes → SHA-pinned in `SHA256SUMS` (owner-gated art, approved under AP-002).
+- **Original `LOCKED_HUB.jpg`:** **not modified.** Open question for when the new plate arrives — does it remain the *composed* SSIM acceptance target (the assembled live scene at lock pose should still look like it), or does the owner supply a new composed reference too? Flag at hand-off; default is to keep `LOCKED_HUB.jpg` as the composed target unless the owner supplies a replacement.
+- **SSIM gate:** scores the **full live render at the lock pose** (new clean plate + five live objects, nothing baked) against the composed target, still ≥ 0.96. `scripts/ssim-forge-hub.mjs` is unchanged mechanically; only what is on screen changes.
 
 ---
 
@@ -204,14 +203,18 @@ To let Sparky dock with the station for activities/cinematics:
 
 ---
 
-## 15. Open decisions for the owner (approve to proceed)
+## 15. Owner decisions (RESOLVED 2026-09-30)
 
-1. **Backdrop:** Option A (clean-room plate `ROOM_CLEAN.jpg`) or B (modeled room)? (Recommend A first.)
-2. **Who authors:** external 3D artist (TAP §9 names this as the one missing skill), AI mesh-gen (Track A, needs `MESH_GEN_API_KEY` — O-2), or Spline for screens/emitter + Blender for desk/emitter/Sparky?
-3. **Approve the clean-room art action** (new `public/forge-hub/` bytes + `SHA256SUMS` update) and the **SSIM-gate reinterpretation** (full live render vs plate).
-4. **Object gate mapping:** fold object checkpoints into P1/P4, or add a dedicated object gate series?
+1. **Backdrop:** ✅ **Clean room** — a new flat owner-supplied background plate (§11). Not modeled (too heavy/distracting for a kids' app).
+2. **Who authors:** ✅ **Spline (screens) + Blender (desk, emitter), hand-authored via a computer-use agent with owner guidance.** Build prompts + bpy scaffold: `docs/forge-hub/FORGE_STAGE_ASSET_PROMPTS.md`. **AI mesh-gen not used → O-2 key not required for the forge stage.**
+3. **Art action:** ✅ approved — the owner develops and supplies the new locked background image; new GLB + plate bytes land under `public/forge-hub/` SHA-pinned; SSIM = full live render vs the composed target (§11). *Sub-item to confirm at hand-off: whether `LOCKED_HUB.jpg` stays the composed SSIM target or is replaced.*
+4. **Object gates:** ✅ **folded into P1** (room/emitter/desk) **and P4** (screens/PlayStage); Sparky stays on the C-series.
 
 None of the above reopens decisions 1–14; they are implementation choices under decision 2 + the plate lock.
+
+### Owner-side actions outstanding
+- **Supply the new clean background plate** (`ROOM_CLEAN.jpg` or owner's chosen name), 1280×720. Blocks final placement + the P1 SSIM number.
+- Confirm the SSIM composed-target question in §11 when the plate is supplied.
 
 ---
 

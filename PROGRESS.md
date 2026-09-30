@@ -3038,3 +3038,27 @@ via `optimize:3d`), TAP §8 budgets, the clean-room backdrop + SSIM-gate reinter
 Sparky desk-dock future-proofing, LFS/SHA governance, and the owner decisions (§15). Draft —
 awaiting owner approval; amends the implementation of decision 2 + the plate-lock, does not reopen
 decisions 1–14.
+
+### FORGE HUB — AP-002 approved: authored-object stage, clean room, asset prompts (2026-09-30)
+
+Owner resolved the §15 calls for the live-object forge stage (AP-002 **approved**):
+- **Clean room** — a new flat owner-supplied background plate (a modeled room would be too
+  heavy/distracting for a kids' app). The five live objects render on top; `LOCKED_HUB.jpg`
+  stays untouched as the composed reference. Owner will supply the new plate (blocks final
+  placement + the P1 SSIM number).
+- **Spline (screens) + Blender (desk, emitter)**, hand-authored via a **computer-use agent with
+  owner guidance**. **AI mesh-gen not used** → O-2 key not required for the forge stage.
+- **Object gates folded into P1** (room/emitter/desk) **and P4** (screens/PlayStage); Sparky stays
+  on the C-series.
+
+Deliverables (FS-03): `docs/forge-hub/FORGE_STAGE_ASSET_PROMPTS.md` — a prompt playbook for the
+computer-use agent: operator meta-prompt (role, non-negotiable contract, method, verification),
+per-object art-refinement prompts (SfEmitter, HubDesk), Spline GUI steps for the screens,
+export→`optimize:3d`→SHA governance, and an acceptance checklist. Reliability guidance: a CU agent
+clicking a 3D GUI is error-prone, so the reliable spine is `scripts/blender/forge_stage/
+build_forge_stage.py` — a runnable bpy scaffold that emits HubDesk + SfEmitter + HoloScreens to the
+exact contract (metres, +Y-up export, desk radius 1.62 m / top at y=0, emitter disc on centre,
+screens as unit planes with bottom-centre pivot + UV0 0..1), with every socket named to match
+`sparkySpots.ts` (deskDock, 5× sparkySeat, beamOrigin C/L/R, contentQuad). The glass look stays a
+runtime shader (nothing baked). Governance/decision-lock/task-board updated; AP-002 recorded
+approved. tsc/tests unaffected (docs + script only).
