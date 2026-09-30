@@ -3001,3 +3001,40 @@ literals. `npx tsc --noEmit` clean; **all 27 forge-hub unit files (253 tests) pa
 
 Owner visual sign-off (P1 room shell / P4 PlayStage) still pending; this is the geometry the gate
 packets will show. WebGPU SSIM number (O-3) still outstanding.
+
+### FORGE HUB — live-object stage direction: in-repo POC + pipeline packet (2026-09-30)
+
+Owner flagged the core flaw in the current shell: holograms are baked into `LOCKED_HUB.jpg` AND
+redrawn as live glass on top, so any morph drifts off the painting (no rect-tune fixes it). Owner
+direction: make the three holograms + desk + SF emitter **live authored 3D objects on an empty
+room** — five objects morphing/reacting on one clock, a single coherent interactive environment.
+
+**POC ported in-repo (FS-01):** `/dev/forge-poc`. A single `stage` scalar (0 welcome · 0.5 hub ·
+1 playStage) drives every object through `samplePocPose()`:
+- `src/lib/forge-hub/poc/pocStage.ts` — pure single-clock pose math (keyframes + sampler),
+  unit-tested (`tests/unit/forge-poc-poses.test.ts`, 6 tests).
+- `src/components/forge-hub/poc/pocScene.ts` — imperative R3F scene graph: empty warm-room
+  backdrop (no baked holograms), desk, SF emitter (glow sprite + core), three glass screens
+  (rounded-SDF glass shader, content composited onto the centre so it merges with the glass),
+  emitter→screen beams, and a "baked-frame" demo group fixed at the old trio pose.
+- `pocContent.ts` (content textures), `ForgePocStage.tsx` (Canvas + useFrame clock + Bloom),
+  `ForgePocClient.tsx` (HUD: Welcome/Hub/Play buttons, stage-openness scrubber, auto-cycle,
+  beams, reduced-motion, and the "Show baked-frame problem" toggle that reveals the drift this
+  approach removes). `src/app/dev/forge-poc/page.tsx` server LCP heading + ssr:false client.
+
+Glow is baked into the materials (additive edges + emitter sprite) so it reads even without
+post-processing; `@react-three/postprocessing` Bloom layers on for capable GPUs. Stand-in
+procedural geometry only — authored GLBs replace it. `npx tsc --noEmit` clean; eslint clean
+(named three imports per repo rule); pose tests pass; route compiles under Turbopack and serves
+200 with the LCP heading. Not yet wired to `forgeStore`/Director (next step). A companion live
+artifact (three.js) was published for the owner feel-test.
+
+**Pipeline packet (FS-02 / AP-002):** `docs/forge-hub/FORGE_STAGE_PIPELINE.md` — the Blender→GLB
+asset contract for the five objects: coordinate/scale contract (fixed `FORGE_HUB_CAMERA`, plate
+percent anchors from `glassSlots`/`coreMap`), object roster + named clips (transform / shape-key /
+armature), naming (objects, `socket.*`, `contentQuad`, materials, clips), the geometry-authored /
+light-is-runtime material split, the content-on-glass contract, glTF export settings (Draco+KTX2
+via `optimize:3d`), TAP §8 budgets, the clean-room backdrop + SSIM-gate reinterpretation, the
+Sparky desk-dock future-proofing, LFS/SHA governance, and the owner decisions (§15). Draft —
+awaiting owner approval; amends the implementation of decision 2 + the plate-lock, does not reopen
+decisions 1–14.
