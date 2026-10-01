@@ -3062,3 +3062,26 @@ screens as unit planes with bottom-centre pivot + UV0 0..1), with every socket n
 `sparkySpots.ts` (deskDock, 5× sparkySeat, beamOrigin C/L/R, contentQuad). The glass look stays a
 runtime shader (nothing baked). Governance/decision-lock/task-board updated; AP-002 recorded
 approved. tsc/tests unaffected (docs + script only).
+
+### FORGE HUB — POC wired to forgeStore/Director + GLB loaders (2026-10-01)
+
+`/dev/forge-poc` is now a real forge-slice consumer, not a private widget:
+- HUD buttons call `applyForgeRoute(forgeRouteForDevMode(mode, rm))` (welcome → `welcome`,
+  Hub → `hubSplit`, Play Stage → `playStage`); the scene reads `forge.mode`/`forge.previousMode`
+  each frame, eases its single `stage` toward `modeToStage(forge.mode)`, and mirrors progress into
+  the shared `forge.morphProgress` (the same clock HoloPanel/Director use). Scrubber + auto-cycle
+  are local overrides that sync the store mode on settle. New pure mappers `modeToStage` /
+  `stageToMode` are unit-tested.
+- `pocScene` split into environment (lights, backdrop, emitter glow, beams, baked-frame demo —
+  always) and procedural objects (desk/emitter/screens) behind `includeObjects`; added
+  `registerScreens()` + exported `makeGlassMaterial()` so authored screens reuse the exact glass
+  shader and pose clock.
+- `ForgePocGltfObjects` (new) loads `HubDesk/SfEmitter/HoloScreens` from
+  `public/forge-hub/world/objects/*.glb` (`pocAssets.ts`), assigns the glass shader to the screen
+  meshes, reparents them into world space, and registers them on the controller — the authored
+  objects drop into the live, Director-driven harness with no further code. A HEAD probe gates the
+  "Authored GLBs" toggle (procedural stand-ins until the GLBs exist); final placement/calibration
+  waits on the new background plate (P1/P4).
+
+`npx tsc --noEmit` clean; eslint clean; 7 pose tests pass; `/dev/forge-poc` compiles under
+Turbopack and serves 200. The GLB branch is contract-wired but unverifiable until real GLBs exist.

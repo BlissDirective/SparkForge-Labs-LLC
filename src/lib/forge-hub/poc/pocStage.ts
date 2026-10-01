@@ -12,6 +12,8 @@
 // it is the throwaway-geometry stand-in the authored GLBs replace.
 // See docs/forge-hub/FORGE_STAGE_PIPELINE.md.
 
+import type { ForgeMode } from '@/lib/forge-hub/types';
+
 export type PocContent = 'welcome' | 'hub' | 'play';
 
 export interface PocSlot {
@@ -128,4 +130,32 @@ export function samplePocPose(stage: number): PocPose {
 export function stageNameFor(stage: number): PocStageName {
   const s = clamp01(stage);
   return s < 0.25 ? 'welcome' : s < 0.75 ? 'hub' : 'play';
+}
+
+/**
+ * Map a real forge-slice `ForgeMode` onto the POC's three-stop stage axis
+ * so the live store / Director drives the POC. The POC only models the
+ * three key compositions; every resting hub-family mode reads as 0.5 and
+ * only `playStage` reaches the merged slab.
+ */
+export function modeToStage(mode: ForgeMode): number {
+  switch (mode) {
+    case 'welcome':
+    case 'cinematic':
+      return 0;
+    case 'playStage':
+      return 1;
+    default:
+      // hubSplit, labsBrowse, gameLobby, avatarStudio, settingsDock,
+      // focus, dual, flat → the resting hub composition
+      return 0.5;
+  }
+}
+
+/** Nearest forge mode for a POC stage value (HUD button → applyForgeRoute). */
+export function stageToMode(stage: number): ForgeMode {
+  const s = clamp01(stage);
+  if (s < 0.25) return 'welcome';
+  if (s < 0.75) return 'hubSplit';
+  return 'playStage';
 }

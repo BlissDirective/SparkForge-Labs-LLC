@@ -7,8 +7,10 @@ import {
   POC_KEYFRAMES,
   POC_STAGE_VALUE,
   contentForStage,
+  modeToStage,
   samplePocPose,
   stageNameFor,
+  stageToMode,
 } from '@/lib/forge-hub/poc/pocStage';
 
 describe('forge POC single-clock pose model', () => {
@@ -78,6 +80,22 @@ describe('forge POC single-clock pose model', () => {
     expect(stageNameFor(0)).toBe('welcome');
     expect(stageNameFor(0.5)).toBe('hub');
     expect(stageNameFor(1)).toBe('play');
+  });
+
+  it('maps forge modes onto the three-stop stage axis and back', () => {
+    expect(modeToStage('welcome')).toBe(0);
+    expect(modeToStage('cinematic')).toBe(0);
+    expect(modeToStage('playStage')).toBe(1);
+    for (const m of ['hubSplit', 'labsBrowse', 'gameLobby', 'avatarStudio', 'settingsDock', 'focus', 'dual', 'flat'] as const) {
+      expect(modeToStage(m)).toBe(0.5);
+    }
+    expect(stageToMode(0)).toBe('welcome');
+    expect(stageToMode(0.5)).toBe('hubSplit');
+    expect(stageToMode(1)).toBe('playStage');
+    // round-trips at the three stops
+    expect(modeToStage(stageToMode(0))).toBe(0);
+    expect(modeToStage(stageToMode(0.5))).toBe(0.5);
+    expect(modeToStage(stageToMode(1))).toBe(1);
   });
 
   it('interpolates side yaw from tilted (hub) toward flat (merged)', () => {
